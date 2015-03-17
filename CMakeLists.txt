@@ -2181,11 +2181,6 @@ set(VISP_ROOT_DIR_DATA_CONFIGCMAKE "${VISP_BINARY_DIR}")
 SET(VISP_SCENES_DIR ${VISP_ROOT_DIR_DATA_CONFIGCMAKE}/data/wireframe-simulator)
 SET(VISP_ROBOT_ARMS_DIR ${VISP_ROOT_DIR_DATA_CONFIGCMAKE}/data/robot-simulator)
 
-# Generate the package dependent file include/visp/vpConfig.h
-CONFIGURE_FILE(${VISP_SOURCE_DIR}/include/vpConfig.h.cmake
-  ${VISP_INCLUDE_DIR}/vpConfig.h
-)
-
 # case 2: when ViSP is build with make install; files are used in <install dir>
 #--------------
 IF(UNIX)
@@ -2204,6 +2199,11 @@ endif()
 if(VISP_INSTALL_DIR_OGRE_RESOURCES)
   SET(VISP_HAVE_OGRE_PLUGINS_PATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/visp/data/ogre-simulator)
 endif()
+
+# Generate the package dependent file include/visp/vpConfig.h
+CONFIGURE_FILE(${VISP_SOURCE_DIR}/include/vpConfig.h.cmake
+  ${VISP_INCLUDE_DIR}/vpConfig.h
+)
 
 #----------------------------------------------------------------------
 # Generate the ViSP-third-party.txt information file
