@@ -2311,7 +2311,8 @@ include(${VISP_CMAKE_MODULE_PATH}/VISPGenerateConfig.cmake)
 #    visp-config --cflags ...
 #----------------------------------------------------------------------
 include(${VISP_CMAKE_MODULE_PATH}/VISPGeneratePkgConfigScript.cmake)
-
+# Install catkin package.xml
+install(FILES package.xml DESTINATION share/visp)
 #----------------------------------------------------------------------
 # Propagation in sub dirs to build demo, example, test, tutorial
 #----------------------------------------------------------------------
@@ -2321,7 +2322,7 @@ if(BUILD_TESTS)
   # We use CDash set through CTestConfig.cmake file
   # Dashboards are sent to http://cdash.irisa.fr/CDash/index.php?project=ViSP
   #----------------------------------------------------------------------
-  enable_testing()
+  #enable_testing()
   include(Dart)
   mark_as_advanced(DART_ROOT)
   mark_as_advanced(BUILD_TESTING)
