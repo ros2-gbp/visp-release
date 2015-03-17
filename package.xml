@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>visp</name>
-  <version>2.9.0</version>
+  <version>2.10.0</version>
   <description>
     ViSP, standing for Visual Servoing Platform, is unique. This software
     is a complete cross-platform solution that allows prototyping and
@@ -32,13 +32,14 @@
   <build_depend>libxml2</build_depend>
   <build_depend>libjpeg</build_depend>
   <build_depend>libpng12-dev</build_depend>
-  <build_depend>ffmpeg</build_depend>
   <build_depend>bzip2</build_depend>
   <build_depend>libx11-dev</build_depend>
   <build_depend>libv4l-dev</build_depend>
   <build_depend>libusb-dev</build_depend>
   <build_depend>libfreenect-dev</build_depend>
   <build_depend>libois-dev</build_depend>
+  <build_depend>libdmtx-dev</build_depend>
+  <build_depend>zbar</build_depend>
 
   <run_depend>libopencv-dev</run_depend>
   <run_depend>liblapack-dev</run_depend>
@@ -50,10 +51,11 @@
   <run_depend>libjpeg</run_depend>
   <run_depend>libpng12-dev</run_depend>
   <run_depend>bzip2</run_depend>
-  <run_depend>ffmpeg</run_depend>
   <run_depend>libx11-dev</run_depend>
   <run_depend>libv4l-dev</run_depend>
   <run_depend>libusb-dev</run_depend>
   <run_depend>libfreenect-dev</run_depend>
   <run_depend>libois-dev</run_depend>
+  <run_depend>libdmtx-dev</run_depend>
+  <run_depend>zbar</run_depend>
 </package>
