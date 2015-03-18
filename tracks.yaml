@@ -27,6 +27,8 @@ tracks:
     - git-bloom-generate -y rosrelease :{ros_distro} --source upstream -i :{release_inc}
     - git-bloom-generate -y rosdebian --prefix release/:{ros_distro} :{ros_distro}
       -i :{release_inc}
+    - git-bloom-generate -y rosrpm --prefix release/:{ros_distro} :{ros_distro} -i
+      :{release_inc}
     devel_branch: null
     last_version: 2.9.0
     name: upstream
@@ -36,7 +38,7 @@ tracks:
     release_tag: null
     ros_distro: groovy
     vcs_type: svn
-    vcs_uri: svn://scm.gforge.inria.fr/svnroot/visp/tags/ViSP_2_9_0
+    vcs_uri: svn://scm.gforge.inria.fr/svnroot/visp/tags/ViSP_2_10_0
     version: :{ask}
   hydro:
     actions:
