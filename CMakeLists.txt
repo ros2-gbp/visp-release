@@ -1,10 +1,10 @@
 #############################################################################
 #
-# $Id: CMakeLists.txt 4679 2014-02-19 10:22:21Z fspindle $
+# $Id: CMakeLists.txt 5368 2015-03-17 17:01:38Z fspindle $
 #
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2014 by INRIA. All rights reserved.
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # ("GPL") version 2 as published by the Free Software Foundation.
@@ -12,11 +12,11 @@
 # distribution for additional information about the GNU GPL.
 #
 # For using ViSP with software that can not be combined with the GNU
-# GPL, please contact INRIA about acquiring a ViSP Professional 
+# GPL, please contact INRIA about acquiring a ViSP Professional
 # Edition License.
 #
 # See http://www.irisa.fr/lagadic/visp/visp.html for more information.
-# 
+#
 # This software was developed at:
 # INRIA Rennes - Bretagne Atlantique
 # Campus Universitaire de Beaulieu
@@ -26,7 +26,7 @@
 #
 # If you have questions regarding the use of this file, please contact
 # INRIA at visp@inria.fr
-# 
+#
 # This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
 # WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
@@ -38,14 +38,19 @@
 #
 #############################################################################
 
-PROJECT(VISP C CXX)
+# Need to be befor project(VISP) to work
+if(WIN32)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Installation Directory")
+endif()
+
+project(VISP C CXX)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 #-----------------------------------------------------------------------------
 # VISP version number.  An even minor number corresponds to releases.
 SET(VISP_VERSION_MAJOR "2")
-SET(VISP_VERSION_MINOR "9")
+SET(VISP_VERSION_MINOR "10")
 SET(VISP_VERSION_PATCH "0")
 SET(VISP_VERSION "${VISP_VERSION_MAJOR}.${VISP_VERSION_MINOR}.${VISP_VERSION_PATCH}")
 # Package revision number
@@ -54,7 +59,7 @@ SET(VISP_REVISION "1")
 # where are user-specific cmake modules
 set(VISP_CMAKE_MODULE_PATH ${VISP_SOURCE_DIR}/CMakeModules)
 
-find_file(GNU_INSTALL_DIRS_FROM_CMAKE ${CMAKE_ROOT}/Modules/GNUInstallDirs.cmake)
+find_file(GNU_INSTALL_DIRS_FROM_CMAKE NAMES GNUInstallDirs.cmake PATHS ${CMAKE_ROOT}/Modules)
 mark_as_advanced(GNU_INSTALL_DIRS_FROM_CMAKE)
 if(GNU_INSTALL_DIRS_FROM_CMAKE)
   include(${CMAKE_ROOT}/Modules/GNUInstallDirs.cmake)
@@ -84,8 +89,12 @@ SET(VISP_EXTERN_LIBRARIES "")
 SET(VISP_DEFS "")
 
 if(WIN32)
-    # Postfix of .lib and .dll
-    set(CMAKE_DEBUG_POSTFIX "d")
+  # Postfix of .lib and .dll
+  set(VISP_DEBUG_POSTFIX "d")
+  set(VISP_DLLVERSION "${VISP_VERSION_MAJOR}${VISP_VERSION_MINOR}${VISP_VERSION_PATCH}")
+else()
+  set(VISP_DEBUG_POSTFIX "")
+  set(VISP_DLLVERSION "")
 endif()
 
 # Get the OS
@@ -94,14 +103,14 @@ SET(OS ${CMAKE_SYSTEM_NAME})
 SET(OGRE_HOME $ENV{OGRE_HOME})
 if(OGRE_HOME)
   # replace \ with / especially for windows
-  STRING(REGEX REPLACE "\\\\" "/" OGRE_HOME ${OGRE_HOME}) 
+  STRING(REGEX REPLACE "\\\\" "/" OGRE_HOME ${OGRE_HOME})
 endif()
 
 # add the path to detect Ogre3D
 if(WIN32)
   list(APPEND CMAKE_MODULE_PATH "${OGRE_HOME}/CMake")
 endif(WIN32)
- 
+
 if(UNIX)
   list(APPEND CMAKE_MODULE_PATH "${OGRE_HOME}/cmake")
   list(APPEND CMAKE_MODULE_PATH "${OGRE_HOME}/CMake")
@@ -136,10 +145,12 @@ endif()
 OPTION(BUILD_SHARED_LIBS "Build ViSP shared libraries (.dll/.so) instead of static ones (.lib/.a)." ON)
 # Build examples as an option.
 OPTION(BUILD_EXAMPLES "Build ViSP examples." ON)
+# Build examples as an option.
+OPTION(BUILD_TESTS "Build ViSP tests." ON)
 # Build demos as an option.
 OPTION(BUILD_DEMOS "Build ViSP demos." ON)
 # Build demos as an option.
-OPTION(BUILD_TUTORIAL "Build ViSP tutorial." ON)
+OPTION(BUILD_TUTORIALS "Build ViSP tutorials." ON)
 # Build deprecated functions as an option.
 OPTION(BUILD_DEPRECATED_FUNCTIONS "Build deprecated functionalities." ON)
 # Debug and trace cflags
@@ -254,7 +265,7 @@ IF(WIN32)
   ELSE(DIRECTSHOW_FOUND)
     SET(USE_DIRECTSHOW OFF)
   ENDIF(DIRECTSHOW_FOUND)
-  
+
 ENDIF(WIN32)
 
 include(FindOpenMP)
@@ -315,7 +326,7 @@ IF (OGRE_FOUND)
 ELSE ()
   SET(USE_OGRE OFF)
 ENDIF ()
- 
+
 FIND_PACKAGE(OIS QUIET)
 MARK_AS_ADVANCED(OIS_DIR)
 IF (OGRE_FOUND AND OIS_FOUND)
@@ -355,7 +366,7 @@ IF(USE_COIN)
     SET(USE_SOQT OFF)
   ENDIF (SOQT_FOUND)
   IF(USE_SOQT)
-    INCLUDE (${CMAKE_ROOT}/Modules/FindQt.cmake) 
+    INCLUDE (${CMAKE_ROOT}/Modules/FindQt.cmake)
     IF (QT_FOUND)
       OPTION(USE_QT    "Compile ViSP with Qt" ON)
     ELSE (QT_FOUND)
@@ -419,8 +430,8 @@ ELSE(X11_FOUND)
   SET(USE_X11 OFF)
 ENDIF(X11_FOUND)
 
-# The native FindGTK2.cmake doesn't consider libgobject-2.0 that is 
-# requested by ViSP. That's why we use our FindMyGTK2.cmake 
+# The native FindGTK2.cmake doesn't consider libgobject-2.0 that is
+# requested by ViSP. That's why we use our FindMyGTK2.cmake
 #FIND_PACKAGE(GTK2)
 #mark_as_advanced(GTK2_ATK_INCLUDE_DIR)
 #mark_as_advanced(GTK2_CAIRO_INCLUDE_DIR)
@@ -468,12 +479,16 @@ else(PNG_FOUND)
   endif()
 endif()
 
-FIND_PACKAGE(FFMPEG)
-IF(FFMPEG_FOUND)
-  OPTION(USE_FFMPEG    "Compile ViSP with the ffmpeg library" ON)
-ELSE(FFMPEG_FOUND)
-  SET(USE_FFMPEG OFF)
-ENDIF(FFMPEG_FOUND)
+find_package(FFMPEG)
+if(FFMPEG_FOUND)
+  if(USE_OPENCV)
+    option(USE_FFMPEG    "Compile ViSP with the ffmpeg library" OFF)
+  else()
+    option(USE_FFMPEG    "Compile ViSP with the ffmpeg library" ON)
+  endif()
+else()
+  set(USE_FFMPEG OFF)
+endif()
 
 # To control Pioneer mobile robots, under UNIX we need Aria, pthread, rt and dl 3rd party libraries
 find_package(ARIA)
@@ -496,6 +511,19 @@ else()
   SET(USE_DL OFF)
 endif()
 
+find_package(ZBAR)
+if(ZBAR_FOUND)
+  OPTION(USE_ZBAR    "Compile ViSP with zbar library" ON)
+else()
+  SET(USE_ZBAR OFF)
+endif()
+
+find_package(DMTX)
+if(DMTX_FOUND)
+  OPTION(USE_DMTX    "Compile ViSP with zbar library" ON)
+else()
+  SET(USE_DMTX OFF)
+endif()
 
 # Set other options to default value
 #SET(USE_X11        ON) # For Linux/OSX display
@@ -523,12 +551,64 @@ IF(BUILD_SHARED_LIBS)
   SET(VISP_BUILD_SHARED_LIBS TRUE)  # for header vpConfig.h
 ENDIF(BUILD_SHARED_LIBS)
 
+#----------------------------------------------------------------------
+# Try to find doxygen for documentation generation
+# Use "make visp_doc" target to generate the documentation
+#----------------------------------------------------------------------
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+  set(VISP_HAVE_DOXYGEN "yes")        # for header vpConfig.h
+  set(VISP_HAVE_DOXYGEN_FOUND "yes")  # for ViSP-third-party.txt
+  if(DOXYGEN_DOT_EXECUTABLE)
+    set(VISP_HAVE_DOT "yes")        # for header vpConfig.h
+    set(VISP_HAVE_DOT_FOUND "yes")  # for ViSP-third-party.txt
+  else()
+    set(VISP_HAVE_DOT "no")        # for header vpConfig.h
+    set(VISP_HAVE_DOT_FOUND "no")  # for ViSP-third-party.txt
+  endif()
+  ## we need latex for doxygen because of the formulas
+  find_package(LATEX)
+  if(NOT LATEX_COMPILER)
+    message(STATUS "latex command LATEX_COMPILER not found but usually required. You will probably get warnings and user interaction on doxy run.")
+  endif()
+  if(NOT MAKEINDEX_COMPILER)
+    message(STATUS "makeindex command MAKEINDEX_COMPILER not found but usually required.")
+  endif()
+  if(NOT DVIPS_CONVERTER)
+    message(STATUS "dvips command DVIPS_CONVERTER not found but usually required.")
+  endif()
+
+  configure_file(${VISP_SOURCE_DIR}/doc/config-doxygen.in
+    ${VISP_DOC_DIR}/config-doxygen
+    @ONLY )
+
+  configure_file(${VISP_SOURCE_DIR}/doc/mainpage.doc.in
+    ${VISP_DOC_DIR}/mainpage.doc
+    @ONLY )
+else()
+  set(VISP_HAVE_DOXYGEN "no")        # for header vpConfig.h
+  set(VISP_HAVE_DOXYGEN_FOUND "no")  # for ViSP-third-party.txt
+  set(VISP_HAVE_DOT_FOUND "no")      # for ViSP-third-party.txt
+endif()
+
+# ----------------------------------------------------------------------------
+# Solution folders:
+# ----------------------------------------------------------------------------
+if(MSVC_IDE OR CMAKE_GENERATOR MATCHES Xcode)
+  option(ENABLE_SOLUTION_FOLDERS "Solution folder in Visual Studio or in other IDEs" ON)
+endif()
+
+if(ENABLE_SOLUTION_FOLDERS)
+  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+  set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeTargets")
+endif()
+
+# Extra ViSP targets: uninstall, etc.
+include(${VISP_CMAKE_MODULE_PATH}/VISPExtraTargets.cmake)
+
 
 INCLUDE(CheckLibraryExists)
 
-#--------------------------------------------------------------------
-# yarp lib
-#--------------------------------------------------------------------
 #--------------------------------------------------------------------
 # yarp lib
 #--------------------------------------------------------------------
@@ -541,19 +621,19 @@ IF(USE_YARP)
     SET(VISP_HAVE_YARP TRUE)  # for header vpConfig.h
     SET(VISP_HAVE_YARP_FOUND "yes")  # for ViSP-third-party.txt
     LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${YARP_INCLUDE_DIRS})
-    
+
   # Work around to add Yarp libraries and also third party libraries requested by Yarp
     LIST(REVERSE YARP_LIBRARIES) # to start with YARP_init, that depends on YARP_dev, YARP_sig and YARP_OS
     FOREACH(lib ${YARP_LIBRARIES})
  	  #MESSAGE("lib: ${lib}")
       GET_TARGET_PROPERTY(CONFIGURATIONS ${lib} IMPORTED_CONFIGURATIONS)
-	  FOREACH(CONFIGURATION ${CONFIGURATIONS})		
+	  FOREACH(CONFIGURATION ${CONFIGURATIONS})
 		GET_TARGET_PROPERTY(YARP_LIB ${lib} "IMPORTED_LOCATION_${CONFIGURATION}") # Get Yarp full absolute library path and name
-		
+
 	    IF(WIN32)
 		  #Work around when YARP is build as shared libraries
 		  STRING(REGEX REPLACE ".dll$" ".lib" YARP_LIB ${YARP_LIB})
-		  
+
           IF(${CONFIGURATION} STREQUAL "RELEASE")
             LIST(APPEND VISP_EXTERN_LIBRARIES optimized ${YARP_LIB}) # Append full absolute library path and name
 	      ELSEIF(${CONFIGURATION} STREQUAL "DEBUG")
@@ -562,19 +642,21 @@ IF(USE_YARP)
         ELSE()
  	      LIST(APPEND VISP_EXTERN_LIBRARIES ${YARP_LIB}) # Append full absolute library path and name
 	    ENDIF()
-        # Get 3rd party libraries requested by Yarp 
-        GET_TARGET_PROPERTY(YARP_LINK_LIBS_ ${lib} "IMPORTED_LINK_INTERFACE_LIBRARIES_${CONFIGURATION}") 
+        # Get 3rd party libraries requested by Yarp
+        GET_TARGET_PROPERTY(YARP_LINK_LIBS_ ${lib} "IMPORTED_LINK_INTERFACE_LIBRARIES_${CONFIGURATION}")
         LIST(APPEND YARP_LINK_LIBS ${YARP_LINK_LIBS_})
       ENDFOREACH()
     ENDFOREACH()
-    
-	# Remove Yarp libraries since they were added previously with full absolute library path and name
-    FOREACH(lib ${YARP_LIBRARIES})
-      LIST(REMOVE_ITEM YARP_LINK_LIBS ${lib})
-    ENDFOREACH()
-    # Add 3rd party libraries requested by Yarp  	
+
+    # Remove Yarp libraries since they were added previously with full absolute library path and name
+    if(YARP_LINK_LIBS)
+      foreach(lib ${YARP_LIBRARIES})
+        list(REMOVE_ITEM YARP_LINK_LIBS ${lib})
+      endforeach()
+    endif()
+    # Add 3rd party libraries requested by Yarp
     LIST(APPEND VISP_EXTERN_LIBRARIES ${YARP_LINK_LIBS})
-    
+
     LIST(APPEND VISP_DEFS ${YARP_DEFINES})
   ELSE()
     MESSAGE(STATUS "yarp not found")
@@ -583,7 +665,7 @@ IF(USE_YARP)
 ENDIF(USE_YARP)
 
 #---------------------------------------------------------------------
-# Try to determine if Inria's NAS server hosting /udd/ is available 
+# Try to determine if Inria's NAS server hosting /udd/ is available
 #----------------------------------------------------------------------
 FIND_PACKAGE(NAS)
 IF(NAS_FOUND)
@@ -609,8 +691,16 @@ IF(WIN32 AND NOT CYGWIN)
   if(MINGW)
     CHECK_LIBRARY_EXISTS("ws2_32.a" getch "" HAVE_LIBWS2_32) # for inet_ntoa() and socket functionalities
     if(HAVE_LIBWS2_32)
-      #message("have ws2_32.a")
       list(APPEND VISP_EXTERN_LIBRARIES "ws2_32.a")
+	else()
+	  find_library(WS2_32_LIBRARY "libws2_32.a"
+        "$ENV{MINGW_DIR}/lib"
+        "$ENV{MINGW_DIR}/mingw/lib"
+        C:/mingw/mingw/lib)
+	  mark_as_advanced(WS2_32_LIBRARY)
+	  if(WS2_32_LIBRARY)
+	    list(APPEND VISP_EXTERN_LIBRARIES "${WS2_32_LIBRARY}")
+	  endif()
     endif()
   else() # pure WIN32
     CHECK_LIBRARY_EXISTS("ws2_32.lib" getch "" HAVE_LIBWS2_32) # for inet_ntoa() and socket functionalities
@@ -620,7 +710,6 @@ IF(WIN32 AND NOT CYGWIN)
     endif()
   endif()
 ENDIF(WIN32 AND NOT CYGWIN)
-
 if(UNIX)
   if(BUILD_DEPRECATED_FUNCTIONS)
     list(APPEND VISP_DEFS "-DUNIX")
@@ -630,15 +719,6 @@ if(UNIX)
     if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
       list(APPEND VISP_DEFS "-DSOLARIS")
     endif()
-  endif()
-endif()
-
-if(UNIX)
-  include(TestBigEndian)
-  TEST_BIG_ENDIAN(BIGENDIAN)
-  #SET(BIGENDIAN FALSE)
-  if(BIGENDIAN)
-    add_definitions("-DBIGENDIAN")
   endif()
 endif()
 
@@ -682,7 +762,7 @@ IF(USE_LAPACK)
   MESSAGE(STATUS "lapack/blas found")
   SET(VISP_HAVE_LAPACK TRUE)          # for header vpConfig.h
   SET(VISP_HAVE_LAPACK_FOUND "yes")   # for ViSP-third-party.txt
-  
+
   #MESSAGE("LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
   LIST(APPEND VISP_EXTERN_LIBRARIES ${LAPACK_LIBRARIES})
 ENDIF(USE_LAPACK)
@@ -748,13 +828,19 @@ IF(USE_OGRE)
 	# search names with "lib". This is the workaround.
 	set(CMAKE_FIND_LIBRARY_PREFIXES ${CMAKE_FIND_LIBRARY_PREFIXES} "")
     endif ()
-    set(Boost_ADDITIONAL_VERSIONS "1.53.0" "1.52.0" "1.51.0" "1.50.0" "1.49.0" "1.48.0" "1.47.0" "1.46.0" "1.45.0" "1.44.0" "1.44" "1.44.0" "1.42" "1.42.0" "1.41.0" "1.41" "1.40.0" "1.40" "1.39.0" "1.39" "1.38.0" "1.38" "1.37.0" "1.37" )
-    # Components that need to be linked with. Since Ogre 1.9 we need not only boost_thread and boost_date_time, but also boost_system 
+    #set(Boost_ADDITIONAL_VERSIONS "1.53.0" "1.52.0" "1.51.0" "1.50.0" "1.49.0" "1.48.0" "1.47.0" "1.46.0" "1.45.0" "1.44.0" "1.44" "1.44.0" "1.42" "1.42.0" "1.41.0" "1.41" "1.40.0" "1.40" "1.39.0" "1.39" "1.38.0" "1.38" "1.37.0" "1.37" )
+    # Components that need to be linked with. Since Ogre 1.9 we need not only boost_thread and boost_date_time, but also boost_system
     set(OGRE_BOOST_COMPONENTS thread system date_time)
+    if(WIN32)
+      list(APPEND OGRE_BOOST_COMPONENTS chrono)
+    endif()
     find_package(Boost COMPONENTS ${OGRE_BOOST_COMPONENTS} QUIET)
-    mark_as_advanced(Boost_LIB_DIAGNOSTIC_DEFINITIONS Boost_DIR)
+    mark_as_advanced(Boost_LIB_DIAGNOSTIC_DEFINITIONS Boost_DIR BOOST_THREAD_LIBRARY)
     if (NOT Boost_FOUND)
       set(OGRE_BOOST_COMPONENTS thread date_time)
+      if(WIN32)
+        list(APPEND OGRE_BOOST_COMPONENTS chrono)
+      endif()
       find_package(Boost COMPONENTS ${OGRE_BOOST_COMPONENTS} QUIET)
     endif()
     if (NOT Boost_FOUND)
@@ -762,11 +848,11 @@ IF(USE_OGRE)
       set(Boost_USE_STATIC_LIBS NOT ${Boost_USE_STATIC_LIBS})
       find_package(Boost COMPONENTS ${OGRE_BOOST_COMPONENTS} QUIET)
     endif()
-    
+
     if (Boost_FOUND)
       # Set up referencing of Boost
       #LIST(APPEND VISP_DEFS "-DBOOST_ALL_NO_LIB")
-      LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${Boost_INCLUDE_DIR})  
+      LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${Boost_INCLUDE_DIR})
       LIST(APPEND VISP_EXTERN_LIBRARIES ${Boost_LIBRARIES})
     endif()
   endif()
@@ -782,10 +868,10 @@ IF(USE_OGRE)
   if(NOT OGRE_MEDIA_DIR)
     FIND_PATH(OGRE_MEDIA_DIR ../plugins.cfg
       $ENV{OGRE_MEDIA_DIR}
-      /usr/share/OGRE-1.7.4/media	
-      /usr/share/OGRE-1.8.0/media	
-      /usr/share/OGRE-1.8.1/media	
-      /usr/share/OGRE-1.9.0/media	
+      /usr/share/OGRE-1.7.4/media
+      /usr/share/OGRE-1.8.0/media
+      /usr/share/OGRE-1.8.1/media
+      /usr/share/OGRE-1.9.0/media
     )
   endif()
 
@@ -809,17 +895,17 @@ IF(USE_OGRE)
 
   # Try to search for an existing plugins.cfg file
   # Here we cannot use OGRE_PLUGIN_DIR_REL or OGRE_PLUGIN_DIR_DBG where
-  # we may find an existing plugins.cfg file, since under Windows in these 
-  # files the PluginFolder is set to a relative path. We need an absolute 
+  # we may find an existing plugins.cfg file, since under Windows in these
+  # files the PluginFolder is set to a relative path. We need an absolute
   # path to avoid recopy of the plugins in ViSP.
-  # Under Linux or OSX, we may find plugins.cfg with a PluginFolder set 
+  # Under Linux or OSX, we may find plugins.cfg with a PluginFolder set
   # to an absolute path in OGRE_MEDIA_DIR/..
-  FIND_PATH(VISP_HAVE_OGRE_PLUGINS_PATH 
+  FIND_PATH(VISP_HAVE_OGRE_PLUGINS_PATH
     NAMES plugins.cfg
     PATHS ${OGRE_MEDIA_DIR}/..
     NO_SYSTEM_ENVIRONMENT_PATH
   )
-  
+
   # If no plugins.cfg file is found, we create one with absolute path
   IF(NOT VISP_HAVE_OGRE_PLUGINS_PATH)
     include(${VISP_CMAKE_MODULE_PATH}/OgreTools.cmake)
@@ -829,18 +915,12 @@ IF(USE_OGRE)
 
     # case 2: install or packaging case
     #--------------
-    IF(UNIX)
-      set(VISP_INSTALL_DIR_OGRE_PLUGINS "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/visp/data/ogre-simulator")
-    ELSE()
-      set(VISP_INSTALL_DIR_OGRE_PLUGINS "${CMAKE_INSTALL_PREFIX}/data/ogre-simulator")
-    ENDIF()
-
     # install rule for plugins.cfg:
     IF(UNIX)
       if(OGRE_PLUGIN_DIR_REL)
         INSTALL(FILES
           ${VISP_HAVE_OGRE_PLUGINS_PATH}/plugins.cfg
-          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/visp/data/ogre-simulator
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/visp/data/ogre-simulator
           PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
           COMPONENT libraries
           )
@@ -848,7 +928,7 @@ IF(USE_OGRE)
       if(OGRE_PLUGIN_DIR_DBG)
         INSTALL(FILES
           ${VISP_HAVE_OGRE_PLUGINS_PATH}/plugins_d.cfg
-          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/visp/data/ogre-simulator
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/visp/data/ogre-simulator
           PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
           COMPONENT libraries
           )
@@ -872,10 +952,10 @@ IF(USE_OGRE)
         )
       endif()
     ENDIF()
-  ENDIF()  
+  ENDIF()
 
   # Try to search for an existing resources.cfg file
-  FIND_PATH(VISP_HAVE_OGRE_RESOURCES_PATH 
+  FIND_PATH(VISP_HAVE_OGRE_RESOURCES_PATH
     NAMES resources.cfg
     PATHS ${OGRE_MEDIA_DIR}/..
     NO_SYSTEM_ENVIRONMENT_PATH
@@ -901,6 +981,19 @@ IF(USE_OGRE)
       set(OGRE_MEDIA_DIR ${VISP_HAVE_OGRE_RESOURCES_PATH}/media)
     endif()
 
+    # On Fedora 20 when ogre-devel and ogre-samples packages are installed, AROgre and
+    # AROgreBasic examples produce a segfault when the folowing line in resource.cf.in
+    # is commented:
+    # '#FileSystem=@OGRE_MEDIA_DIR@/materials/programs'
+    # Here we check if @OGRE_MEDIA_DIR@/materials/programs forder is empty.
+    # If empty, we comment the line to avoid lintian warnings.
+    # If not empty we remove the comment to use the available programs.
+    file(GLOB OGRE_PROGRAM_CONTENT ${OGRE_MEDIA_DIR}/materials/programs/*.*)
+    if(OGRE_PROGRAM_CONTENT)
+      set(OGRE_COMMENT_LINE "")
+    else()
+      set(OGRE_COMMENT_LINE "#")
+    endif()
     CONFIGURE_FILE(
       ${VISP_CMAKE_MODULE_PATH}/resources.cfg.in
       ${VISP_HAVE_OGRE_RESOURCES_PATH}/resources.cfg
@@ -911,7 +1004,7 @@ IF(USE_OGRE)
     #         the minimal requested media to run the examples
     #--------------
     IF(UNIX)
-      set(VISP_INSTALL_DIR_OGRE_RESOURCES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/visp/data/ogre-simulator")
+      set(VISP_INSTALL_DIR_OGRE_RESOURCES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/visp-${VISP_VERSION}/data/ogre-simulator")
     ELSE()
       set(VISP_INSTALL_DIR_OGRE_RESOURCES "${CMAKE_INSTALL_PREFIX}/data/ogre-simulator")
     ENDIF()
@@ -919,30 +1012,34 @@ IF(USE_OGRE)
     if(OGRE_MEDIA_NOT_AVAILABLE)
       set(OGRE_MEDIA_DIR ${VISP_INSTALL_DIR_OGRE_RESOURCES}/media)
     endif()
-    CONFIGURE_FILE(
-      ${VISP_CMAKE_MODULE_PATH}/resources.cfg.in
-      ${VISP_BINARY_DIR}/install/resources.cfg
-      IMMEDIATE @ONLY)
 
     # install rule for resources.cfg and Ogre media if they are not available:
     if(UNIX)
+      configure_file(
+        ${VISP_CMAKE_MODULE_PATH}/resources.cfg.in
+        ${VISP_BINARY_DIR}/unix-install/resources.cfg
+        IMMEDIATE @ONLY)
       install(FILES
-        ${VISP_BINARY_DIR}/install/resources.cfg
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/visp/data/ogre-simulator
+        ${VISP_BINARY_DIR}/unix-install/resources.cfg
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/visp-${VISP_VERSION}/data/ogre-simulator
         PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
         COMPONENT libraries
       )
       if(OGRE_MEDIA_NOT_AVAILABLE)
         install(DIRECTORY
           data/ogre-simulator/media
-          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/visp/data/ogre-simulator
+          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/visp-${VISP_VERSION}/data/ogre-simulator
           FILE_PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
           COMPONENT libraries
         )
       endif()
     else()
+      configure_file(
+        ${VISP_CMAKE_MODULE_PATH}/resources.cfg.in
+        ${VISP_BINARY_DIR}/win-install/resources.cfg
+        IMMEDIATE @ONLY)
       install(FILES
-        ${VISP_BINARY_DIR}/install/resources.cfg
+        ${VISP_BINARY_DIR}/win-install/resources.cfg
         DESTINATION data/ogre-simulator
         PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
         COMPONENT libraries
@@ -957,13 +1054,20 @@ IF(USE_OGRE)
       endif()
     endif()
   endif()
-  
+
   MARK_AS_ADVANCED(VISP_HAVE_OGRE_PLUGINS_PATH)
   MARK_AS_ADVANCED(VISP_HAVE_OGRE_RESOURCES_PATH)
   #message("VISP_HAVE_OGRE_PLUGINS_PATH: ${VISP_HAVE_OGRE_PLUGINS_PATH}")
   #message("VISP_HAVE_OGRE_RESOURCES_PATH: ${VISP_HAVE_OGRE_RESOURCES_PATH}")
 
-  LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${OGRE_INCLUDE_DIRS})  
+  # hack to fix possible presence of NOTFOUND in OGRE_INCLUDE_DIRS
+  #message("OGRE_INCLUDE_DIRS: ${OGRE_INCLUDE_DIRS}")
+  #LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${OGRE_INCLUDE_DIRS})
+  foreach(inc_ ${OGRE_INCLUDE_DIRS})
+    if(NOT ${inc_} MATCHES "NOTFOUND")
+	    LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${inc_})
+	endif()
+  endforeach()
   LIST(APPEND VISP_EXTERN_LIBRARIES ${OGRE_LIBRARIES})
 ENDIF(USE_OGRE)
 
@@ -971,7 +1075,7 @@ IF(USE_OIS AND USE_OGRE)
   SET(VISP_HAVE_OIS_FOUND "yes")   # for ViSP-third-party.txt
   SET(VISP_HAVE_OIS TRUE)           # for header vpConfig.h
   LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${OIS_INCLUDE_DIR})
-  LIST(APPEND VISP_EXTERN_LIBRARIES ${OIS_LIBRARIES})   
+  LIST(APPEND VISP_EXTERN_LIBRARIES ${OIS_LIBRARIES})
   IF(APPLE)
     # With Ogre 1.7.4 and 1.8.1 to be able to link with libOIS.a, Cocoa framework is requested.
     # This is a work around since it should come with FindOGRE.cmake
@@ -1003,16 +1107,16 @@ IF(USE_COIN)
     #MESSAGE("COIN3D_INCLUDE_DIRS = ${COIN3D_INCLUDE_DIRS}")
     #MESSAGE("COIN3D_LIBRARIES = ${COIN3D_LIBRARIES}")
     LIST(APPEND VISP_EXTERN_LIBRARIES ${COIN3D_LIBRARIES})
- 
+
     IF (USE_SOWIN AND SOWIN_FOUND)
       # We manage SoWin and Coin
       SET(VISP_HAVE_SOWIN TRUE)         # for header vpConfig.h
       SET(VISP_HAVE_SOWIN_FOUND "yes")  # for ViSP-third-party.txt
-      SET(VISP_HAVE_COIN_AND_GUI TRUE)  # for header vpConfig.h    
-      
+      SET(VISP_HAVE_COIN_AND_GUI TRUE)  # for header vpConfig.h
+
       #MESSAGE("SOWIN_INCLUDE_DIR = ${SOWIN_INCLUDE_DIRS}")
       #MESSAGE("SOWIN_LIBRARIES = ${SOWIN_LIBRARIES}")
- 
+
       LIST(APPEND VISP_DEFS "-DSOWIN_DLL")
       LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${SOWIN_INCLUDE_DIRS})
       LIST(APPEND VISP_EXTERN_LIBRARIES ${SOWIN_LIBRARIES})
@@ -1025,10 +1129,10 @@ IF(USE_COIN)
 	#MESSAGE("Qt found")
 	# OpenGL, QT and SOQT are found
 	# We first manage OpenGL
-	SET(VISP_HAVE_SOQT   TRUE) # for header vpConfig.h 
+	SET(VISP_HAVE_SOQT   TRUE) # for header vpConfig.h
 	SET(VISP_HAVE_SOQT_FOUND "yes")      # for ViSP-third-party.txt
 	SET(VISP_HAVE_QT     TRUE) # for header vpConfig.h
-      	SET(VISP_HAVE_COIN_AND_GUI TRUE)  # for header vpConfig.h    
+      	SET(VISP_HAVE_COIN_AND_GUI TRUE)  # for header vpConfig.h
 
         #MESSAGE(STATUS "SOQT_INCLUDE_DIRS = ${SOQT_INCLUDE_DIRS}")
 	LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${SOQT_INCLUDE_DIRS})
@@ -1071,22 +1175,22 @@ IF(USE_COIN)
 	# Because in QT_DEFINITIONS defs are separated by ";", parse the
 	# QT_DEFINITIONS in order to build a space separated string
 	#SET(VISP_DEFS "${VISP_DEFS} ${QT_DEFINITIONS}") did not work
-	# in third party projects which use visp-config shell script 
+	# in third party projects which use visp-config shell script
 	# (due to ";" # separate char)
 	FOREACH(DEF ${QT_DEFINITIONS})
 	  #MESSAGE("DEF: ${DEF}")
 	  LIST(APPEND VISP_DEFS ${DEF})
 	ENDFOREACH(DEF)
-					  
+
 	LIST(APPEND VISP_DEFS "-DQT_DLL")
       ENDIF (USE_QT AND QT_FOUND)
     ENDIF(USE_SOQT AND SOQT_FOUND)
-        
+
     IF (USE_SOXT AND SOXT_FOUND)
       # OPenGL and SoXt are found
       # We first manage OpenGL
-      SET(VISP_HAVE_SOXT TRUE)  # for header vpConfig.h    
-      SET(VISP_HAVE_COIN_AND_GUI TRUE)  # for header vpConfig.h    
+      SET(VISP_HAVE_SOXT TRUE)  # for header vpConfig.h
+      SET(VISP_HAVE_COIN_AND_GUI TRUE)  # for header vpConfig.h
       SET(VISP_HAVE_SOXT_FOUND "yes")       # for ViSP-third-party.txt
       LIST(APPEND VISP_EXTERN_LIBRARIES ${SOXT_LIBRARIES})
     ENDIF(USE_SOXT AND SOXT_FOUND)
@@ -1128,15 +1232,15 @@ ENDIF(USE_XML2)
 #---------------------------------------------------------------------
 # default initialisation for ViSP-third-party.txt
 SET(VISP_HAVE_LIBFREENECT_AND_DEPENDENCIES_FOUND "no")
-SET(VISP_HAVE_LIBFREENECT_FOUND "no") 
-SET(VISP_HAVE_LIBUSB_1_FOUND "no") 
+SET(VISP_HAVE_LIBFREENECT_FOUND "no")
+SET(VISP_HAVE_LIBUSB_1_FOUND "no")
 
 IF(USE_LIBFREENECT)
   #FIND_PACKAGE(LIBFREENECT)
   IF(LIBFREENECT_FOUND)
     SET(VISP_HAVE_LIBFREENECT TRUE)
     SET(VISP_HAVE_LIBFREENECT_FOUND "yes")  # for ViSP-third-party.txt
- 
+
     MESSAGE(STATUS "libfreenect found")
 
     LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${LIBFREENECT_INCLUDE_DIRS})
@@ -1152,9 +1256,9 @@ IF(USE_LIBUSB_1)
   IF(LIBUSB_1_FOUND)
     SET(VISP_HAVE_LIBUSB_1 TRUE)
     SET(VISP_HAVE_LIBUSB_1_FOUND "yes")  # for ViSP-third-party.txt
- 
+
     MESSAGE(STATUS "libusb-1.0 found")
- 
+
     LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${LIBUSB_1_INCLUDE_DIRS})
     LIST(APPEND VISP_EXTERN_LIBRARIES ${LIBUSB_1_LIBRARIES})
   ELSE()
@@ -1221,9 +1325,9 @@ ENDIF(USE_PTHREAD)
 # parallel port usage
 #--------------------------------------------------------------------
 FIND_PACKAGE(PARPORT)
-IF(PARPORT_FOUND) 
+IF(PARPORT_FOUND)
   SET(VISP_HAVE_PARPORT TRUE)  # for header vpConfig.h
-ENDIF(PARPORT_FOUND)  
+ENDIF(PARPORT_FOUND)
 
 #----------------------------------------------------------------------
 # Third party software :
@@ -1240,136 +1344,152 @@ SET(VISP_HAVE_ZLIB_FOUND "no")  # for ViSP-third-party.txt
 SET(VISP_HAVE_FFMPEG_FOUND "no")  # for ViSP-third-party.txt
 SET(VISP_HAVE_CMU1394_FOUND "no")  # for ViSP-third-party.txt
 
-# open CV
-IF(USE_OPENCV)
+# OpenCV
+if(USE_OPENCV)
   #SET(OpenCV_FIND_QUIETLY TRUE)
   #FIND_PACKAGE(OpenCV)
-  IF(OpenCV_FOUND)
-    MESSAGE(STATUS "OpenCV found")
-    IF(VISP_BUILD_SHARED_LIBS AND VISP_USE_MSVC)
-      ADD_DEFINITIONS("-DCVAPI_EXPORTS")
-    ENDIF(VISP_BUILD_SHARED_LIBS AND VISP_USE_MSVC)
-    SET(VISP_HAVE_OPENCV  TRUE)  # for header vpConfig.h
-    SET(VISP_HAVE_OPENCV_FOUND "yes")  # for ViSP-third-party.txt
-    # On win32 since OpenCV 2.4.7 we cannot use OpenCV_LIBS to set ViSP 3rd party libraries.
-    # Using OpenCV_LIBS works to build visp library, examples, demos and test thanks to the components, 
-	# but not tutorials that are stand alone Cmake project that use ViSP as a 3rd party.
-    # To be clear OpenCV_LIBS contains opencv_core and not c:\...\opencv_core248.lib full path as requested 
-	# to use ViSP. This was not the case with OpenCV 2.4.6.
+  if(OpenCV_FOUND)
+    message(STATUS "OpenCV found")
+    set(VISP_HAVE_OPENCV  TRUE)  # for header vpConfig.h
+    set(VISP_HAVE_OPENCV_FOUND "yes")  # for ViSP-third-party.txt
+    # On win32 since OpenCV 2.4.7 and on OSX with OpenCV 2.4.10 we cannot use OpenCV_LIBS to set ViSP 3rd party libraries.
+    # Using OpenCV_LIBS works to build visp library, examples, demos and test thanks to the components,
+    # but not tutorials that are stand alone Cmake project that use ViSP as a 3rd party.
+    # To be clear OpenCV_LIBS contains opencv_core and not c:\...\opencv_core248.lib full path as requested
+    # to use ViSP. This was not the case with OpenCV 2.4.6.
     # For the build of ViSP it works with OpenCV_LIBS: in that case thanks to opencv_core properties, CMake
     # is able to find the real name and location of the libraries.
-    # But when ViSP is used as a 3rd party where it should import OpenCV libraries, it doesn't work with 
-	# OpenCV_LIBS.
-    # The solution here is to get the real name of OpenCV libraries thanks to the properties and link 
-	# with these names.
-	# An other way could be to include OpenCVConfig.cmake, but in that case, visp-config and visp.pc 
-	# will be not able to give the names of OpenCV libraries when used without CMake.
-	#message("OpenCV_LIB_COMPONENTS: ${OpenCV_LIB_COMPONENTS}")
-	#message("OpenCV_LIBS: ${OpenCV_LIBS}")
-	if(WIN32 AND OpenCV_LIB_COMPONENTS AND OpenCV_VERSION AND OpenCV_VERSION VERSION_GREATER 2.4.6)
+    # But when ViSP is used as a 3rd party where it should import OpenCV libraries, it doesn't work with
+    # OpenCV_LIBS.
+    # The solution here is to get the real name of OpenCV libraries thanks to the properties and link
+    # with these names.
+    # An other way could be to include OpenCVConfig.cmake, but in that case, visp-config and visp.pc
+    # will be not able to give the names of OpenCV libraries when used without CMake.
+    #message("OpenCV_LIB_COMPONENTS: ${OpenCV_LIB_COMPONENTS}")
+    #message("OpenCV_LIBS: ${OpenCV_LIBS}")
+    #if(WIN32 AND OpenCV_LIB_COMPONENTS AND OpenCV_VERSION AND OpenCV_VERSION VERSION_GREATER 2.4.6.1)
+    if(OpenCV_LIB_COMPONENTS AND OpenCV_VERSION AND OpenCV_VERSION VERSION_GREATER 2.4.6.1)
+      set(config_ "NONE" "RELEASE" "DEBUG" "RELEASEWITHDEBINFO") # RelWithDebugInfo was requested under Fedora 20
+
+      if(POLICY CMP0045)
+        # Fix Error on non-existent target in get_target_property for 3rd party location extraction
+        cmake_policy(PUSH)
+        cmake_policy(SET CMP0045 OLD)
+      endif()
+
       foreach(component_ ${OpenCV_LIB_COMPONENTS})
-	    #message("component: ${component_}")
-		if(VISP_BUILD_SHARED_LIBS)
-          get_target_property(component_property_opt_ ${component_} IMPORTED_IMPLIB_RELEASE)
-          get_target_property(component_property_dbg_ ${component_} IMPORTED_IMPLIB_DEBUG)
-		  # particular case of opencv_ts that doesn't have an optimized implib
-		  if(NOT component_property_opt_)
-		    get_target_property(component_property_opt_ ${component_} IMPORTED_LOCATION_RELEASE)
-		  endif()
-		  # particular case of opencv_ts that doesn't have a debug implib
-		  if(NOT component_property_dbg_)
-		    get_target_property(component_property_dbg_ ${component_} IMPORTED_LOCATION_DEBUG)
-		  endif()
-		else()
-          get_target_property(component_property_opt_ ${component_} IMPORTED_LOCATION_RELEASE)
-          get_target_property(component_property_dbg_ ${component_} IMPORTED_LOCATION_DEBUG)
-		endif()
-		get_target_property(component_property_3rdparty_opt_ ${component_} IMPORTED_LINK_INTERFACE_LIBRARIES_RELEASE)
-		get_target_property(component_property_3rdparty_dbg_ ${component_} IMPORTED_LINK_INTERFACE_LIBRARIES_DEBUG)
-		#message("component_property_opt_: ${component_property_opt_}")
-		#message("component_property_dbg_: ${component_property_dbg_}")
-		#message("component_property_3rdparty_opt_: ${component_property_3rdparty_opt_}")
-		#message("component_property_3rdparty_dbg_: ${component_property_3rdparty_dbg_}")
-		if(component_property_opt_)
-		  list(APPEND VISP_EXTERN_LIBRARIES optimized ${component_property_opt_})
-		endif()
-		if(component_property_dbg_)
-		  list(APPEND VISP_EXTERN_LIBRARIES debug     ${component_property_dbg_})
-		endif()
-		#if(NOT component_property_opt_ AND NOT component_property_dbg_)
-		#  message("No implib for component ${component_}")
-		#endif()
-		foreach(3rdparty_opt_ ${component_property_3rdparty_opt_})
-		    list(FIND OpenCV_LIB_COMPONENTS ${3rdparty_opt_} 3rdparty_is_opencv_component_)
-			if(3rdparty_is_opencv_component_ LESS 0)
-			  #message("${3rdparty_opt_} is not an opencv component")
-		      get_target_property(3rdparty_opt_location_ ${3rdparty_opt_} IMPORTED_LOCATION_RELEASE)
-			  #message("3rdparty_opt_: ${3rdparty_opt_} location: ${3rdparty_opt_location_}")
-			  if(3rdparty_opt_location_)
-			    list(APPEND VISP_EXTERN_LIBRARIES optimized ${3rdparty_opt_location_})
-			  else()
-			    list(APPEND VISP_EXTERN_LIBRARIES ${3rdparty_opt_}) # should be a system dependency			
-			  endif()
-			endif()
-		endforeach()
-		foreach(3rdparty_dbg_ ${component_property_3rdparty_dbg_})
-		    list(FIND OpenCV_LIB_COMPONENTS ${3rdparty_dbg_} 3rdparty_is_opencv_component_)
-		    if(3rdparty_is_opencv_component_ LESS 0)
-			  get_target_property(3rdparty_dbg_location_ ${3rdparty_dbg_} IMPORTED_LOCATION_DEBUG)
-			  #message("3rdparty_dbg_: ${3rdparty_dbg_} location: ${3rdparty_dbg_location_}")
-			  if(3rdparty_dbg_location_)
-			    list(APPEND VISP_EXTERN_LIBRARIES debug ${3rdparty_dbg_location_})
-			  else()
-			    list(APPEND VISP_EXTERN_LIBRARIES ${3rdparty_dbg_}) # should be a system dependency			
-			  endif()
-			endif()
-		endforeach()
+        foreach(imp_config_ ${config_})
+          if(OpenCV_SHARED)
+            get_target_property(component_property_${imp_config_}_ ${component_} IMPORTED_IMPLIB_${imp_config_})
+            # particular case of opencv_ts that doesn't have an implib
+            if(NOT EXISTS "${component_property_${imp_config_}_}")
+              get_target_property(component_property_${imp_config_}_ ${component_} IMPORTED_LOCATION_${imp_config_})
+            endif()
+          else()
+              get_target_property(component_property_${imp_config_}_ ${component_} IMPORTED_LOCATION_${imp_config_})
+          endif()
+          get_target_property(component_property_3rdparty_${imp_config_}_ ${component_} IMPORTED_LINK_INTERFACE_LIBRARIES_${imp_config_})
+          #message("component_property_${imp_config_}_: ${component_property_${imp_config_}_}")
+          #message("component_property_3rdparty_${imp_config_}_: ${component_property_3rdparty_${imp_config_}_}")
+
+          # Under Unix, there is no specific suffix for OpenCV libraries. If one is found we add it
+          # Under Windows, we add the "optimized", "debug" specific keywords
+          if(WIN32 AND EXISTS "${component_property_${imp_config_}_}" AND "${imp_config_}" MATCHES "RELEASE") # also valid for RELEASEWITHDEBINFO
+            list(APPEND VISP_EXTERN_LIBRARIES optimized "${component_property_${imp_config_}_}")
+          elseif(WIN32 AND EXISTS "${component_property_${imp_config_}_}" AND "${imp_config_}" MATCHES "DEBUG")
+            list(APPEND VISP_EXTERN_LIBRARIES debug     "${component_property_${imp_config_}_}")
+          elseif(EXISTS "${component_property_${imp_config_}_}")
+            list(APPEND VISP_EXTERN_LIBRARIES "${component_property_${imp_config_}_}")
+          endif()
+
+          if(component_property_3rdparty_${imp_config_}_)
+            foreach(3rdparty_ ${component_property_3rdparty_${imp_config_}_})
+              #message("3rdparty_ ${3rdparty_}")
+              list(FIND OpenCV_LIB_COMPONENTS ${3rdparty_} 3rdparty_is_opencv_component_)
+              if(3rdparty_is_opencv_component_ LESS 0)
+                #message("${3rdparty_} is not an opencv component")
+                get_target_property(3rdparty_opt_location_ ${3rdparty_} IMPORTED_LOCATION_${imp_config_})
+                if(NOT EXISTS "${3rdparty_opt_location_}")
+                  #message("3rdparty_: ${3rdparty_} location doesn't exist in ${imp_config_}")
+                  get_target_property(3rdparty_opt_location_ ${3rdparty_} IMPORTED_LOCATION)
+                  #message("3rdparty_: ${3rdparty_} location : ${3rdparty_opt_location_}")
+                endif()
+                if(EXISTS "${3rdparty_opt_location_}")
+                  #message("3rdparty_opt_location_: ${3rdparty_opt_location_} with config ${imp_config_}")
+                  if(WIN32 AND "${imp_config_}" MATCHES "RELEASE")
+                    #message("is release")
+                    list(APPEND VISP_EXTERN_LIBRARIES optimized ${3rdparty_opt_location_})
+                  elseif(WIN32 AND "${imp_config_}" MATCHES "DEBUG")
+                    list(APPEND VISP_EXTERN_LIBRARIES debug ${3rdparty_opt_location_})
+                  else()
+                    list(APPEND VISP_EXTERN_LIBRARIES ${3rdparty_opt_location_})
+                  endif()
+                else()
+                  find_library(3rdparty_location_ NAMES ${3rdparty_})
+                  mark_as_advanced(3rdparty_location_)
+                  if(3rdparty_location_)
+	                  #message(${3rdparty_location_})
+    	              list(APPEND VISP_EXTERN_LIBRARIES ${3rdparty_location_}) # should be a system dependency
+    	          else()
+    	              list(APPEND VISP_EXTERN_LIBRARIES ${3rdparty_}) # should be a system dependency
+    	          endif()
+                endif()
+              endif()
+            endforeach()
+          endif()
+        endforeach()
       endforeach()
+
+      if(POLICY CMP0045)
+        # Fix Error on non-existent target in get_target_property for 3rd party location extraction
+        cmake_policy(POP)
+      endif()
+
     else()
       # this should be an old OpenCV version that doesn't have the previous behavior
       list(APPEND VISP_EXTERN_LIBRARIES ${OpenCV_LIBS})
     endif()
-    LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS})
-    LIST(APPEND VISP_EXTERN_LINK_DIR ${OpenCV_LIB_DIR})
+    list(APPEND VISP_EXTERN_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS})
     #LIST(APPEND VISP_EXTERN_LIBRARIES ${OpenCV_LIBS})
     #MESSAGE("OpenCV_INCLUDE_DIRS = ${OpenCV_INCLUDE_DIRS}")
     #MESSAGE("OpenCV_LIBS = ${OpenCV_LIBS}")
     #MESSAGE("OpenCV_LIB_DIR = ${OpenCV_LIB_DIR}")
-    SET(VISP_HAVE_OPENCV_VERSION "(${OpenCV_VERSION_MAJOR}*65536 + ${OpenCV_VERSION_MINOR}*256 + ${OpenCV_VERSION_PATCH})") # for ViSP-third-party.txt
+    set(VISP_HAVE_OPENCV_VERSION "(${OpenCV_VERSION_MAJOR}*65536 + ${OpenCV_VERSION_MINOR}*256 + ${OpenCV_VERSION_PATCH})") # for ViSP-third-party.txt
     #MESSAGE("VISP_HAVE_OPENCV_VERSION = ${VISP_HAVE_OPENCV_VERSION}")
-    #MESSAGE("VISP_EXTERN_LIBRARIES = ${VISP_EXTERN_LIBRARIES}")
+    #message("VISP_EXTERN_LIBRARIES = ${VISP_EXTERN_LIBRARIES}")
 
     # additional check to see if opencv_nonfree module introduced in OpenCV 2.4 is available
     #message("OpenCV_VERSION = ${OpenCV_VERSION}")
     #message("OpenCV_NONFREE_FOUND: ${OPENCV_NONFREE_FOUND}")
     if(OpenCV_VERSION)
-      if(OpenCV_VERSION VERSION_LESS "2.4.2")
-        message(STATUS "OpenCV nonfree found")
+      if(OpenCV_VERSION VERSION_LESS "2.4.0")
+        message(STATUS "OpenCV nonfree module found")
         set(VISP_HAVE_OPENCV_NONFREE TRUE)  # for header vpConfig.h
       else() # Version is greater or equal to 2.4.0
-        if(OPENCV_NONFREE_FOUND)
-          message(STATUS "OpenCV nonfree found")
+        if(OPENCV_NONFREE_FOUND) # OpenCV < 3.0.0
+          message(STATUS "OpenCV xfeatures2d module found")
           set(VISP_HAVE_OPENCV_NONFREE TRUE)  # for header vpConfig.h
+        elseif(OPENCV_XFEATURES2D_FOUND) # OpenCV >= 3.0.0
+          set(VISP_HAVE_OPENCV_XFEATURES2D TRUE)  # for header vpConfig.h
         else()
-          message(STATUS "OpenCV nonfree not found")
+          message(STATUS "OpenCV nonfree or xfeature2d module not found")
         endif()
       endif()
     else()
       message("OpenCV_VERSION is false")
       message(STATUS "OpenCV nonfree not found")
     endif()
-  ELSE(OpenCV_FOUND)
-    MESSAGE(STATUS "OpenCV not found")
-    SET(VISP_HAVE_OPENCV_FOUND "no")    # for ViSP-third-party.txt
-    SET(VISP_HAVE_OPENCV_VERSION "(0)") # for ViSP-third-party.txt
-  ENDIF(OpenCV_FOUND)
-ELSE(USE_OPENCV)
-  SET(OpenCV_VERSION_MAJOR 0)
-  SET(OpenCV_VERSION_MINOR 0)
+  else(OpenCV_FOUND)
+    message(STATUS "OpenCV not found")
+    set(VISP_HAVE_OPENCV_FOUND "no")    # for ViSP-third-party.txt
+    set(VISP_HAVE_OPENCV_VERSION "(0)") # for ViSP-third-party.txt
+  endif(OpenCV_FOUND)
+else(USE_OPENCV)
+  set(OpenCV_VERSION_MAJOR 0)
+  set(OpenCV_VERSION_MINOR 0)
   SET(OpenCV_VERSION_PATCH 0)
-  SET(VISP_HAVE_OPENCV_VERSION "(0)") # for ViSP-third-party.txt
-ENDIF(USE_OPENCV)
-
+  set(VISP_HAVE_OPENCV_VERSION "(0)") # for ViSP-third-party.txt
+endif(USE_OPENCV)
 
 # gnu scientific library
 IF(USE_GSL)
@@ -1379,12 +1499,8 @@ IF(USE_GSL)
     SET(VISP_HAVE_GSL  TRUE)  # for header vpConfig.h
     SET(VISP_HAVE_GSL_FOUND "yes")  # for ViSP-third-party.txt
     LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${GSL_INCLUDE_DIRS})
-    LIST(APPEND VISP_EXTERN_LINK_DIR ${GSL_EXE_LINKER_FLAGS})
-    LIST(APPEND VISP_EXTERN_LINK_DIR ${GSL_LINK_DIRECTORIES})
     LIST(APPEND VISP_EXTERN_LIBRARIES ${GSL_LIBRARIES})
-    #LINK_DIRECTORIES(${GSL_LINK_DIRECTORIES})
     #MESSAGE("GSL_INCLUDE_DIRS = ${GSL_INCLUDE_DIRS}")
-    #MESSAGE("GSL_LINK_DIRECTORIES = ${GSL_LINK_DIRECTORIES}")
     #MESSAGE("GSL_LIBRARIES = ${GSL_LIBRARIES}")
   ELSE(GSL_FOUND)
     MESSAGE(STATUS "GSL not found")
@@ -1401,7 +1517,7 @@ IF(USE_GTK2)
       SET(VISP_HAVE_GTK TRUE)  # for header vpConfig.h
       SET(VISP_HAVE_GTK_FOUND "yes")  # for ViSP-third-party.txt
       LIST(APPEND VISP_EXTERN_INCLUDE_DIRS ${GTK2_INCLUDE_DIRS})
-      
+
       IF(UNIX)
 	## ignore gtk pedantic warnings by gcc specific -isystem :
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem ${GTK2_gtk_INCLUDE_PATH}")
@@ -1486,7 +1602,7 @@ IF(USE_LIBJPEG)
     LIST(APPEND VISP_EXTERN_LIBRARIES ${JPEG_LIBRARIES})
 
     # If Qt3 and libjpeg are used, we add here QT_CLEAN_NAMESPACE define to
-    # handle a compilation error "conflicting declaration 'typedef long int 
+    # handle a compilation error "conflicting declaration 'typedef long int
     # INT32'"
     IF(VISP_HAVE_QT3_FOUND)
       LIST(APPEND VISP_DEFS "-DQT_CLEAN_NAMESPACE")
@@ -1559,7 +1675,7 @@ IF(USE_DC1394)
 
     #MESSAGE("DBG VISP_HAVE_DC1394_2= ${VISP_HAVE_DC1394_2}")
     #MESSAGE("DBG DC1394_INCLUDE_DIRS=${DC1394_INCLUDE_DIRS}")
-    
+
     IF(APPLE)
       #SET(VISP_EXTERN_LIBRARIES ${VISP_EXTERN_LIBRARIES} IOkit "-framework Carbon")
       LIST(APPEND VISP_EXTERN_LIBRARIES "-framework IOkit -framework Carbon")
@@ -1670,7 +1786,7 @@ SET(WIREFRAME_SCENES_LIST "")
 foreach(SCENE ${WIREFRAME_SCENES})
   set(WIREFRAME_SCENES_SRC "${VISP_SOURCE_DIR}/src/simulator/wireframe-simulator/scene/${SCENE}")
   set(WIREFRAME_SCENES_DST "${VISP_BINARY_DIR}/data/wireframe-simulator/${SCENE}")
-  IF(CMAKE_MINOR_VERSION LESS 8 
+  IF(CMAKE_MINOR_VERSION LESS 8
     AND CMAKE_MAJOR_VERSION GREATER 1)
   ADD_CUSTOM_COMMAND(
     OUTPUT ${WIREFRAME_SCENES_DST}
@@ -1678,7 +1794,7 @@ foreach(SCENE ${WIREFRAME_SCENES})
     DEPENDS ${WIREFRAME_SCENES_SRC}
     )
   SET(WIREFRAME_SCENES_LIST ${WIREFRAME_SCENES_LIST} ${WIREFRAME_SCENES_DST})
-  ELSE(CMAKE_MINOR_VERSION LESS 8 
+  ELSE(CMAKE_MINOR_VERSION LESS 8
     AND CMAKE_MAJOR_VERSION GREATER 1)
     file(COPY ${WIREFRAME_SCENES_SRC}
       DESTINATION data/wireframe-simulator
@@ -1686,16 +1802,16 @@ foreach(SCENE ${WIREFRAME_SCENES})
       OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE
       OWNER_WRITE
       )
-  ENDIF(CMAKE_MINOR_VERSION LESS 8 
+  ENDIF(CMAKE_MINOR_VERSION LESS 8
     AND CMAKE_MAJOR_VERSION GREATER 1)
 endforeach(SCENE)
 
-IF(CMAKE_MINOR_VERSION LESS 8 
+IF(CMAKE_MINOR_VERSION LESS 8
   AND CMAKE_MAJOR_VERSION GREATER 1)
   ADD_CUSTOM_TARGET(SCENE ALL
     DEPENDS ${WIREFRAME_SCENES_LIST}
     )
-ENDIF(CMAKE_MINOR_VERSION LESS 8 
+ENDIF(CMAKE_MINOR_VERSION LESS 8
   AND CMAKE_MAJOR_VERSION GREATER 1)
 
 
@@ -1708,7 +1824,7 @@ SET(ROBOT_ARMS_LIST "")
 foreach(SCENE_ROBOT ${ROBOT_ARMS_SCENES})
   set(ROBOT_ARMS_SRC "${VISP_SOURCE_DIR}/src/robot/simulator-robot/arms/${SCENE_ROBOT}")
   set(ROBOT_ARMS_DST "${VISP_BINARY_DIR}/data/robot-simulator/${SCENE_ROBOT}")
-  IF(CMAKE_MINOR_VERSION LESS 8 
+  IF(CMAKE_MINOR_VERSION LESS 8
     AND CMAKE_MAJOR_VERSION GREATER 1)
   ADD_CUSTOM_COMMAND(
     OUTPUT ${ROBOT_ARMS_DST}
@@ -1716,7 +1832,7 @@ foreach(SCENE_ROBOT ${ROBOT_ARMS_SCENES})
     DEPENDS ${ROBOT_ARMS_SRC}
     )
   SET(ROBOT_ARMS_LIST ${ROBOT_ARMS_LIST} ${ROBOT_ARMS_DST})
-  ELSE(CMAKE_MINOR_VERSION LESS 8 
+  ELSE(CMAKE_MINOR_VERSION LESS 8
     AND CMAKE_MAJOR_VERSION GREATER 1)
     file(COPY ${ROBOT_ARMS_SRC}
       DESTINATION data/robot-simulator
@@ -1724,16 +1840,16 @@ foreach(SCENE_ROBOT ${ROBOT_ARMS_SCENES})
       OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE
       OWNER_WRITE
       )
-  ENDIF(CMAKE_MINOR_VERSION LESS 8 
+  ENDIF(CMAKE_MINOR_VERSION LESS 8
     AND CMAKE_MAJOR_VERSION GREATER 1)
 endforeach(SCENE_ROBOT)
 
-IF(CMAKE_MINOR_VERSION LESS 8 
+IF(CMAKE_MINOR_VERSION LESS 8
   AND CMAKE_MAJOR_VERSION GREATER 1)
   ADD_CUSTOM_TARGET(SCENE_ROBOT ALL
     DEPENDS ${ROBOT_ARMS_LIST}
     )
-ENDIF(CMAKE_MINOR_VERSION LESS 8 
+ENDIF(CMAKE_MINOR_VERSION LESS 8
   AND CMAKE_MAJOR_VERSION GREATER 1)
 
 #----------------------------------------------------------------------
@@ -1750,7 +1866,7 @@ SET(VISP_HAVE_VIPER850_FOUND "no")  # for ViSP-third-party.txt
 
 # library for Irisa's Afma4 cylindrical robot
 IF(USE_AFMA4)
-  # Low level API to control the robot: 
+  # Low level API to control the robot:
   # libcalinux - librt - libraw1394 - libirisa
 #   IF(NOT RAW1394_FOUND)
 #     FIND_PACKAGE(RAW1394)
@@ -1779,7 +1895,7 @@ ENDIF(USE_AFMA4)
 
 # library for Irisa's Afma6 cartesian robot
 IF(USE_AFMA6)
-  # Low level API to control the robot: 
+  # Low level API to control the robot:
   # libcalinux - librt - libraw1394 - libirisa
 #   IF(NOT RAW1394_FOUND)
 #     FIND_PACKAGE(RAW1394)
@@ -1808,7 +1924,7 @@ ENDIF(USE_AFMA6)
 
 # library for Irisa's Viper850 arm robot
 IF(USE_VIPER850)
-  # Low level API to control the robot: 
+  # Low level API to control the robot:
   # libcalinux - librt - libraw1394 - libirisa
 #   IF(NOT RAW1394_FOUND)
 #     FIND_PACKAGE(RAW1394)
@@ -1936,46 +2052,23 @@ if(USE_ARIA)
   endif(UNIX)
 endif()
 
+if(USE_ZBAR)
+  set(VISP_HAVE_ZBAR TRUE) # for header vpConfig.h
+  set(VISP_HAVE_ZBAR_FOUND "yes")  # for ViSP-third-party.txt
+  list(APPEND VISP_EXTERN_INCLUDE_DIRS ${ZBAR_INCLUDE_DIRS})
+  list(APPEND VISP_EXTERN_LIBRARIES ${ZBAR_LIBRARIES})
+else()
+  set(VISP_HAVE_ZBAR_FOUND "no")  # for ViSP-third-party.txt
+endif()
 
-#----------------------------------------------------------------------
-# add html-doc target for doxygen documentation building
-#----------------------------------------------------------------------
-FIND_PACKAGE(Doxygen)
-IF (DOXYGEN_FOUND)
-  SET(VISP_HAVE_DOXYGEN "yes")        # for header vpConfig.h
-  SET(VISP_HAVE_DOXYGEN_FOUND "yes")  # for ViSP-third-party.txt
-  IF(DOXYGEN_DOT_EXECUTABLE)
-    SET(VISP_HAVE_DOT "yes")        # for header vpConfig.h
-    SET(VISP_HAVE_DOT_FOUND "yes")  # for ViSP-third-party.txt
-  ELSE(DOXYGEN_DOT_EXECUTABLE)
-    SET(VISP_HAVE_DOT "no")        # for header vpConfig.h
-    SET(VISP_HAVE_DOT_FOUND "no")  # for ViSP-third-party.txt
-  ENDIF(DOXYGEN_DOT_EXECUTABLE)
-  ## we need latex for doxygen because of the formulas
-  FIND_PACKAGE(LATEX)
-  IF    (NOT LATEX_COMPILER)
-    MESSAGE(STATUS "latex command LATEX_COMPILER not found but usually required. You will probably get warnings and user interaction on doxy run.")
-  ENDIF (NOT LATEX_COMPILER)
-  IF    (NOT MAKEINDEX_COMPILER)
-    MESSAGE(STATUS "makeindex command MAKEINDEX_COMPILER not found but usually required.")
-  ENDIF (NOT MAKEINDEX_COMPILER)
-  IF    (NOT DVIPS_CONVERTER)
-    MESSAGE(STATUS "dvips command DVIPS_CONVERTER not found but usually required.")
-  ENDIF (NOT DVIPS_CONVERTER)
-   
-  CONFIGURE_FILE(${VISP_SOURCE_DIR}/doc/config-doxygen.in
-    ${VISP_DOC_DIR}/config-doxygen
-    @ONLY )
-
-  CONFIGURE_FILE(${VISP_SOURCE_DIR}/doc/mainpage.doc.in
-    ${VISP_SOURCE_DIR}/doc/mainpage.doc
-    @ONLY )
-  ADD_CUSTOM_TARGET(html-doc ${DOXYGEN_EXECUTABLE} ${VISP_DOC_DIR}/config-doxygen) 
-ELSE(DOXYGEN_FOUND)
-  SET(VISP_HAVE_DOXYGEN "no")        # for header vpConfig.h
-  SET(VISP_HAVE_DOXYGEN_FOUND "no")  # for ViSP-third-party.txt
-  SET(VISP_HAVE_DOT_FOUND "no")      # for ViSP-third-party.txt
-ENDIF(DOXYGEN_FOUND)
+if(USE_DMTX)
+  set(VISP_HAVE_DMTX TRUE) # for header vpConfig.h
+  set(VISP_HAVE_DMTX_FOUND "yes")  # for ViSP-third-party.txt
+  list(APPEND VISP_EXTERN_INCLUDE_DIRS ${DMTX_INCLUDE_DIRS})
+  list(APPEND VISP_EXTERN_LIBRARIES ${DMTX_LIBRARIES})
+else()
+  set(VISP_HAVE_DMTX_FOUND "no")  # for ViSP-third-party.txt
+endif()
 
 #----------------------------------------------------------------------
 # Add definitions
@@ -2004,18 +2097,10 @@ add_definitions(${VISP_DEFS})
 IF(VISP_EXTERN_INCLUDE_DIRS)
   LIST(REMOVE_DUPLICATES VISP_EXTERN_INCLUDE_DIRS)
 ENDIF(VISP_EXTERN_INCLUDE_DIRS)
-#MESSAGE("VISP_EXTERN_INCLUDE_DIRS without duplicates: ${VISP_EXTERN_INCLUDE_DIRS}")
-INCLUDE_DIRECTORIES(${VISP_INTERN_INCLUDE_DIR} ${VISP_EXTERN_INCLUDE_DIRS})
-
-#----------------------------------------------------------------------
-# Add link directories
-#----------------------------------------------------------------------
-#MESSAGE("VISP_EXTERN_LINK_DIR: ${VISP_EXTERN_LINK_DIR}")
-IF(VISP_EXTERN_LINK_DIR)
-  LIST(REMOVE_DUPLICATES VISP_EXTERN_LINK_DIR)
-ENDIF(VISP_EXTERN_LINK_DIR)
-#MESSAGE("VISP_EXTERN_LINK_DIR without duplicates: ${VISP_EXTERN_LINK_DIR}")
-LINK_DIRECTORIES(${VISP_EXTERN_LINK_DIR})
+#MESSAGE("VISP_INTERN_INCLUDE_DIR: ${VISP_INTERN_INCLUDE_DIR}")
+#MESSAGE("VISP_EXTERN_INCLUDE_DIRS: ${VISP_EXTERN_INCLUDE_DIRS}")
+include_directories(BEFORE ${VISP_INTERN_INCLUDE_DIR})
+include_directories(${VISP_EXTERN_INCLUDE_DIRS})
 
 #----------------------------------------------------------------------
 # Use statically or dynamically linked CRT?
@@ -2026,16 +2111,41 @@ if(MSVC)
 endif(MSVC)
 
 #----------------------------------------------------------------------
+# Platform specific
+#----------------------------------------------------------------------
+include(${VISP_CMAKE_MODULE_PATH}/VISPDetectPlatform.cmake)
+
+# Set the path where to install the lib
+if(WIN32)
+  if(DEFINED VISP_RUNTIME AND DEFINED VISP_ARCH)
+    set(VISP_INSTALL_BINARIES_PREFIX "${VISP_ARCH}/${VISP_RUNTIME}/")
+  else()
+    message(STATUS "Can't detect runtime and/or arch")
+    set(VISP_INSTALL_BINARIES_PREFIX "")
+  endif()
+else()
+  set(VISP_INSTALL_BINARIES_PREFIX "")
+endif()
+
+# where to install the library
+if(WIN32)
+  if(VISP_STATIC)
+    set(VISP_LIB_INSTALL_PATH   "${VISP_INSTALL_BINARIES_PREFIX}static${CMAKE_INSTALL_LIBDIR}")
+  else()
+    set(VISP_LIB_INSTALL_PATH   "${VISP_INSTALL_BINARIES_PREFIX}${CMAKE_INSTALL_LIBDIR}")
+  endif()
+  set(VISP_BIN_INSTALL_PATH   "${VISP_INSTALL_BINARIES_PREFIX}${CMAKE_INSTALL_BINDIR}")
+else()
+  set(VISP_LIB_INSTALL_PATH     ${CMAKE_INSTALL_LIBDIR})
+  set(VISP_BIN_INSTALL_PATH     ${CMAKE_INSTALL_BINDIR})
+endif()
+
+#----------------------------------------------------------------------
 # Cleanify the libraries list
 #----------------------------------------------------------------------
 IF(APPLE)
   LIST(REMOVE_DUPLICATES VISP_EXTERN_LIBRARIES)
 ENDIF()
-
-#----------------------------------------------------------------------
-# add distclean target
-#----------------------------------------------------------------------
-INCLUDE(${VISP_CMAKE_MODULE_PATH}/TargetDistclean.cmake)
 
 #----------------------------------------------------------------------
 # customize clean target
@@ -2053,15 +2163,9 @@ SET_DIRECTORY_PROPERTIES(PROPERTIES
 )
 
 #----------------------------------------------------------------------
-# customize uninstall target
+# Propagation in src to build the library
 #----------------------------------------------------------------------
-CONFIGURE_FILE(
-  "${VISP_CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-  IMMEDIATE @ONLY)
-
-ADD_CUSTOM_TARGET(uninstall
-  "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+add_subdirectory(src)
 
 #----------------------------------------------------------------------
 # Configure the files that depend on the build <binary dir> or
@@ -2075,7 +2179,7 @@ set(VISP_ROOT_DIR_DATA_CONFIGCMAKE "${VISP_BINARY_DIR}")
 
 SET(VISP_SCENES_DIR ${VISP_ROOT_DIR_DATA_CONFIGCMAKE}/data/wireframe-simulator)
 SET(VISP_ROBOT_ARMS_DIR ${VISP_ROOT_DIR_DATA_CONFIGCMAKE}/data/robot-simulator)
-    
+
 # Generate the package dependent file include/visp/vpConfig.h
 CONFIGURE_FILE(${VISP_SOURCE_DIR}/include/vpConfig.h.cmake
   ${VISP_INCLUDE_DIR}/vpConfig.h
@@ -2084,7 +2188,7 @@ CONFIGURE_FILE(${VISP_SOURCE_DIR}/include/vpConfig.h.cmake
 # case 2: when ViSP is build with make install; files are used in <install dir>
 #--------------
 IF(UNIX)
-  set(VISP_ROOT_DIR_DATA_CONFIGCMAKE "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/visp")
+  set(VISP_ROOT_DIR_DATA_CONFIGCMAKE "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/visp-${VISP_VERSION}")
 ELSE()
   set(VISP_ROOT_DIR_DATA_CONFIGCMAKE "${CMAKE_INSTALL_PREFIX}")
 ENDIF()
@@ -2097,20 +2201,8 @@ if(VISP_INSTALL_DIR_OGRE_RESOURCES)
 endif()
 # Only if plugins.cfg created by hand, we change the path to plugins.cfg in install/vpConfig.h
 if(VISP_INSTALL_DIR_OGRE_RESOURCES)
-  SET(VISP_HAVE_OGRE_PLUGINS_PATH ${VISP_ROOT_DIR_DATA_CONFIGCMAKE}/data/ogre-simulator)
+  SET(VISP_HAVE_OGRE_PLUGINS_PATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/visp/data/ogre-simulator)
 endif()
-
-# Generate the package dependent file include/visp/vpConfig.h
-CONFIGURE_FILE(${VISP_SOURCE_DIR}/include/vpConfig.h.cmake
-  ${VISP_BINARY_DIR}/install/vpConfig.h
-)
-
-# Install vpConfig.h that may differ from the one in include/visp
-INSTALL(FILES ${VISP_BINARY_DIR}/install/vpConfig.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/visp
-  PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
-  COMPONENT headers
-  )
 
 #----------------------------------------------------------------------
 # Generate the ViSP-third-party.txt information file
@@ -2142,44 +2234,31 @@ if(UNIX)
   MARK_AS_ADVANCED(GZIP)
 endif()
 
-# Install the packaging files for use by FIND_PACKAGE(VISP) in user projects
-# install rule for vpConfig.h:
+#----------------------------------------------------------------------
+# Export the library
+#----------------------------------------------------------------------
 # we need to adapt VISP_SCENES_DIR and VISP_ROBOT_ARMS_DIR
 # here set to /usr/share/visp/data
-IF(UNIX)
-  INSTALL(FILES
-    ${VISP_BINARY_DIR}/install/VISPUse.cmake
-    ${VISP_BINARY_DIR}/install/VISPConfig.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/visp
-    PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
-    COMPONENT libraries
-  )
+if(UNIX)
   foreach(SCENE ${WIREFRAME_SCENES})
-    INSTALL(FILES 
+    install(FILES
       "${VISP_SOURCE_DIR}/src/simulator/wireframe-simulator/scene/${SCENE}"
-      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/visp/data/wireframe-simulator
+      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/visp-${VISP_VERSION}/data/wireframe-simulator
       PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
       COMPONENT libraries
     )
   endforeach()
   foreach(SCENE ${ROBOT_ARMS_SCENES})
-    INSTALL(FILES 
+    install(FILES
       "${VISP_SOURCE_DIR}/src/robot/simulator-robot/arms/${SCENE}"
-      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/visp/data/robot-simulator
+      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/visp-${VISP_VERSION}/data/robot-simulator
       PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
       COMPONENT libraries
     )
   endforeach()
-ELSE()
-  INSTALL(FILES
-    ${VISP_BINARY_DIR}/install/VISPUse.cmake
-    ${VISP_BINARY_DIR}/install/VISPConfig.cmake
-    DESTINATION .
-    PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
-    COMPONENT libraries
-  )
+else()
   foreach(SCENE ${WIREFRAME_SCENES})
-    INSTALL(FILES 
+    install(FILES
       "${VISP_SOURCE_DIR}/src/simulator/wireframe-simulator/scene/${SCENE}"
       DESTINATION data/wireframe-simulator
       PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
@@ -2187,28 +2266,14 @@ ELSE()
     )
   endforeach()
   foreach(SCENE ${ROBOT_ARMS_SCENES})
-    INSTALL(FILES 
+    install(FILES
       "${VISP_SOURCE_DIR}/src/robot/simulator-robot/arms/${SCENE}"
       DESTINATION data/robot-simulator
       PERMISSIONS OWNER_READ GROUP_READ WORLD_READ OWNER_WRITE
       COMPONENT libraries
     )
   endforeach()
-ENDIF()
-
-#----------------------------------------------------------------------
-# Install catkin package.xml 
-#----------------------------------------------------------------------
-install(FILES package.xml DESTINATION share/visp)
-
-#----------------------------------------------------------------------
-# For Dart server and tests 
-# We use CDash set through CTestConfig.cmake file
-# Dashboards are sent to http://cdash.irisa.fr/CDash/index.php?project=ViSP
-#----------------------------------------------------------------------
-#ENABLE_TESTING()
-INCLUDE(Dart)
-MARK_AS_ADVANCED(DART_ROOT)
+endif()
 
 #----------------------------------------------------------------------
 # For CPack packaging tool
@@ -2225,71 +2290,19 @@ if (BUILD_PACKAGE)
 endif(BUILD_PACKAGE)
 
 #----------------------------------------------------------------------
-# Propagation in src to build the library
-#----------------------------------------------------------------------
-add_subdirectory(src)
-
-#----------------------------------------------------------------------
 # Configure the file describing how to use ViSP. VISPConfig.cmake
 # is the main file configuring a CMake package.
 # . Exports build settings and dependencies for projects using ViSP as a
 #   third party project.
-# . Create and install files for simple use of FIND_PACKAGE(VISP)
+# . Create and install files for simple use of find_package(VISP)
 #   by other cmakified "user" projects and libraries depending on ViSP.
 #   (see "Mastering CMake", pp.72)
 # . To use ViSP in a third party project based on CMake:
-#   FIND_PACKAGE(VISP REQUIRED)
-#   IF(VISP_FOUND)
-#     INCLUDE(${VISP_USE_FILE})
-#   ENDIF(VISP_FOUND)
+#   find_package(VISP REQUIRED)
+#   include_directories(${VISP_INCLUDE_DIRS})
+#   target_link_libraries(<target> ${VISP_LIBRARIES})
 #----------------------------------------------------------------------
-
-# Installation for ViSPConfig.cmake and VISPUse.cmake
-# case 1: <binary dir>/ViSPConfig.cmake for use with make
-# case 2: <install dir>/ViSPConfig.cmake for use with make install
-
-get_target_property(VISP_LIBNAME_DBG ${VISP_INTERN_LIBRARY} LOCATION_Debug)
-get_target_property(VISP_LIBNAME_OPT ${VISP_INTERN_LIBRARY} LOCATION_Release)
-
-get_filename_component(VISP_LIBNAME_DBG "${VISP_LIBNAME_DBG}" NAME)
-get_filename_component(VISP_LIBNAME_OPT "${VISP_LIBNAME_OPT}" NAME)
-
-#message("VISP_LIBNAME_DBG: ${VISP_LIBNAME_DBG}")
-#message("VISP_LIBNAME_OPT: ${VISP_LIBNAME_OPT}")
-
-# case 1
-#--------------
-set(VISP_ROOT_DIR_CONFIGCMAKE "${VISP_BINARY_DIR}")
-set(VISP_ROOT_DIR_CMAKE_CONFIGCMAKE "${VISP_BINARY_DIR}")
-CONFIGURE_FILE(
-  ${VISP_CMAKE_MODULE_PATH}/VISPConfig.cmake.in
-  ${VISP_BINARY_DIR}/VISPConfig.cmake
-  IMMEDIATE @ONLY)
-
-# Just to copy ./CMakeModule/VISPUse.cmake.in <binary dir>/UseVISP.cmake
-CONFIGURE_FILE(
-  ${VISP_CMAKE_MODULE_PATH}/VISPUse.cmake.in
-  ${VISP_BINARY_DIR}/VISPUse.cmake
-  IMMEDIATE @ONLY)
-
-# case 2
-#--------------
-set(VISP_ROOT_DIR_CONFIGCMAKE "${CMAKE_INSTALL_PREFIX}")
-if(UNIX)
-  set(VISP_ROOT_DIR_CMAKE_CONFIGCMAKE "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/visp")
-else()
-  set(VISP_ROOT_DIR_CMAKE_CONFIGCMAKE "${CMAKE_INSTALL_PREFIX}")
-endif()
-CONFIGURE_FILE(
-  ${VISP_CMAKE_MODULE_PATH}/VISPConfig.cmake.in
-  ${VISP_BINARY_DIR}/install/VISPConfig.cmake
-  IMMEDIATE @ONLY)
-
-# Just to copy ./CMakeModule/VISPUse.cmake.in in <install dir>/UseVISP.cmake
-CONFIGURE_FILE(
-  ${VISP_CMAKE_MODULE_PATH}/VISPUse.cmake.in
-  ${VISP_BINARY_DIR}/install/VISPUse.cmake
-  IMMEDIATE @ONLY)
+include(${VISP_CMAKE_MODULE_PATH}/VISPGenerateConfig.cmake)
 
 #----------------------------------------------------------------------
 # Generate the package dependent visp-config shell script for projects which
@@ -2297,43 +2310,50 @@ CONFIGURE_FILE(
 # Usage:
 #    visp-config --cflags ...
 #----------------------------------------------------------------------
-INCLUDE(${VISP_CMAKE_MODULE_PATH}/GenerateConfigScript.cmake)
+include(${VISP_CMAKE_MODULE_PATH}/VISPGeneratePkgConfigScript.cmake)
 
 #----------------------------------------------------------------------
 # Propagation in sub dirs to build demo, example, test, tutorial
 #----------------------------------------------------------------------
+if(BUILD_TESTS)
+  #----------------------------------------------------------------------
+  # For Dart server and tests
+  # We use CDash set through CTestConfig.cmake file
+  # Dashboards are sent to http://cdash.irisa.fr/CDash/index.php?project=ViSP
+  #----------------------------------------------------------------------
+  enable_testing()
+  include(Dart)
+  mark_as_advanced(DART_ROOT)
+  mark_as_advanced(BUILD_TESTING)
+  #
+  # Test coverage specific code
+  #
+  if(CMAKE_COMPILER_IS_GNUCXX AND NOT BUILD_SHARED_LIBS AND CMAKE_BUILD_TYPE MATCHES "Debug")
+    option(BUILD_TEST_COVERAGE "Enable test coverage." OFF)
+  endif()
+
+  if(BUILD_TEST_COVERAGE)
+    # Add build options for test coverage. Currently coverage is only supported
+    # on gcc compiler
+    # Because using -fprofile-arcs with shared lib can cause problems like:
+    # hidden symbol `__bb_init_func', we add this option only for static
+    # library build
+    message(STATUS "Add -ftest-coverage -fprofile-arcs compiler options")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ftest-coverage -fprofile-arcs")
+  endif()
+
+  add_subdirectory(test)
+endif()
+
 if(BUILD_DEMOS)
   add_subdirectory(demo)
 endif()
 if(BUILD_EXAMPLES)
   add_subdirectory(example)
 endif()
-if(BUILD_TUTORIAL)
+if(BUILD_TUTORIALS)
   set(VISP_DIR ${PROJECT_BINARY_DIR})
   mark_as_advanced(VISP_DIR)
   mark_as_advanced(VISP_INCLUDE_DIRS)
-  mark_as_advanced(VISP_LIBRARY_DIRS)
   add_subdirectory(tutorial)
 endif()
-
-if(BUILD_TESTING)
-  #
-  # Test coverage specific code
-  #
-  IF(CMAKE_COMPILER_IS_GNUCXX AND NOT BUILD_SHARED_LIBS AND CMAKE_BUILD_TYPE MATCHES "Debug")
-
-    OPTION(BUILD_TEST_COVERAGE "Enable test coverage." OFF)
-  ENDIF()
-
-  IF(BUILD_TEST_COVERAGE)
-    # Add build options for test coverage. Currently coverage is only supported
-    # on gcc compiler
-    # Because using -fprofile-arcs with shared lib can cause problems like:
-    # hidden symbol `__bb_init_func', we add this option only for static
-    # library build
-    MESSAGE(STATUS "Add -ftest-coverage -fprofile-arcs compiler options")
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ftest-coverage -fprofile-arcs")
-  ENDIF(BUILD_TEST_COVERAGE)
-
-  add_subdirectory(test)
-endif(BUILD_TESTING)
