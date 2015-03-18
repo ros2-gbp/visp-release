@@ -1,4 +1,4 @@
-From c7288d30c5cd2a61efa5aecebc4a78384bb611bf Mon Sep 17 00:00:00 2001
+From e50e1e631ca3d48850a79dffdb7c02280e2dd093 Mon Sep 17 00:00:00 2001
 From: Fabien Spindler <Fabien.Spindler@inria.fr>
 Date: Tue, 17 Mar 2015 20:50:37 +0100
 Subject: [PATCH 2/3] Force CMAKE_INSTALL_LIBDIR=lib
