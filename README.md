@@ -1,3 +1,24 @@
+## visp (groovy) - 2.10.0-2
+
+The packages in the `visp` repository were released into the `groovy` distro by running `/usr/bin/bloom-release visp --ros-distro groovy --track groovy` on `Wed, 18 Mar 2015 12:49:24 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+- upstream repository: svn://scm.gforge.inria.fr/svnroot/visp/tags/ViSP_2_10_0
+- release repository: https://github.com/lagadic/visp-release.git
+- rosdistro version: `2.9.0-3`
+- old version: `2.10.0-1`
+- new version: `2.10.0-2`
+
+Versions of tools used:
+- bloom version: `0.5.19`
+- catkin_pkg version: `0.2.7`
+- rosdep version: `0.11.2`
+- rosdistro version: `0.4.1`
+- vcstools version: `0.1.36`
+
+
 ## visp (hydro) - 2.10.0-2
 
 The packages in the `visp` repository were released into the `hydro` distro by running `/usr/bin/bloom-release visp --ros-distro hydro --track hydro` on `Wed, 18 Mar 2015 10:32:31 -0000`
