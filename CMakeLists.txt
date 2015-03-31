@@ -61,7 +61,6 @@ set(VISP_CMAKE_MODULE_PATH ${VISP_SOURCE_DIR}/CMakeModules)
 
 find_file(GNU_INSTALL_DIRS_FROM_CMAKE NAMES GNUInstallDirs.cmake PATHS ${CMAKE_ROOT}/Modules)
 mark_as_advanced(GNU_INSTALL_DIRS_FROM_CMAKE)
-set(CMAKE_INSTALL_LIBDIR lib)
 if(GNU_INSTALL_DIRS_FROM_CMAKE)
   include(${CMAKE_ROOT}/Modules/GNUInstallDirs.cmake)
 else()
@@ -1370,9 +1369,7 @@ if(USE_OPENCV)
     #message("OpenCV_LIBS: ${OpenCV_LIBS}")
     #if(WIN32 AND OpenCV_LIB_COMPONENTS AND OpenCV_VERSION AND OpenCV_VERSION VERSION_GREATER 2.4.6.1)
     if(OpenCV_LIB_COMPONENTS AND OpenCV_VERSION AND OpenCV_VERSION VERSION_GREATER 2.4.6.1)
-      # ReleaseWithDebugInfo was requested to detect libopencv-devel under Fedora 20
-      # RelWithDebugInfo was requested to detect ros-hydro-opencv2 2.4.9 under Ubuntu 12.04 LTS with ROS hydro   
-      set(config_ "NONE" "RELEASE" "DEBUG" "RELEASEWITHDEBINFO" "RELWITHDEBINFO") 
+      set(config_ "NONE" "RELEASE" "DEBUG" "RELEASEWITHDEBINFO") # RelWithDebugInfo was requested under Fedora 20
 
       if(POLICY CMP0045)
         # Fix Error on non-existent target in get_target_property for 3rd party location extraction
@@ -2183,6 +2180,11 @@ set(VISP_ROOT_DIR_DATA_CONFIGCMAKE "${VISP_BINARY_DIR}")
 SET(VISP_SCENES_DIR ${VISP_ROOT_DIR_DATA_CONFIGCMAKE}/data/wireframe-simulator)
 SET(VISP_ROBOT_ARMS_DIR ${VISP_ROOT_DIR_DATA_CONFIGCMAKE}/data/robot-simulator)
 
+# Generate the package dependent file include/visp/vpConfig.h
+CONFIGURE_FILE(${VISP_SOURCE_DIR}/include/vpConfig.h.cmake
+  ${VISP_INCLUDE_DIR}/vpConfig.h
+)
+
 # case 2: when ViSP is build with make install; files are used in <install dir>
 #--------------
 IF(UNIX)
@@ -2201,11 +2203,6 @@ endif()
 if(VISP_INSTALL_DIR_OGRE_RESOURCES)
   SET(VISP_HAVE_OGRE_PLUGINS_PATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/visp/data/ogre-simulator)
 endif()
-
-# Generate the package dependent file include/visp/vpConfig.h
-CONFIGURE_FILE(${VISP_SOURCE_DIR}/include/vpConfig.h.cmake
-  ${VISP_INCLUDE_DIR}/vpConfig.h
-)
 
 #----------------------------------------------------------------------
 # Generate the ViSP-third-party.txt information file
@@ -2314,8 +2311,7 @@ include(${VISP_CMAKE_MODULE_PATH}/VISPGenerateConfig.cmake)
 #    visp-config --cflags ...
 #----------------------------------------------------------------------
 include(${VISP_CMAKE_MODULE_PATH}/VISPGeneratePkgConfigScript.cmake)
-# Install catkin package.xml
-install(FILES package.xml DESTINATION share/visp)
+
 #----------------------------------------------------------------------
 # Propagation in sub dirs to build demo, example, test, tutorial
 #----------------------------------------------------------------------
@@ -2325,7 +2321,7 @@ if(BUILD_TESTS)
   # We use CDash set through CTestConfig.cmake file
   # Dashboards are sent to http://cdash.irisa.fr/CDash/index.php?project=ViSP
   #----------------------------------------------------------------------
-  #enable_testing()
+  enable_testing()
   include(Dart)
   mark_as_advanced(DART_ROOT)
   mark_as_advanced(BUILD_TESTING)
