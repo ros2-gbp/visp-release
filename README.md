@@ -1,3 +1,24 @@
+## visp (indigo) - 2.10.0-3
+
+The packages in the `visp` repository were released into the `indigo` distro by running `/usr/bin/bloom-release visp --ros-distro indigo --track indigo` on `Tue, 31 Mar 2015 22:05:06 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+- upstream repository: svn://scm.gforge.inria.fr/svnroot/visp/tags/ViSP_2_10_0
+- release repository: https://github.com/lagadic/visp-release.git
+- rosdistro version: `2.10.0-2`
+- old version: `2.10.0-2`
+- new version: `2.10.0-3`
+
+Versions of tools used:
+- bloom version: `0.5.19`
+- catkin_pkg version: `0.2.7`
+- rosdep version: `0.11.2`
+- rosdistro version: `0.4.1`
+- vcstools version: `0.1.36`
+
+
 ## visp (hydro) - 2.10.0-3
 
 The packages in the `visp` repository were released into the `hydro` distro by running `/usr/bin/bloom-release visp --ros-distro hydro --track hydro` on `Tue, 31 Mar 2015 21:47:21 -0000`
