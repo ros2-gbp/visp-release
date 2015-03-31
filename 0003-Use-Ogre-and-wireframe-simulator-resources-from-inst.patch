@@ -1,7 +1,7 @@
-From 4a65e9524af3d3b8e0af24431830ea5bf6300d75 Mon Sep 17 00:00:00 2001
+From c9a9721c164a03100130fd3e13ebe588088b49a3 Mon Sep 17 00:00:00 2001
 From: Fabien Spindler <Fabien.Spindler@inria.fr>
 Date: Tue, 17 Mar 2015 20:51:34 +0100
-Subject: [PATCH 3/3] Use Ogre and wireframe simulator resources from install
+Subject: [PATCH 3/4] Use Ogre and wireframe simulator resources from install
  tree
 
 ---
