@@ -1,4 +1,4 @@
-From 2c79f7218c9aae8a27b0cd7b2fa09a01f6c91db5 Mon Sep 17 00:00:00 2001
+From b84ea508712ef45ce571ed2e7feff31abbd6e47e Mon Sep 17 00:00:00 2001
 From: Fabien Spindler <Fabien.Spindler@inria.fr>
 Date: Wed, 1 Apr 2015 00:07:38 +0200
 Subject: [PATCH 4/4] Export OpenCV libraries in visp-config, visp.pc and
