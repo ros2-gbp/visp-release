@@ -1,3 +1,24 @@
+## visp (jade) - 2.10.0-4
+
+The packages in the `visp` repository were released into the `jade` distro by running `/usr/bin/bloom-release visp --ros-distro jade --track jade` on `Thu, 09 Apr 2015 08:43:33 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+- upstream repository: svn://scm.gforge.inria.fr/svnroot/visp/tags/ViSP_2_10_0
+- release repository: https://github.com/lagadic/visp-release.git
+- rosdistro version: `2.10.0-3`
+- old version: `2.10.0-3`
+- new version: `2.10.0-4`
+
+Versions of tools used:
+- bloom version: `0.5.19`
+- catkin_pkg version: `0.2.7`
+- rosdep version: `0.11.2`
+- rosdistro version: `0.4.1`
+- vcstools version: `0.1.36`
+
+
 ## visp (jade) - 2.10.0-3
 
 The packages in the `visp` repository were released into the `jade` distro by running `/usr/bin/bloom-release visp --ros-distro jade --track jade` on `Tue, 31 Mar 2015 22:11:49 -0000`
