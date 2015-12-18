@@ -103,6 +103,6 @@ tracks:
     release_repo_url: null
     release_tag: null
     ros_distro: jade
-    vcs_type: svn
-    vcs_uri: svn://scm.gforge.inria.fr/svnroot/visp/tags/ViSP_2_10_0
+    vcs_type: git
+    vcs_uri: https://github.com/lagadic/visp.git
     version: :{ask}
