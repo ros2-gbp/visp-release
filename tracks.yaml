@@ -101,7 +101,7 @@ tracks:
     patches: jade
     release_inc: '4'
     release_repo_url: null
-    release_tag: null
+    release_tag: :{ask}
     ros_distro: jade
     vcs_type: git
     vcs_uri: https://github.com/lagadic/visp.git
