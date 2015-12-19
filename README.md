@@ -1,3 +1,24 @@
+## visp (indigo) - 3.0.0-2
+
+The packages in the `visp` repository were released into the `indigo` distro by running `/usr/bin/bloom-release visp --ros-distro indigo --track indigo` on `Sat, 19 Dec 2015 08:38:19 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+- upstream repository: https://github.com/lagadic/visp.git
+- release repository: https://github.com/lagadic/visp-release.git
+- rosdistro version: `2.10.0-3`
+- old version: `3.0.0-1`
+- new version: `3.0.0-2`
+
+Versions of tools used:
+- bloom version: `0.5.20`
+- catkin_pkg version: `0.2.10`
+- rosdep version: `0.11.4`
+- rosdistro version: `0.4.2`
+- vcstools version: `0.1.38`
+
+
 ## visp (jade) - 3.0.0-3
 
 The packages in the `visp` repository were released into the `jade` distro by running `/usr/bin/bloom-release visp --ros-distro jade --track jade` on `Fri, 18 Dec 2015 16:32:48 -0000`
