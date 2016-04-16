@@ -1,0 +1,13 @@
+Source: ros-kinetic-visp
+Section: misc
+Priority: extra
+Maintainer: Fabien Spindler <Fabien.Spindler@inria.fr>
+Build-Depends: debhelper (>= 9.0.0), cmake, doxygen, libbz2-dev, libcoin80-dev, libdc1394-22-dev, libdmtx-dev, libfreenect-dev, libjpeg62-turbo-dev, liblapack-dev, libogre-1.9-dev, libois-dev, libpng12-dev, libusb-dev, libv4l-dev, libx11-dev, libxml2-dev, libzbar-dev, ros-kinetic-catkin, ros-kinetic-opencv3
+Homepage: http://www.ros.org/wiki/visp
+Standards-Version: 3.9.2
+
+Package: ros-kinetic-visp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libbz2-dev, libcoin80-dev, libdc1394-22-dev, libdmtx-dev, libfreenect-dev, libjpeg62-turbo-dev, liblapack-dev, libogre-1.9-dev, libois-dev, libpng12-dev, libusb-dev, libv4l-dev, libx11-dev, libxml2-dev, libzbar-dev, ros-kinetic-opencv3
+Description: ViSP, standing for Visual Servoing Platform, is unique.
+ This software is a complete cross-platform solution that allows prototyping and developing applications in visual tracking and visual servoing. ViSP can be useful in robotics, computer vision, augmented reality and computer animation.
