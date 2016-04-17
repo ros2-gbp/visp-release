@@ -3,9 +3,13 @@
   <name>visp</name>
   <version>:{version}</version>
   <description>
-    ViSP, standing for Visual Servoing Platform, is unique. This software
-    is a complete cross-platform solution that allows prototyping and
-    developing applications in visual tracking and visual servoing.
+    ViSP standing for Visual Servoing Platform is a modular cross
+    platform library that allows prototyping and developing applications
+    using visual tracking and visual servoing technics at the heart of the
+    researches done by Inria Lagadic team. ViSP is able to compute control
+    laws that can be applied to robotic systems. It provides a set of visual
+    features that can be tracked using real time image processing or computer
+    vision algorithms. ViSP provides also simulation capabilities.
 
     ViSP can be useful in robotics, computer vision, augmented reality
     and computer animation.
@@ -20,7 +24,6 @@
   <url type="repository">https://github.com/lagadic/visp-release</url>
 
   <buildtool_depend>cmake</buildtool_depend>
-  <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>doxygen</build_depend>
   <build_depend>opencv3</build_depend>
@@ -56,4 +59,8 @@
   <run_depend>libois-dev</run_depend>
   <run_depend>libdmtx-dev</run_depend>
   <run_depend>zbar</run_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
 </package>
