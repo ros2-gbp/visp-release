@@ -1,3 +1,26 @@
+## visp (jade) - 3.0.0-4
+
+The packages in the `visp` repository were released into the `jade` distro by running `/usr/local/bin/bloom-release --rosdistro jade --track jade visp` on `Thu, 19 May 2016 16:51:25 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+
+- upstream repository: https://github.com/lagadic/visp.git
+- release repository: https://github.com/lagadic/visp-release.git
+- rosdistro version: `3.0.0-3`
+- old version: `3.0.0-3`
+- new version: `3.0.0-4`
+
+Versions of tools used:
+
+- bloom version: `0.5.21`
+- catkin_pkg version: `0.2.10`
+- rosdep version: `0.11.4`
+- rosdistro version: `0.4.7`
+- vcstools version: `0.1.38`
+
+
 ## visp (kinetic) - 3.0.0-3
 
 The packages in the `visp` repository were released into the `kinetic` distro by running `/usr/local/bin/bloom-release --rosdistro kinetic --track kinetic visp` on `Sun, 17 Apr 2016 08:35:27 -0000`
