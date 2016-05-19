@@ -1,4 +1,4 @@
-From 810405a2b5a9276e42ec59c4cee20f77f97341ef Mon Sep 17 00:00:00 2001
+From da051f1b000a3cff99fe6e9bb129d8522b135db2 Mon Sep 17 00:00:00 2001
 From: Fabien Spindler <Fabien.Spindler@inria.fr>
 Date: Fri, 18 Dec 2015 16:52:56 +0100
 Subject: [PATCH] Add install rule for package.xml, disable testing and force
@@ -37,5 +37,5 @@ index c53d54a..e001ade 100644
  # Try to find doxygen for documentation generation
  # Use "make visp_doc" target to generate the documentation
 -- 
-1.9.1
+2.5.0
 
