@@ -61,7 +61,6 @@ set(VISP_REVISION "1")
 
 find_file(GNU_INSTALL_DIRS_FROM_CMAKE NAMES GNUInstallDirs.cmake PATHS ${CMAKE_ROOT}/Modules)
 mark_as_advanced(GNU_INSTALL_DIRS_FROM_CMAKE)
-set(CMAKE_INSTALL_LIBDIR lib)
 if(GNU_INSTALL_DIRS_FROM_CMAKE)
   include(${CMAKE_ROOT}/Modules/GNUInstallDirs.cmake)
 else()
@@ -251,13 +250,10 @@ VP_OPTION(USE_DMTX        DMTX         ""    "Include dmtx support"         "" O
 # Dashboards are sent to http://cdash.irisa.fr/CDash/index.php?project=ViSP
 #----------------------------------------------------------------------
 if(BUILD_TESTS)
-#  enable_testing()
+  enable_testing()
   mark_as_advanced(DART_ROOT)
   mark_as_advanced(BUILD_TESTING)
 endif()
-
-# Install catkin package.xml
-install(FILES package.xml DESTINATION share/visp)
 
 #----------------------------------------------------------------------
 # Try to find doxygen for documentation generation
