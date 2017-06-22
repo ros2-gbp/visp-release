@@ -1,3 +1,26 @@
+## visp (lunar) - 3.0.1-1
+
+The packages in the `visp` repository were released into the `lunar` distro by running `/usr/bin/bloom-release --rosdistro lunar --track lunar visp` on `Thu, 22 Jun 2017 22:19:21 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+
+- upstream repository: https://github.com/lagadic/visp.git
+- release repository: unknown
+- rosdistro version: `null`
+- old version: `3.0.1-0`
+- new version: `3.0.1-1`
+
+Versions of tools used:
+
+- bloom version: `0.5.26`
+- catkin_pkg version: `0.3.5`
+- rosdep version: `0.11.5`
+- rosdistro version: `0.6.2`
+- vcstools version: `0.1.39`
+
+
 ## visp (lunar) - 3.0.1-0
 
 The packages in the `visp` repository were released into the `lunar` distro by running `/usr/bin/bloom-release --rosdistro lunar --track lunar visp` on `Thu, 22 Jun 2017 22:06:52 -0000`
