@@ -1,7 +1,7 @@
-From 2888b9ea1a3978b7859679353b45a71ab57a8672 Mon Sep 17 00:00:00 2001
+From fca279a2efaa14d298af752268648967abed21df Mon Sep 17 00:00:00 2001
 From: Fabien Spindler <Fabien.Spindler@inria.fr>
 Date: Fri, 10 Feb 2017 14:57:10 +0100
-Subject: [PATCH] Add install rule for package.xml and disable testing
+Subject: [PATCH 1/2] Add install rule for package.xml and disable testing
 
 ---
  CMakeLists.txt | 5 ++++-
@@ -28,5 +28,5 @@ index 694e188..5f153f2 100644
  # Try to find doxygen for documentation generation
  # Use "make visp_doc" target to generate the documentation
 -- 
-2.11.0
+2.7.4
 
