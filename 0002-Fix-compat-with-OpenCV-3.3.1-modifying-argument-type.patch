@@ -1,4 +1,4 @@
-From ab418239de6fff84f79eceb2a89238de3e553bc8 Mon Sep 17 00:00:00 2001
+From 513c951b2d042dc991465499d39e52cbd51abbbb Mon Sep 17 00:00:00 2001
 From: Fabien Spindler <Fabien.SPindler@inria.fr>
 Date: Tue, 14 Nov 2017 08:22:23 +0100
 Subject: [PATCH 2/2] Fix compat with OpenCV 3.3.1 modifying argument type
