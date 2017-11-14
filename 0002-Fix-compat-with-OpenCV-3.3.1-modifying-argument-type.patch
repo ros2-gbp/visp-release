@@ -1,0 +1,26 @@
+From ab418239de6fff84f79eceb2a89238de3e553bc8 Mon Sep 17 00:00:00 2001
+From: Fabien Spindler <Fabien.SPindler@inria.fr>
+Date: Tue, 14 Nov 2017 08:22:23 +0100
+Subject: [PATCH 2/2] Fix compat with OpenCV 3.3.1 modifying argument type
+ revealed by an overloaded OpenCV goodFeatureToTrack() function
+
+---
+ modules/tracker/klt/src/vpKltOpencv.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules/tracker/klt/src/vpKltOpencv.cpp b/modules/tracker/klt/src/vpKltOpencv.cpp
+index cf83a75..d7e5888 100644
+--- a/modules/tracker/klt/src/vpKltOpencv.cpp
++++ b/modules/tracker/klt/src/vpKltOpencv.cpp
+@@ -130,7 +130,7 @@ void vpKltOpencv::initTracking(const cv::Mat &I, const cv::Mat &mask)
+ 
+   m_points_id.clear();
+ 
+-  cv::goodFeaturesToTrack(m_gray, m_points[1], m_maxCount, m_qualityLevel, m_minDistance, mask, m_blockSize, 0, m_harris_k);
++  cv::goodFeaturesToTrack(m_gray, m_points[1], m_maxCount, m_qualityLevel, m_minDistance, mask, m_blockSize, false, m_harris_k);
+ 
+   if(m_points[1].size() > 0){
+     cv::cornerSubPix(m_gray, m_points[1], cv::Size(m_winSize, m_winSize), cv::Size(-1,-1), m_termcrit);
+-- 
+2.7.4
+
