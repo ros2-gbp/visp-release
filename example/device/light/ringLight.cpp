@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -41,23 +42,21 @@
   Shows how to activates the ring light.
 */
 
-
-
+#include <cmath>  // std::fabs
+#include <limits> // numeric_limits
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDebug.h>
-#include <cmath>    // std::fabs
-#include <limits>   // numeric_limits
 #if defined VISP_HAVE_PARPORT
-#include <stdlib.h>
-#include <stdio.h>
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include <visp3/robot/vpRingLight.h>
-#include <visp3/io/vpParseArgv.h>
 #include <visp3/core/vpTime.h>
+#include <visp3/io/vpParseArgv.h>
+#include <visp3/robot/vpRingLight.h>
 
 // List of allowed command line options
-#define GETOPTARGS	"d:hn:ot:"
+#define GETOPTARGS "d:hn:ot:"
 
 /*!
 
@@ -106,10 +105,9 @@ OPTIONS:                                               Default\n\
      Print the help.\n\n", nsec, nmsec, nsec);
 
   if (badparam) {
-    fprintf(stderr, "ERROR: \n" );
+    fprintf(stderr, "ERROR: \n");
     fprintf(stderr, "\nBad parameter [%s]\n", badparam);
   }
-
 }
 
 /*!
@@ -128,18 +126,29 @@ OPTIONS:                                               Default\n\
 bool getOptions(int argc, const char **argv, bool &on, int &nsec, double &nmsec)
 {
   const char *optarg;
-  int	c;
+  int c;
 
   while ((c = vpParseArgv::parse(argc, argv, GETOPTARGS, &optarg)) > 1) {
 
     switch (c) {
-    case 'n': nsec = atoi(optarg); break;
-    case 'o': on = true; break;
-    case 't': nmsec = atof(optarg); break;
-    case 'h': usage(argv[0], NULL, nsec, nmsec); return false; break;
+    case 'n':
+      nsec = atoi(optarg);
+      break;
+    case 'o':
+      on = true;
+      break;
+    case 't':
+      nmsec = atof(optarg);
+      break;
+    case 'h':
+      usage(argv[0], NULL, nsec, nmsec);
+      return false;
+      break;
 
     default:
-      usage(argv[0], optarg, nsec, nmsec); return false; break;
+      usage(argv[0], optarg, nsec, nmsec);
+      return false;
+      break;
     }
   }
 
@@ -159,22 +168,21 @@ bool getOptions(int argc, const char **argv, bool &on, int &nsec, double &nmsec)
   Send a data to the parallel port.
 
 */
-int
-main(int argc, const char **argv)
+int main(int argc, const char **argv)
 {
   try {
     bool on = false;
-    int nsec = 5; // Time while the ring light is turned on
+    int nsec = 5;     // Time while the ring light is turned on
     double nmsec = 0; // Pulse duration
 
     // Read the command line options
     if (getOptions(argc, argv, on, nsec, nmsec) == false) {
-      exit (-1);
+      exit(-1);
     }
 
     vpRingLight light;
 
-    //if (nmsec == 0.)
+    // if (nmsec == 0.)
     if (std::fabs(nmsec) <= std::numeric_limits<double>::epsilon())
       light.pulse();
     else
@@ -182,33 +190,30 @@ main(int argc, const char **argv)
 
     if (on) {
       printf("Turn on ring light\n");
-      light.on(); // Turn the ring light on
+      light.on();                // Turn the ring light on
       vpTime::wait(nsec * 1000); // Wait 5 s
-      light.off(); // and then turn the ring light off
-    }
-    else {
+      light.off();               // and then turn the ring light off
+    } else {
       printf("Send a pulse to activate the ring light\n");
       light.pulse();
     }
-  }
-  catch (vpParallelPortException &e) {
-    switch(e.getCode()) {
+  } catch (vpParallelPortException &e) {
+    switch (e.getCode()) {
     case vpParallelPortException::opening:
-      printf("Can't open the parallel port to access to the ring light device\n");
+      printf("Can't open the parallel port to access to the ring light "
+             "device\n");
       break;
     case vpParallelPortException::closing:
       printf("Can't close the parallel port\n");
       break;
     }
-  }
-  catch(...) {
+  } catch (...) {
     printf("An error occurs...\n");
   }
   return 0;
 }
 #else
-int
-main()
+int main()
 {
   vpTRACE("Sorry, for the moment, vpRingLight class works only on unix...");
   return 0;

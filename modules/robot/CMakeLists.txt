@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -62,13 +63,13 @@ if(USE_VIRTUOSE)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4099")
     # Disable Visual C++ C4312 warning occuring on 3rd party VirtuoseAPI.h file
     # VirtuoseAPI.h(280): warning C4312: 'type cast': conversion from 'int' to 'char *' of greater size
-	# VirtuoseAPI.h(302): warning C4312: 'type cast': conversion from 'int' to 'VirtContext' of greater size
-    vp_set_source_file_compile_flag(src/haptic-device/virtuose/vpVirtuose.cpp /wd4312)
-    vp_set_source_file_compile_flag(test/virtuose/testVirtuose.cpp /wd4312)
-    vp_set_source_file_compile_flag(test/virtuose/testVirtuoseAfma6.cpp /wd4312)
-    vp_set_source_file_compile_flag(test/virtuose/testVirtuoseHapticBox.cpp /wd4312)
-    vp_set_source_file_compile_flag(test/virtuose/testVirtuoseJointLimits.cpp /wd4312)
-    vp_set_source_file_compile_flag(test/virtuose/testVirtuosePeriodicFunction.cpp /wd4312)
+  # VirtuoseAPI.h(302): warning C4312: 'type cast': conversion from 'int' to 'VirtContext' of greater size
+    vp_set_source_file_compile_flag(src/haptic-device/virtuose/vpVirtuose.cpp /wd"4312")
+    vp_set_source_file_compile_flag(test/virtuose/testVirtuose.cpp /wd"4312")
+    vp_set_source_file_compile_flag(test/virtuose/testVirtuoseAfma6.cpp /wd"4312")
+    vp_set_source_file_compile_flag(test/virtuose/testVirtuoseHapticBox.cpp /wd"4312")
+    vp_set_source_file_compile_flag(test/virtuose/testVirtuoseJointLimits.cpp /wd"4312")
+    vp_set_source_file_compile_flag(test/virtuose/testVirtuosePeriodicFunction.cpp /wd"4312")
   endif()
 endif()
 
@@ -105,6 +106,21 @@ elseif(USE_ARIA AND NOT UNIX)
   list(APPEND opt_libs ${ARIA_LIBRARIES})
 endif()
 
+if(USE_FRANKA)
+  get_target_property(Franka_inc_dirs_ ${Franka_LIBRARIES} INTERFACE_INCLUDE_DIRECTORIES)
+  list(APPEND opt_incs ${Franka_inc_dirs_})
+
+  set(config_ "release" "debug" "releasewithdebinfo" "relwithdebinfo" "none")
+  foreach(imp_config_ ${config_})
+    string(TOUPPER "${imp_config_}" imp_config_up_)
+    get_target_property(Franka_lib ${Franka_LIBRARIES} IMPORTED_LOCATION_${imp_config_up_})
+    if(Franka_lib)
+       list(APPEND opt_libs ${Franka_lib})
+       break()
+    endif()
+  endforeach()
+endif()
+
 # for the wireframe simulator we can use optional opengl and coin
 if(USE_COIN3D)
   if(WIN32)
@@ -134,7 +150,7 @@ endif()
 
 if(USE_ARIA)
   # Add specific build flag to turn off warnings coming from libaria 3rd party
-  vp_set_source_file_compile_flag(src/real-robot/pioneer/vpRobotPioneer.cpp -Wno-unused-parameter)
+  vp_set_source_file_compile_flag(src/real-robot/pioneer/vpRobotPioneer.cpp -Wno-unused-parameter -Wno-type-limits)
 endif()
 
 if(USE_COIN3D)

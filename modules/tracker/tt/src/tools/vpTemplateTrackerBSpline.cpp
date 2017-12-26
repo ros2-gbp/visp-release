@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -42,21 +43,19 @@
 
 double vpTemplateTrackerBSpline::getSubPixBspline4(const vpImage<double> &I, double r, double t)
 {
-  double res=0;
-  int cr=(int)(r);
-  int ct=(int)(t);
-  double er=(double)r-cr;
-  double et=(double)t-ct;
-  int height=(int)I.getHeight();//r
-  int width=(int)I.getWidth();//t
-  for(int ir=-1;ir<=2;ir++)
-  {
-    int tr=ir+cr;
-    for(int it=-1;it<=2;it++)
-    {
-      int tt=it+ct;
-      if(tr>=0 && tr <height && tt>=0 && tt <width)
-        res+=Bspline4((double)ir-er)*Bspline4((double)it-et)*I[tr][tt];
+  double res = 0;
+  int cr = (int)(r);
+  int ct = (int)(t);
+  double er = (double)r - cr;
+  double et = (double)t - ct;
+  int height = (int)I.getHeight(); // r
+  int width = (int)I.getWidth();   // t
+  for (int ir = -1; ir <= 2; ir++) {
+    int tr = ir + cr;
+    for (int it = -1; it <= 2; it++) {
+      int tt = it + ct;
+      if (tr >= 0 && tr < height && tt >= 0 && tt < width)
+        res += Bspline4((double)ir - er) * Bspline4((double)it - et) * I[tr][tt];
     }
   }
   return res;
@@ -64,13 +63,14 @@ double vpTemplateTrackerBSpline::getSubPixBspline4(const vpImage<double> &I, dou
 
 double vpTemplateTrackerBSpline::Bspline4(double diff)
 {
-  //double result;
-  double aDiff=vpMath::abs(diff);
-  if(aDiff<1.)
-    return (aDiff*aDiff*aDiff/2.-aDiff*aDiff+4./6.);
-  //return (0.5*(1.-aDiff)*(1.-aDiff)*(1.-aDiff)+0.5*(1.-aDiff)*(1.-aDiff)-0.5*(1.-aDiff)+1./6.);
-  else if(aDiff<2.)
-    return ((2.-aDiff)*(2.-aDiff)*(2.-aDiff)/6.);
+  // double result;
+  double aDiff = vpMath::abs(diff);
+  if (aDiff < 1.)
+    return (aDiff * aDiff * aDiff / 2. - aDiff * aDiff + 4. / 6.);
+  // return
+  // (0.5*(1.-aDiff)*(1.-aDiff)*(1.-aDiff)+0.5*(1.-aDiff)*(1.-aDiff)-0.5*(1.-aDiff)+1./6.);
+  else if (aDiff < 2.)
+    return ((2. - aDiff) * (2. - aDiff) * (2. - aDiff) / 6.);
   else
     return 0;
 }

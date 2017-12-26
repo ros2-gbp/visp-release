@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,8 +36,6 @@
  *
  *****************************************************************************/
 
-
-
 #ifndef vpGenericFeature_hh
 #define vpGenericFeature_hh
 
@@ -47,8 +46,8 @@
  */
 
 #include <visp3/core/vpMatrix.h>
-#include <visp3/visual_features/vpBasicFeature.h>
 #include <visp3/core/vpRGBa.h>
+#include <visp3/visual_features/vpBasicFeature.h>
 
 #include <math.h>
 
@@ -56,9 +55,17 @@
   \class vpGenericFeature
   \ingroup group_core_features
 
-  \brief Class that enables to define a feature or a set of features which are not implemented in ViSP as a specific class. It is indeed possible to create its own features, to use the corresponding interaction matrix, and to compute an error between the current and the desired feature. Moreover the created features can be mixed with features already implemented.
+  \brief Class that enables to define a feature or a set of features which are
+not implemented in ViSP as a specific class. It is indeed possible to create
+its own features, to use the corresponding interaction matrix, and to compute
+an error between the current and the desired feature. Moreover the created
+features can be mixed with features already implemented.
 
-  The following example shows how to use the vpGenericFeature class to create and use the feature \f$ log(Z) \f$ where Z corresponds to the depth of a point whose 2D coordinates in the camera frame are \f$ x \f$ and \f$ y \f$. The interaction matrix corresponding to this feature is \f[ L = \left[\begin{array}{cccccc} 0 & 0 & -1/Z & -y & x & 0 \end{array}\right]\f].
+  The following example shows how to use the vpGenericFeature class to create
+and use the feature \f$ log(Z) \f$ where Z corresponds to the depth of a point
+whose 2D coordinates in the camera frame are \f$ x \f$ and \f$ y \f$. The
+interaction matrix corresponding to this feature is \f[ L =
+\left[\begin{array}{cccccc} 0 & 0 & -1/Z & -y & x & 0 \end{array}\right]\f].
   \code
 #include <visp3/core/vpGenericFeature.h>
 #include <visp3/vs/vpServo.h>
@@ -81,7 +88,7 @@ int main()
   vpGenericFeature logZ(1); //The dimension of the feature is 1.
   logZ.set_s( log(Z) );
 
-  // Set eye-in-hand control law. 
+  // Set eye-in-hand control law.
   // The computed velocities will be expressed in the camera frame
   task.setServo(vpServo::EYEINHAND_CAMERA);
   // Interaction matrix is computed with the current visual features sd
@@ -93,7 +100,7 @@ int main()
   // Control loop
   for ( ; ; ) {
     // The new parameters x, y and Z must be computed here.
-    
+
     // Update the current point visual feature
     logZ.set_s( log(Z) ) ;
 
@@ -105,7 +112,7 @@ int main()
     LlogZ[0][4] =  x;
     logZ.setInteractionMatrix(LlogZ) ;
 
-    
+
     // compute the control law
     vpColVector v = task.computeControlLaw(); // camera velocity
   }
@@ -113,7 +120,9 @@ int main()
 }
   \endcode
 
-The second example shows how to create and use a feature whose specificity is to have a desired feature fixed to zero. It is the case for the feature \f$ log( \frac{Z}{Z^*}) \f$.
+The second example shows how to create and use a feature whose specificity is
+to have a desired feature fixed to zero. It is the case for the feature \f$
+log( \frac{Z}{Z^*}) \f$.
 
   \code
 #include <visp3/core/vpGenericFeature.h>
@@ -135,7 +144,7 @@ int main()
   vpGenericFeature logZ(1); //The dimension of the feature is 1.
   logZ.set_s( log(Z/Zd) );
 
-  // Set eye-in-hand control law. 
+  // Set eye-in-hand control law.
   // The computed velocities will be expressed in the camera frame
   task.setServo(vpServo::EYEINHAND_CAMERA);
   // Interaction matrix is computed with the current visual features sd
@@ -147,7 +156,7 @@ int main()
   // Control loop
   for ( ; ; ) {
     // The new parameters x, y and Z must be computed here.
-    
+
     // Update the current point visual feature
     logZ.set_s( log(Z/Zd) ) ;
 
@@ -159,7 +168,7 @@ int main()
     LlogZ[0][4] =  x;
     logZ.setInteractionMatrix(LlogZ) ;
 
-    
+
     // compute the control law
     vpColVector v = task.computeControlLaw(); // camera velocity
   }
@@ -167,64 +176,53 @@ int main()
 }
   \endcode
 
-If the feature needs to be use with other features, the example servoSimuPoint2DhalfCamVelocity2.cpp shows how to do it.
+If the feature needs to be use with other features, the example
+servoSimuPoint2DhalfCamVelocity2.cpp shows how to do it.
  */
 class VISP_EXPORT vpGenericFeature : public vpBasicFeature
 {
 private:
-  vpGenericFeature() ;
+  vpGenericFeature();
 
 public:
-  vpGenericFeature(unsigned int dim) ;
-  virtual ~vpGenericFeature() ;
+  explicit vpGenericFeature(unsigned int dim);
+  virtual ~vpGenericFeature();
 
-  void display(const vpCameraParameters &cam,
-               const vpImage<unsigned char> &I,
-               const vpColor &color=vpColor::green,
-               unsigned int thickness=1) const ;
-  void display(const vpCameraParameters &cam,
-               const vpImage<vpRGBa> &I,
-               const vpColor &color=vpColor::green,
-               unsigned int thickness=1) const ;
+  void display(const vpCameraParameters &cam, const vpImage<unsigned char> &I, const vpColor &color = vpColor::green,
+               unsigned int thickness = 1) const;
+  void display(const vpCameraParameters &cam, const vpImage<vpRGBa> &I, const vpColor &color = vpColor::green,
+               unsigned int thickness = 1) const;
 
-  vpGenericFeature *duplicate() const ;
+  vpGenericFeature *duplicate() const;
 
+  vpColVector error(const vpBasicFeature &s_star, const unsigned int select = FEATURE_ALL);
 
-  vpColVector error(const vpBasicFeature &s_star,
-                    const unsigned int select = FEATURE_ALL)  ;
+  vpColVector error(const unsigned int select = FEATURE_ALL);
 
-  vpColVector error(const unsigned int select = FEATURE_ALL)  ;
-
-  vpMatrix getInteractionMatrix() const { return L ; }
+  vpMatrix getInteractionMatrix() const { return L; }
   void get_s(vpColVector &s) const;
   void get_s(double &s0) const;
   void get_s(double &s0, double &s1) const;
   void get_s(double &s0, double &s1, double &s2) const;
 
-  void init() ;
+  void init();
 
-  vpMatrix  interaction(const unsigned int select = FEATURE_ALL);
+  vpMatrix interaction(const unsigned int select = FEATURE_ALL);
 
-  void print(const unsigned int select = FEATURE_ALL ) const ;
-  void setInteractionMatrix(const vpMatrix &L) ;
-  void setError(const vpColVector &error_vector)  ;
-  void set_s(const vpColVector &s) ;
-  void set_s(const double s0) ;
-  void set_s(const double s0, const double s1) ;
-  void set_s(const double s0, const double s1, const double s2) ;
-
+  void print(const unsigned int select = FEATURE_ALL) const;
+  void setInteractionMatrix(const vpMatrix &L);
+  void setError(const vpColVector &error_vector);
+  void set_s(const vpColVector &s);
+  void set_s(const double s0);
+  void set_s(const double s0, const double s1);
+  void set_s(const double s0, const double s1, const double s2);
 
 private:
-  typedef enum
-  {
-    errorNotInitalized,
-    errorInitialized,
-    errorHasToBeUpdated
-  } vpGenericFeatureErrorType;
+  typedef enum { errorNotInitalized, errorInitialized, errorHasToBeUpdated } vpGenericFeatureErrorType;
 
-  vpMatrix L ;
-  vpColVector err ;
-  vpGenericFeatureErrorType errorStatus ;
-} ;
+  vpMatrix L;
+  vpColVector err;
+  vpGenericFeatureErrorType errorStatus;
+};
 
 #endif

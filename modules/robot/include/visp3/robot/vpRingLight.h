@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,7 +36,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpRingLight_h
 #define vpRingLight_h
 
@@ -44,16 +44,14 @@
   \brief Ring light management under unix.
 */
 
-
-
 #include <visp3/core/vpConfig.h>
 
 #if defined(VISP_HAVE_MODULE_IO) && defined(VISP_HAVE_PARPORT)
 
 #include <iostream>
 
-#include <visp3/robot/vpRingLight.h>
 #include <visp3/io/vpParallelPort.h>
+#include <visp3/robot/vpRingLight.h>
 /*!
 
   \class vpRingLight
@@ -68,8 +66,8 @@
   \code
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpImage.h>
-#include <visp3/sensor/vp1394TwoGrabber.h>
 #include <visp3/robot/vpRingLight.h>
+#include <visp3/sensor/vp1394TwoGrabber.h>
 
 int main()
 {
@@ -90,8 +88,8 @@ int main()
   Here is an example showing how to turn on the lighting during 10 seconds.
   \code
 #include <visp3/core/vpConfig.h>
-#include <visp3/robot/vpRingLight.h>
 #include <visp3/core/vpTime.h>
+#include <visp3/robot/vpRingLight.h>
 
 int main()
 {
@@ -123,8 +121,7 @@ public:
 
 private:
   vpParallelPort parport;
-
-} ;
+};
 
 #endif
 

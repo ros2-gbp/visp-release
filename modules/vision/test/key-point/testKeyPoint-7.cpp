@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,25 +36,22 @@
  *
  *****************************************************************************/
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include <visp3/core/vpConfig.h>
 
 #if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020301)
 
+#include <visp3/core/vpException.h>
 #include <visp3/core/vpImage.h>
-#include <visp3/io/vpImageIo.h>
 #include <visp3/core/vpIoTools.h>
+#include <visp3/io/vpImageIo.h>
 #include <visp3/io/vpParseArgv.h>
 #include <visp3/vision/vpKeyPoint.h>
-#include <visp3/core/vpException.h>
 
 // List of allowed command line options
-#define GETOPTARGS	"cdo:h"
-
-void usage(const char *name, const char *badparam, std::string opath, std::string user);
-bool getOptions(int argc, const char **argv, std::string &opath, std::string user);
+#define GETOPTARGS "cdo:h"
 
 /*!
 
@@ -63,7 +61,7 @@ bool getOptions(int argc, const char **argv, std::string &opath, std::string use
   \param badparam : Bad parameter name.
 
 */
-void usage(const char *name, const char *badparam, std::string opath, std::string user)
+void usage(const char *name, const char *badparam, const std::string &opath, const std::string &user)
 {
   fprintf(stdout, "\n\
 Test save / load learning files for vpKeyPoint class.\n\
@@ -81,8 +79,7 @@ OPTIONS:                                               \n\
      learning files will be written.\n\
 \n\
   -h\n\
-     Print the help.\n",
-     opath.c_str(), user.c_str());
+     Print the help.\n", opath.c_str(), user.c_str());
 
   if (badparam)
     fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
@@ -99,21 +96,31 @@ OPTIONS:                                               \n\
   \return false if the program has to be stopped, true otherwise.
 
 */
-bool getOptions(int argc, const char **argv, std::string &opath, std::string user)
+bool getOptions(int argc, const char **argv, std::string &opath, const std::string &user)
 {
   const char *optarg_;
-  int	c;
+  int c;
   while ((c = vpParseArgv::parse(argc, argv, GETOPTARGS, &optarg_)) > 1) {
 
     switch (c) {
-    case 'c': break; //not used, to avoid error with default arguments ctest
-    case 'd': break; //not used, to avoid error with default arguments ctest
-    case 'o': opath = optarg_; break;
-    case 'h': usage(argv[0], NULL, opath, user); return false; break;
+    case 'c':
+      break; // not used, to avoid error with default arguments ctest
+    case 'd':
+      break; // not used, to avoid error with default arguments ctest
+    case 'o':
+      opath = optarg_;
+      break;
+    case 'h':
+      usage(argv[0], NULL, opath, user);
+      return false;
+      break;
 
     default:
-      usage(argv[0], optarg_, opath, user); return false; break;
-      return false; break;
+      usage(argv[0], optarg_, opath, user);
+      return false;
+      break;
+      return false;
+      break;
     }
   }
 
@@ -136,51 +143,52 @@ bool getOptions(int argc, const char **argv, std::string &opath, std::string use
 
   \return True if the two vectors are identical, false otherwise.
 */
-bool compareKeyPoints(const std::vector<cv::KeyPoint> &keypoints1, const std::vector<cv::KeyPoint> &keypoints2) {
-  if(keypoints1.size() != keypoints2.size()) {
+bool compareKeyPoints(const std::vector<cv::KeyPoint> &keypoints1, const std::vector<cv::KeyPoint> &keypoints2)
+{
+  if (keypoints1.size() != keypoints2.size()) {
     return false;
   }
 
-  for(size_t cpt = 0; cpt < keypoints1.size(); cpt++) {
-    if(!vpMath::equal(keypoints1[cpt].angle, keypoints2[cpt].angle, std::numeric_limits<float>::epsilon())) {
-      std::cerr << std::fixed << std::setprecision(9) << "keypoints1[cpt].angle=" << keypoints1[cpt].angle <<
-          " ; keypoints2[cpt].angle=" << keypoints2[cpt].angle << std::endl;
+  for (size_t cpt = 0; cpt < keypoints1.size(); cpt++) {
+    if (!vpMath::equal(keypoints1[cpt].angle, keypoints2[cpt].angle, std::numeric_limits<float>::epsilon())) {
+      std::cerr << std::fixed << std::setprecision(9) << "keypoints1[cpt].angle=" << keypoints1[cpt].angle
+                << " ; keypoints2[cpt].angle=" << keypoints2[cpt].angle << std::endl;
       return false;
     }
 
-    if(keypoints1[cpt].class_id != keypoints2[cpt].class_id) {
-      std::cerr << "keypoints1[cpt].class_id=" << keypoints1[cpt].class_id << " ; keypoints2[cpt].class_id=" <<
-          keypoints2[cpt].class_id << std::endl;
+    if (keypoints1[cpt].class_id != keypoints2[cpt].class_id) {
+      std::cerr << "keypoints1[cpt].class_id=" << keypoints1[cpt].class_id
+                << " ; keypoints2[cpt].class_id=" << keypoints2[cpt].class_id << std::endl;
       return false;
     }
 
-    if(keypoints1[cpt].octave != keypoints2[cpt].octave) {
-      std::cerr << "keypoints1[cpt].octave=" << keypoints1[cpt].octave << " ; keypoints2[cpt].octave=" <<
-          keypoints2[cpt].octave << std::endl;
+    if (keypoints1[cpt].octave != keypoints2[cpt].octave) {
+      std::cerr << "keypoints1[cpt].octave=" << keypoints1[cpt].octave
+                << " ; keypoints2[cpt].octave=" << keypoints2[cpt].octave << std::endl;
       return false;
     }
 
-    if(!vpMath::equal(keypoints1[cpt].pt.x, keypoints2[cpt].pt.x, std::numeric_limits<float>::epsilon())) {
-      std::cerr << std::fixed << std::setprecision(9) << "keypoints1[cpt].pt.x=" << keypoints1[cpt].pt.x <<
-          " ; keypoints2[cpt].pt.x=" << keypoints2[cpt].pt.x << std::endl;
+    if (!vpMath::equal(keypoints1[cpt].pt.x, keypoints2[cpt].pt.x, std::numeric_limits<float>::epsilon())) {
+      std::cerr << std::fixed << std::setprecision(9) << "keypoints1[cpt].pt.x=" << keypoints1[cpt].pt.x
+                << " ; keypoints2[cpt].pt.x=" << keypoints2[cpt].pt.x << std::endl;
       return false;
     }
 
-    if(!vpMath::equal(keypoints1[cpt].pt.y, keypoints2[cpt].pt.y, std::numeric_limits<float>::epsilon())) {
-      std::cerr << std::fixed << std::setprecision(9) << "keypoints1[cpt].pt.y=" << keypoints1[cpt].pt.y <<
-          " ; keypoints2[cpt].pt.y=" << keypoints2[cpt].pt.y << std::endl;
+    if (!vpMath::equal(keypoints1[cpt].pt.y, keypoints2[cpt].pt.y, std::numeric_limits<float>::epsilon())) {
+      std::cerr << std::fixed << std::setprecision(9) << "keypoints1[cpt].pt.y=" << keypoints1[cpt].pt.y
+                << " ; keypoints2[cpt].pt.y=" << keypoints2[cpt].pt.y << std::endl;
       return false;
     }
 
-    if(!vpMath::equal(keypoints1[cpt].response, keypoints2[cpt].response, std::numeric_limits<float>::epsilon())) {
-      std::cerr << std::fixed << std::setprecision(9) << "keypoints1[cpt].response=" << keypoints1[cpt].response <<
-          " ; keypoints2[cpt].response=" << keypoints2[cpt].response << std::endl;
+    if (!vpMath::equal(keypoints1[cpt].response, keypoints2[cpt].response, std::numeric_limits<float>::epsilon())) {
+      std::cerr << std::fixed << std::setprecision(9) << "keypoints1[cpt].response=" << keypoints1[cpt].response
+                << " ; keypoints2[cpt].response=" << keypoints2[cpt].response << std::endl;
       return false;
     }
 
-    if(!vpMath::equal(keypoints1[cpt].size, keypoints2[cpt].size, std::numeric_limits<float>::epsilon())) {
-      std::cerr << std::fixed << std::setprecision(9) << "keypoints1[cpt].size=" << keypoints1[cpt].size <<
-          " ; keypoints2[cpt].size=" << keypoints2[cpt].size << std::endl;
+    if (!vpMath::equal(keypoints1[cpt].size, keypoints2[cpt].size, std::numeric_limits<float>::epsilon())) {
+      std::cerr << std::fixed << std::setprecision(9) << "keypoints1[cpt].size=" << keypoints1[cpt].size
+                << " ; keypoints2[cpt].size=" << keypoints2[cpt].size << std::endl;
       return false;
     }
   }
@@ -196,67 +204,72 @@ bool compareKeyPoints(const std::vector<cv::KeyPoint> &keypoints1, const std::ve
 
   \return True if the two vectors are identical, false otherwise.
 */
-bool compareDescriptors(const cv::Mat &descriptors1, const cv::Mat &descriptors2) {
-  if(descriptors1.rows != descriptors2.rows || descriptors1.cols != descriptors2.cols ||
+bool compareDescriptors(const cv::Mat &descriptors1, const cv::Mat &descriptors2)
+{
+  if (descriptors1.rows != descriptors2.rows || descriptors1.cols != descriptors2.cols ||
       descriptors1.type() != descriptors2.type()) {
     return false;
   }
 
-  for(int i = 0; i < descriptors1.rows; i++) {
-    for(int j = 0; j < descriptors1.cols; j++) {
-      switch(descriptors1.type()) {
+  for (int i = 0; i < descriptors1.rows; i++) {
+    for (int j = 0; j < descriptors1.cols; j++) {
+      switch (descriptors1.type()) {
       case CV_8U:
-        if(descriptors1.at<unsigned char>(i,j) != descriptors2.at<unsigned char>(i,j)) {
-          std::cerr << "descriptors1.at<unsigned char>(i,j)=" << descriptors1.at<unsigned char>(i,j) <<
-              " ; descriptors2.at<unsigned char>(i,j)=" << descriptors2.at<unsigned char>(i,j) << std::endl;
+        if (descriptors1.at<unsigned char>(i, j) != descriptors2.at<unsigned char>(i, j)) {
+          std::cerr << "descriptors1.at<unsigned char>(i,j)=" << descriptors1.at<unsigned char>(i, j)
+                    << " ; descriptors2.at<unsigned char>(i,j)=" << descriptors2.at<unsigned char>(i, j) << std::endl;
           return false;
         }
         break;
 
       case CV_8S:
-        if(descriptors1.at<char>(i,j) != descriptors2.at<char>(i,j)) {
-          std::cerr << "descriptors1.at<char>(i,j)=" << descriptors1.at<char>(i,j) <<
-              " ; descriptors2.at<char>(i,j)=" << descriptors2.at<char>(i,j) << std::endl;
+        if (descriptors1.at<char>(i, j) != descriptors2.at<char>(i, j)) {
+          std::cerr << "descriptors1.at<char>(i,j)=" << descriptors1.at<char>(i, j)
+                    << " ; descriptors2.at<char>(i,j)=" << descriptors2.at<char>(i, j) << std::endl;
           return false;
         }
         break;
 
       case CV_16U:
-        if(descriptors1.at<unsigned short>(i,j) != descriptors2.at<unsigned short>(i,j)) {
-          std::cerr << "descriptors1.at<unsigned short>(i,j)=" << descriptors1.at<unsigned short>(i,j) <<
-              " ; descriptors2.at<unsigned short>(i,j)=" << descriptors2.at<unsigned short>(i,j) << std::endl;
+        if (descriptors1.at<unsigned short>(i, j) != descriptors2.at<unsigned short>(i, j)) {
+          std::cerr << "descriptors1.at<unsigned short>(i,j)=" << descriptors1.at<unsigned short>(i, j)
+                    << " ; descriptors2.at<unsigned short>(i,j)=" << descriptors2.at<unsigned short>(i, j) << std::endl;
           return false;
         }
         break;
 
       case CV_16S:
-        if(descriptors1.at<short>(i,j) != descriptors2.at<short>(i,j)) {
-          std::cerr << "descriptors1.at<short>(i,j)=" << descriptors1.at<short>(i,j) <<
-              " ; descriptors2.at<short>(i,j)=" << descriptors2.at<short>(i,j) << std::endl;
+        if (descriptors1.at<short>(i, j) != descriptors2.at<short>(i, j)) {
+          std::cerr << "descriptors1.at<short>(i,j)=" << descriptors1.at<short>(i, j)
+                    << " ; descriptors2.at<short>(i,j)=" << descriptors2.at<short>(i, j) << std::endl;
           return false;
         }
         break;
 
       case CV_32S:
-        if(descriptors1.at<int>(i,j) != descriptors2.at<int>(i,j)) {
-          std::cerr << "descriptors1.at<int>(i,j)=" << descriptors1.at<int>(i,j) <<
-              " ; descriptors2.at<int>(i,j)=" << descriptors2.at<int>(i,j) << std::endl;
+        if (descriptors1.at<int>(i, j) != descriptors2.at<int>(i, j)) {
+          std::cerr << "descriptors1.at<int>(i,j)=" << descriptors1.at<int>(i, j)
+                    << " ; descriptors2.at<int>(i,j)=" << descriptors2.at<int>(i, j) << std::endl;
           return false;
         }
         break;
 
       case CV_32F:
-        if(!vpMath::equal(descriptors1.at<float>(i,j), descriptors2.at<float>(i,j), std::numeric_limits<float>::epsilon())) {
-          std::cerr << std::fixed << std::setprecision(9) << "descriptors1.at<float>(i,j)=" << descriptors1.at<float>(i,j)
-              << " ; descriptors2.at<float>(i,j)=" << descriptors2.at<float>(i,j) << std::endl;
+        if (!vpMath::equal(descriptors1.at<float>(i, j), descriptors2.at<float>(i, j),
+                           std::numeric_limits<float>::epsilon())) {
+          std::cerr << std::fixed << std::setprecision(9)
+                    << "descriptors1.at<float>(i,j)=" << descriptors1.at<float>(i, j)
+                    << " ; descriptors2.at<float>(i,j)=" << descriptors2.at<float>(i, j) << std::endl;
           return false;
         }
         break;
 
       case CV_64F:
-        if(!vpMath::equal(descriptors1.at<double>(i,j), descriptors2.at<double>(i,j), std::numeric_limits<double>::epsilon())) {
-          std::cerr << std::fixed << std::setprecision(17) << "descriptors1.at<double>(i,j)=" << descriptors1.at<double>(i,j)
-              << " ; descriptors2.at<double>(i,j)=" << descriptors2.at<double>(i,j) << std::endl;
+        if (!vpMath::equal(descriptors1.at<double>(i, j), descriptors2.at<double>(i, j),
+                           std::numeric_limits<double>::epsilon())) {
+          std::cerr << std::fixed << std::setprecision(17)
+                    << "descriptors1.at<double>(i,j)=" << descriptors1.at<double>(i, j)
+                    << " ; descriptors2.at<double>(i,j)=" << descriptors2.at<double>(i, j) << std::endl;
           return false;
         }
         break;
@@ -276,7 +289,8 @@ bool compareDescriptors(const cv::Mat &descriptors1, const cv::Mat &descriptors2
 
   \brief   Test saving / loading learning file.
 */
-int main(int argc, const char ** argv) {
+int main(int argc, const char **argv)
+{
   try {
     std::string env_ipath;
     std::string opt_opath;
@@ -284,14 +298,15 @@ int main(int argc, const char ** argv) {
     std::string opath;
     std::string filename;
 
-    //Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH environment variable value
+    // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH
+    // environment variable value
     env_ipath = vpIoTools::getViSPImagesDataPath();
 
-    if(env_ipath.empty()) {
+    if (env_ipath.empty()) {
       throw vpException(vpException::ioError, "Please set the VISP_INPUT_IMAGE_PATH environment variable value.");
     }
 
-    // Set the default output path
+// Set the default output path
 #if defined(_WIN32)
     opt_opath = "C:/temp";
 #else
@@ -314,34 +329,18 @@ int main(int argc, const char ** argv) {
     // Append to the output path string, the login name of the user
     opath = vpIoTools::createFilePath(opath, username);
 
-    // Test if the output path exist. If no try to create it
-    if (vpIoTools::checkDirectory(opath) == false) {
-      try {
-        // Create the dirname
-        vpIoTools::makeDirectory(opath);
-      }
-      catch (...) {
-        usage(argv[0], NULL, opt_opath, username);
-        std::stringstream ss;
-        ss << std::endl << "ERROR:" << std::endl;
-        ss << "  Cannot create " << opath << std::endl;
-        ss << "  Check your -o " << opt_opath << " option " << std::endl;
-        throw vpException(vpException::ioError, ss.str().c_str());
-      }
-    }
-
     vpImage<unsigned char> I;
 
-    //Set the path location of the image sequence
-    std::string dirname = vpIoTools::createFilePath(env_ipath, "ViSP-images/Klimt");
+    // Set the path location of the image sequence
+    std::string dirname = vpIoTools::createFilePath(env_ipath, "Klimt");
 
-    //Build the name of the image files
+    // Build the name of the image files
     std::string img_filename = vpIoTools::createFilePath(dirname, "/Klimt.ppm");
     vpImageIo::read(I, img_filename);
 
     vpKeyPoint keyPoints;
 
-    //Test with binary descriptor
+    // Test with binary descriptor
     {
       std::string keypointName = "ORB";
       keyPoints.setDetector(keypointName);
@@ -352,141 +351,144 @@ int main(int argc, const char ** argv) {
       std::vector<cv::KeyPoint> trainKeyPoints;
       keyPoints.getTrainKeyPoints(trainKeyPoints);
       cv::Mat trainDescriptors = keyPoints.getTrainDescriptors();
-      if(trainKeyPoints.empty() || trainDescriptors.empty() || (int) trainKeyPoints.size() != trainDescriptors.rows) {
-        throw vpException(vpException::fatalError, "Problem when detecting keypoints or when computing descriptors !");
+      if (trainKeyPoints.empty() || trainDescriptors.empty() || (int)trainKeyPoints.size() != trainDescriptors.rows) {
+        throw vpException(vpException::fatalError, "Problem when detecting "
+                                                   "keypoints or when "
+                                                   "computing descriptors !");
       }
 
-      //Save in binary with training images
+      // Save in binary with training images
       filename = vpIoTools::createFilePath(opath, "bin_with_img");
       vpIoTools::makeDirectory(filename);
       filename = vpIoTools::createFilePath(filename, "test_save_in_bin_with_img.bin");
       keyPoints.saveLearningData(filename, true, true);
 
-      //Test if save is ok
-      if(!vpIoTools::checkFilename(filename)) {
+      // Test if save is ok
+      if (!vpIoTools::checkFilename(filename)) {
         std::stringstream ss;
         ss << "Problem when saving file=" << filename;
         throw vpException(vpException::ioError, ss.str().c_str());
       }
 
-      //Test if read is ok
+      // Test if read is ok
       vpKeyPoint read_keypoint1;
       read_keypoint1.loadLearningData(filename, true);
       std::vector<cv::KeyPoint> trainKeyPoints_read;
       read_keypoint1.getTrainKeyPoints(trainKeyPoints_read);
       cv::Mat trainDescriptors_read = read_keypoint1.getTrainDescriptors();
 
-      if(!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
+      if (!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
         throw vpException(vpException::fatalError, "Problem with trainKeyPoints when reading learning file saved "
-            "in binary with train images saved !");
+                                                   "in binary with train images saved !");
       }
 
-      if(!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
-        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading learning file saved in "
-            "binary with train images saved !");
+      if (!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
+        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading "
+                                                   "learning file saved in "
+                                                   "binary with train images saved !");
       }
 
-
-      //Save in binary with no training images
+      // Save in binary with no training images
       filename = vpIoTools::createFilePath(opath, "bin_without_img");
       vpIoTools::makeDirectory(filename);
       filename = vpIoTools::createFilePath(filename, "test_save_in_bin_without_img.bin");
       keyPoints.saveLearningData(filename, true, false);
 
-      //Test if save is ok
-      if(!vpIoTools::checkFilename(filename)) {
+      // Test if save is ok
+      if (!vpIoTools::checkFilename(filename)) {
         std::stringstream ss;
         ss << "Problem when saving file=" << filename;
         throw vpException(vpException::ioError, ss.str().c_str());
       }
 
-      //Test if read is ok
+      // Test if read is ok
       vpKeyPoint read_keypoint2;
       read_keypoint2.loadLearningData(filename, true);
       trainKeyPoints_read.clear();
       read_keypoint2.getTrainKeyPoints(trainKeyPoints_read);
       trainDescriptors_read = read_keypoint2.getTrainDescriptors();
 
-      if(!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
+      if (!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
         throw vpException(vpException::fatalError, "Problem with trainKeyPoints when reading learning file saved in "
-            "binary without train images !");
+                                                   "binary without train images !");
       }
 
-      if(!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
-        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading learning file saved in "
-            "binary without train images !");
+      if (!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
+        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading "
+                                                   "learning file saved in "
+                                                   "binary without train images !");
       }
-
 
 #if defined(VISP_HAVE_XML2)
-      //Save in xml with training images
+      // Save in xml with training images
       filename = vpIoTools::createFilePath(opath, "xml_with_img");
       vpIoTools::makeDirectory(filename);
       filename = vpIoTools::createFilePath(filename, "test_save_in_xml_with_img.xml");
       keyPoints.saveLearningData(filename, false, true);
 
-      //Test if save is ok
-      if(!vpIoTools::checkFilename(filename)) {
+      // Test if save is ok
+      if (!vpIoTools::checkFilename(filename)) {
         std::stringstream ss;
         ss << "Problem when saving file=" << filename;
         throw vpException(vpException::ioError, ss.str().c_str());
       }
 
-      //Test if read is ok
+      // Test if read is ok
       vpKeyPoint read_keypoint3;
       read_keypoint3.loadLearningData(filename, false);
       trainKeyPoints_read.clear();
       read_keypoint3.getTrainKeyPoints(trainKeyPoints_read);
       trainDescriptors_read = read_keypoint3.getTrainDescriptors();
 
-      if(!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
+      if (!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
         throw vpException(vpException::fatalError, "Problem with trainKeyPoints when reading learning file saved in "
-            "xml with train images saved !");
+                                                   "xml with train images saved !");
       }
 
-      if(!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
-        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading learning file saved in "
-            "xml with train images saved !");
+      if (!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
+        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading "
+                                                   "learning file saved in "
+                                                   "xml with train images saved !");
       }
 
-
-      //Save in xml without training images
+      // Save in xml without training images
       filename = vpIoTools::createFilePath(opath, "xml_without_img");
       vpIoTools::makeDirectory(filename);
       filename = vpIoTools::createFilePath(filename, "test_save_in_xml_without_img.xml");
       keyPoints.saveLearningData(filename, false, false);
 
-      //Test if save is ok
-      if(!vpIoTools::checkFilename(filename)) {
+      // Test if save is ok
+      if (!vpIoTools::checkFilename(filename)) {
         std::stringstream ss;
         ss << "Problem when saving file=" << filename;
         throw vpException(vpException::ioError, ss.str().c_str());
       }
 
-      //Test if read is ok
+      // Test if read is ok
       vpKeyPoint read_keypoint4;
       read_keypoint4.loadLearningData(filename, false);
       trainKeyPoints_read.clear();
       read_keypoint4.getTrainKeyPoints(trainKeyPoints_read);
       trainDescriptors_read = read_keypoint4.getTrainDescriptors();
 
-      if(!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
+      if (!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
         throw vpException(vpException::fatalError, "Problem with trainKeyPoints when reading learning file saved in "
-            "xml without train images saved !");
+                                                   "xml without train images saved !");
       }
 
-      if(!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
-        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading learning file saved in "
-            "xml without train images saved !");
+      if (!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
+        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading "
+                                                   "learning file saved in "
+                                                   "xml without train images saved !");
       }
 #endif
 
       std::cout << "Saving / loading learning files with binary descriptor are ok !" << std::endl;
     }
 
-
-    //Test with floating point descriptor
-#if defined(VISP_HAVE_OPENCV_NONFREE) || ( (VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(VISP_HAVE_OPENCV_XFEATURES2D) )
+// Test with floating point descriptor
+#if defined(VISP_HAVE_OPENCV_NONFREE) ||                                                                               \
+    ((VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(VISP_HAVE_OPENCV_XFEATURES2D))
     {
       std::string keypointName = "SIFT";
       keyPoints.setDetector(keypointName);
@@ -497,139 +499,142 @@ int main(int argc, const char ** argv) {
       std::vector<cv::KeyPoint> trainKeyPoints;
       keyPoints.getTrainKeyPoints(trainKeyPoints);
       cv::Mat trainDescriptors = keyPoints.getTrainDescriptors();
-      if(trainKeyPoints.empty() || trainDescriptors.empty() || (int) trainKeyPoints.size() != trainDescriptors.rows) {
-        throw vpException(vpException::fatalError, "Problem when detecting keypoints or when computing descriptors (SIFT) !");
+      if (trainKeyPoints.empty() || trainDescriptors.empty() || (int)trainKeyPoints.size() != trainDescriptors.rows) {
+        throw vpException(vpException::fatalError, "Problem when detecting keypoints or when "
+                                                   "computing descriptors (SIFT) !");
       }
 
-      //Save in binary with training images
+      // Save in binary with training images
       filename = vpIoTools::createFilePath(opath, "bin_with_img");
       vpIoTools::makeDirectory(filename);
       filename = vpIoTools::createFilePath(filename, "test_save_in_bin_with_img.bin");
       keyPoints.saveLearningData(filename, true, true);
 
-      //Test if save is ok
-      if(!vpIoTools::checkFilename(filename)) {
+      // Test if save is ok
+      if (!vpIoTools::checkFilename(filename)) {
         std::stringstream ss;
         ss << "Problem when saving file=" << filename;
         throw vpException(vpException::ioError, ss.str().c_str());
       }
 
-      //Test if read is ok
+      // Test if read is ok
       vpKeyPoint read_keypoint1;
       read_keypoint1.loadLearningData(filename, true);
       std::vector<cv::KeyPoint> trainKeyPoints_read;
       read_keypoint1.getTrainKeyPoints(trainKeyPoints_read);
       cv::Mat trainDescriptors_read = read_keypoint1.getTrainDescriptors();
 
-      if(!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
+      if (!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
         throw vpException(vpException::fatalError, "Problem with trainKeyPoints when reading learning file saved in "
-            "binary with train images saved !");
+                                                   "binary with train images saved !");
       }
 
-      if(!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
-        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading learning file saved in "
-            "binary with train images saved !");
+      if (!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
+        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading "
+                                                   "learning file saved in "
+                                                   "binary with train images saved !");
       }
 
-
-      //Save in binary with no training images
+      // Save in binary with no training images
       filename = vpIoTools::createFilePath(opath, "bin_without_img");
       vpIoTools::makeDirectory(filename);
       filename = vpIoTools::createFilePath(filename, "test_save_in_bin_without_img.bin");
       keyPoints.saveLearningData(filename, true, false);
 
-      //Test if save is ok
-      if(!vpIoTools::checkFilename(filename)) {
+      // Test if save is ok
+      if (!vpIoTools::checkFilename(filename)) {
         std::stringstream ss;
         ss << "Problem when saving file=" << filename;
         throw vpException(vpException::ioError, ss.str().c_str());
       }
 
-      //Test if read is ok
+      // Test if read is ok
       vpKeyPoint read_keypoint2;
       read_keypoint2.loadLearningData(filename, true);
       trainKeyPoints_read.clear();
       read_keypoint2.getTrainKeyPoints(trainKeyPoints_read);
       trainDescriptors_read = read_keypoint2.getTrainDescriptors();
 
-      if(!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
+      if (!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
         throw vpException(vpException::fatalError, "Problem with trainKeyPoints when reading learning file saved in "
-            "binary without train images saved !");
+                                                   "binary without train images saved !");
       }
 
-      if(!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
-        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading learning file saved in "
-            "binary without train images saved !");
+      if (!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
+        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading "
+                                                   "learning file saved in "
+                                                   "binary without train images saved !");
       }
-
 
 #if defined(VISP_HAVE_XML2)
-      //Save in xml with training images
+      // Save in xml with training images
       filename = vpIoTools::createFilePath(opath, "xml_with_img");
       vpIoTools::makeDirectory(filename);
       filename = vpIoTools::createFilePath(filename, "test_save_in_xml_with_img.xml");
       keyPoints.saveLearningData(filename, false, true);
 
-      //Test if save is ok
-      if(!vpIoTools::checkFilename(filename)) {
+      // Test if save is ok
+      if (!vpIoTools::checkFilename(filename)) {
         std::stringstream ss;
         ss << "Problem when saving file=" << filename;
         throw vpException(vpException::ioError, ss.str().c_str());
       }
 
-      //Test if read is ok
+      // Test if read is ok
       vpKeyPoint read_keypoint3;
       read_keypoint3.loadLearningData(filename, false);
       trainKeyPoints_read.clear();
       read_keypoint3.getTrainKeyPoints(trainKeyPoints_read);
       trainDescriptors_read = read_keypoint3.getTrainDescriptors();
 
-      if(!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
+      if (!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
         throw vpException(vpException::fatalError, "Problem with trainKeyPoints when reading learning file saved in "
-            "xml with train images saved !");
+                                                   "xml with train images saved !");
       }
 
-      if(!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
-        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading learning file saved in "
-            "xml with train images saved !");
+      if (!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
+        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading "
+                                                   "learning file saved in "
+                                                   "xml with train images saved !");
       }
 
-
-      //Save in xml without training images
+      // Save in xml without training images
       filename = vpIoTools::createFilePath(opath, "xml_without_img");
       vpIoTools::makeDirectory(filename);
       filename = vpIoTools::createFilePath(filename, "test_save_in_xml_without_img.xml");
       keyPoints.saveLearningData(filename, false, false);
 
-      //Test if save is ok
-      if(!vpIoTools::checkFilename(filename)) {
+      // Test if save is ok
+      if (!vpIoTools::checkFilename(filename)) {
         std::stringstream ss;
         ss << "Problem when saving file=" << filename;
         throw vpException(vpException::ioError, ss.str().c_str());
       }
 
-      //Test if read is ok
+      // Test if read is ok
       vpKeyPoint read_keypoint4;
       read_keypoint4.loadLearningData(filename, false);
       trainKeyPoints_read.clear();
       read_keypoint4.getTrainKeyPoints(trainKeyPoints_read);
       trainDescriptors_read = read_keypoint4.getTrainDescriptors();
 
-      if(!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
+      if (!compareKeyPoints(trainKeyPoints, trainKeyPoints_read)) {
         throw vpException(vpException::fatalError, "Problem with trainKeyPoints when reading learning file saved in "
-            "xml without train images saved !");
+                                                   "xml without train images saved !");
       }
 
-      if(!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
-        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading learning file saved in "
-            "xml without train images saved !");
+      if (!compareDescriptors(trainDescriptors, trainDescriptors_read)) {
+        throw vpException(vpException::fatalError, "Problem with trainDescriptors when reading "
+                                                   "learning file saved in "
+                                                   "xml without train images saved !");
       }
 #endif
 
-      std::cout << "Saving / loading learning files with floating point descriptor are ok !" << std::endl;
+      std::cout << "Saving / loading learning files with floating point "
+                   "descriptor are ok !"
+                << std::endl;
 
-
-      //Test vpKeyPoint::reset()
+      // Test vpKeyPoint::reset()
       vpKeyPoint keypoint_reset;
 
       keypointName = "ORB";
@@ -638,7 +643,7 @@ int main(int argc, const char ** argv) {
 
       keypoint_reset.buildReference(I);
 
-      //reset
+      // reset
       keypoint_reset.reset();
 
       keypointName = "SIFT";
@@ -651,21 +656,23 @@ int main(int argc, const char ** argv) {
       keypoint_reset.getTrainKeyPoints(trainKeyPoints_reset);
       cv::Mat trainDescriptors_reset = keypoint_reset.getTrainDescriptors();
 
-      //If reset is ok, we should get the same keypoints and the same descriptors
-      if(!compareKeyPoints(trainKeyPoints, trainKeyPoints_reset)) {
+      // If reset is ok, we should get the same keypoints and the same
+      // descriptors
+      if (!compareKeyPoints(trainKeyPoints, trainKeyPoints_reset)) {
         throw vpException(vpException::fatalError, "Problem with vpKeyPoint::reset() and trainKeyPoints !");
       }
 
-      if(!compareDescriptors(trainDescriptors, trainDescriptors_reset)) {
+      if (!compareDescriptors(trainDescriptors, trainDescriptors_reset)) {
         throw vpException(vpException::fatalError, "Problem with vpKeyPoint::reset() and trainDescriptors !");
       }
 
-      std::cout << "vpKeyPoint::reset() is ok with trainKeyPoints and trainDescriptors !" << std::endl;
+      std::cout << "vpKeyPoint::reset() is ok with trainKeyPoints and "
+                   "trainDescriptors !"
+                << std::endl;
     }
 #endif
 
-
-  } catch(vpException &e) {
+  } catch (vpException &e) {
     std::cerr << e.what() << std::endl;
     return -1;
   }
@@ -675,7 +682,8 @@ int main(int argc, const char ** argv) {
   return 0;
 }
 #else
-int main() {
+int main()
+{
   std::cerr << "You need OpenCV library." << std::endl;
 
   return 0;
