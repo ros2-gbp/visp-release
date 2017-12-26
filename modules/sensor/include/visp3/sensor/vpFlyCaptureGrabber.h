@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -27,9 +28,9 @@
  * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * Description: Class which enables to project an image in the 3D space 
+ * Description: Class which enables to project an image in the 3D space
  * and get the view of a virtual camera.
- * 
+ *
  * Authors:
  * Fabien Spindler
  *
@@ -48,7 +49,8 @@
 
 /*!
   \file vpFlyCaptureGrabber.h
-  \brief Wrapper over PointGrey FlyCapture SDK to capture images from PointGrey cameras.
+  \brief Wrapper over PointGrey FlyCapture SDK to capture images from
+  PointGrey cameras.
 */
 /*!
   \class vpFlyCaptureGrabber
@@ -56,14 +58,15 @@
 
   Allows to grab images from a PointGrey camera using FlyCapture SDK.
 
-  To use this class install first FlyCapture SDK https://www.ptgrey.com/flycapture-sdk.
-  Installation instructions are provide here https://visp.inria.fr/3rd_flycapture.
-  \note To install FlyCapture SDK on linux follow https://www.ptgrey.com/tan/10548.
-  \note For specific details about using FlyCapture and Linux with a USB 3.0 camera,
-  see http://www.ptgrey.com/KB/10685.
+  To use this class install first FlyCapture SDK
+https://www.ptgrey.com/flycapture-sdk. Installation instructions are provide
+here https://visp.inria.fr/3rd_flycapture. \note To install FlyCapture SDK on
+linux follow https://www.ptgrey.com/tan/10548. \note For specific details
+about using FlyCapture and Linux with a USB 3.0 camera, see
+http://www.ptgrey.com/KB/10685.
 
-  Once installed configure ViSP using cmake to detect FlyCapture SDK and build ViSP to include
-  FlyCapture SDK support.
+  Once installed configure ViSP using cmake to detect FlyCapture SDK and build
+ViSP to include FlyCapture SDK support.
 
   This class was tested under Ubuntu and Windows with the following cameras:
   - Flea3 USB 3.0 cameras (FL3-U3-32S2M-CS, FL3-U3-13E4C-C)
@@ -100,11 +103,11 @@ int main()
 }
   \endcode
 
-  If more than one camera is detected, you can use setCamera(const unsigned int &) to
-  select the camera of interest.
+  If more than one camera is detected, you can use setCamera(const unsigned
+int &) to select the camera of interest.
 
-  It is also possible to capture images from multiple cameras. The following example
-  shows how to capture simultaneously images from multiple cameras.
+  It is also possible to capture images from multiple cameras. The following
+example shows how to capture simultaneously images from multiple cameras.
 
   \code
 #include <visp3/core/vpImage.h>
@@ -157,12 +160,12 @@ public:
   void disconnect();
 
   float getBrightness();
-  std::ostream &getCameraInfo(std::ostream &os); // Cannot be const since FlyCapture2::Camera::GetCameraInfo() isn't
+  std::ostream &getCameraInfo(std::ostream &os); // Cannot be const since
+                                                 // FlyCapture2::Camera::GetCameraInfo()
+                                                 // isn't
   FlyCapture2::Camera *getCameraHandler();
   /*! Return the index of the active camera. */
-  unsigned int getCameraIndex() const {
-   return m_index;
-  };
+  unsigned int getCameraIndex() const { return m_index; };
   bool getCameraPower();
   static unsigned int getCameraSerial(unsigned int index);
   float getExposure();
@@ -174,35 +177,29 @@ public:
 
   bool isCameraPowerAvailable();
   //! Return true if the camera is connected.
-  bool isConnected() const {
-    return m_connected;
-  }
+  bool isConnected() const { return m_connected; }
   //! Return true if the camera capture is started.
-  bool isCaptureStarted() const {
-    return m_capture;
-  }
+  bool isCaptureStarted() const { return m_capture; }
   bool isFormat7Supported(FlyCapture2::Mode format7_mode);
   bool isVideoModeAndFrameRateSupported(FlyCapture2::VideoMode video_mode, FlyCapture2::FrameRate frame_rate);
   void open(vpImage<unsigned char> &I);
   void open(vpImage<vpRGBa> &I);
 
-  vpFlyCaptureGrabber & operator>>(vpImage<unsigned char> &I);
-  vpFlyCaptureGrabber & operator>>(vpImage<vpRGBa> &I);
+  vpFlyCaptureGrabber &operator>>(vpImage<unsigned char> &I);
+  vpFlyCaptureGrabber &operator>>(vpImage<vpRGBa> &I);
 
-  float setBrightness(bool brightness_auto, float brightness_value=0);
+  float setBrightness(bool brightness_auto, float brightness_value = 0);
   void setCameraIndex(unsigned int index);
   void setCameraPower(bool on);
   void setCameraSerial(unsigned int serial);
-  float setExposure(bool exposure_on, bool exposure_auto, float exposure_value=0);
-  float setGain(bool gain_auto, float gain_value=0);
-  void setFormat7VideoMode(FlyCapture2::Mode format7_mode,
-                           FlyCapture2::PixelFormat pixel_format,
-                           unsigned int width, unsigned int height);
+  float setExposure(bool exposure_on, bool exposure_auto, float exposure_value = 0);
+  float setGain(bool gain_auto, float gain_value = 0);
+  void setFormat7VideoMode(FlyCapture2::Mode format7_mode, FlyCapture2::PixelFormat pixel_format, unsigned int width,
+                           unsigned int height);
   float setFrameRate(float frame_rate);
-  unsigned int setSharpness(bool sharpness_on, bool sharpness_auto, unsigned int sharpness_value=0);
-  float setShutter(bool auto_shutter, float shutter_ms=10);
-  void setVideoModeAndFrameRate(FlyCapture2::VideoMode video_mode,
-                                FlyCapture2::FrameRate frame_rate);
+  unsigned int setSharpness(bool sharpness_on, bool sharpness_auto, unsigned int sharpness_value = 0);
+  float setShutter(bool auto_shutter, float shutter_ms = 10);
+  void setVideoModeAndFrameRate(FlyCapture2::VideoMode video_mode, FlyCapture2::FrameRate frame_rate);
 
   void startCapture();
   void stopCapture();
@@ -216,18 +213,17 @@ protected:
   FlyCapture2::Property getProperty(FlyCapture2::PropertyType prop_type);
   FlyCapture2::PropertyInfo getPropertyInfo(FlyCapture2::PropertyType prop_type);
   void open();
-  void setProperty(const FlyCapture2::PropertyType &prop_type,
-                   bool on, bool auto_on, float value,
-                   PropertyValue prop_value=ABS_VALUE);
+  void setProperty(const FlyCapture2::PropertyType &prop_type, bool on, bool auto_on, float value,
+                   PropertyValue prop_value = ABS_VALUE);
 
 protected:
-  FlyCapture2::Camera m_camera; //!< Pointer to each camera
-  FlyCapture2::PGRGuid m_guid; //!< Active camera guid
-  unsigned int m_index; //!< Active camera index
-  unsigned int m_numCameras; //!< Number of connected cameras
+  FlyCapture2::Camera m_camera;  //!< Pointer to each camera
+  FlyCapture2::PGRGuid m_guid;   //!< Active camera guid
+  unsigned int m_index;          //!< Active camera index
+  unsigned int m_numCameras;     //!< Number of connected cameras
   FlyCapture2::Image m_rawImage; //!< Image buffer
-  bool m_connected; //!< true if camera connected
-  bool m_capture; //!< true is capture started
+  bool m_connected;              //!< true if camera connected
+  bool m_capture;                //!< true is capture started
 };
 
 #endif

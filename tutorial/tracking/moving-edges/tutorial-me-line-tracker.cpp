@@ -23,14 +23,14 @@ int main()
 #elif defined(VISP_HAVE_V4L2)
     vpV4l2Grabber g;
 #elif defined(VISP_HAVE_OPENCV)
-  cv::VideoCapture g(0); // open the default camera
-  if(!g.isOpened()) { // check if we succeeded
-    std::cout << "Failed to open the camera" << std::endl;
-    return -1;
-  }
-  cv::Mat frame;
-  g >> frame; // get a new frame from camera
-  vpImageConvert::convert(frame, I);
+    cv::VideoCapture g(0); // open the default camera
+    if (!g.isOpened()) {   // check if we succeeded
+      std::cout << "Failed to open the camera" << std::endl;
+      return -1;
+    }
+    cv::Mat frame;
+    g >> frame; // get a new frame from camera
+    vpImageConvert::convert(frame, I);
 #endif
     g.open(I);
     g.acquire(I);
@@ -58,7 +58,7 @@ int main()
     line.setDisplay(vpMeSite::RANGE_RESULT);
     line.initTracking(I);
 
-    while(1) {
+    while (1) {
 #if defined(VISP_HAVE_DC1394) || defined(VISP_HAVE_V4L2) || defined(VISP_HAVE_CMU1394)
       g.acquire(I);
 #elif defined(VISP_HAVE_OPENCV)
@@ -70,8 +70,7 @@ int main()
       line.display(I, vpColor::red);
       vpDisplay::flush(I);
     }
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }
 #endif

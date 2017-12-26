@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,25 +36,22 @@
  *
  *****************************************************************************/
 
-
 #include <visp3/core/vpConfig.h>
 
 #ifdef VISP_HAVE_PARPORT
 
-#  include <sys/types.h>
-#  include <sys/stat.h>
-#  include <fcntl.h>
-#  include <sys/ioctl.h>
-#  include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#  include <visp3/io/vpParallelPort.h>
+#include <visp3/io/vpParallelPort.h>
 
 /*!
   \file vpParallelPort.cpp
   \brief Parallel port management under unix.
 */
-
-
 
 static unsigned char vpParallelPortData;
 
@@ -86,10 +84,7 @@ vpParallelPort::vpParallelPort() : fd(0), device()
   \exception vpParallelPortException::closing If the device used to access to
   the parallel port can't be closed.
 */
-vpParallelPort::~vpParallelPort()
-{
-  this->close();
-}
+vpParallelPort::~vpParallelPort() { this->close(); }
 
 /*!
   Open the parallel port with write access and initialise it.
@@ -107,17 +102,16 @@ void vpParallelPort::open()
     printf("Can't open /dev/parport0\n");
     printf("Check if you have write access to /dev/parport0\n");
     perror("Open parallel port");
-    throw(vpParallelPortException(vpParallelPortException::opening,
-				  "Can't open /dev/parport0")) ;
+    throw(vpParallelPortException(vpParallelPortException::opening, "Can't open /dev/parport0"));
   }
 
   int i;
 
   ioctl(fd, PPCLAIM);
   i = PARPORT_MODE_COMPAT;
-  ioctl(fd, PPSETMODE, & i);
+  ioctl(fd, PPSETMODE, &i);
   i = IEEE1284_MODE_COMPAT;
-  ioctl(fd, PPNEGOT, & i);
+  ioctl(fd, PPNEGOT, &i);
 }
 
 /*!
@@ -139,7 +133,7 @@ void vpParallelPort::open()
 */
 void vpParallelPort::sendData(unsigned char &data)
 {
-  ioctl(fd, PPWDATA, & data);
+  ioctl(fd, PPWDATA, &data);
 
   // Memorise the last sended data to the static variable
   vpParallelPortData = data;
@@ -150,10 +144,7 @@ void vpParallelPort::sendData(unsigned char &data)
   Get the last data sent to the parallel port.
 
 */
-unsigned char vpParallelPort::getData()
-{
-  return vpParallelPortData;
-}
+unsigned char vpParallelPort::getData() { return vpParallelPortData; }
 
 /*!
   Close the parallel port.
@@ -169,17 +160,14 @@ void vpParallelPort::close()
   int err;
   err = ::close(fd);
 
-  if (err !=0) {
+  if (err != 0) {
     printf("Can't close the parallel port\n");
-    throw(vpParallelPortException(vpParallelPortException::closing,
-				  "Can't close the parallel port")) ;
+    throw(vpParallelPortException(vpParallelPortException::closing, "Can't close the parallel port"));
   }
-
-
 }
 
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_core.a(vpParallelPort.cpp.o) has no symbols
-void dummy_vpParallelPort() {};
+// Work arround to avoid warning: libvisp_core.a(vpParallelPort.cpp.o) has no
+// symbols
+void dummy_vpParallelPort(){};
 #endif
-

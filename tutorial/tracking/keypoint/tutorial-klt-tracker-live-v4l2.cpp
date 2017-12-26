@@ -4,9 +4,9 @@
 #include <visp3/sensor/vpV4l2Grabber.h>
 #endif
 #include <visp3/core/vpImageConvert.h>
-#include <visp3/klt/vpKltOpencv.h>
 #include <visp3/gui/vpDisplayOpenCV.h>
 #include <visp3/io/vpVideoReader.h>
+#include <visp3/klt/vpKltOpencv.h>
 
 int main(int argc, const char *argv[])
 {
@@ -15,11 +15,11 @@ int main(int argc, const char *argv[])
     bool opt_init_by_click = false;
     int opt_device = 0;
 
-    for (int i=0; i<argc; i++) {
+    for (int i = 0; i < argc; i++) {
       if (std::string(argv[i]) == "--init-by-click")
         opt_init_by_click = true;
       else if (std::string(argv[i]) == "--device")
-        opt_device = atoi(argv[i+1]);
+        opt_device = atoi(argv[i + 1]);
       else if (std::string(argv[i]) == "--help") {
         std::cout << "Usage: " << argv[0] << " [--init-by-click] [--device <camera device>] [--help]" << std::endl;
         return 0;
@@ -37,7 +37,7 @@ int main(int argc, const char *argv[])
     g.acquire(I);
 #elif defined(VISP_HAVE_OPENCV)
     cv::VideoCapture g(opt_device);
-    if(!g.isOpened()) { // check if we succeeded
+    if (!g.isOpened()) { // check if we succeeded
       std::cout << "Failed to open the camera" << std::endl;
       return -1;
     }
@@ -47,7 +47,7 @@ int main(int argc, const char *argv[])
 #endif
 
 #if (VISP_HAVE_OPENCV_VERSION < 0x020408)
-    IplImage * cvI = NULL;
+    IplImage *cvI = NULL;
 #else
     cv::Mat cvI;
 #endif
@@ -86,15 +86,14 @@ int main(int argc, const char *argv[])
         }
         vpDisplay::flush(I);
         vpTime::wait(20);
-      } while(button != vpMouseButton::button3);
+      } while (button != vpMouseButton::button3);
       tracker.initTracking(cvI, guess);
 #endif
-    }
-    else {
+    } else {
       tracker.initTracking(cvI);
     }
 
-    while ( 1 ) {
+    while (1) {
 #if defined(VISP_HAVE_V4L2)
       g.acquire(I);
 #elif defined(VISP_HAVE_OPENCV)
@@ -118,8 +117,7 @@ int main(int argc, const char *argv[])
 #endif
 
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }
 #else

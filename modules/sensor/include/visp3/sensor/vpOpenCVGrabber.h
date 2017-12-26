@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -45,16 +46,16 @@
 
 #include <visp3/core/vpConfig.h>
 
-#if ( defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION < 0x020408))
+#if (defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION < 0x020408))
 
 #if VISP_HAVE_OPENCV_VERSION >= 0x020101
-#  include <opencv2/highgui/highgui.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #else
-#  include <highgui.h>
+#include <highgui.h>
 #endif
 
-#include <visp3/core/vpImage.h>
 #include <visp3/core/vpFrameGrabber.h>
+#include <visp3/core/vpImage.h>
 #include <visp3/core/vpRGBa.h>
 
 /*!
@@ -64,13 +65,12 @@
 
   \brief Class for cameras video capture using OpenCV library.
   \deprecated This class is deprecated can only be used with OpenCV < 2.4.8.
-  
-  \note Instead of using this class, it is also possible to grab images using OpenCV library by using
-  directly OpenCV cv::VideoCapture class. The following code corresponding to
-  tutorial-grabber-opencv.cpp shows how to grab images in a cv::Mat structure
-  and then convert OpenCV images in ViSP images.
-  \include tutorial-grabber-opencv.cpp
-  The one in grabOpencv.cpp gives an other example.
+
+  \note Instead of using this class, it is also possible to grab images using
+OpenCV library by using directly OpenCV cv::VideoCapture class. The following
+code corresponding to tutorial-grabber-opencv.cpp shows how to grab images in
+a cv::Mat structure and then convert OpenCV images in ViSP images. \include
+tutorial-grabber-opencv.cpp The one in grabOpencv.cpp gives an other example.
 
   The code below shows how to grab and
   display images using this class.
@@ -107,36 +107,34 @@ int main()
  */
 class VISP_EXPORT vpOpenCVGrabber : public vpFrameGrabber
 {
-	private:
+private:
+  CvCapture *capture;
+  int DeviceType;
+  bool flip;
 
-		CvCapture *capture;
-		int DeviceType;
-		bool flip;
+public:
+  vpOpenCVGrabber();
+  ~vpOpenCVGrabber();
 
-	public:
+  void open();
+  void open(vpImage<unsigned char> &I);
+  void open(vpImage<vpRGBa> &I);
 
-		vpOpenCVGrabber();
-		~vpOpenCVGrabber();
+  void acquire(vpImage<unsigned char> &I);
+  void acquire(vpImage<vpRGBa> &I);
+  IplImage *acquire();
 
-		void open();
-		void open(vpImage<unsigned char> &I);
-		void open(vpImage<vpRGBa> &I);
+  void close();
 
-		void acquire(vpImage<unsigned char> &I);
-		void acquire(vpImage<vpRGBa> &I);
-    IplImage* acquire();
+  void getFramerate(double &framerate);
+  void setFramerate(const double framerate);
 
-		void close();
+  void setWidth(const unsigned int width);
+  void setHeight(const unsigned int height);
 
-		void getFramerate(double & framerate);
-		void setFramerate(const double framerate);
+  void setDeviceType(int type);
 
-		void setWidth(const unsigned int width);
-		void setHeight(const unsigned int height);
-		
-		void setDeviceType(int type);
-
-		void setFlip(bool flipType);
+  void setFlip(bool flipType);
 };
 
 #endif

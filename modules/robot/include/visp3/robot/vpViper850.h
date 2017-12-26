@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -52,7 +53,7 @@
 
   \ingroup group_robot_real_arm group_robot_simu_arm
 
-  \brief Modelisation of the ADEPT Viper 850 robot. 
+  \brief Modelisation of the ADEPT Viper 850 robot.
 
   The model of the robot is the following:
   \image html model-viper.png Model of the Viper 850 robot.
@@ -89,8 +90,8 @@
 
   - \f$ {\cal F}_c \f$: the camera or tool frame, with \f$^f{\bf M}_c = ^f{\bf
     M}_e \; ^e{\bf M}_c \f$ where \f$ ^e{\bf M}_c \f$ is the result of
-    a calibration stage. We can also consider a custom tool TOOL_CUSTOM and set this
-    during robot initialisation or using set_eMc().
+    a calibration stage. We can also consider a custom tool TOOL_CUSTOM and
+  set this during robot initialisation or using set_eMc().
 
   - \f$ {\cal F}_s \f$: the force/torque sensor frame, with \f$d7=0.0666\f$.
 
@@ -99,10 +100,9 @@
 #include <visp3/core/vpConfig.h>
 #include <visp3/robot/vpViper.h>
 
-
-class VISP_EXPORT vpViper850: public vpViper
+class VISP_EXPORT vpViper850 : public vpViper
 {
- public:
+public:
 #ifdef VISP_HAVE_VIPER850_DATA
   //! Files where constant tranformation between end-effector and camera frame
   //! are stored.
@@ -119,10 +119,10 @@ class VISP_EXPORT vpViper850: public vpViper
   /*!
     Name of the camera attached to the end-effector.
   */
-  static const char * const CONST_MARLIN_F033C_CAMERA_NAME;
-  static const char * const CONST_PTGREY_FLEA2_CAMERA_NAME;
-  static const char * const CONST_SCHUNK_GRIPPER_CAMERA_NAME;
-  static const char * const CONST_GENERIC_CAMERA_NAME;
+  static const char *const CONST_MARLIN_F033C_CAMERA_NAME;
+  static const char *const CONST_PTGREY_FLEA2_CAMERA_NAME;
+  static const char *const CONST_SCHUNK_GRIPPER_CAMERA_NAME;
+  static const char *const CONST_GENERIC_CAMERA_NAME;
 
   //! List of possible tools that can be attached to the robot end-effector.
   typedef enum {
@@ -137,54 +137,44 @@ class VISP_EXPORT vpViper850: public vpViper
   static const vpToolType defaultTool;
 
   vpViper850();
-  virtual ~vpViper850() {};
+  virtual ~vpViper850(){};
 
   /** @name Inherited functionalities from vpViper850 */
   //@{
-  void init (void);
+  void init(void);
   void init(const std::string &camera_extrinsic_parameters);
-  void init(vpViper850::vpToolType tool,
-            vpCameraParameters::vpCameraParametersProjType projModel =
-            vpCameraParameters::perspectiveProjWithoutDistortion);
+  void
+  init(vpViper850::vpToolType tool,
+       vpCameraParameters::vpCameraParametersProjType projModel = vpCameraParameters::perspectiveProjWithoutDistortion);
   void init(vpViper850::vpToolType tool, const std::string &filename);
   void init(vpViper850::vpToolType tool, const vpHomogeneousMatrix &eMc_);
 
   //! Get the current camera model projection type
-  vpCameraParameters::vpCameraParametersProjType getCameraParametersProjType() const{
-    return projModel;
-  };
+  vpCameraParameters::vpCameraParametersProjType getCameraParametersProjType() const { return projModel; };
 
-  void getCameraParameters(vpCameraParameters &cam,
-			   const unsigned int &image_width,
-               const unsigned int &image_height) const;
-  void getCameraParameters(vpCameraParameters &cam,
-               const vpImage<unsigned char> &I) const;
+  void getCameraParameters(vpCameraParameters &cam, const unsigned int &image_width,
+                           const unsigned int &image_height) const;
+  void getCameraParameters(vpCameraParameters &cam, const vpImage<unsigned char> &I) const;
   void getCameraParameters(vpCameraParameters &cam, const vpImage<vpRGBa> &I) const;
 
   //! Get the current tool type
-  vpToolType getToolType() const {
-    return tool_current;
-  };
+  vpToolType getToolType() const { return tool_current; };
 
-  void parseConfigFile (const std::string &filename);
+  void parseConfigFile(const std::string &filename);
   //@}
 
- protected:
+protected:
   /** @name Protected Member Functions Inherited from vpViper650 */
   //@{
   //! Set the current tool type
-  void setToolType(vpViper850::vpToolType tool){
-    tool_current = tool;
-  };
+  void setToolType(vpViper850::vpToolType tool) { tool_current = tool; };
   //@}
 
- protected:
+protected:
   //! Current tool in use
   vpToolType tool_current;
   // Used projection model
   vpCameraParameters::vpCameraParametersProjType projModel;
-
 };
 
 #endif
-

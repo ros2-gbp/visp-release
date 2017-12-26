@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,13 +36,10 @@
  *
  *****************************************************************************/
 
-
-
 /*!
   \file vpHomogeneousMatrix.h
   \brief Definition and computation on the homogeneous matrices
 */
-
 
 #ifndef VPHOMOGENEOUSMATRIX_HH
 #define VPHOMOGENEOUSMATRIX_HH
@@ -55,8 +53,8 @@ class vpThetaUVector;
 class vpQuaternionVector;
 class vpPoint;
 
-#include <vector>
 #include <fstream>
+#include <vector>
 
 #include <visp3/core/vpArray2D.h>
 #include <visp3/core/vpRotationMatrix.h>
@@ -69,7 +67,8 @@ class vpPoint;
 
   \ingroup group_core_transformations
 
-  \brief Implementation of an homogeneous matrix and operations on such kind of matrices.
+  \brief Implementation of an homogeneous matrix and operations on such kind
+  of matrices.
 
   The class provides a data structure for the homogeneous matrices
   as well as a set of operations on these matrices.
@@ -92,30 +91,30 @@ class vpPoint;
 */
 class VISP_EXPORT vpHomogeneousMatrix : public vpArray2D<double>
 {
- public:
+public:
   vpHomogeneousMatrix();
-  vpHomogeneousMatrix(const vpHomogeneousMatrix &M) ;
-  vpHomogeneousMatrix(const vpTranslationVector &t, const vpRotationMatrix &R) ;
-  vpHomogeneousMatrix(const vpTranslationVector &t, const vpThetaUVector &tu) ;
-  vpHomogeneousMatrix(const vpTranslationVector &t, const vpQuaternionVector &q) ;
-  vpHomogeneousMatrix(const vpPoseVector &p) ;  
-  vpHomogeneousMatrix(const std::vector<float> &v);
-  vpHomogeneousMatrix(const std::vector<double> &v);
-  vpHomogeneousMatrix(const double tx, const double ty, const double tz,
-                      const double tux, const double tuy, const double tuz) ;
+  vpHomogeneousMatrix(const vpHomogeneousMatrix &M);
+  vpHomogeneousMatrix(const vpTranslationVector &t, const vpRotationMatrix &R);
+  vpHomogeneousMatrix(const vpTranslationVector &t, const vpThetaUVector &tu);
+  vpHomogeneousMatrix(const vpTranslationVector &t, const vpQuaternionVector &q);
+  explicit vpHomogeneousMatrix(const vpPoseVector &p);
+  explicit vpHomogeneousMatrix(const std::vector<float> &v);
+  explicit vpHomogeneousMatrix(const std::vector<double> &v);
+  vpHomogeneousMatrix(const double tx, const double ty, const double tz, const double tux, const double tuy,
+                      const double tuz);
   /*!
     Destructor.
   */
-  virtual ~vpHomogeneousMatrix() {};
+  virtual ~vpHomogeneousMatrix(){};
 
-  void buildFrom(const vpTranslationVector &t, const vpRotationMatrix &R) ;
-  void buildFrom(const vpTranslationVector &t, const vpThetaUVector &tu) ;
-  void buildFrom(const vpTranslationVector &t, const vpQuaternionVector& q) ;
-  void buildFrom(const vpPoseVector &p) ;
-  void buildFrom(const std::vector<float> &v) ;
-  void buildFrom(const std::vector<double> &v) ;
-  void buildFrom(const double tx, const double ty, const double tz,
-                 const double tux, const double tuy, const double tuz) ;
+  void buildFrom(const vpTranslationVector &t, const vpRotationMatrix &R);
+  void buildFrom(const vpTranslationVector &t, const vpThetaUVector &tu);
+  void buildFrom(const vpTranslationVector &t, const vpQuaternionVector &q);
+  void buildFrom(const vpPoseVector &p);
+  void buildFrom(const std::vector<float> &v);
+  void buildFrom(const std::vector<double> &v);
+  void buildFrom(const double tx, const double ty, const double tz, const double tux, const double tuy,
+                 const double tuz);
 
   void convert(std::vector<float> &M);
   void convert(std::vector<double> &M);
@@ -125,31 +124,31 @@ class VISP_EXPORT vpHomogeneousMatrix : public vpArray2D<double>
 
   vpColVector getCol(const unsigned int j) const;
   vpRotationMatrix getRotationMatrix() const;
-  vpThetaUVector getThetaUVector() const ;
+  vpThetaUVector getThetaUVector() const;
   vpTranslationVector getTranslationVector() const;
 
   // Invert the homogeneous matrix.
-  vpHomogeneousMatrix inverse() const ;
+  vpHomogeneousMatrix inverse() const;
   // Invert the homogeneous matrix.
   void inverse(vpHomogeneousMatrix &Mi) const;
 
   // Test if the rotational part of the matrix is a rotation matrix.
-  bool isAnHomogeneousMatrix() const  ;
+  bool isAnHomogeneousMatrix() const;
 
-  void insert(const vpRotationMatrix &R) ;
-  void insert(const vpThetaUVector &tu) ;
-  void insert(const vpTranslationVector &t) ;
-  void insert(const vpQuaternionVector &t) ;
+  void insert(const vpRotationMatrix &R);
+  void insert(const vpThetaUVector &tu);
+  void insert(const vpTranslationVector &t);
+  void insert(const vpQuaternionVector &t);
 
   void extract(vpRotationMatrix &R) const;
   void extract(vpThetaUVector &tu) const;
   void extract(vpTranslationVector &t) const;
-  void extract(vpQuaternionVector& q) const;
+  void extract(vpQuaternionVector &q) const;
 
   // Load an homogeneous matrix from a file
-  void load(std::ifstream &f) ;
+  void load(std::ifstream &f);
   // Save an homogeneous matrix in a file
-  void save(std::ofstream &f) const ;
+  void save(std::ofstream &f) const;
 
   vpHomogeneousMatrix &operator=(const vpHomogeneousMatrix &M);
   vpHomogeneousMatrix operator*(const vpHomogeneousMatrix &M) const;
@@ -168,8 +167,7 @@ class VISP_EXPORT vpHomogeneousMatrix : public vpArray2D<double>
     4-by-4 matrix.
     \exception vpException::fatalError When this function is called.
     */
-  void resize(const unsigned int nrows, const unsigned int ncols,
-              const bool flagNullify = true)
+  void resize(const unsigned int nrows, const unsigned int ncols, const bool flagNullify = true)
   {
     (void)nrows;
     (void)ncols;
@@ -186,15 +184,14 @@ class VISP_EXPORT vpHomogeneousMatrix : public vpArray2D<double>
      \deprecated Provided only for compat with previous releases.
      This function does nothing.
    */
-  vp_deprecated void init() {};
+  vp_deprecated void init(){};
   /*!
      \deprecated You should rather use eye().
    */
   vp_deprecated void setIdentity();
-  //@}
+//@}
 #endif
-
-} ;
+};
 
 #endif
 
