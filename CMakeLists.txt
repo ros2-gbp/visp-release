@@ -454,6 +454,9 @@ if(BUILD_TESTS)
   mark_as_advanced(BUILD_TESTING)
 endif()
 
+# Install catkin package.xml
+install(FILES package.xml DESTINATION share/visp)
+
 #----------------------------------------------------------------------
 # Try to find doxygen for documentation generation
 # Use "make visp_doc" target to generate the documentation
