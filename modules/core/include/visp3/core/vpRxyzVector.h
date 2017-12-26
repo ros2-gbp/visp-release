@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -37,7 +38,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpRxyzVECTOR_H
 #define vpRxyzVECTOR_H
 
@@ -50,9 +50,8 @@
   Rxyz(phi,theta,psi) = Rot(x,phi)Rot(y,theta)Rot(z,psi)
 */
 
-
-#include <visp3/core/vpRotationVector.h>
 #include <visp3/core/vpRotationMatrix.h>
+#include <visp3/core/vpRotationVector.h>
 
 class vpRotationVector;
 class vpRotationMatrix;
@@ -67,10 +66,12 @@ class vpThetaUVector;
   minimal representation.
 
   Class that consider the case of the Euler
-  \f$(\varphi,\theta,\psi)\f$ angle using the x-y-z convention, where \f$(\varphi,\theta,\psi)\f$ are respectively the
-  rotation angles around the \f$x\f$, \f$y\f$ and \f$z\f$ axis.
+  \f$(\varphi,\theta,\psi)\f$ angle using the x-y-z convention, where
+\f$(\varphi,\theta,\psi)\f$ are respectively the rotation angles around the
+\f$x\f$, \f$y\f$ and \f$z\f$ axis.
 
-  \f[R_{xyz}(\varphi,\theta,\psi) = R_x(\varphi) \; R_y(\theta) \; R_z(\psi)\f]
+  \f[R_{xyz}(\varphi,\theta,\psi) = R_x(\varphi) \; R_y(\theta) \;
+R_z(\psi)\f]
 
   with
 
@@ -102,9 +103,10 @@ class vpThetaUVector;
   R_{xyz}(\varphi,\theta,\psi) = \left(
   \begin{array}{ccc}
   \cos\theta \cos\psi & -\cos\theta \sin\psi & \sin\theta \\
-  \sin\varphi \sin\theta \cos\psi + \cos\varphi\sin\psi & -\sin\varphi \sin\theta \sin\psi +\cos\varphi\cos\psi & -\sin\varphi \cos\theta \\
-  -\cos\varphi \sin\theta \cos\psi + \sin\varphi\sin\psi & \cos\varphi \sin\theta \sin\psi +\sin\varphi\cos\psi & \cos\varphi \cos\theta
-  \end{array}
+  \sin\varphi \sin\theta \cos\psi + \cos\varphi\sin\psi & -\sin\varphi
+\sin\theta \sin\psi +\cos\varphi\cos\psi & -\sin\varphi \cos\theta \\
+  -\cos\varphi \sin\theta \cos\psi + \sin\varphi\sin\psi & \cos\varphi
+\sin\theta \sin\psi +\sin\varphi\cos\psi & \cos\varphi \cos\theta \end{array}
   \right)
   \f]
 
@@ -126,7 +128,7 @@ int main()
   vpRxyzVector rxyz;
 
   // Initialise the Euler angles
-  rxyz[0] = vpMath::rad( 45.f); // phi   angle in rad around x axis 
+  rxyz[0] = vpMath::rad( 45.f); // phi   angle in rad around x axis
   rxyz[1] = vpMath::rad(-30.f); // theta angle in rad around y axis
   rxyz[2] = vpMath::rad( 90.f); // psi   angle in rad around z axis
 
@@ -138,12 +140,12 @@ int main()
 
   // Print the extracted Euler angles. Values are the same than the
   // one used for initialization
-  std::cout << rxyz; 
+  std::cout << rxyz;
 
   // Since the rotation vector is 3 values column vector, the
   // transpose operation produce a row vector.
   vpRowVector rxyz_t = rxyz.t();
-  
+
   // Print the transpose row vector
   std::cout << rxyz_t << std::endl;
 }
@@ -153,31 +155,31 @@ int main()
 
 class VISP_EXPORT vpRxyzVector : public vpRotationVector
 {
- public:
+public:
   vpRxyzVector();
   vpRxyzVector(const vpRxyzVector &rxyz);
   vpRxyzVector(const double phi, const double theta, const double psi);
 
   // initialize a Rxyz vector from a rotation matrix
-  vpRxyzVector(const vpRotationMatrix& R) ;
+  explicit vpRxyzVector(const vpRotationMatrix &R);
 
   // initialize a Rxyz vector from a ThetaU vector
-  vpRxyzVector(const vpThetaUVector& tu) ;
-  vpRxyzVector(const vpColVector &rxyz);
+  explicit vpRxyzVector(const vpThetaUVector &tu);
+  explicit vpRxyzVector(const vpColVector &rxyz);
 
   //! Destructor.
-  virtual ~vpRxyzVector() {};
+  virtual ~vpRxyzVector(){};
 
   // convert a rotation matrix into Rxyz vector
-  vpRxyzVector buildFrom(const vpRotationMatrix& R) ;
+  vpRxyzVector buildFrom(const vpRotationMatrix &R);
 
   // convert a ThetaU vector into a Rxyz vector
-  vpRxyzVector buildFrom(const vpThetaUVector& tu) ;
+  vpRxyzVector buildFrom(const vpThetaUVector &tu);
 
   void buildFrom(const double phi, const double theta, const double psi);
 
   vpRxyzVector &operator=(const vpColVector &rxyz);
-  vpRxyzVector &operator=(double x) ;
-} ;
+  vpRxyzVector &operator=(double x);
+};
 
 #endif

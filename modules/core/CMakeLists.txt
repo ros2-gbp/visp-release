@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -223,7 +224,14 @@ if(USE_YARP)
   add_definitions(${YARP_DEFINES})
 endif(USE_YARP)
 
-# Math: gsl, lapack, OpenCV
+# Math: eigen3, gsl, lapack, OpenCV
+if(USE_EIGEN3)
+  if(EIGEN3_INCLUDE_DIRS)
+    list(APPEND opt_incs ${EIGEN3_INCLUDE_DIRS})
+  else()
+    list(APPEND opt_incs ${EIGEN3_INCLUDE_DIR})
+  endif()
+endif()
 if(USE_GSL)
   list(APPEND opt_incs ${GSL_INCLUDE_DIRS})
   list(APPEND opt_libs ${GSL_LIBRARIES})
@@ -251,16 +259,21 @@ if(MSVC)
   # warning C4996: 'gethostbyname': Use getaddrinfo() or GetAddrInfoW() instead
   # warning C4996: 'inet_ntoa': Use inet_ntop() or InetNtop() instead
   # warning C4996: 'inet_addr': Use inet_pton() or InetPton() instead
-  vp_set_source_file_compile_flag(src/tools/network/vpClient.cpp /wd4996)
-  vp_set_source_file_compile_flag(src/tools/network/vpServer.cpp /wd4996)
-  vp_set_source_file_compile_flag(src/tools/network/vpNetwork.cpp /wd4996)
+  vp_set_source_file_compile_flag(src/tools/network/vpClient.cpp /wd"4996")
+  vp_set_source_file_compile_flag(src/tools/network/vpServer.cpp /wd"4996")
+  vp_set_source_file_compile_flag(src/tools/network/vpNetwork.cpp /wd"4996")
   if(BUILD_TESTS)
-    vp_set_source_file_compile_flag(test/network/testClient.cpp /wd4996)
-    vp_set_source_file_compile_flag(test/network/testServer.cpp /wd4996)
+    vp_set_source_file_compile_flag(test/network/testClient.cpp /wd"4996")
+    vp_set_source_file_compile_flag(test/network/testServer.cpp /wd"4996")
   endif()
 endif()
 
-vp_add_module(core)
+if(USE_EIGEN3)
+  vp_set_source_file_compile_flag(src/math/matrix/vpMatrix_svd.cpp -Wno-float-equal -Wno-strict-overflow -Wno-misleading-indentation -Wno-int-in-bool-context)
+  vp_set_source_file_compile_flag(src/math/matrix/vpMatrix_lu.cpp -Wno-float-equal -Wno-strict-overflow -Wno-misleading-indentation -Wno-int-in-bool-context)
+endif()
+
+vp_add_module(core PRIVATE_OPTIONAL ${LAPACK_LIBRARIES})
 
 vp_source_group("Src" FILES "${VISP_MODULE_visp_core_BINARY_DIR}/version_string.inc")
 

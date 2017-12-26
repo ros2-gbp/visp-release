@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -40,7 +41,6 @@
 
 #include <visp3/core/vpMatrix.h>
 
-
 /*!
   \file vpSubMatrix.h
 
@@ -59,44 +59,44 @@
 
   \sa vpMatrix vpColvector vpRowVector
 */
-class VISP_EXPORT vpSubMatrix : public vpMatrix{
+class VISP_EXPORT vpSubMatrix : public vpMatrix
+{
 
-  private :
-      //! Eye method unavailable
-      void eye(unsigned int n);
-      //! Eye method unavailable
-      void eye(unsigned int m, unsigned int n);
-      //! Copy constructor unavailable
-      vpSubMatrix(const vpSubMatrix& /* m */);      
-       
-  protected :
- 
-      unsigned int pRowNum;
-      unsigned int pColNum;
-      vpMatrix *parent;
-      
-  public:
+private:
+  //! Eye method unavailable
+  void eye(unsigned int n);
+  //! Eye method unavailable
+  void eye(unsigned int m, unsigned int n);
+  //! Copy constructor unavailable
+  vpSubMatrix(const vpSubMatrix & /* m */);
 
-    //!Default constructor
-    vpSubMatrix();
-    //!Constructor
-    vpSubMatrix(vpMatrix &m, const unsigned int & row, const unsigned int &col , const unsigned int & nrows ,  const unsigned int & ncols);
-    //!Destructor
-    ~vpSubMatrix();
-    
-    //! Initialisation of vpMatrix
-    void init(vpMatrix &m, const unsigned int & row, const unsigned int &col , const unsigned int & nrows ,  const unsigned int & ncols);
-    
-    //!Check is parent vpRowVector has changed since initialization
-    void checkParentStatus() const;
-	
-    //! Operation such as subA = subB
-    vpSubMatrix & operator=(const vpSubMatrix &B);
-    //! Operation such as subA = B
-    vpSubMatrix & operator=(const vpMatrix &B);
-    //! Operation such as subA = x
-    vpSubMatrix & operator=(const double &x);
-    
+protected:
+  unsigned int pRowNum;
+  unsigned int pColNum;
+  vpMatrix *parent;
+
+public:
+  //! Default constructor
+  vpSubMatrix();
+  //! Constructor
+  vpSubMatrix(vpMatrix &m, const unsigned int &row, const unsigned int &col, const unsigned int &nrows,
+              const unsigned int &ncols);
+  //! Destructor
+  ~vpSubMatrix();
+
+  //! Initialisation of vpMatrix
+  void init(vpMatrix &m, const unsigned int &row, const unsigned int &col, const unsigned int &nrows,
+            const unsigned int &ncols);
+
+  //! Check is parent vpRowVector has changed since initialization
+  void checkParentStatus() const;
+
+  //! Operation such as subA = subB
+  vpSubMatrix &operator=(const vpSubMatrix &B);
+  //! Operation such as subA = B
+  vpSubMatrix &operator=(const vpMatrix &B);
+  //! Operation such as subA = x
+  vpSubMatrix &operator=(const double &x);
 };
 
 #endif

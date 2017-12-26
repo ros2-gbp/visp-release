@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -38,11 +39,10 @@
 
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDisplay.h>
-#if ( defined(VISP_HAVE_D3D9) )
+#if (defined(VISP_HAVE_D3D9))
 
 #ifndef VPDISPLAYD3D_HH
 #define VPDISPLAYD3D_HH
-
 
 #include <visp3/gui/vpDisplayWin32.h>
 
@@ -51,9 +51,9 @@
 
   \ingroup group_gui_display
 
-  \brief Display for windows using Direct3D 3rd party. Thus to enable this class
-  Direct3D should be installed. Installation instructions are provided here
-  https://visp.inria.fr/3rd_d3d/
+  \brief Display for windows using Direct3D 3rd party. Thus to enable this
+class Direct3D should be installed. Installation instructions are provided
+here https://visp.inria.fr/3rd_d3d/
 
   Direct3D is part of the DirectX API available under Windows
   operating systems.
@@ -63,8 +63,8 @@
   The example below shows how to display an image with this video device.
   \code
 #include <visp3/core/vpConfig.h>
-#include <visp3/io/vpImageIo.h>
 #include <visp3/gui/vpDisplayD3D.h>
+#include <visp3/io/vpImageIo.h>
 
 int main()
 {
@@ -108,14 +108,15 @@ class VISP_EXPORT vpDisplayD3D : public vpDisplayWin32
 {
 public:
   vpDisplayD3D();
-  vpDisplayD3D(int winx, int winy, const std::string &title="");
+  vpDisplayD3D(int winx, int winy, const std::string &title = "");
   vpDisplayD3D(vpImage<unsigned char> &I, vpScaleType type);
-  vpDisplayD3D(vpImage<unsigned char> &I, int winx=-1, int winy=-1, const std::string &title="", vpScaleType type=SCALE_DEFAULT) ;
+  vpDisplayD3D(vpImage<unsigned char> &I, int winx = -1, int winy = -1, const std::string &title = "",
+               vpScaleType type = SCALE_DEFAULT);
   vpDisplayD3D(vpImage<vpRGBa> &I, vpScaleType type);
-  vpDisplayD3D(vpImage<vpRGBa> &I, int winx=-1, int winy=-1, const std::string &title="", vpScaleType type=SCALE_DEFAULT) ;
+  vpDisplayD3D(vpImage<vpRGBa> &I, int winx = -1, int winy = -1, const std::string &title = "",
+               vpScaleType type = SCALE_DEFAULT);
 
   virtual ~vpDisplayD3D();
-  
 };
 #endif
 #endif

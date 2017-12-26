@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,13 +36,13 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpSimulatorPioneer_H
 #define vpSimulatorPioneer_H
 
 /*!
   \file vpSimulatorPioneer.h
-  \brief class that defines the Pioneer mobile robot simulator equipped with a static camera.
+  \brief class that defines the Pioneer mobile robot simulator equipped with a
+  static camera.
 */
 
 #include <visp3/core/vpColVector.h>
@@ -56,15 +57,16 @@
 
   \ingroup group_robot_simu_unicycle
 
-  \brief Class that defines the Pioneer mobile robot simulator equipped with a static camera.
+  \brief Class that defines the Pioneer mobile robot simulator equipped with a
+static camera.
 
   It intends to simulate the mobile robot described in vpPioneer class.
   This robot has 2 dof: \f$(v_x, w_z)\f$, the translational and
   rotational velocities that are applied at point E.
 
-  The robot position evolves with respect to a world frame; wMc. When a new joint velocity
-  is applied to the robot using setVelocity(), the position of the camera wrt the world frame
-  is updated.
+  The robot position evolves with respect to a world frame; wMc. When a new
+joint velocity is applied to the robot using setVelocity(), the position of
+the camera wrt the world frame is updated.
 
   \image html pioneer.png
 
@@ -94,7 +96,8 @@ int main()
 }
   \endcode
 
-  The usage of this class is also highlighted in \ref tutorial-simu-robot-pioneer.
+  The usage of this class is also highlighted in \ref
+tutorial-simu-robot-pioneer.
 
 */
 class VISP_EXPORT vpSimulatorPioneer : public vpPioneer, public vpRobotSimulator
@@ -102,10 +105,10 @@ class VISP_EXPORT vpSimulatorPioneer : public vpPioneer, public vpRobotSimulator
 
 protected:
   // world to camera
-  vpHomogeneousMatrix wMc_ ;
+  vpHomogeneousMatrix wMc_;
   // world to end effector frame which is also the mobile
   // robot frame located between the two wheels
-  vpHomogeneousMatrix wMe_ ;
+  vpHomogeneousMatrix wMe_;
   // cMe_ is a protected member of vpUnicycle
 
   double xm_;
@@ -113,7 +116,7 @@ protected:
   double theta_;
 
 public:
-  vpSimulatorPioneer() ;
+  vpSimulatorPioneer();
   virtual ~vpSimulatorPioneer();
 
 public:
@@ -123,19 +126,16 @@ public:
 
   void getPosition(vpHomogeneousMatrix &wMc) const;
   void getPosition(const vpRobot::vpControlFrameType frame, vpColVector &q);
-  void setVelocity(const vpRobot::vpControlFrameType frame,
-                   const  vpColVector &vel)  ;
+  void setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &vel);
   //@}
 
 private:
-  void init() ;
+  void init();
 
   // Non implemented virtual pure functions
-  void get_fJe(vpMatrix & /*_fJe */) {};
-  void getDisplacement(const vpRobot::vpControlFrameType /* frame */, vpColVector & /* q */) {};
-  void setPosition(const vpRobot::vpControlFrameType /* frame */, const vpColVector & /* q */) {};
-
-} ;
+  void get_fJe(vpMatrix & /*_fJe */){};
+  void getDisplacement(const vpRobot::vpControlFrameType /* frame */, vpColVector & /* q */){};
+  void setPosition(const vpRobot::vpControlFrameType /* frame */, const vpColVector & /* q */){};
+};
 
 #endif
-

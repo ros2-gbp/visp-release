@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -45,34 +46,31 @@
 #include <visp3/core/vpDebug.h>
 
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
-#include <stdio.h>
 #include <iostream>
 #include <signal.h>
+#include <stdio.h>
 
 #include <visp3/io/vpKeyboard.h>
 
-
-int
-main()
+int main()
 {
   std::cout << "Push some characters on the keyboard..." << std::endl;
   printf("Hit 'q' or 'Q' to stop the loop ...\n");
   vpKeyboard keyboard;
 
   std::cout << "Start the keyboard scrutation..." << std::endl;
-  for ( ; ; ) {
+  for (;;) {
 
     if (keyboard.kbhit()) {
-      int c = keyboard.getchar () ;
+      int c = keyboard.getchar();
       printf("You hit key: %d '%c'\n", c, c);
       if (c == 'q' || c == 'Q') {
         printf("You hit key: %d %c we stop the loop\n", c, c);
-        break ;
+        break;
       }
     }
 
     // My job is here
-
   }
 
   std::cout << "Enter an integer: ";
@@ -82,8 +80,7 @@ main()
   return 0;
 }
 #else
-int
-main()
+int main()
 {
   vpTRACE("Sorry, for the moment, vpKeyboard class works only on unix...");
   return 0;

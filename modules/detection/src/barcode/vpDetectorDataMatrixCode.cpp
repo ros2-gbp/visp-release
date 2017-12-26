@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -48,12 +49,11 @@
 /*!
    Default constructor that does nothing.
  */
-vpDetectorDataMatrixCode::vpDetectorDataMatrixCode()
-{
-}
+vpDetectorDataMatrixCode::vpDetectorDataMatrixCode() {}
 
 /*!
-  Detect datamatrix bar codes in the image. Return true if a bar code is detected, false otherwise.
+  Detect datamatrix bar codes in the image. Return true if a bar code is
+  detected, false otherwise.
 
   \param I : Input image.
  */
@@ -63,12 +63,12 @@ bool vpDetectorDataMatrixCode::detect(const vpImage<unsigned char> &I)
   m_message.clear();
   m_polygon.clear();
   m_nb_objects = 0;
-  DmtxRegion     *reg;
-  DmtxDecode     *dec;
-  DmtxImage      *img;
-  DmtxMessage    *msg;
+  DmtxRegion *reg;
+  DmtxDecode *dec;
+  DmtxImage *img;
+  DmtxMessage *msg;
 
-  img = dmtxImageCreate(I.bitmap, (int) I.getWidth(), (int) I.getHeight(), DmtxPack8bppK);
+  img = dmtxImageCreate(I.bitmap, (int)I.getWidth(), (int)I.getHeight(), DmtxPack8bppK);
   assert(img != NULL);
 
   dec = dmtxDecodeCreate(img, 1);
@@ -78,9 +78,9 @@ bool vpDetectorDataMatrixCode::detect(const vpImage<unsigned char> &I)
   do {
     reg = dmtxRegionFindNext(dec, 0);
 
-    if(reg != NULL) {
+    if (reg != NULL) {
       msg = dmtxDecodeMatrixRegion(dec, reg, DmtxUndefined);
-      if(msg != NULL) {
+      if (msg != NULL) {
 
         std::vector<vpImagePoint> polygon;
 
@@ -93,23 +93,21 @@ bool vpDetectorDataMatrixCode::detect(const vpImage<unsigned char> &I)
         dmtxMatrix3VMultiplyBy(&p11, reg->fit2raw);
         dmtxMatrix3VMultiplyBy(&p01, reg->fit2raw);
 
-        polygon.push_back(vpImagePoint(I.getHeight()-p00.Y, p00.X));
-        polygon.push_back(vpImagePoint(I.getHeight()-p10.Y, p10.X));
-        polygon.push_back(vpImagePoint(I.getHeight()-p11.Y, p11.X));
-        polygon.push_back(vpImagePoint(I.getHeight()-p01.Y, p01.X));
+        polygon.push_back(vpImagePoint(I.getHeight() - p00.Y, p00.X));
+        polygon.push_back(vpImagePoint(I.getHeight() - p10.Y, p10.X));
+        polygon.push_back(vpImagePoint(I.getHeight() - p11.Y, p11.X));
+        polygon.push_back(vpImagePoint(I.getHeight() - p01.Y, p01.X));
 
         m_polygon.push_back(polygon);
         detected = true;
-        m_message.push_back( (const char *)msg->output);
+        m_message.push_back((const char *)msg->output);
 
-        m_nb_objects ++;
-      }
-      else {
+        m_nb_objects++;
+      } else {
         end = true;
       }
       dmtxMessageDestroy(&msg);
-    }
-    else {
+    } else {
       end = true;
     }
     dmtxRegionDestroy(&reg);
@@ -122,6 +120,7 @@ bool vpDetectorDataMatrixCode::detect(const vpImage<unsigned char> &I)
 }
 
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_core.a(vpDetectorDataMatrixCode.cpp.o) has no symbols
-void dummy_vpDetectorDataMatrixCode() {};
+// Work arround to avoid warning:
+// libvisp_core.a(vpDetectorDataMatrixCode.cpp.o) has no symbols
+void dummy_vpDetectorDataMatrixCode(){};
 #endif

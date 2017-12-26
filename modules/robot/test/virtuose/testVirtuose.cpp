@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -37,7 +38,8 @@
 
 /*!
   \example testVirtuose.cpp
-    Test for reading the Virtuose's joint values inside the main function after checking the emergency button.
+    Test for reading the Virtuose's joint values inside the main function
+  after checking the emergency button.
 */
 
 #include <visp3/robot/vpVirtuose.h>
@@ -50,20 +52,18 @@ int main()
     virtuose.init();
 
     bool emergStop = virtuose.getEmergencyStop();
-    if (emergStop)
-    {
+    if (emergStop) {
       std::cout << "The system is operational." << std::endl;
       vpColVector q = virtuose.getArticularPosition();
       std::cout << "The current joint values are : " << q.t() << std::endl;
-    }
-    else
-      std::cout << "The system is not operational. \nPlease plug the emergency stop to the system (or untrigger it)." << std::endl;
-  }
-  catch(vpException &e) {
+    } else
+      std::cout << "The system is not operational. \nPlease plug the "
+                   "emergency stop to the system (or untrigger it)."
+                << std::endl;
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e.getStringMessage() << std::endl;
   }
 #else
   std::cout << "You should install Virtuose SDK to use this binary..." << std::endl;
 #endif
 }
-
