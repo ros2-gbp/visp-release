@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -45,16 +46,16 @@
 #include <stdlib.h>
 
 #include <visp3/core/vpImage.h>
-#include <visp3/gui/vpDisplayX.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayD3D.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/io/vpParseArgv.h>
 #include <visp3/core/vpRect.h>
+#include <visp3/gui/vpDisplayD3D.h>
+#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayGTK.h>
+#include <visp3/gui/vpDisplayOpenCV.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/io/vpParseArgv.h>
 
 // List of allowed command line options
-#define GETOPTARGS	"cdh"
+#define GETOPTARGS "cdh"
 
 void usage(const char *name, const char *badparam);
 bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display);
@@ -92,10 +93,9 @@ OPTIONS:                                               Default\n\
      Print the help.\n\n");
 
   if (badparam) {
-    fprintf(stderr, "ERROR: \n" );
+    fprintf(stderr, "ERROR: \n");
     fprintf(stderr, "\nBad parameter [%s]\n", badparam);
   }
-
 }
 
 /*!
@@ -116,16 +116,25 @@ OPTIONS:                                               Default\n\
 bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
 {
   const char *optarg_;
-  int	c;
+  int c;
   while ((c = vpParseArgv::parse(argc, argv, GETOPTARGS, &optarg_)) > 1) {
 
     switch (c) {
-    case 'c': click_allowed = false; break;
-    case 'd': display = false; break;
-    case 'h': usage(argv[0], NULL); return false; break;
+    case 'c':
+      click_allowed = false;
+      break;
+    case 'd':
+      display = false;
+      break;
+    case 'h':
+      usage(argv[0], NULL);
+      return false;
+      break;
 
     default:
-      usage(argv[0], optarg_); return false; break;
+      usage(argv[0], optarg_);
+      return false;
+      break;
     }
   }
 
@@ -140,7 +149,7 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
   return true;
 }
 
-int main(int argc, const char ** argv)
+int main(int argc, const char **argv)
 {
 #ifdef VISP_HAVE_DISPLAY
   bool opt_click_allowed = true;
@@ -148,12 +157,12 @@ int main(int argc, const char ** argv)
 
   // Read the command line options
   if (getOptions(argc, argv, opt_click_allowed, opt_display) == false) {
-    exit (-1);
+    exit(-1);
   }
 
   if (opt_display) {
 
-    vpImage<unsigned char> I(480,640,255);
+    vpImage<unsigned char> I(480, 640, 255);
 
 #if defined(VISP_HAVE_X11)
     vpDisplayX d;
@@ -172,7 +181,7 @@ int main(int argc, const char ** argv)
 
     I = 0;
 
-    vpRect roi(I.getWidth()/4, I.getHeight()/4, I.getWidth()/2, I.getHeight()/2);
+    vpRect roi(I.getWidth() / 4, I.getHeight() / 4, I.getWidth() / 2, I.getHeight() / 2);
     vpDisplay::displayROI(I, roi);
     vpDisplay::flush(I);
     if (opt_click_allowed) {
@@ -181,14 +190,14 @@ int main(int argc, const char ** argv)
     }
     vpDisplay::close(I);
 
-    vpImage<vpRGBa> C(480,640,vpRGBa(255,0,0,0));
+    vpImage<vpRGBa> C(480, 640, vpRGBa(255, 0, 0, 0));
 
-    //vpDisplayX d;
+    // vpDisplayX d;
     d.init(C);
     vpDisplay::display(C);
     vpDisplay::flush(C);
 
-    C = vpRGBa(0,255,0,0);
+    C = vpRGBa(0, 255, 0, 0);
 
     vpDisplay::displayROI(C, roi);
     vpDisplay::flushROI(C, roi);

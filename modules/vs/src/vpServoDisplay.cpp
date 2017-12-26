@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -46,7 +47,7 @@
 // Meter/pixel conversion
 #include <visp3/core/vpCameraParameters.h>
 
-//Color / image / display
+// Color / image / display
 #include <visp3/core/vpColor.h>
 #include <visp3/core/vpImage.h>
 
@@ -76,27 +77,21 @@
   \param thickness : Thickness of the feature representation.
 
 */
-void vpServoDisplay::display(const vpServo &s,
-                             const vpCameraParameters &cam,
-                             const vpImage<unsigned char> &I,
-                             vpColor currentColor,
-                             vpColor desiredColor,
-                             unsigned int thickness)
+void vpServoDisplay::display(const vpServo &s, const vpCameraParameters &cam, const vpImage<unsigned char> &I,
+                             vpColor currentColor, vpColor desiredColor, unsigned int thickness)
 {
   std::list<vpBasicFeature *>::const_iterator it_s;
   std::list<vpBasicFeature *>::const_iterator it_s_star;
 
-  for (it_s = s.featureList.begin(), it_s_star = s.desiredFeatureList.begin();
-       it_s != s.featureList.end();
-       ++it_s, ++it_s_star)
-  {
+  for (it_s = s.featureList.begin(), it_s_star = s.desiredFeatureList.begin(); it_s != s.featureList.end();
+       ++it_s, ++it_s_star) {
     if (desiredColor != vpColor::none) {
       // desired list
-      (*it_s_star)->display(cam, I, desiredColor, thickness ) ;
+      (*it_s_star)->display(cam, I, desiredColor, thickness);
     }
     if (currentColor != vpColor::none) {
       // current list
-      (*it_s)->display(cam, I, currentColor, thickness ) ;
+      (*it_s)->display(cam, I, currentColor, thickness);
     }
   }
   //  vpDisplay::flush(I) ;
@@ -122,28 +117,21 @@ void vpServoDisplay::display(const vpServo &s,
   \param thickness : Thickness of the feature representation.
 
  */
-void
-vpServoDisplay::display(const vpServo &s,
-                        const vpCameraParameters &cam,
-                        const vpImage<vpRGBa> &I,
-                        vpColor currentColor,
-                        vpColor desiredColor,
-                        unsigned int thickness)
+void vpServoDisplay::display(const vpServo &s, const vpCameraParameters &cam, const vpImage<vpRGBa> &I,
+                             vpColor currentColor, vpColor desiredColor, unsigned int thickness)
 {
   std::list<vpBasicFeature *>::const_iterator it_s;
   std::list<vpBasicFeature *>::const_iterator it_s_star;
 
-  for (it_s = s.featureList.begin(), it_s_star = s.desiredFeatureList.begin();
-       it_s != s.featureList.end();
-       ++it_s, ++it_s_star)
-  {
+  for (it_s = s.featureList.begin(), it_s_star = s.desiredFeatureList.begin(); it_s != s.featureList.end();
+       ++it_s, ++it_s_star) {
     if (desiredColor != vpColor::none) {
       // desired list
-      (*it_s_star)->display(cam, I, desiredColor, thickness ) ;
+      (*it_s_star)->display(cam, I, desiredColor, thickness);
     }
     if (currentColor != vpColor::none) {
       // current list
-      (*it_s)->display(cam, I, currentColor, thickness ) ;
+      (*it_s)->display(cam, I, currentColor, thickness);
     }
   }
   //  vpDisplay::flush(I) ;

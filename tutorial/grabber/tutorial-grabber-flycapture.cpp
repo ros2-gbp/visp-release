@@ -1,8 +1,8 @@
 //! \example tutorial-grabber-flycapture.cpp
-#include <visp3/sensor/vpFlyCaptureGrabber.h>
-#include <visp3/gui/vpDisplayX.h>
-#include <visp3/gui/vpDisplayGDI.h>
 #include <visp3/core/vpImage.h>
+#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/sensor/vpFlyCaptureGrabber.h>
 
 int main()
 {
@@ -18,8 +18,8 @@ int main()
       g.setShutter(true); // Turn auto shutter on
       g.setGain(true);    // Turn auto gain on
       g.setVideoModeAndFrameRate(FlyCapture2::VIDEOMODE_1280x960Y8, FlyCapture2::FRAMERATE_60);
-    }
-    catch(...) { // If settings are not available just catch execption to continue with default settings
+    } catch (...) { // If settings are not available just catch execption to
+                    // continue with default settings
     }
     //! [vpFlyCaptureGrabber settings]
     //! [vpFlyCaptureGrabber open]
@@ -36,7 +36,7 @@ int main()
     std::cout << "No image viewer is available..." << std::endl;
 #endif
 
-    while(1) {
+    while (1) {
       //! [vpFlyCaptureGrabber acquire]
       g.acquire(I);
       //! [vpFlyCaptureGrabber acquire]
@@ -50,8 +50,7 @@ int main()
       //! [vpFlyCaptureGrabber click to exit]
       vpDisplay::flush(I);
     }
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e.getStringMessage() << std::endl;
   }
 #endif

@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,7 +36,6 @@
  *
  *****************************************************************************/
 
-
 /*!
   \file vpDiskGrabber.h
   \brief Class to load image sequence from the disk.
@@ -43,10 +43,12 @@
 #ifndef vpDiskGrabber_hh
 #define vpDiskGrabber_hh
 
-#include <visp3/io/vpImageIo.h>
+#include <string>
+
+#include <visp3/core/vpDebug.h>
 #include <visp3/core/vpFrameGrabber.h>
 #include <visp3/core/vpRGBa.h>
-#include <visp3/core/vpDebug.h>
+#include <visp3/io/vpImageIo.h>
 
 /*!
   \class vpDiskGrabber
@@ -103,54 +105,54 @@ int main(){
 }
 \endcode
 */
-class VISP_EXPORT vpDiskGrabber  : public vpFrameGrabber
+class VISP_EXPORT vpDiskGrabber : public vpFrameGrabber
 {
 private:
-  long image_number ; //!< id of the next image to be read
-  int image_step ;    //!< increment between two image id
-  unsigned int number_of_zero ; //!< number of zero in the image name (image.00000.pgm)
+  long m_image_number;           //!< id of the current image to be read
+  long m_image_number_next;      //!< id of the next image to be read
+  long m_image_step;             //!< increment between two image id
+  unsigned int m_number_of_zero; //!< number of zero in the image name
+                                 //!< (image.00000.pgm)
 
-  char directory[FILENAME_MAX] ; //!< image location
-  char base_name[FILENAME_MAX] ; //!< image base name
-  char extension[FILENAME_MAX] ; //!< image extension
-  
-  bool useGenericName;
-  char genericName[FILENAME_MAX];
+  std::string m_directory; //!< image location
+  std::string m_base_name; //!< image base name
+  std::string m_extension; //!< image extension
+
+  bool m_use_generic_name;
+  std::string m_generic_name;
 
 public:
   vpDiskGrabber();
-  vpDiskGrabber(const char *genericName);
-  vpDiskGrabber(const char *dir, const char *basename, 
-                long number, int step, unsigned int noz,
-		const char *ext) ;
-  virtual ~vpDiskGrabber() ;
-
-  void open(vpImage<unsigned char> &I) ;
-  void open(vpImage<vpRGBa> &I) ;
-  void open(vpImage<float> &I) ;
+  explicit vpDiskGrabber(const std::string &genericName);
+  explicit vpDiskGrabber(const std::string &dir, const std::string &basename, long number, int step, unsigned int noz,
+                         const std::string &ext);
+  virtual ~vpDiskGrabber();
 
   void acquire(vpImage<unsigned char> &I);
   void acquire(vpImage<vpRGBa> &I);
-  void acquire(vpImage<float> &I) ;
+  void acquire(vpImage<float> &I);
   void acquire(vpImage<unsigned char> &I, long image_number);
   void acquire(vpImage<vpRGBa> &I, long image_number);
-  void acquire(vpImage<float> &I, long image_number) ;
+  void acquire(vpImage<float> &I, long image_number);
 
   void close();
-
-  void setDirectory(const char *dir);
-  void setBaseName(const char *name);
-  void setImageNumber(long number) ;
-  void setStep(int a);
-  void setNumberOfZero(unsigned int noz);
-  void setExtension(const char *ext);
-  void setGenericName(const char *genericName);
 
   /*!
     Return the current image number.
   */
-  long getImageNumber() { return image_number; };
-} ;
+  long getImageNumber() { return m_image_number; };
+
+  void open(vpImage<unsigned char> &I);
+  void open(vpImage<vpRGBa> &I);
+  void open(vpImage<float> &I);
+
+  void setBaseName(const std::string &name);
+  void setDirectory(const std::string &dir);
+  void setExtension(const std::string &ext);
+  void setGenericName(const std::string &genericName);
+  void setImageNumber(long number);
+  void setNumberOfZero(unsigned int noz);
+  void setStep(long step);
+};
 
 #endif
-

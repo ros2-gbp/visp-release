@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,8 +36,6 @@
  *
  *****************************************************************************/
 
-
-
 #ifndef vpFrameGrabber_hh
 #define vpFrameGrabber_hh
 
@@ -63,8 +62,8 @@
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/io/vpImageIo.h>
-#include <visp3/sensor/vpV4l2Grabber.h>
 #include <visp3/sensor/vp1394TwoGrabber.h>
+#include <visp3/sensor/vpV4l2Grabber.h>
 
 int main()
 {
@@ -101,38 +100,37 @@ int main()
 */
 class VISP_EXPORT vpFrameGrabber
 {
-public :
-  bool   init ;  //!< Set to true if the frame grabber has been initialized.
+public:
+  bool init; //!< Set to true if the frame grabber has been initialized.
 
 protected:
-  unsigned int height ;  //!< Number of rows in the image.
-  unsigned int width ;  //!< Number of columns in the image.
+  unsigned int height; //!< Number of rows in the image.
+  unsigned int width;  //!< Number of columns in the image.
 
 public:
   /** @name Inherited functionalities from vpFramegrabber */
   //@{
   //! Return the number of rows in the image.
-  inline  unsigned int getHeight() const { return height ; }
+  inline unsigned int getHeight() const { return height; }
   //! Return the number of columns in the image.
-  inline  unsigned int getWidth() const { return width ; }
+  inline unsigned int getWidth() const { return width; }
   //@}
 
 public:
-  vpFrameGrabber() : init(false), height(0), width(0) {};
+  vpFrameGrabber() : init(false), height(0), width(0){};
   virtual ~vpFrameGrabber() { ; }
 
-  virtual void open(vpImage<unsigned char> &I) =0 ;
-  virtual void open(vpImage<vpRGBa> &I) =0 ;
+  virtual void open(vpImage<unsigned char> &I) = 0;
+  virtual void open(vpImage<vpRGBa> &I) = 0;
 
-  virtual void acquire(vpImage<unsigned char> &I) =0 ;
-  virtual void acquire(vpImage<vpRGBa> &I) =0 ;
-
+  virtual void acquire(vpImage<unsigned char> &I) = 0;
+  virtual void acquire(vpImage<vpRGBa> &I) = 0;
 
   /*!
     This virtual function is used to de-allocate
     the memory used by a specific frame grabber
   */
-  virtual void close() =0 ;
-} ;
+  virtual void close() = 0;
+};
 
 #endif

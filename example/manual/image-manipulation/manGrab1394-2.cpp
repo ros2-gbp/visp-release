@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -48,12 +49,10 @@
 
  */
 
-
-
+#include <stdio.h>
+#include <stdlib.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/sensor/vp1394TwoGrabber.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 int main()
 {
@@ -62,33 +61,31 @@ int main()
     unsigned int ncameras; // Number of cameras on the bus
     vp1394TwoGrabber g;
     g.getNumCameras(ncameras);
-    vpImage<unsigned char> *I = new vpImage<unsigned char> [ncameras];
+    vpImage<unsigned char> *I = new vpImage<unsigned char>[ncameras];
 
     // If the first camera supports vpVIDEO_MODE_640x480_YUV422 video mode
     g.setCamera(0);
     g.setVideoMode(vp1394TwoGrabber::vpVIDEO_MODE_640x480_YUV422);
 
     // If all cameras support 30 fps acquisition
-    for (unsigned int camera=0; camera < ncameras; camera ++) {
+    for (unsigned int camera = 0; camera < ncameras; camera++) {
       g.setCamera(camera);
       g.setFramerate(vp1394TwoGrabber::vpFRAMERATE_30);
     }
 
-    for ( ; ; ) {
-      for (unsigned int camera=0; camera < ncameras; camera ++) {
+    for (;;) {
+      for (unsigned int camera = 0; camera < ncameras; camera++) {
         // Acquire successively images from the different cameras
         g.setCamera(camera);
         g.acquire(I[camera]);
       }
     }
-    delete [] I;
+    delete[] I;
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }
 
 #endif
-
 }

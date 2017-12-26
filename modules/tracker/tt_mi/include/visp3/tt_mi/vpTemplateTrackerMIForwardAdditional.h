@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -41,40 +42,36 @@
 
 #include <visp3/core/vpConfig.h>
 
+#include <visp3/core/vpImageFilter.h>
 #include <visp3/tt/vpTemplateTracker.h>
 #include <visp3/tt/vpTemplateTrackerHeader.h>
-#include <visp3/core/vpImageFilter.h>
 
-#include <visp3/tt_mi/vpTemplateTrackerMIBSpline.h>
 #include <visp3/tt_mi/vpTemplateTrackerMI.h>
+#include <visp3/tt_mi/vpTemplateTrackerMIBSpline.h>
 
 /*!
   \class vpTemplateTrackerMIForwardAdditional
   \ingroup group_tt_mi_tracker
-  The algorithm implemented in this class is described in \cite Dame12a and \cite Marchand16a.
+  The algorithm implemented in this class is described in \cite Dame12a and
+  \cite Marchand16a.
 */
-class VISP_EXPORT vpTemplateTrackerMIForwardAdditional: public vpTemplateTrackerMI
+class VISP_EXPORT vpTemplateTrackerMIForwardAdditional : public vpTemplateTrackerMI
 {
 public:
   /*! Minimization method. */
-  typedef enum {
-    USE_NEWTON,
-    USE_LMA,
-    USE_GRADIENT,
-    USE_QUASINEWTON
-  } vpMinimizationTypeMIForwardAdditional;
+  typedef enum { USE_NEWTON, USE_LMA, USE_GRADIENT, USE_QUASINEWTON } vpMinimizationTypeMIForwardAdditional;
 
 private:
   vpMinimizationTypeMIForwardAdditional minimizationMethod;
-  //pour eval evolRMS
-  double  evolRMS;
-  double  *x_pos;
-  double  *y_pos;
-  double  threshold_RMS;
-  //valeur pour calculer Quasi_Newton
+  // pour eval evolRMS
+  double evolRMS;
+  double *x_pos;
+  double *y_pos;
+  double threshold_RMS;
+  // valeur pour calculer Quasi_Newton
   vpColVector p_prec;
   vpColVector G_prec;
-  vpMatrix    KQuasiNewton;
+  vpMatrix KQuasiNewton;
 
 protected:
   void initHessienDesired(const vpImage<unsigned char> &I);
@@ -83,30 +80,34 @@ protected:
   void computeEvalRMS(const vpColVector &p);
   void initPosEvalRMS(const vpColVector &p);
 
-//private:
-//#ifndef DOXYGEN_SHOULD_SKIP_THIS
-//  vpTemplateTrackerMIForwardAdditional(const vpTemplateTrackerMIForwardAdditional &)
-//    : vpTemplateTrackerMI(), minimizationMethod(USE_NEWTON), evolRMS(0), x_pos(NULL), y_pos(NULL),
-//      threshold_RMS(0), p_prec(), G_prec(), KQuasiNewton()
-//  {
-//    throw vpException(vpException::functionNotImplementedError, "Not implemented!");
-//  }
-//  vpTemplateTrackerMIForwardAdditional &operator=(const vpTemplateTrackerMIForwardAdditional &){
-//    throw vpException(vpException::functionNotImplementedError, "Not implemented!");
-//    return *this;
-//  }
-//#endif
+  // private:
+  //#ifndef DOXYGEN_SHOULD_SKIP_THIS
+  //  vpTemplateTrackerMIForwardAdditional(const
+  //  vpTemplateTrackerMIForwardAdditional &)
+  //    : vpTemplateTrackerMI(), minimizationMethod(USE_NEWTON), evolRMS(0),
+  //    x_pos(NULL), y_pos(NULL),
+  //      threshold_RMS(0), p_prec(), G_prec(), KQuasiNewton()
+  //  {
+  //    throw vpException(vpException::functionNotImplementedError, "Not
+  //    implemented!");
+  //  }
+  //  vpTemplateTrackerMIForwardAdditional &operator=(const
+  //  vpTemplateTrackerMIForwardAdditional &){
+  //    throw vpException(vpException::functionNotImplementedError, "Not
+  //    implemented!"); return *this;
+  //  }
+  //#endif
 
 public:
   //! Default constructor.
   vpTemplateTrackerMIForwardAdditional()
-    : vpTemplateTrackerMI(), minimizationMethod(USE_NEWTON), evolRMS(0), x_pos(NULL), y_pos(NULL),
-      threshold_RMS(0), p_prec(), G_prec(), KQuasiNewton()
-  {}
-  vpTemplateTrackerMIForwardAdditional(vpTemplateTrackerWarp *_warp);
-  void  setThresholdRMS(double threshold){threshold_RMS=threshold;}
-  void  setMinimizationMethod(vpMinimizationTypeMIForwardAdditional method){minimizationMethod=method;}
+    : vpTemplateTrackerMI(), minimizationMethod(USE_NEWTON), evolRMS(0), x_pos(NULL), y_pos(NULL), threshold_RMS(0),
+      p_prec(), G_prec(), KQuasiNewton()
+  {
+  }
+  explicit vpTemplateTrackerMIForwardAdditional(vpTemplateTrackerWarp *_warp);
+  void setThresholdRMS(double threshold) { threshold_RMS = threshold; }
+  void setMinimizationMethod(vpMinimizationTypeMIForwardAdditional method) { minimizationMethod = method; }
 };
 
 #endif
-

@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -44,8 +45,7 @@
 #include <visp3/core/vpException.h>
 #include <visp3/sensor/vpForceTorqueAtiSensor.h>
 
-static Calibration *s_calibinfo = NULL;      //!< Struct containing calibration information
-
+static Calibration *s_calibinfo = NULL; //!< Struct containing calibration information
 
 /*!
  * Default constructor.
@@ -67,8 +67,8 @@ void vpForceTorqueAtiSensor::open()
 }
 
 /*!
-  Bias the sensor storing an unloaded measurement; this removes the effect of tooling weight.
-  \sa unbias()
+  Bias the sensor storing an unloaded measurement; this removes the effect of
+  tooling weight. \sa unbias()
  */
 void vpForceTorqueAtiSensor::bias()
 {
@@ -78,15 +78,16 @@ void vpForceTorqueAtiSensor::bias()
   m_sample_bias = vpComedi::getPhyData();
 
   if (m_sample_bias.size() != m_num_channels)
-    throw vpException(vpException::fatalError, "Physical data size (%d) and number of channels (%d) doesn't match", m_sample_bias.size(), m_num_channels);
+    throw vpException(vpException::fatalError, "Physical data size (%d) and number of channels (%d) doesn't match",
+                      m_sample_bias.size(), m_num_channels);
 
-  float *sample_bias = new float [m_num_channels];
-  for(unsigned int i=0; i<m_num_channels; i++)
+  float *sample_bias = new float[m_num_channels];
+  for (unsigned int i = 0; i < m_num_channels; i++)
     sample_bias[i] = m_sample_bias[i];
 
   Bias(s_calibinfo, sample_bias);
 
-  delete [] sample_bias;
+  delete[] sample_bias;
 }
 
 /*!
@@ -104,23 +105,25 @@ void vpForceTorqueAtiSensor::unbias()
   m_sample_bias = 0;
 
   if (m_sample_bias.size() != m_num_channels)
-    throw vpException(vpException::fatalError, "Physical data size (%d) and number of channels (%d) doesn't match", m_sample_bias.size(), m_num_channels);
+    throw vpException(vpException::fatalError, "Physical data size (%d) and number of channels (%d) doesn't match",
+                      m_sample_bias.size(), m_num_channels);
 
-  float *sample_bias = new float [m_num_channels];
-  for(unsigned int i=0; i<m_num_channels; i++)
+  float *sample_bias = new float[m_num_channels];
+  for (unsigned int i = 0; i < m_num_channels; i++)
     sample_bias[i] = m_sample_bias[i];
 
   Bias(s_calibinfo, sample_bias);
 
-  delete [] sample_bias;
+  delete[] sample_bias;
 }
 
 /*!
- * Close the calibration structure opened using setCalibrationFile() and close the connection to the device.
+ * Close the calibration structure opened using setCalibrationFile() and close
+ * the connection to the device.
  */
 void vpForceTorqueAtiSensor::close()
 {
-  if(s_calibinfo != NULL) {
+  if (s_calibinfo != NULL) {
     // free memory allocated to calibration structure
     destroyCalibration(s_calibinfo);
     s_calibinfo = NULL;
@@ -129,11 +132,12 @@ void vpForceTorqueAtiSensor::close()
 }
 
 /*!
-  Get a 6-dimension force/torque vector from device. This function performs synchronously one single data acquisition.
-  "Synchronous" means that the calling process blocks until the data acquisition has finished.
+  Get a 6-dimension force/torque vector from device. This function performs
+  synchronously one single data acquisition. "Synchronous" means that the
+  calling process blocks until the data acquisition has finished.
 
-  \return A sampled measure from device with forces and torques. Forces units are given by
-  getForceUnits(), while torque units by getTorqueUnits().
+  \return A sampled measure from device with forces and torques. Forces units
+  are given by getForceUnits(), while torque units by getTorqueUnits().
  */
 vpColVector vpForceTorqueAtiSensor::getForceTorque() const
 {
@@ -143,10 +147,10 @@ vpColVector vpForceTorqueAtiSensor::getForceTorque() const
     throw vpException(vpException::fatalError, "Physical data size (%d) and number of channels (%d) doesn't match",
                       phydata.size(), m_num_channels);
 
-  float *voltage = new float [m_num_channels];
-  float *ft = new float [m_num_axes];
+  float *voltage = new float[m_num_channels];
+  float *ft = new float[m_num_axes];
 
-  for(unsigned int i=0; i<m_num_channels; i++) {
+  for (unsigned int i = 0; i < m_num_channels; i++) {
     voltage[i] = phydata[i];
   }
 
@@ -154,11 +158,11 @@ vpColVector vpForceTorqueAtiSensor::getForceTorque() const
   ConvertToFT(s_calibinfo, voltage, ft);
 
   vpColVector sample(m_num_axes);
-  for(unsigned int i=0; i<m_num_axes; i++)
+  for (unsigned int i = 0; i < m_num_axes; i++)
     sample[i] = ft[i];
 
-  delete [] voltage;
-  delete [] ft;
+  delete[] voltage;
+  delete[] ft;
 
   return sample;
 }
@@ -183,16 +187,13 @@ std::string vpForceTorqueAtiSensor::getTorqueUnits() const
 /*!
  * Destructor that closes the connection to the device.
  */
-vpForceTorqueAtiSensor::~vpForceTorqueAtiSensor()
-{
-  close();
-}
+vpForceTorqueAtiSensor::~vpForceTorqueAtiSensor() { close(); }
 
 /*!
    Open ATI calibration file that should correspond to your F/T sensor.
-   \param calibfile : ATI calibration file. This file has the following pattern: FT*.cal.
-   \param index : Index of calibration in file (default = 1).
-   \sa getCalibrationFile(), close()
+   \param calibfile : ATI calibration file. This file has the following
+   pattern: FT*.cal. \param index : Index of calibration in file (default =
+   1). \sa getCalibrationFile(), close()
  */
 void vpForceTorqueAtiSensor::setCalibrationFile(const std::string &calibfile, unsigned short index)
 {
@@ -207,7 +208,7 @@ void vpForceTorqueAtiSensor::setCalibrationFile(const std::string &calibfile, un
 
   // Create calibration struct
   s_calibinfo = createCalibration(file, m_index);
-  if (s_calibinfo==NULL) {
+  if (s_calibinfo == NULL) {
     throw vpException(vpException::fatalError, "Calibration file %s couldn't be loaded", m_calibfile.c_str());
   }
 
@@ -234,9 +235,9 @@ int main()
 }
   \endcode
  */
-std::ostream & operator<<(std::ostream &os, const vpForceTorqueAtiSensor &ati)
+std::ostream &operator<<(std::ostream &os, const vpForceTorqueAtiSensor &ati)
 {
-  if (s_calibinfo==NULL) {
+  if (s_calibinfo == NULL) {
     os << "Calibration Information is not available" << std::endl;
     return os;
   }
@@ -256,11 +257,12 @@ std::ostream & operator<<(std::ostream &os, const vpForceTorqueAtiSensor &ati)
 
   // print maximum loads of axes
   os << "\nRated Loads:" << std::endl;
-  for (unsigned short i=0;i<s_calibinfo->rt.NumAxes;i++) {
+  for (unsigned short i = 0; i < s_calibinfo->rt.NumAxes; i++) {
     char *units;
-    if ((s_calibinfo->AxisNames[i])[0]=='F') {
-      units=s_calibinfo->ForceUnits;
-    } else units=s_calibinfo->TorqueUnits;
+    if ((s_calibinfo->AxisNames[i])[0] == 'F') {
+      units = s_calibinfo->ForceUnits;
+    } else
+      units = s_calibinfo->TorqueUnits;
     os << s_calibinfo->AxisNames[i] << ": " << s_calibinfo->MaxLoads[i] << " " << units << std::endl;
   }
 
@@ -268,11 +270,11 @@ std::ostream & operator<<(std::ostream &os, const vpForceTorqueAtiSensor &ati)
   if (s_calibinfo->TempCompAvailable) {
     os << "\nTemperature Compensation Information:" << std::endl;
     os << "BS: ";
-    for (unsigned short i=0;i<s_calibinfo->rt.NumChannels-1;i++) {
+    for (unsigned short i = 0; i < s_calibinfo->rt.NumChannels - 1; i++) {
       os << s_calibinfo->rt.bias_slopes[i] << " ";
     }
     os << "\nGS: ";
-    for (unsigned short i=0;i<s_calibinfo->rt.NumChannels-1;i++) {
+    for (unsigned short i = 0; i < s_calibinfo->rt.NumChannels - 1; i++) {
       os << s_calibinfo->rt.gain_slopes[i] << " ";
     }
     os << "\nTherm: " << s_calibinfo->rt.thermistor << std::endl;
@@ -281,8 +283,8 @@ std::ostream & operator<<(std::ostream &os, const vpForceTorqueAtiSensor &ati)
   return os;
 }
 
-
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_sensor.a(vpForceTorqueAtiSensor.cpp.o) has no symbols
-void dummy_vpForceTorqueAtiSensor() {};
+// Work arround to avoid warning:
+// libvisp_sensor.a(vpForceTorqueAtiSensor.cpp.o) has no symbols
+void dummy_vpForceTorqueAtiSensor(){};
 #endif
