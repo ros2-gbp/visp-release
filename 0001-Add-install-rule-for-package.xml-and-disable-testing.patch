@@ -1,0 +1,26 @@
+From b2fc767f3b327f3457eac4f034a30bb4c2c45e54 Mon Sep 17 00:00:00 2001
+From: Fabien Spindler <Fabien.SPindler@inria.fr>
+Date: Tue, 26 Dec 2017 15:31:22 +0100
+Subject: [PATCH] Add install rule for package.xml and disable testing
+
+---
+ CMakeLists.txt | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d952c18..68def60 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -454,6 +454,9 @@ if(BUILD_TESTS)
+   mark_as_advanced(BUILD_TESTING)
+ endif()
+ 
++# Install catkin package.xml
++install(FILES package.xml DESTINATION share/visp)
++
+ #----------------------------------------------------------------------
+ # Try to find doxygen for documentation generation
+ # Use "make visp_doc" target to generate the documentation
+-- 
+2.7.4
+
