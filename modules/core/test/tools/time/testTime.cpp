@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -44,17 +45,17 @@
 */
 #include <visp3/core/vpConfig.h>
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-#  include <unistd.h>
+#include <unistd.h>
 #elif defined(_WIN32)
-#  include <windows.h>
-#  include <mmsystem.h>
-#  include <winbase.h>
+//#include <mmsystem.h>
+//#include <winbase.h>
+#include <windows.h>
 #endif
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
 #include <cmath>
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include <visp3/core/vpTime.h>
 
@@ -65,8 +66,8 @@ int main()
     double v = 0;
 
     double t0 = vpTime::measureTimeMs();
-    for (int i =0 ; i < 100000; i ++)
-      for (int j =0 ; j < 100; j ++)
+    for (int i = 0; i < 100000; i++)
+      for (int j = 0; j < 100; j++)
         v = i * 2 / 3. + j;
     std::cout << "Computed dummy value: " << v << std::endl;
 
@@ -75,18 +76,18 @@ int main()
 
     double t2 = vpTime::measureTimeMs();
 
-    // Sleep 10ms
+// Sleep 10ms
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-    usleep(10*1000);
+    usleep(10 * 1000);
 #elif defined(_WIN32)
     Sleep(10);
 #endif
 
     double t3 = vpTime::measureTimeMs();
 
-    // Sleep 2ms
+// Sleep 2ms
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-    usleep(2*1000);
+    usleep(2 * 1000);
 #elif defined(_WIN32)
     Sleep(2);
 #endif
@@ -119,12 +120,11 @@ int main()
     std::cout << "t8-t7: wait(2 ms): " << t8 - t7 << std::endl;
 
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }
-#  else
+#else
   std::cout << "vpTime is not implemented on Universal Windows Platform" << std::endl;
-#  endif
+#endif
 }

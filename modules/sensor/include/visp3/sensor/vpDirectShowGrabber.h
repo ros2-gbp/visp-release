@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -36,16 +37,15 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpDirectShowGrabber_hh
 #define vpDirectShowGrabber_hh
 
 #include <visp3/core/vpConfig.h>
-#if ( defined(VISP_HAVE_DIRECTSHOW) )
+#if (defined(VISP_HAVE_DIRECTSHOW))
 
+#include <visp3/core/vpFrameGrabber.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpRGBa.h>
-#include <visp3/core/vpFrameGrabber.h>
 
 class vpDirectShowGrabberImpl;
 
@@ -62,57 +62,53 @@ class vpDirectShowGrabberImpl;
 
 class VISP_EXPORT vpDirectShowGrabber : public vpFrameGrabber
 {
-	vpDirectShowGrabberImpl * grabber;
+  vpDirectShowGrabberImpl *grabber;
 
+public:
+  unsigned int getHeight();
+  unsigned int getWidth();
 
-	public:
+  vpDirectShowGrabber();
+  virtual ~vpDirectShowGrabber();
 
-		unsigned int getHeight();
-		unsigned int getWidth();
+  void open();
+  void open(vpImage<unsigned char> &I);
+  void open(vpImage<vpRGBa> &I);
 
-		vpDirectShowGrabber();
-		virtual ~vpDirectShowGrabber();
+  void acquire(vpImage<unsigned char> &I);
+  void acquire(vpImage<vpRGBa> &I);
 
-		void open();
-		void open(vpImage<unsigned char> &I);
-		void open(vpImage<vpRGBa> &I);
+  void close();
 
-		void acquire(vpImage<unsigned char> &I);
-		void acquire(vpImage<vpRGBa> &I);
+  // get the number of capture devices
+  unsigned int getDeviceNumber();
 
-		void close();
+  // change the capture device
+  bool setDevice(unsigned int id);
 
-		//get the number of capture devices
-		unsigned int getDeviceNumber();
+  // displays a list of available devices
+  void displayDevices();
 
-		//change the capture device
-		bool setDevice(unsigned int id);
+  // set image size
+  bool setImageSize(unsigned int width, unsigned int height);
 
-		//displays a list of available devices
-		void displayDevices();
+  // set source framerate
+  bool setFramerate(double framerate);
 
-		//set image size
-		bool setImageSize(unsigned int width,unsigned int height);
+  // set capture format
+  bool setFormat(unsigned int width, unsigned int height, double framerate);
 
-		//set source framerate
-		bool setFramerate(double framerate);
+  // get capture format
+  void getFormat(unsigned int &width, unsigned int &height, double &framerate);
 
+  // Get the available capture formats
+  bool getStreamCapabilities();
 
-		//set capture format
-		bool setFormat(unsigned int width,unsigned int height, double framerate);
+  // Set capture MediaType
+  bool setMediaType(int mediaTypeID);
 
-		//get capture format
-		void getFormat(unsigned int &width,unsigned int &height, double &framerate);
-
-		//Get the available capture formats
-		bool getStreamCapabilities();
-
-		//Set capture MediaType
-		bool setMediaType(int mediaTypeID);
-
-		//Get current capture MediaType
-		int getMediaType();
-
+  // Get current capture MediaType
+  int getMediaType();
 };
 #endif
 #endif

@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -43,13 +44,13 @@
 
 #include <iostream>
 
-#include <visp3/sensor/vpOpenCVGrabber.h>
-#include <visp3/sensor/vpV4l2Grabber.h>
-#include <visp3/sensor/vp1394TwoGrabber.h>
+#include <visp3/ar/vpAROgre.h>
+#include <visp3/core/vpCameraParameters.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpImage.h>
-#include <visp3/core/vpCameraParameters.h>
-#include <visp3/ar/vpAROgre.h>
+#include <visp3/sensor/vp1394TwoGrabber.h>
+#include <visp3/sensor/vpOpenCVGrabber.h>
+#include <visp3/sensor/vpV4l2Grabber.h>
 
 #if defined(VISP_HAVE_OGRE)
 
@@ -59,11 +60,11 @@ class vpAROgreAdvanced : public vpAROgre
 {
 private:
   // Animation attribute
-  Ogre::AnimationState * mAnimationState;
+  Ogre::AnimationState *mAnimationState;
 
 public:
-  vpAROgreAdvanced(const vpCameraParameters &cam = vpCameraParameters(),
-                   unsigned int width = 640, unsigned int height = 480)
+  vpAROgreAdvanced(const vpCameraParameters &cam = vpCameraParameters(), unsigned int width = 640,
+                   unsigned int height = 480)
     : vpAROgre(cam, width, height)
   {
     mAnimationState = NULL;
@@ -73,32 +74,33 @@ protected:
   void createScene()
   {
     // Create the Entity
-    Ogre::Entity* robot = mSceneMgr->createEntity("Robot", "robot.mesh");
+    Ogre::Entity *robot = mSceneMgr->createEntity("Robot", "robot.mesh");
     // Attach robot to scene graph
-    Ogre::SceneNode* RobotNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("Robot");
-    //RobotNode->setPosition((Ogre::Real)-0.3, (Ogre::Real)0.2, (Ogre::Real)0);
+    Ogre::SceneNode *RobotNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("Robot");
+    // RobotNode->setPosition((Ogre::Real)-0.3, (Ogre::Real)0.2,
+    // (Ogre::Real)0);
     RobotNode->attachObject(robot);
-    RobotNode->scale((Ogre::Real)0.001,(Ogre::Real)0.001,(Ogre::Real)0.001);
+    RobotNode->scale((Ogre::Real)0.001, (Ogre::Real)0.001, (Ogre::Real)0.001);
     RobotNode->pitch(Ogre::Degree(180));
     RobotNode->yaw(Ogre::Degree(-90));
 
     // The animation
     // Set the good animation
-    mAnimationState = robot->getAnimationState( "Idle" );
+    mAnimationState = robot->getAnimationState("Idle");
     // Start over when finished
-    mAnimationState->setLoop( true );
+    mAnimationState->setLoop(true);
     // Animation enabled
-    mAnimationState->setEnabled( true );
+    mAnimationState->setEnabled(true);
   }
 
-  bool customframeEnded( const Ogre::FrameEvent& evt)
+  bool customframeEnded(const Ogre::FrameEvent &evt)
   {
     // Update animation
     // To move, we add it the time since last frame
-    mAnimationState->addTime( evt.timeSinceLastFrame );
+    mAnimationState->addTime(evt.timeSinceLastFrame);
     return true;
   }
-};// End of vpAROgreAdvanced class definition
+}; // End of vpAROgreAdvanced class definition
 #endif
 
 #endif
@@ -106,7 +108,7 @@ protected:
 int main()
 {
   try {
-#if defined(VISP_HAVE_OGRE) 
+#if defined(VISP_HAVE_OGRE)
 #if defined(VISP_HAVE_V4L2) || defined(VISP_HAVE_DC1394) || (VISP_HAVE_OPENCV_VERSION >= 0x020100)
 
     // Image to store gathered data
@@ -115,7 +117,7 @@ int main()
     // level.
     vpImage<unsigned char> I;
 
-    // Now we try to find an available framegrabber
+// Now we try to find an available framegrabber
 #if defined(VISP_HAVE_V4L2)
     // Video for linux 2 grabber
     vpV4l2Grabber grabber;
@@ -135,7 +137,7 @@ int main()
 #elif defined(VISP_HAVE_OPENCV)
     // OpenCV to gather images
     cv::VideoCapture grabber(0); // open the default camera
-    if(!grabber.isOpened()) { // check if we succeeded
+    if (!grabber.isOpened()) {   // check if we succeeded
       std::cout << "Failed to open the camera" << std::endl;
       return -1;
     }
@@ -149,7 +151,7 @@ int main()
     double py = 565;
     double u0 = I.getWidth() / 2;
     double v0 = I.getHeight() / 2;
-    vpCameraParameters cam(px,py,u0,v0);
+    vpCameraParameters cam(px, py, u0, v0);
     // The matrix with our pose
     vpHomogeneousMatrix cMo;
     cMo[2][3] = 0.5; // Z = 0.5 meter
@@ -160,8 +162,8 @@ int main()
     ogre.init(I);
 
     // Rendering loop
-    while(ogre.continueRendering()){
-      // Acquire a new image
+    while (ogre.continueRendering()) {
+// Acquire a new image
 #if defined(VISP_HAVE_V4L2) || defined(VISP_HAVE_DC1394)
       grabber.acquire(I);
 #elif defined(VISP_HAVE_OPENCV)
@@ -181,12 +183,10 @@ int main()
     std::cout << "You need Ogre3D to run this example" << std::endl;
 #endif
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
-  }
-  catch(...) {
+  } catch (...) {
     std::cout << "Catch an exception " << std::endl;
     return 1;
   }

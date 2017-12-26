@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -46,13 +47,13 @@
 
 #if defined(VISP_HAVE_VIRTUOSE)
 
-void CallBackVirtuose(VirtContext VC, void* ptr)
+void CallBackVirtuose(VirtContext VC, void *ptr)
 {
-  (void) VC;
-  vpVirtuose* p_virtuose=(vpVirtuose*)ptr;
+  (void)VC;
+  vpVirtuose *p_virtuose = (vpVirtuose *)ptr;
 
   vpPoseVector localPose = p_virtuose->getPhysicalPosition();
-  vpColVector  vel = p_virtuose->getPhysicalVelocity();
+  vpColVector vel = p_virtuose->getPhysicalVelocity();
   std::cout << "pose: " << localPose.t() << std::endl;
   std::cout << "vel: " << vel.t() << std::endl;
 
@@ -70,9 +71,8 @@ int main()
     int counter = 0;
     bool swtch = true;
 
-    while(swtch){
-      if (counter>=2)
-      {
+    while (swtch) {
+      if (counter >= 2) {
         virtuose.stopPeriodicFunction();
         swtch = false;
       }
@@ -80,15 +80,11 @@ int main()
       vpTime::sleepMs(1000);
     }
     std::cout << "The end" << std::endl;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e.getStringMessage() << std::endl;
   }
 }
 
 #else
-int main()
-{
-  std::cout << "You should install Virtuose API to use this binary..." << std::endl;
-}
+int main() { std::cout << "You should install Virtuose API to use this binary..." << std::endl; }
 #endif

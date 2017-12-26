@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,65 +36,65 @@
  *
  *****************************************************************************/
 
-
 #ifndef __vpFeatureException_H
 #define __vpFeatureException_H
 
-
-/* ------------------------------------------------------------------------- */
-/* --- INCLUDE ------------------------------------------------------------- */
-/* ------------------------------------------------------------------------- */
-
+/* -------------------------------------------------------------------------
+ */
+/* --- INCLUDE -------------------------------------------------------------
+ */
+/* -------------------------------------------------------------------------
+ */
 
 /* \file vpFeatureException.h
    \brief error that can be emited by the vpFeature class and its derivates
  */
 /* Classes standards. */
 
+#include <iostream> /* Classe std::ostream.    */
+#include <string>   /* Classe string.     */
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpException.h>
-#include <iostream>                /* Classe std::ostream.    */
-#include <string>                  /* Classe string.     */
 
-/* ------------------------------------------------------------------------- */
-/* --- CLASS --------------------------------------------------------------- */
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------
+ */
+/* --- CLASS ---------------------------------------------------------------
+ */
+/* -------------------------------------------------------------------------
+ */
 
 /*!
   \class vpFeatureException
   \ingroup group_visual_features
-  \brief Error that can be emited by the vpBasicFeature class and its derivates.
+  \brief Error that can be emited by the vpBasicFeature class and its
+  derivates.
  */
 class VISP_EXPORT vpFeatureException : public vpException
 {
-  public:
-    /*!
-    \brief Lists the possible error than can be emmited while calling
-    vpFeature member
-   */
-    enum errorFeatureCodeEnum
-    {
-      //! feature list or desired feature list is empty
-      badErrorVectorError,
-      sizeMismatchError,
-      notInitializedError,
-      badInitializationError
-    } ;
+public:
+  /*!
+  \brief Lists the possible error than can be emmited while calling
+  vpFeature member
+ */
+  enum errorFeatureCodeEnum {
+    //! feature list or desired feature list is empty
+    badErrorVectorError,
+    sizeMismatchError,
+    notInitializedError,
+    badInitializationError
+  };
 
-  public:
-    vpFeatureException (const int id,  const char* format, ...)
-    {
-      this->code = id;
-      va_list args;
-      va_start(args, format);
-      setMessage(format, args);
-      va_end (args);
-    }
-    vpFeatureException (const int id, const std::string & msg)
-      : vpException(id, msg){ ; }
-    vpFeatureException (const int id)
-      : vpException(id){ ; }
-
+public:
+  vpFeatureException(const int id, const char *format, ...)
+  {
+    this->code = id;
+    va_list args;
+    va_start(args, format);
+    setMessage(format, args);
+    va_end(args);
+  }
+  vpFeatureException(const int id, const std::string &msg) : vpException(id, msg) { ; }
+  explicit vpFeatureException(const int id) : vpException(id) { ; }
 };
 
 #endif

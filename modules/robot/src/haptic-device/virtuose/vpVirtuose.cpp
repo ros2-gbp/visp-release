@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -51,10 +52,8 @@
  * Authorize indexing on all movements by default.
  */
 vpVirtuose::vpVirtuose()
-  : m_virtContext(NULL), m_ip("localhost#5000"), m_verbose(false),
-    m_apiMajorVersion(0), m_apiMinorVersion(0),
-    m_ctrlMajorVersion(0), m_ctrlMinorVersion(0),
-    m_typeCommand(COMMAND_TYPE_IMPEDANCE), m_indexType(INDEXING_ALL),
+  : m_virtContext(NULL), m_ip("localhost#5000"), m_verbose(false), m_apiMajorVersion(0), m_apiMinorVersion(0),
+    m_ctrlMajorVersion(0), m_ctrlMinorVersion(0), m_typeCommand(COMMAND_TYPE_IMPEDANCE), m_indexType(INDEXING_ALL),
     m_is_init(false), m_period(0.001f)
 {
   virtAPIVersion(&m_apiMajorVersion, &m_apiMinorVersion);
@@ -75,27 +74,28 @@ vpVirtuose::~vpVirtuose()
 /*!
  * Add a force to be applied to the virtuose (impedance effort).
  * This function works in every mode.
- * \param force : Is 6 component dynamic tensor (three forces and three torques) wrt virtuose end-effector
- * and is expressed in the coordinates of the base frame.
+ * \param force : Is 6 component dynamic tensor (three forces and three
+ * torques) wrt virtuose end-effector and is expressed in the coordinates of
+ * the base frame.
  */
 void vpVirtuose::addForce(vpColVector &force)
 {
   if (force.size() != 6) {
     throw(vpException(vpException::dimensionError,
-                      "Cannot apply a force feedback (dim %d) to the haptic device that is not 6-dimension",
+                      "Cannot apply a force feedback (dim %d) to the haptic "
+                      "device that is not 6-dimension",
                       force.size()));
   }
 
   init();
 
   float virtforce[6];
-  for(unsigned int i=0; i<6; i++)
+  for (unsigned int i = 0; i < 6; i++)
     virtforce[i] = (float)force[i];
 
   if (virtAddForce(m_virtContext, virtforce)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtAddForce: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtAddForce: error code %d", err));
   }
 }
 
@@ -109,8 +109,7 @@ void vpVirtuose::enableForceFeedback(int enable)
 
   if (virtEnableForceFeedback(m_virtContext, enable)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtEnableForceFeedback(): error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtEnableForceFeedback(): error code %d", err));
   }
 }
 
@@ -123,51 +122,48 @@ vpColVector vpVirtuose::getArticularPosition() const
     throw(vpException(vpException::fatalError, "Device not initialized. Call init()."));
   }
 
-  vpColVector articularPosition(6,0);
+  vpColVector articularPosition(6, 0);
 
   float articular_position_[6];
   if (virtGetArticularPosition(m_virtContext, articular_position_)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtGetArticularPosition(): error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtGetArticularPosition(): error code %d", err));
   }
 
-  for(unsigned int i=0; i<6; i++)
+  for (unsigned int i = 0; i < 6; i++)
     articularPosition[i] = articular_position_[i];
 
   return articularPosition;
 }
 
-
 /*!
  * Return the 6 joint velocities of the virtuose.
-  */
+ */
 vpColVector vpVirtuose::getArticularVelocity() const
 {
   if (!m_is_init) {
     throw(vpException(vpException::fatalError, "Device not initialized. Call init()."));
   }
 
-  vpColVector articularVelocity(6,0);
+  vpColVector articularVelocity(6, 0);
   float articular_velocity_[6];
   if (virtGetArticularSpeed(m_virtContext, articular_velocity_)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtGetArticularSpeed: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtGetArticularSpeed: error code %d", err));
   }
 
-  for(unsigned int i=0; i<6; i++)
+  for (unsigned int i = 0; i < 6; i++)
     articularVelocity[i] = articular_velocity_[i];
 
   return articularVelocity;
-
 }
 
 /*!
- * Return the indexed position of the end-effector, expressed in the coordinates of the environment reference frame.
- * With respect to the function getPosition(), getAvatarPosition() takes into account current offsets
- * (indexing) and motor scale factors.
- * \sa getPosition(), getPhysicalPosition()
+ * Return the indexed position of the end-effector, expressed in the
+ * coordinates of the environment reference frame. With respect to the
+ * function getPosition(), getAvatarPosition() takes into account current
+ * offsets (indexing) and motor scale factors. \sa getPosition(),
+ * getPhysicalPosition()
  */
 vpPoseVector vpVirtuose::getAvatarPosition() const
 {
@@ -182,15 +178,12 @@ vpPoseVector vpVirtuose::getAvatarPosition() const
 
   if (virtGetAvatarPosition(m_virtContext, position_)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtGetAvatarPosition: error code %d", err));
-  }
-  else
-  {
-    for (int i=0; i<3; i++)
+    throw(vpException(vpException::fatalError, "Error calling virtGetAvatarPosition: error code %d", err));
+  } else {
+    for (int i = 0; i < 3; i++)
       translation[i] = position_[i];
-    for (int i=0; i<4; i++)
-      quaternion[i] = position_[3+i];
+    for (int i = 0; i < 4; i++)
+      quaternion[i] = position_[3 + i];
 
     vpThetaUVector thetau(quaternion);
 
@@ -219,15 +212,12 @@ vpPoseVector vpVirtuose::getBaseFrame() const
 
   if (virtGetBaseFrame(m_virtContext, position_)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtGetBaseFrame: error code %d", err));
-  }
-  else
-  {
-    for (int i=0; i<3; i++)
+    throw(vpException(vpException::fatalError, "Error calling virtGetBaseFrame: error code %d", err));
+  } else {
+    for (int i = 0; i < 3; i++)
       translation[i] = position_[i];
-    for (int i=0; i<4; i++)
-      quaternion[i] = position_[3+i];
+    for (int i = 0; i < 4; i++)
+      quaternion[i] = position_[3 + i];
 
     vpThetaUVector thetau(quaternion);
 
@@ -250,15 +240,14 @@ VirtCommandType vpVirtuose::getCommandType() const
 
   if (virtGetCommandType(m_virtContext, &type)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtGetCommandType: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtGetCommandType: error code %d", err));
   }
   return type;
 }
 
 /*!
- * Return the status of DeadMan sensor : true if the sensor is ON (a user is holding the handle)
- * and false if the sensor is OFF (no user detected).
+ * Return the status of DeadMan sensor : true if the sensor is ON (a user is
+ * holding the handle) and false if the sensor is OFF (no user detected).
  */
 bool vpVirtuose::getDeadMan() const
 {
@@ -269,15 +258,15 @@ bool vpVirtuose::getDeadMan() const
   int deadman;
   if (virtGetDeadMan(m_virtContext, &deadman)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtGetDeadMan: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtGetDeadMan: error code %d", err));
   }
   return (deadman ? true : false);
 }
 
 /*!
- * Return the status of the emergency stop button : true if the system is operational (button correctly plugged and not triggered)
- * and false if the system is not operational (button not plugged or triggered).
+ * Return the status of the emergency stop button : true if the system is
+ * operational (button correctly plugged and not triggered) and false if the
+ * system is not operational (button not plugged or triggered).
  */
 bool vpVirtuose::getEmergencyStop() const
 {
@@ -288,15 +277,14 @@ bool vpVirtuose::getEmergencyStop() const
   int emergencyStop;
   if (virtGetEmergencyStop(m_virtContext, &emergencyStop)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtGetEmergencyStop: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtGetEmergencyStop: error code %d", err));
   }
   return (emergencyStop ? true : false);
 }
 
 /*!
- * Return the 6-dimension force tensor to be applied to the object attached to the Virtuose,
- * allowing the dynamic simulation of the scene.
+ * Return the 6-dimension force tensor to be applied to the object attached to
+ * the Virtuose, allowing the dynamic simulation of the scene.
  */
 vpColVector vpVirtuose::getForce() const
 {
@@ -304,15 +292,14 @@ vpColVector vpVirtuose::getForce() const
     throw(vpException(vpException::fatalError, "Device not initialized. Call init()."));
   }
 
-  vpColVector force(6,0);
+  vpColVector force(6, 0);
   float force_[6];
   if (virtGetForce(m_virtContext, force_)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtGetForce: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtGetForce: error code %d", err));
   }
 
-  for(unsigned int i=0; i<6; i++)
+  for (unsigned int i = 0; i < 6; i++)
     force[i] = force_[i];
   return force;
 }
@@ -349,9 +336,7 @@ int main()
   \sa getArticularPosition()
 
  */
-VirtContext vpVirtuose::getHandler() {
-  return m_virtContext;
-}
+VirtContext vpVirtuose::getHandler() { return m_virtContext; }
 
 /*!
  * Return the cartesian current position of the observation reference frame
@@ -359,7 +344,7 @@ VirtContext vpVirtuose::getHandler() {
  *
  * \sa setObservationFrame(), getBaseFrame()
  */
-vpPoseVector vpVirtuose::getObservationFrame () const
+vpPoseVector vpVirtuose::getObservationFrame() const
 {
   if (!m_is_init) {
     throw(vpException(vpException::fatalError, "Device not initialized. Call init()."));
@@ -372,15 +357,12 @@ vpPoseVector vpVirtuose::getObservationFrame () const
 
   if (virtGetObservationFrame(m_virtContext, position_)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtGetObservationFrame: error code %d", err));
-  }
-  else
-  {
-    for (int i=0; i<3; i++)
+    throw(vpException(vpException::fatalError, "Error calling virtGetObservationFrame: error code %d", err));
+  } else {
+    for (int i = 0; i < 3; i++)
       translation[i] = position_[i];
-    for (int i=0; i<4; i++)
-      quaternion[i] = position_[3+i];
+    for (int i = 0; i < 4; i++)
+      quaternion[i] = position_[3 + i];
 
     vpThetaUVector thetau(quaternion);
 
@@ -390,8 +372,9 @@ vpPoseVector vpVirtuose::getObservationFrame () const
 }
 
 /*!
- * Return the cartesian physical position of the Virtuose expressed in the coordinates of the base reference frame.
- * \sa getAvatarPosition(), getPosition()
+ * Return the cartesian physical position of the Virtuose expressed in the
+ * coordinates of the base reference frame. \sa getAvatarPosition(),
+ * getPosition()
  */
 vpPoseVector vpVirtuose::getPhysicalPosition() const
 {
@@ -406,15 +389,12 @@ vpPoseVector vpVirtuose::getPhysicalPosition() const
 
   if (virtGetPhysicalPosition(m_virtContext, position_)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtGetPhysicalPosition: error code %d", err));
-  }
-  else
-  {
-    for (int i=0; i<3; i++)
+    throw(vpException(vpException::fatalError, "Error calling virtGetPhysicalPosition: error code %d", err));
+  } else {
+    for (int i = 0; i < 3; i++)
       translation[i] = position_[i];
-    for (int i=0; i<4; i++)
-      quaternion[i] = position_[3+i];
+    for (int i = 0; i < 4; i++)
+      quaternion[i] = position_[3 + i];
 
     vpThetaUVector thetau(quaternion);
 
@@ -424,10 +404,10 @@ vpPoseVector vpVirtuose::getPhysicalPosition() const
 }
 
 /*!
- * Return the physical cartesian velocity twist of the Virtuose expressed in the coordinates of
- * the base reference frame.
- * \return A 6-dimension velocity twist with 3 translation velocities and 3 rotation velocities.
- * \sa getVelocity()
+ * Return the physical cartesian velocity twist of the Virtuose expressed in
+ * the coordinates of the base reference frame. \return A 6-dimension velocity
+ * twist with 3 translation velocities and 3 rotation velocities. \sa
+ * getVelocity()
  */
 vpColVector vpVirtuose::getPhysicalVelocity() const
 {
@@ -435,22 +415,22 @@ vpColVector vpVirtuose::getPhysicalVelocity() const
     throw(vpException(vpException::fatalError, "Device not initialized. Call init()."));
   }
 
-  vpColVector vel(6,0);
+  vpColVector vel(6, 0);
   float speed[6];
   if (virtGetPhysicalSpeed(m_virtContext, speed)) {
     int err = virtGetErrorCode(m_virtContext);
     throw(vpException(vpException::fatalError, "Error calling virtGetPhysicalSpeed: error code %s",
                       virtGetErrorMessage(err)));
   }
-  for(unsigned int i=0; i<6; i++)
+  for (unsigned int i = 0; i < 6; i++)
     vel[i] = speed[i];
   return vel;
 }
 
 /*!
- * Return the cartesian position of the virtuose (or the object attached to it, if any) expressed
- * in the coordinates of the environment reference frame.
- * \sa getAvatarPosition(), getPhysicalPosition()
+ * Return the cartesian position of the virtuose (or the object attached to
+ * it, if any) expressed in the coordinates of the environment reference
+ * frame. \sa getAvatarPosition(), getPhysicalPosition()
  */
 vpPoseVector vpVirtuose::getPosition() const
 {
@@ -465,15 +445,12 @@ vpPoseVector vpVirtuose::getPosition() const
 
   if (virtGetPosition(m_virtContext, position_)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtGetPosition: error code %d", err));
-  }
-  else
-  {
-    for (int i=0; i<3; i++)
+    throw(vpException(vpException::fatalError, "Error calling virtGetPosition: error code %d", err));
+  } else {
+    for (int i = 0; i < 3; i++)
       translation[i] = position_[i];
-    for (int i=0; i<4; i++)
-      quaternion[i] = position_[3+i];
+    for (int i = 0; i < 4; i++)
+      quaternion[i] = position_[3 + i];
 
     vpThetaUVector thetau(quaternion);
 
@@ -485,7 +462,7 @@ vpPoseVector vpVirtuose::getPosition() const
 /*!
  * Return status of the motors : true if motors are ON, false otherwise.
  */
-bool vpVirtuose::getPower () const
+bool vpVirtuose::getPower() const
 {
   if (!m_is_init) {
     throw(vpException(vpException::fatalError, "Device not initialized. Call init()."));
@@ -497,10 +474,10 @@ bool vpVirtuose::getPower () const
 }
 
 /*!
- * Return the cartesian velocity twist of the virtuose (or the object attached to it, if any)
- * expressed in the coordinates of the environment reference frame.
- * \return A 6-dimension velocity twist with 3 translation velocities and 3 rotation velocities.
- * \sa getPhysicalVelocity()
+ * Return the cartesian velocity twist of the virtuose (or the object attached
+ * to it, if any) expressed in the coordinates of the environment reference
+ * frame. \return A 6-dimension velocity twist with 3 translation velocities
+ * and 3 rotation velocities. \sa getPhysicalVelocity()
  */
 vpColVector vpVirtuose::getVelocity() const
 {
@@ -508,31 +485,30 @@ vpColVector vpVirtuose::getVelocity() const
     throw(vpException(vpException::fatalError, "Device not initialized. Call init()."));
   }
 
-  vpColVector vel(6,0);
+  vpColVector vel(6, 0);
   float speed[6];
   if (virtGetSpeed(m_virtContext, speed)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError, "Cannot get haptic device velocity: %s",
-                      virtGetErrorMessage(err)));
+    throw(vpException(vpException::fatalError, "Cannot get haptic device velocity: %s", virtGetErrorMessage(err)));
   }
-  for(unsigned int i=0; i<6; i++)
+  for (unsigned int i = 0; i < 6; i++)
     vel[i] = speed[i];
   return vel;
 }
 
 /*!
- * Initialize virtuose device opening the connection to the device and setting the default command type.
- * If the device is already initialized, a call to init() does nothing.
+ * Initialize virtuose device opening the connection to the device and setting
+ * the default command type. If the device is already initialized, a call to
+ * init() does nothing.
  */
 void vpVirtuose::init()
 {
-  if (! m_is_init) {
+  if (!m_is_init) {
     m_virtContext = virtOpen(m_ip.c_str());
 
     if (m_virtContext == NULL) {
       int err = virtGetErrorCode(m_virtContext);
-      throw(vpException(vpException::fatalError, "Cannot open haptic device: %s",
-                        virtGetErrorMessage(err)));
+      throw(vpException(vpException::fatalError, "Cannot open haptic device: %s", virtGetErrorMessage(err)));
     }
 
     if (virtGetControlerVersion(m_virtContext, &m_ctrlMajorVersion, &m_ctrlMinorVersion)) {
@@ -547,14 +523,13 @@ void vpVirtuose::init()
 
     if (virtSetCommandType(m_virtContext, m_typeCommand)) {
       int err = virtGetErrorCode(m_virtContext);
-      throw(vpException(vpException::fatalError, "Cannot set haptic device command type: %s",
-                        virtGetErrorMessage(err)));
+      throw(
+          vpException(vpException::fatalError, "Cannot set haptic device command type: %s", virtGetErrorMessage(err)));
     }
 
     if (virtSetTimeStep(m_virtContext, m_period)) {
       int err = virtGetErrorCode(m_virtContext);
-      throw(vpException(vpException::fatalError,
-                        "Error calling virtSetTimeStep: error code %d", err));
+      throw(vpException(vpException::fatalError, "Error calling virtSetTimeStep: error code %d", err));
     }
 
     m_is_init = true;
@@ -563,79 +538,82 @@ void vpVirtuose::init()
 
 /*!
  * Send a command of articular force to the Virtuose.
- * setArticularForce() only works in mode COMMAND_TYPE_ARTICULAR_IMPEDANCE, to be set with setCommandType().
- * \param articularForce :  Six dimension torque vector.
+ * setArticularForce() only works in mode COMMAND_TYPE_ARTICULAR_IMPEDANCE, to
+ * be set with setCommandType(). \param articularForce :  Six dimension torque
+ * vector.
  */
-void vpVirtuose::setArticularForce (const vpColVector &articularForce)
+void vpVirtuose::setArticularForce(const vpColVector &articularForce)
 {
   init();
 
   if (articularForce.size() != 6) {
     throw(vpException(vpException::dimensionError,
-                      "Cannot apply an articular force feedback (dim %d) to the haptic device that is not 6-dimension",
+                      "Cannot apply an articular force feedback (dim %d) to "
+                      "the haptic device that is not 6-dimension",
                       articularForce.size()));
   }
 
   float articular_force[6];
-  for(unsigned int i=0; i<6; i++)
+  for (unsigned int i = 0; i < 6; i++)
     articular_force[i] = (float)articularForce[i];
 
   if (virtSetArticularForce(m_virtContext, articular_force)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetArticularForce: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetArticularForce: error code %d", err));
   }
 }
 
 /*!
  * Send a command of articular (joint) position to the virtuose.
- * This function works only in COMMAND_TYPE_ARTICULAR mode, to be set with setCommandType().
- * \param articularPosition : Six dimension joint position vector.
+ * This function works only in COMMAND_TYPE_ARTICULAR mode, to be set with
+ * setCommandType(). \param articularPosition : Six dimension joint position
+ * vector.
  */
-void vpVirtuose::setArticularPosition (const vpColVector &articularPosition)
+void vpVirtuose::setArticularPosition(const vpColVector &articularPosition)
 {
   init();
 
   if (articularPosition.size() != 6) {
     throw(vpException(vpException::dimensionError,
-                      "Cannot send an articular position command (dim %d) to the haptic device that is not 6-dimension",
+                      "Cannot send an articular position command (dim %d) to "
+                      "the haptic device that is not 6-dimension",
                       articularPosition.size()));
   }
 
   float articular_position[6];
-  for(unsigned int i=0; i<6; i++)
+  for (unsigned int i = 0; i < 6; i++)
     articular_position[i] = (float)articularPosition[i];
 
   if (virtSetArticularPosition(m_virtContext, articular_position)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetArticularPosition: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetArticularPosition: error code %d", err));
   }
 }
 
 /*!
  * Send a command of articular (joint) velocity to the virtuose.
- * This function works only in COMMAND_TYPE_ARTICULAR mode, to be set with setCommandType().
- * \param articularVelocity : Six dimension joint velocity vector.
+ * This function works only in COMMAND_TYPE_ARTICULAR mode, to be set with
+ * setCommandType(). \param articularVelocity : Six dimension joint velocity
+ * vector.
  */
-void vpVirtuose::setArticularVelocity (const vpColVector &articularVelocity)
+void vpVirtuose::setArticularVelocity(const vpColVector &articularVelocity)
 {
   init();
 
   if (articularVelocity.size() != 6) {
     throw(vpException(vpException::dimensionError,
-                      "Cannot send an articular velocity command (dim %d) to the haptic device that is not 6-dimension",
+                      "Cannot send an articular velocity command (dim %d) to "
+                      "the haptic device that is not 6-dimension",
                       articularVelocity.size()));
   }
 
   float articular_velocity[6];
-  for(unsigned int i=0; i<6; i++)
+  for (unsigned int i = 0; i < 6; i++)
     articular_velocity[i] = (float)articularVelocity[i];
 
   if (virtSetArticularSpeed(m_virtContext, articular_velocity)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetArticularVelocity: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetArticularVelocity: error code %d", err));
   }
 }
 
@@ -646,7 +624,7 @@ void vpVirtuose::setArticularVelocity (const vpColVector &articularVelocity)
  *
  * \sa getBaseFrame(), setObservationFrame()
  */
-void vpVirtuose::setBaseFrame (const vpPoseVector &position)
+void vpVirtuose::setBaseFrame(const vpPoseVector &position)
 {
   init();
 
@@ -657,15 +635,14 @@ void vpVirtuose::setBaseFrame (const vpPoseVector &position)
   position.extract(translation);
   position.extract(quaternion);
 
-  for (int i=0; i<3; i++)
+  for (int i = 0; i < 3; i++)
     position_[i] = (float)translation[i];
-  for (int i=0; i<4; i++)
+  for (int i = 0; i < 4; i++)
     position_[3 + i] = (float)quaternion[i];
 
   if (virtSetBaseFrame(m_virtContext, position_)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetBaseFrame: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetBaseFrame: error code %d", err));
   }
 }
 
@@ -676,7 +653,8 @@ void vpVirtuose::setBaseFrame (const vpPoseVector &position)
  * - COMMAND_TYPE_IMPEDANCE : Force/position control.
  * - COMMAND_TYPE_VIRTMECH : Position/force control with virtual mechanism.
  * - COMMAND_TYPE_ARTICULAR : Joint control.
- * - COMMAND_TYPE_ARTICULAR_IMPEDANCE : Force/Position control in the joint space.
+ * - COMMAND_TYPE_ARTICULAR_IMPEDANCE : Force/Position control in the joint
+ * space.
  */
 void vpVirtuose::setCommandType(const VirtCommandType &type)
 {
@@ -687,50 +665,50 @@ void vpVirtuose::setCommandType(const VirtCommandType &type)
 
     if (virtSetCommandType(m_virtContext, m_typeCommand)) {
       int err = virtGetErrorCode(m_virtContext);
-      throw(vpException(vpException::fatalError,
-                        "Error calling virtSetCommandType: error code %d", err));
+      throw(vpException(vpException::fatalError, "Error calling virtSetCommandType: error code %d", err));
     }
   }
 }
 
 /*!
  * Set the force to be applied by the Virtuose.
- * setForce() only works in COMMAND_TYPE_IMPEDANCE mode, to be set with setCommandType().
- * \param force : Force vector that represents a dynamic tensor with 6 components.
+ * setForce() only works in COMMAND_TYPE_IMPEDANCE mode, to be set with
+ * setCommandType(). \param force : Force vector that represents a dynamic
+ * tensor with 6 components.
  */
-void vpVirtuose::setForce (const vpColVector &force)
+void vpVirtuose::setForce(const vpColVector &force)
 {
   init();
 
   if (force.size() != 6) {
     throw(vpException(vpException::dimensionError,
-                      "Cannot apply a force feedback (dim %d) to the haptic device that is not 6-dimension",
+                      "Cannot apply a force feedback (dim %d) to the haptic "
+                      "device that is not 6-dimension",
                       force.size()));
   }
 
   float virtforce[6];
-  for(unsigned int i=0; i<6; i++)
+  for (unsigned int i = 0; i < 6; i++)
     virtforce[i] = (float)force[i];
 
   if (virtSetForce(m_virtContext, virtforce)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetForce: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetForce: error code %d", err));
   }
 }
 
 /*!
  * Set the force scale factor.
- * \param forceFactor : Force scale factor applied to the force torque tensor set by setForce().
+ * \param forceFactor : Force scale factor applied to the force torque tensor
+ * set by setForce().
  */
-void vpVirtuose::setForceFactor (const float &forceFactor)
+void vpVirtuose::setForceFactor(const float &forceFactor)
 {
   init();
 
   if (virtSetForceFactor(m_virtContext, forceFactor)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetForceFactor: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetForceFactor: error code %d", err));
   }
 }
 
@@ -738,22 +716,26 @@ void vpVirtuose::setForceFactor (const float &forceFactor)
  * Set indexing (offset) mode.
  * \param type : Possible choices are:
  * - INDEXING_ALL : authorize indexing on all movements.
- * - INDEXING_TRANS : authorize indexing on translation, i.e., the orientation of the object is always identical to the orientation of the device end-effector.
+ * - INDEXING_TRANS : authorize indexing on translation, i.e., the orientation
+ * of the object is always identical to the orientation of the device
+ * end-effector.
  * - INDEXING_NONE : forbids indexing on all movements.
- * - The following values are also implemented: INDEXING_ALL_FORCE_FEEDBACK_INHIBITION, INDEXING_TRANS_FORCE_FEEDBACK_INHIBITION.
- * These values correspond to the same modes listed before, but the force feedback is inhibited during indexing.
+ * - The following values are also implemented:
+ * INDEXING_ALL_FORCE_FEEDBACK_INHIBITION,
+ * INDEXING_TRANS_FORCE_FEEDBACK_INHIBITION. These values correspond to the
+ * same modes listed before, but the force feedback is inhibited during
+ * indexing.
  */
-void vpVirtuose::setIndexingMode (const VirtIndexingType &type)
+void vpVirtuose::setIndexingMode(const VirtIndexingType &type)
 {
   init();
 
-  if (m_indexType != type){
+  if (m_indexType != type) {
     m_indexType = type;
 
     if (virtSetIndexingMode(m_virtContext, m_indexType)) {
       int err = virtGetErrorCode(m_virtContext);
-      throw(vpException(vpException::fatalError,
-                        "Error calling setIndexingMode: error code %d", err));
+      throw(vpException(vpException::fatalError, "Error calling setIndexingMode: error code %d", err));
     }
   }
 }
@@ -765,7 +747,7 @@ void vpVirtuose::setIndexingMode (const VirtIndexingType &type)
  *
  * \sa getObservationFrame(), setBaseFrame()
  */
-void vpVirtuose::setObservationFrame (const vpPoseVector &position)
+void vpVirtuose::setObservationFrame(const vpPoseVector &position)
 {
   init();
 
@@ -776,25 +758,29 @@ void vpVirtuose::setObservationFrame (const vpPoseVector &position)
   position.extract(translation);
   position.extract(quaternion);
 
-  for (int i=0; i<3; i++)
+  for (int i = 0; i < 3; i++)
     position_[i] = (float)translation[i];
-  for (int i=0; i<4; i++)
+  for (int i = 0; i < 4; i++)
     position_[3 + i] = (float)quaternion[i];
 
   if (virtSetObservationFrame(m_virtContext, position_)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetObservationFrame: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetObservationFrame: error code %d", err));
   }
 }
 
 /*!
  * Register the periodic function.
- * setPeriodicFunction() defines a callback function to be called at a fixed period of time, as timing for the simulation.
- * The callback function is synchronized with the Virtuose controller (messages arrive at very constant time intervals from it)
- * and generates hardware interrupts to be taken into account by the operating system.
- * In practice, this function is much more efficient for timing the simulation than common software timers.
- * This function is started using startPeriodicFunction() and stopped using stopPeriodicFunction().
+ * setPeriodicFunction() defines a callback function to be called at a fixed
+period of time, as timing for the simulation.
+ * The callback function is synchronized with the Virtuose controller
+(messages arrive at very constant time intervals from it)
+ * and generates hardware interrupts to be taken into account by the operating
+system.
+ * In practice, this function is much more efficient for timing the simulation
+than common software timers.
+ * This function is started using startPeriodicFunction() and stopped using
+stopPeriodicFunction().
  * \param CallBackVirt : Callback function.
  *
  * Example of the use of the periodic function:
@@ -828,16 +814,16 @@ void vpVirtuose::setPeriodicFunction(VirtPeriodicFunction CallBackVirt)
 
   if (virtSetPeriodicFunction(m_virtContext, CallBackVirt, &m_period, this)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetPeriodicFunction: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetPeriodicFunction: error code %d", err));
   }
 }
 
 /*!
- * Modify the current value of the control position and send it to the Virtuose.
- * \param position : Position of the end-effector (or the attached object, if any).
+ * Modify the current value of the control position and send it to the
+ * Virtuose. \param position : Position of the end-effector (or the attached
+ * object, if any).
  */
-void vpVirtuose::setPosition (vpPoseVector &position)
+void vpVirtuose::setPosition(vpPoseVector &position)
 {
   init();
 
@@ -848,44 +834,40 @@ void vpVirtuose::setPosition (vpPoseVector &position)
   position.extract(translation);
   position.extract(quaternion);
 
-  for (int i=0; i<3; i++)
+  for (int i = 0; i < 3; i++)
     position_[i] = (float)translation[i];
-  for (int i=0; i<4; i++)
-    position_[3+i] = (float)quaternion[i];
+  for (int i = 0; i < 4; i++)
+    position_[3 + i] = (float)quaternion[i];
 
   if (virtSetPosition(m_virtContext, position_)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetPosition: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetPosition: error code %d", err));
   }
 }
-
 
 /*!
  * Turn the motor power OFF.
  */
-void vpVirtuose::setPowerOff ()
+void vpVirtuose::setPowerOff()
 {
   init();
 
   if (virtSetPowerOn(m_virtContext, 0)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetPowerOff: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetPowerOff: error code %d", err));
   }
 }
 
 /*!
  * Turn the motor power ON.
  */
-void vpVirtuose::setPowerOn ()
+void vpVirtuose::setPowerOn()
 {
   init();
 
   if (virtSetPowerOn(m_virtContext, 1)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetPowerOn: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetPowerOn: error code %d", err));
   }
 }
 
@@ -900,69 +882,65 @@ void vpVirtuose::setSaturation(const float &forceLimit, const float &torqueLimit
 
   if (virtSaturateTorque(m_virtContext, forceLimit, torqueLimit)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSaturateTorque: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSaturateTorque: error code %d", err));
   }
 }
 
 /*!
  * Set the the simulation time step.
- * The function must be called before the selection of the type of control mode.
- * \param timeStep : Simulation time step (seconds).
+ * The function must be called before the selection of the type of control
+ * mode. \param timeStep : Simulation time step (seconds).
  */
-void vpVirtuose::setTimeStep (const float &timeStep)
+void vpVirtuose::setTimeStep(const float &timeStep)
 {
   init();
 
-  if (m_period != timeStep){
+  if (m_period != timeStep) {
     m_period = timeStep;
 
     if (virtSetTimeStep(m_virtContext, m_period)) {
       int err = virtGetErrorCode(m_virtContext);
-      throw(vpException(vpException::fatalError,
-                        "Error calling virtSetTimeStep: error code %d", err));
+      throw(vpException(vpException::fatalError, "Error calling virtSetTimeStep: error code %d", err));
     }
   }
 }
 
 /*!
- *  Modify the current value of the control velocity and send it to the Virtuose.
- * \param velocity : Velocity twist vector, where translations velocities are expressed in
- * m/s and rotation velocities in rad/s.
+ *  Modify the current value of the control velocity and send it to the
+ * Virtuose. \param velocity : Velocity twist vector, where translations
+ * velocities are expressed in m/s and rotation velocities in rad/s.
  */
-void vpVirtuose::setVelocity (vpColVector &velocity)
+void vpVirtuose::setVelocity(vpColVector &velocity)
 {
   init();
 
   if (velocity.size() != 6) {
-    throw(vpException(vpException::dimensionError,
-                      "Cannot set a velocity vector (dim %d) that is not 6-dimension",
+    throw(vpException(vpException::dimensionError, "Cannot set a velocity vector (dim %d) that is not 6-dimension",
                       velocity.size()));
   }
 
   float speed[6];
-  for(unsigned int i=0; i<6; i++)
+  for (unsigned int i = 0; i < 6; i++)
     speed[i] = (float)velocity[i];
 
   if (virtSetSpeed(m_virtContext, speed)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError,
-                      "Error calling virtSetSpeed: error code %d", err));
+    throw(vpException(vpException::fatalError, "Error calling virtSetSpeed: error code %d", err));
   }
 }
 
 /*!
  * Set the speed factor.
- * \param velocityFactor : Scale factor applied to the velocities set using setVelocity().
+ * \param velocityFactor : Scale factor applied to the velocities set using
+ * setVelocity().
  */
-void vpVirtuose::setVelocityFactor (const float &velocityFactor)
+void vpVirtuose::setVelocityFactor(const float &velocityFactor)
 {
   init();
 
   if (virtSetSpeedFactor(m_virtContext, velocityFactor)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError, "Error calling setVelocityFactor: error code %d",
-                      err));
+    throw(vpException(vpException::fatalError, "Error calling setVelocityFactor: error code %d", err));
   }
 }
 
@@ -977,10 +955,8 @@ void vpVirtuose::startPeriodicFunction()
 
   if (virtStartLoop(m_virtContext)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError, "Error calling startLoop: error code %d",
-                      err));
-  }
-  else
+    throw(vpException(vpException::fatalError, "Error calling startLoop: error code %d", err));
+  } else
     std::cout << "Haptic loop open." << std::endl;
 }
 
@@ -995,16 +971,12 @@ void vpVirtuose::stopPeriodicFunction()
 
   if (virtStopLoop(m_virtContext)) {
     int err = virtGetErrorCode(m_virtContext);
-    throw(vpException(vpException::fatalError, "Error calling stopLoop: error code %d",
-                      err));
-  }
-  else
+    throw(vpException(vpException::fatalError, "Error calling stopLoop: error code %d", err));
+  } else
     std::cout << "Haptic loop closed." << std::endl;
 }
 
 #else
 // Work around to avoid warning
-void dummy_vpVirtuose() {};
+void dummy_vpVirtuose(){};
 #endif
-
-

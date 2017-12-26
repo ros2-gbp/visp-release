@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -37,18 +38,13 @@
  *
  *****************************************************************************/
 
-
-
-
-
-
 #include <visp3/core/vpConfig.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-#include "vpMy.h"
-#include "vpToken.h"
 #include "vpLex.h"
+#include "vpMy.h"
 #include "vpSkipio.h"
+#include "vpToken.h"
 #include <stdio.h>
 
 /*
@@ -57,47 +53,49 @@
  * Entree :
  * f		Fichier en sortie.
  */
-void skip_cmd (void)
+void skip_cmd(void)
 {
-	int	token;
+  int token;
 
-	fprintf (stderr, "\n$ ");
-  fwrite (mytext, (size_t)mylength, 1, stderr);
-  while ((token = lexecho (stderr, '$')) !=  T_EOF && token != '$') {};
-	unlex ();
+  fprintf(stderr, "\n$ ");
+  fwrite(mytext, (size_t)mylength, 1, stderr);
+  while ((token = lexecho(stderr, '$')) != T_EOF && token != '$') {
+  };
+  unlex();
 }
 
 /*
- * La procedure "skip_keyword" saute les structures des articles 
+ * La procedure "skip_keyword" saute les structures des articles
  * jusqu'a reconnaitre le mot cle de jeton "token".
  * Entree :
  * token	Jeton du mot cle a reconnaitre.
  * err		Message d'erreur si le mot cle n'est pas reconnu.
  */
-void skip_keyword (int token, const char *err)
+void skip_keyword(int token, const char *err)
 {
-	int	t;
+  int t;
 
-	switch (t = lex ()) {
-	case T_IDENT :		/* saute le mot cle inconnu	*/
-		while ((t = lex ()) != 0){ 
-		  switch (t) {
-		    case '$'   :	/* nouvelle commande		*/
-		    case T_EOF :	/* fin de fichier		*/
-		      lexerr ("start", err, NULL);
-			    break;
-		    default	:
-			    if (t == token) return;
-			    break;
-		  }
+  switch (t = lex()) {
+  case T_IDENT: /* saute le mot cle inconnu	*/
+    while ((t = lex()) != 0) {
+      switch (t) {
+      case '$':   /* nouvelle commande		*/
+      case T_EOF: /* fin de fichier		*/
+        lexerr("start", err, NULL);
+        break;
+      default:
+        if (t == token)
+          return;
+        break;
+      }
     }
-		break;
-	default	:
-		if (t == token) return;
-		break;
-	}
-	lexerr ("start", err, NULL);
+    break;
+  default:
+    if (t == token)
+      return;
+    break;
+  }
+  lexerr("start", err, NULL);
 }
 
 #endif
-

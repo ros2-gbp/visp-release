@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -42,24 +43,23 @@
   with constant velocity state model.
 */
 
-#include <visp3/core/vpLinearKalmanFilterInstantiation.h>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <visp3/core/vpLinearKalmanFilterInstantiation.h>
 
 typedef enum {
   Position, // Considered measures are the succesive positions of the target
   Velocity  // Considered measures are the succesive velocities of the target
 } vpMeasureType;
 
-int
-main()
+int main()
 {
   try {
     unsigned int nsignal = 2; // Number of signal to filter
     unsigned int niter = 200;
-    unsigned int size_state_vector = 2*nsignal;
-    unsigned int size_measure_vector = 1*nsignal;
-    //vpMeasureType measure_t = Velocity;
+    unsigned int size_state_vector = 2 * nsignal;
+    unsigned int size_measure_vector = 1 * nsignal;
+    // vpMeasureType measure_t = Velocity;
     vpMeasureType measure_t = Position;
 
     std::string filename = "/tmp/log.dat";
@@ -68,29 +68,29 @@ main()
     vpLinearKalmanFilterInstantiation kalman;
 
     vpColVector sigma_measure(size_measure_vector);
-    for (unsigned int signal=0; signal < nsignal; signal ++)
+    for (unsigned int signal = 0; signal < nsignal; signal++)
       sigma_measure = 0.000001;
     vpColVector sigma_state(size_state_vector);
 
     switch (measure_t) {
     case Velocity:
-      for (unsigned int signal=0; signal < nsignal; signal ++) {
-        sigma_state[2*signal] = 0.; // not used
-        sigma_state[2*signal+1] = 0.000001;
+      for (unsigned int signal = 0; signal < nsignal; signal++) {
+        sigma_state[2 * signal] = 0.; // not used
+        sigma_state[2 * signal + 1] = 0.000001;
       }
       break;
     case Position:
-      for (unsigned int signal=0; signal < nsignal; signal ++) {
-        sigma_state[2*signal] = 0.000001;
-        sigma_state[2*signal+1] = 0; // not used
+      for (unsigned int signal = 0; signal < nsignal; signal++) {
+        sigma_state[2 * signal] = 0.000001;
+        sigma_state[2 * signal + 1] = 0; // not used
       }
       break;
     }
 
     vpColVector measure(size_measure_vector);
 
-    for (unsigned int signal=0; signal < nsignal; signal ++) {
-      measure[signal] = 3+2*signal;
+    for (unsigned int signal = 0; signal < nsignal; signal++) {
+      measure[signal] = 3 + 2 * signal;
     }
 
     kalman.verbose(true);
@@ -112,10 +112,10 @@ main()
       break;
     }
 
-    for (unsigned int iter=0; iter <= niter; iter++) {
+    for (unsigned int iter = 0; iter <= niter; iter++) {
       std::cout << "-------- iter " << iter << " ------------" << std::endl;
-      for (unsigned int signal=0; signal < nsignal; signal ++) {
-        measure[signal] = 3+2*signal + 0.3*sin(vpMath::rad(360./niter*iter));
+      for (unsigned int signal = 0; signal < nsignal; signal++) {
+        measure[signal] = 3 + 2 * signal + 0.3 * sin(vpMath::rad(360. / niter * iter));
       }
       std::cout << "measure : " << measure.t() << std::endl;
 
@@ -130,8 +130,7 @@ main()
 
     flog.close();
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }

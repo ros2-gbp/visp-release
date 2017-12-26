@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -46,13 +47,13 @@
 
 #include "vpView.h"
 
-void		fprintf_vwstack (FILE *fp, char *argv);
-View_parameters	*get_vwstack (void);
-void		load_vwstack (View_parameters *vp);
-void		pop_vwstack (void);
-void		push_vwstack (void);
-void		swap_vwstack (void);
-void		add_vwstack (const char* path, ...);
+void fprintf_vwstack(FILE *fp, char *argv);
+View_parameters *get_vwstack(void);
+void load_vwstack(View_parameters *vp);
+void pop_vwstack(void);
+void push_vwstack(void);
+void swap_vwstack(void);
+void add_vwstack(const char *path, ...);
 
 #endif
 #endif
