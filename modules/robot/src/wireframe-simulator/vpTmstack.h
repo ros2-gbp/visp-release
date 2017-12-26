@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -43,20 +44,23 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-Matrix	*get_tmstack (void);
-void	load_tmstack (Matrix m);
-void	pop_tmstack (void);
-void	push_tmstack (void);
-void	swap_tmstack (void);
+#include "vpArit.h"
+#include "vpMy.h"
 
-void	postmult_tmstack (Matrix m);
-void	postrotate_tmstack (Vector *vp);
-void	postscale_tmstack (Vector *vp);
-void	posttranslate_tmstack (Vector *vp);
-void	premult_tmstack (Matrix m);
-void	prerotate_tmstack (Vector *vp);
-void	prescale_tmstack (Vector *vp);
-void	pretranslate_tmstack (Vector *vp);
+Matrix *get_tmstack(void);
+void load_tmstack(Matrix m);
+void pop_tmstack(void);
+void push_tmstack(void);
+void swap_tmstack(void);
+
+void postmult_tmstack(Matrix m);
+void postrotate_tmstack(Vector *vp);
+void postscale_tmstack(Vector *vp);
+void posttranslate_tmstack(Vector *vp);
+void premult_tmstack(Matrix m);
+void prerotate_tmstack(Vector *vp);
+void prescale_tmstack(Vector *vp);
+void pretranslate_tmstack(Vector *vp);
 
 #endif
 #endif

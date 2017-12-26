@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -39,16 +40,16 @@
 #include <visp3/core/vpUniRand.h>
 
 /*!
-  Minimal random number generator of Park and Miller \cite Park:1988. Returns a
-  uniform random deviate between 0.0 and 1.0.
+  Minimal random number generator of Park and Miller \cite Park:1988. Returns
+  a uniform random deviate between 0.0 and 1.0.
 
 */
-inline void
-vpUniRand::draw0()
+inline void vpUniRand::draw0()
 {
-  long k= x/q;//temp value for computing without overflow
-  x = a*(x-k*q)-k*r;
-  if (x < 0) x += m; //compute x without overflow
+  long k = x / q; // temp value for computing without overflow
+  x = a * (x - k * q) - k * r;
+  if (x < 0)
+    x += m; // compute x without overflow
 }
 
 /*!
@@ -58,40 +59,39 @@ vpUniRand::draw0()
   shuffle. Returns a uniform random deviate between 0.0 and 1.0 (exclusive of
   the endpoint values).
 */
-double
-vpUniRand::draw1()
+double vpUniRand::draw1()
 {
-  const long ntab = 33;  //we work on a 32 elements array.
-                                  //the 33rd one is actually the first value of y.
-  const long modulo = ntab-2;
+  const long ntab = 33; // we work on a 32 elements array.
+                        // the 33rd one is actually the first value of y.
+  const long modulo = ntab - 2;
 
   static long y = 0;
   static long T[ntab];
 
-  long j; //index of T
+  long j; // index of T
 
-  //step 0
-  if (!y) { //first time
-    for(j = 0; j < ntab; j++) {
+  // step 0
+  if (!y) { // first time
+    for (j = 0; j < ntab; j++) {
       draw0();
-      T[j]=x;
-    } //compute table T
-    y=T[ntab-1];
+      T[j] = x;
+    } // compute table T
+    y = T[ntab - 1];
   }
 
-  //step 1
-  j = y & modulo; //compute modulo ntab+1 (the first element is the 0th)
+  // step 1
+  j = y & modulo; // compute modulo ntab+1 (the first element is the 0th)
 
-  //step 3
-  y=T[j];
-  double ans = (double)y/normalizer;
+  // step 3
+  y = T[j];
+  double ans = (double)y / normalizer;
 
-  //step 4
-  //generate x(k+i) and set y=x(k+i)
+  // step 4
+  // generate x(k+i) and set y=x(k+i)
   draw0();
 
-  //refresh T[j];
-  T[j]=x;
+  // refresh T[j];
+  T[j] = x;
 
   return ans;
 }

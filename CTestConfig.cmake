@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -45,7 +46,7 @@ set(CTEST_DROP_SITE_CDASH TRUE)
 
 #--------------------------------------------------------------------
 # BUILNAME variable construction
-# This variable will be used to set the build name which will appear 
+# This variable will be used to set the build name which will appear
 # on the ViSP dashboard http://cdash.irisa.fr/CDash/
 #--------------------------------------------------------------------
 # Start with the short system name, e.g. "Linux", "FreeBSD" or "Windows"
@@ -105,7 +106,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   #message("COMPILER_VERSION 2: ${COMPILER_VERSION}")
 
   set(BUILDNAME "${BUILDNAME}${COMPILER_VERSION}")
-  
+
 endif(CMAKE_COMPILER_IS_GNUCC)
 
 # Add the type of library generation, e.g. "Dynamic or Static"
@@ -125,7 +126,7 @@ endif(CMAKE_BUILD_TYPE)
 if(VISP_HAVE_AFMA4)
   set(BUILDNAME "${BUILDNAME}-Afma4")
 endif(VISP_HAVE_AFMA4)
- 
+
 # Add specific Afma6 robots
 if(VISP_HAVE_AFMA6)
   set(BUILDNAME "${BUILDNAME}-Afma6")
@@ -152,7 +153,7 @@ if(VISP_HAVE_VIRTUOSE)
 endif()
 
 #---- Framegrabers/Sensors ----
-# Firewire dc1394-2.x 
+# Firewire dc1394-2.x
 if(VISP_HAVE_DC1394)
   set(BUILDNAME "${BUILDNAME}-dc1394")
 endif(VISP_HAVE_DC1394)
@@ -181,6 +182,9 @@ if(VISP_HAVE_LIBUSB_1)
 endif()
 if(VISP_HAVE_FLYCAPTURE)
   set(BUILDNAME "${BUILDNAME}-flycap")
+endif()
+if(VISP_HAVE_PYLON)
+  set(BUILDNAME "${BUILDNAME}-pylon")
 endif()
 if(VISP_HAVE_COMEDI)
   set(BUILDNAME "${BUILDNAME}-comedi")
@@ -221,13 +225,16 @@ endif(VISP_HAVE_OPENCV)
 
 #---- Mathematics ----
 # Lapack (Linear Algebra PACKage)
-if(VISP_HAVE_LAPACK_C)
+if(VISP_HAVE_LAPACK)
   set(BUILDNAME "${BUILDNAME}-lapack")
 endif()
 # GSL (Gnu Scientific Library)
 if(VISP_HAVE_GSL)
   set(BUILDNAME "${BUILDNAME}-gsl")
-endif(VISP_HAVE_GSL)
+endif()
+if(VISP_HAVE_EIGEN3)
+  set(BUILDNAME "${BUILDNAME}-eigen3")
+endif()
 
 #---- Simulator ----
 # Ogre
@@ -259,9 +266,6 @@ if(VISP_HAVE_SOXT)
 endif(VISP_HAVE_SOXT)
 
 #---- Images ----
-if(VISP_HAVE_FFMPEG)
-  set(BUILDNAME "${BUILDNAME}-ffmpeg")
-endif(VISP_HAVE_FFMPEG)
 if(VISP_HAVE_JPEG)
   set(BUILDNAME "${BUILDNAME}-jpeg")
 endif(VISP_HAVE_JPEG)
@@ -291,6 +295,9 @@ endif()
 if(VISP_HAVE_ZBAR)
   set(BUILDNAME "${BUILDNAME}-zbar")
 endif()
+if(VISP_HAVE_APRILTAG)
+  set(BUILDNAME "${BUILDNAME}-apriltag")
+endif()
 
 
 #---- Special compiler flags ----
@@ -305,6 +312,9 @@ if(USE_CPP11)
 endif()
 if(ENABLE_MOMENTS_COMBINE_MATRICES)
   set(BUILDNAME "${BUILDNAME}-Moment")
+endif()
+if(ENABLE_SSE2 OR ENABLE_SSE3 OR ENABLE_SSSE3)
+  set(BUILDNAME "${BUILDNAME}-sse")
 endif()
 
 #---- Suffix contrib ----

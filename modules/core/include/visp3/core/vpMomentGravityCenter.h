@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -36,7 +37,8 @@
  *****************************************************************************/
 /*!
   \file vpMomentGravityCenter.h
-  \brief 2D Gravity Center moment descriptor (usually described by the pair Xg,Yg).
+  \brief 2D Gravity Center moment descriptor (usually described by the pair
+  Xg,Yg).
 */
 #ifndef __MOMENTGRAVITYCENTER_H__
 #define __MOMENTGRAVITYCENTER_H__
@@ -52,11 +54,13 @@ class vpMomentObject;
 
   \brief Class describing 2D gravity center moment.
 
-  This moment can be computed from scratch (no need to compute any different moments before computing this).
-  It gives access to both coordinates of the gravity center \f$x_g\f$ and \f$y_g\f$.
+  This moment can be computed from scratch (no need to compute any different
+  moments before computing this). It gives access to both coordinates of the
+  gravity center \f$x_g\f$ and \f$y_g\f$.
 
-  These coordinates are defined as follows: \f$x_g = \frac{m_{01}}{m_{00}} \f$,\f$y_g = \frac{m_{10}}{m_{00}} \f$
-  \code
+  These coordinates are defined as follows: \f$x_g = \frac{m_{01}}{m_{00}}
+  \f$,\f$y_g = \frac{m_{10}}{m_{00}} \f$
+\code
 #include <visp3/core/vpMomentObject.h>
 #include <visp3/core/vpPoint.h>
 #include <visp3/core/vpMomentGravityCenter.h>
@@ -106,16 +110,16 @@ Xg=0.0166667, Yg=-0.00833333
 \endcode
 */
 
-class VISP_EXPORT vpMomentGravityCenter : public vpMoment {
+class VISP_EXPORT vpMomentGravityCenter : public vpMoment
+{
 public:
-
   vpMomentGravityCenter();
-  virtual ~vpMomentGravityCenter() {};
+  virtual ~vpMomentGravityCenter(){};
 
   /** @name Inherited functionalities from vpMomentGravityCenter */
   //@{
   void compute();
-  const std::vector<double>& get() const;
+  const std::vector<double> &get() const;
   /*!
     Shortcut function to retrieve \f$x_g\f$.
     \return The first gravity center coordinate.
@@ -129,10 +133,10 @@ public:
   /*!
     The class's string name.
    */
-  const char* name() const {return "vpMomentGravityCenter";}
-  void  printDependencies(std::ostream& os) const;
+  const char *name() const { return "vpMomentGravityCenter"; }
+  void printDependencies(std::ostream &os) const;
   //@}
-  friend VISP_EXPORT std::ostream & operator<<(std::ostream & os, const vpMomentGravityCenter& v);
+  friend VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpMomentGravityCenter &v);
 };
 
 #endif

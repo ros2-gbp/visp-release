@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -64,10 +65,12 @@ class vpThetaUVector;
   minimal representation.
 
   Class that consider the case of the Euler
-  \f$(\varphi,\theta,\psi)\f$ angle using the z-y-x convention, where \f$(\varphi,\theta,\psi)\f$ are respectively the
-  rotation angles around the \f$z\f$, \f$y\f$ and \f$x\f$ axis.
+  \f$(\varphi,\theta,\psi)\f$ angle using the z-y-x convention, where
+\f$(\varphi,\theta,\psi)\f$ are respectively the rotation angles around the
+\f$z\f$, \f$y\f$ and \f$x\f$ axis.
 
-  \f[R_{zyx}(\varphi,\theta,\psi) = R_z(\varphi) \; R_y(\theta) \; R_x(\psi)\f]
+  \f[R_{zyx}(\varphi,\theta,\psi) = R_z(\varphi) \; R_y(\theta) \;
+R_x(\psi)\f]
 
   with
 
@@ -92,7 +95,7 @@ class vpThetaUVector;
   0 &\cos \psi & -\sin\psi \\
   0 &\sin \psi & \cos\psi \\
   \end{array}
-  \right) 
+  \right)
   \f]
 
   The rotation matrix corresponding to the z-y-x convention is given by:
@@ -100,8 +103,11 @@ class vpThetaUVector;
   \f[
   R_{zyx}(\varphi,\theta,\psi) = \left(
   \begin{array}{ccc}
-  \cos\varphi \cos\theta & -\sin\varphi \cos\psi + \cos\varphi\sin\theta\sin\psi & \sin\varphi \sin\psi +\cos\varphi\sin\theta\cos\psi \\
-  \sin\varphi \cos\theta & \cos\varphi\cos\psi + \sin\varphi\sin\theta \sin\psi & -\cos\varphi \sin\psi +\sin\varphi\sin\theta\cos\psi \\
+  \cos\varphi \cos\theta & -\sin\varphi \cos\psi +
+\cos\varphi\sin\theta\sin\psi & \sin\varphi \sin\psi
++\cos\varphi\sin\theta\cos\psi \\
+  \sin\varphi \cos\theta & \cos\varphi\cos\psi + \sin\varphi\sin\theta
+\sin\psi & -\cos\varphi \sin\psi +\sin\varphi\sin\theta\cos\psi \\
   -\sin\theta & \cos\theta \sin\psi & \cos\theta \cos\psi
   \end{array}
   \right)
@@ -124,7 +130,7 @@ int main()
   vpRzyxVector rzyx;
 
   // Initialise the Euler angles
-  rzyx[0] = vpMath::rad( 45.f); // phi   angle in rad/s around z axis 
+  rzyx[0] = vpMath::rad( 45.f); // phi   angle in rad/s around z axis
   rzyx[1] = vpMath::rad(-30.f); // theta angle in rad/s around y axis
   rzyx[2] = vpMath::rad( 90.f); // psi   angle in rad/s around x axis
 
@@ -136,12 +142,12 @@ int main()
 
   // Print the extracted Euler angles. Values are the same than the
   // one used for initialization
-  std::cout << rzyx; 
+  std::cout << rzyx;
 
   // Since the rotation vector is 3 values column vector, the
   // transpose operation produce a row vector.
   vpRowVector rzyx_t = rzyx.t();
-  
+
   // Print the transpose row vector
   std::cout << rzyx_t << std::endl;
 }
@@ -157,25 +163,25 @@ public:
   vpRzyxVector(const double phi, const double theta, const double psi);
 
   // initialize a Rzyx vector from a rotation matrix
-  vpRzyxVector(const vpRotationMatrix& R) ;
+  explicit vpRzyxVector(const vpRotationMatrix &R);
 
   // initialize a Rzyx vector from a ThetaU vector
-  vpRzyxVector(const vpThetaUVector& tu) ;
-  vpRzyxVector(const vpColVector &rzyx);
+  explicit vpRzyxVector(const vpThetaUVector &tu);
+  explicit vpRzyxVector(const vpColVector &rzyx);
 
   //! Destructor.
-  virtual ~vpRzyxVector() {};
+  virtual ~vpRzyxVector(){};
 
   // convert a rotation matrix into Rzyx vector
-  vpRzyxVector buildFrom(const vpRotationMatrix& R) ;
+  vpRzyxVector buildFrom(const vpRotationMatrix &R);
 
   // convert a ThetaU vector into a Rzyx vector
-  vpRzyxVector buildFrom(const vpThetaUVector& R) ;
+  vpRzyxVector buildFrom(const vpThetaUVector &R);
 
   void buildFrom(const double phi, const double theta, const double psi);
 
   vpRzyxVector &operator=(const vpColVector &rzyx);
-  vpRzyxVector &operator=(double x) ;
-} ;
+  vpRzyxVector &operator=(double x);
+};
 
 #endif
