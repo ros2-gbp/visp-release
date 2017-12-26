@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -42,8 +43,8 @@
 */
 
 #include <cmath>
-#include <vector>
 #include <limits>
+#include <vector>
 
 #include <visp3/core/vpTranslationVector.h>
 
@@ -52,12 +53,12 @@ bool test(const std::string &s, const vpArray2D<double> &A, const std::vector<do
   static unsigned int cpt = 0;
   std::cout << "** Test " << ++cpt << std::endl;
   std::cout << s << "(" << A.getRows() << "," << A.getCols() << ") =" << A << std::endl;
-  if(bench.size() != A.size()) {
+  if (bench.size() != A.size()) {
     std::cout << "Test fails: bad size wrt bench" << std::endl;
     return false;
   }
-  for (unsigned int i=0; i<A.size(); i++) {
-    if (std::fabs(A.data[i]-bench[i]) > std::fabs(A.data[i])*std::numeric_limits<double>::epsilon()) {
+  for (unsigned int i = 0; i < A.size(); i++) {
+    if (std::fabs(A.data[i] - bench[i]) > std::fabs(A.data[i]) * std::numeric_limits<double>::epsilon()) {
       std::cout << "Test fails: bad content" << std::endl;
       return false;
     }
@@ -70,7 +71,7 @@ int main()
   int err = 1;
   {
     vpTranslationVector t;
-    std::vector<double> bench(3,0);
+    std::vector<double> bench(3, 0);
     if (test("t", t, bench) == false)
       return err;
   }

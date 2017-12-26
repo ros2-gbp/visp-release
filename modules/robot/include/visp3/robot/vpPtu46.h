@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -40,7 +41,6 @@
 #ifndef __vpPtu46_H
 #define __vpPtu46_H
 
-
 /* ----------------------------------------------------------------------- */
 /* --- INCLUDES -------------------------------------------------------- */
 /* --------------------------------------------------------------------- */
@@ -50,8 +50,8 @@
 
 /* --- ViSP --- */
 #include <visp3/core/vpConfig.h>
-#include <visp3/core/vpMatrix.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
+#include <visp3/core/vpMatrix.h>
 #include <visp3/core/vpPoseVector.h>
 
 #include <visp3/core/vpMath.h>
@@ -72,33 +72,29 @@
 
 */
 
-
 class VISP_EXPORT vpPtu46
 {
 
 public: /* Constants */
-
   /** Nombre d'articulations du robot. */
-  static const unsigned int   ndof;  /*!< Number of dof */
+  static const unsigned int ndof; /*!< Number of dof */
 
   /** Geometric model */
   static const float L;
   static const float h;
 
-
 public: /* Methodes publiques */
-
-  vpPtu46 (void);
+  vpPtu46(void);
   /*! Destructor that does nothing. */
-  virtual ~vpPtu46() {};
+  virtual ~vpPtu46(){};
 
   /** @name Inherited functionalities from vpPtu46 */
   //@{
-  void init (void);
+  void init(void);
 
-  void  computeMGD (const vpColVector &q, vpHomogeneousMatrix & fMc) const;
-  vpHomogeneousMatrix computeMGD (const vpColVector & q) const;
-  void  computeMGD (const vpColVector & q,  vpPoseVector & r) const;
+  void computeMGD(const vpColVector &q, vpHomogeneousMatrix &fMc) const;
+  vpHomogeneousMatrix computeMGD(const vpColVector &q) const;
+  void computeMGD(const vpColVector &q, vpPoseVector &r) const;
 
   void get_cMe(vpHomogeneousMatrix &_cMe) const;
   void get_cVe(vpVelocityTwistMatrix &_cVe) const;
@@ -106,7 +102,7 @@ public: /* Methodes publiques */
   void get_fJe(const vpColVector &q, vpMatrix &fJe) const;
 
   //@}
-  friend VISP_EXPORT std::ostream & operator << (std::ostream & os, const vpPtu46 & constant);
+  friend VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpPtu46 &constant);
 };
 
 #endif

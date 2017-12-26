@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -51,87 +52,75 @@
 /*!
   \class vpLinearKalmanFilterInstantiation
   \ingroup group_core_kalman
-  \brief This class provides an implementation of some specific linear Kalman filters.
+  \brief This class provides an implementation of some specific linear Kalman
+  filters.
 */
 class VISP_EXPORT vpLinearKalmanFilterInstantiation : public vpKalmanFilter
 {
- public:
-  /*!  
+public:
+  /*!
     Selector used to set the Kalman filter state model.
-  */ 
+  */
   typedef enum {
     /*! Consider the state as a constant velocity model with white
         noise. Measures available are the succesive positions of the
         target. To know more about this state model, see
         initStateConstVel_MeasurePos(). */
-    stateConstVel_MeasurePos, 
+    stateConstVel_MeasurePos,
     /*! Consider the state as a constant velocity model with colored noise
         measurements as acceleration terms. Measured available are the
         velocities of the target. To know more about this state model,
         see initStateConstVelWithColoredNoise_MeasureVel(). */
-    stateConstVelWithColoredNoise_MeasureVel, 
+    stateConstVelWithColoredNoise_MeasureVel,
     /*! Consider the state as a constant acceleration model with colored noise
         measurements as acceleration terms. Measured available are the
         velocities of the target. To know more about this state model,
         see initStateConstAccWithColoredNoise_MeasureVel(). */
     stateConstAccWithColoredNoise_MeasureVel,
     /*! Used to indicate that the state model is not initialized. */
-    unknown 
+    unknown
   } vpStateModel;
-  
+
   /*!
     Default linear Kalman filter.
-    
+
     By default the state model is unknown and set to
     vpLinearKalmanFilterInstantiation::unknown.
   */
-    vpLinearKalmanFilterInstantiation() : model(unknown)
-    {
-    };
+  vpLinearKalmanFilterInstantiation() : model(unknown){};
 
   /*! Destructor that does nothng. */
-  virtual ~vpLinearKalmanFilterInstantiation() {};
+  virtual ~vpLinearKalmanFilterInstantiation(){};
   /*!
     Return the current state model.
    */
-  inline vpStateModel getStateModel() {
-    return model;
-  }
+  inline vpStateModel getStateModel() { return model; }
   void filter(vpColVector &z);
- 
+
   /*! @name Generic linear filter initializer */
   //@{
   inline void setStateModel(vpStateModel model);
 
-  void initFilter(unsigned int nsignal, vpColVector &sigma_state,
-		  vpColVector &sigma_measure, double rho, double dt);
+  void initFilter(unsigned int nsignal, vpColVector &sigma_state, vpColVector &sigma_measure, double rho, double dt);
   //@}
 
   /*! @name Linear filter initializer with constant velocity models */
   //@{
-  void initStateConstVel_MeasurePos(unsigned int nsignal, 
-				    vpColVector &sigma_state,
-				    vpColVector &sigma_measure,
-				    double dt);
-  void initStateConstVelWithColoredNoise_MeasureVel(unsigned int nsignal, 
-						    vpColVector &sigma_state,
-						    vpColVector &sigma_measure, 
-						    double rho);
+  void initStateConstVel_MeasurePos(unsigned int nsignal, vpColVector &sigma_state, vpColVector &sigma_measure,
+                                    double dt);
+  void initStateConstVelWithColoredNoise_MeasureVel(unsigned int nsignal, vpColVector &sigma_state,
+                                                    vpColVector &sigma_measure, double rho);
   //@}
 
   /*! @name Linear filter initializer with constant acceleration models */
   //@{
-  void initStateConstAccWithColoredNoise_MeasureVel(unsigned int nsignal, 
-						    vpColVector &sigma_state,
-						    vpColVector &sigma_measure, 
-						    double rho,
-						    double dt);
+  void initStateConstAccWithColoredNoise_MeasureVel(unsigned int nsignal, vpColVector &sigma_state,
+                                                    vpColVector &sigma_measure, double rho, double dt);
   //@}
 
- protected:
+protected:
   vpStateModel model;
-
-} ;
+};
 
 /*!
   Set the Kalman state model. Depending on the state model, we set
@@ -148,14 +137,17 @@ int main()
   vpLinearKalmanFilterInstantiation kalman;
 
   kalman.setStateModel(vpLinearKalmanFilterInstantiation::stateConstVelWithColoredNoise_MeasureVel);
-  std::cout << "State vector size: " << kalman.getStateSize() << std::endl; // Value is 2
-  std::cout << "Measure vector size: " << kalman.getMeasureSize() << std::endl; // Value is 1
+  // Value is 2
+  std::cout << "State vector size: " << kalman.getStateSize() << std::endl;
+  // Value is 1
+  std::cout << "Measure vector size: " << kalman.getMeasureSize() << std::endl;
 }
   \endcode
 */
-void vpLinearKalmanFilterInstantiation::setStateModel(vpStateModel mdl) {
+void vpLinearKalmanFilterInstantiation::setStateModel(vpStateModel mdl)
+{
   this->model = mdl;
-  switch(model) {
+  switch (model) {
   case stateConstVel_MeasurePos:
   case stateConstVelWithColoredNoise_MeasureVel:
     size_state = 2;
@@ -171,6 +163,5 @@ void vpLinearKalmanFilterInstantiation::setStateModel(vpStateModel mdl) {
     break;
   }
 }
-
 
 #endif
