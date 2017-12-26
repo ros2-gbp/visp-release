@@ -51,7 +51,7 @@ PROJECT_BRIEF          =
 # pixels and the maximum width should not exceed 200 pixels. Doxygen will copy
 # the logo to the output directory.
 
-PROJECT_LOGO           = "@VISP_SOURCE_DIR@/doc/image/img-logo-visp.png"
+PROJECT_LOGO           = "@VISP_SOURCE_DIR@/doc/image/logo/img-logo-visp.png"
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
 # into which the generated documentation will be written. If a relative path is
@@ -703,7 +703,7 @@ LAYOUT_FILE            =
 # LATEX_BIB_STYLE. To use this feature you need bibtex and perl available in the
 # search path. See also \cite for info how to create references.
 
-CITE_BIB_FILES         = "@VISP_SOURCE_DIR@/doc/biblio/references.bib"
+CITE_BIB_FILES         = @DOXYGEN_CITE_BIB_FILES@
 
 #---------------------------------------------------------------------------
 # Configuration options related to warning and progress messages
@@ -1648,14 +1648,14 @@ LATEX_OUTPUT           = latex
 # The default file is: latex.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-LATEX_CMD_NAME         = @LATEX_COMPILER@
+LATEX_CMD_NAME         = "@LATEX_COMPILER@"
 
 # The MAKEINDEX_CMD_NAME tag can be used to specify the command name to generate
 # index for LaTeX.
 # The default file is: makeindex.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-MAKEINDEX_CMD_NAME     = @MAKEINDEX_COMPILER@
+MAKEINDEX_CMD_NAME     = "@MAKEINDEX_COMPILER@"
 
 # If the COMPACT_LATEX tag is set to YES, doxygen generates more compact LaTeX
 # documents. This may be useful for small projects and may help to save some
@@ -2046,7 +2046,7 @@ SEARCH_INCLUDES        = YES
 # preprocessor.
 # This tag requires that the tag SEARCH_INCLUDES is set to YES.
 
-INCLUDE_PATH           =
+INCLUDE_PATH           = "@VISP_BINARY_DIR@/modules/core"
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard
 # patterns (like *.h and *.hpp) to filter out the header-files in the
@@ -2065,65 +2065,72 @@ INCLUDE_FILE_PATTERNS  =
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
 PREDEFINED             = @DOXYGEN_SHOULD_SKIP_THIS@ \
-                         VISP_HAVE_X11 \
-                         VISP_HAVE_PTHREAD \
-                         VISP_HAVE_GTK \
-                         VISP_HAVE_GDI \
+                         VISP_HAVE_AFMA4 \
+                         VISP_HAVE_AFMA6 \
+                         VISP_HAVE_AFMA6_DATA \
+                         VISP_HAVE_APRILTAG \
+                         VISP_HAVE_ATIDAQ \
+                         VISP_HAVE_CMU1394 \
+                         VISP_HAVE_BICLOPS \
+                         VISP_HAVE_CLIPPER \
+                         VISP_HAVE_COIN3D \
+                         VISP_HAVE_COIN3D_AND_GUI \
+                         VISP_HAVE_COMEDI \
+                         VISP_HAVE_CPP11_COMPATIBILITY \
                          VISP_HAVE_D3D9 \
-                         VISP_HAVE_GSL \
+                         VISP_HAVE_DC1394 \
+                         VISP_HAVE_DIRECTSHOW \
                          VISP_HAVE_DISPLAY \
-                         VISP_HAVE_LAPACK_C \
-                         VISP_HAVE_OPENCV \
-                         VISP_HAVE_OPENCV_NONFREE \
-                         VISP_HAVE_OPENCV_VERSION=0x020408 \
+                         VISP_HAVE_DMTX \
+                         VISP_HAVE_EIGEN3 \
+                         VISP_HAVE_FRANKA \
+                         VISP_HAVE_FLYCAPTURE \
+                         VISP_HAVE_GDI \
+                         VISP_HAVE_GTK \
+                         VISP_HAVE_GSL \
+                         VISP_HAVE_JPEG \
+                         VISP_HAVE_LAPACK \
+                         VISP_HAVE_LIBFREENECT \
+                         VISP_HAVE_LIBFREENECT_AND_DEPENDENCIES \
+                         VISP_HAVE_LIBUSB_1 \
                          VISP_HAVE_OGRE \
                          VISP_HAVE_OGRE_PLUGINS_PATH \
                          VISP_HAVE_OGRE_RESOURCES_PATH \
                          VISP_HAVE_OIS \
-                         VISP_HAVE_COIN3D_AND_GUI \
-                         VISP_HAVE_COIN3D \
+                         VISP_HAVE_OPENCV \
+                         VISP_HAVE_OPENCV_NONFREE \
+                         VISP_HAVE_OPENCV_VERSION=0x020408 \
                          VISP_HAVE_OPENGL \
-                         VISP_HAVE_QT \
-                         VISP_HAVE_SOQT \
-                         VISP_HAVE_SOWIN \
-                         VISP_HAVE_SOXT \
-                         VISP_HAVE_DC1394 \
-                         VISP_HAVE_CMU1394 \
-                         VISP_HAVE_V4L2 \
-                         VISP_HAVE_DIRECTSHOW \
-                         VISP_HAVE_COMEDI \
-                         VISP_HAVE_ATIDAQ \
-                         VISP_HAVE_AFMA4 \
-                         VISP_HAVE_AFMA6 \
-                         VISP_HAVE_AFMA6_DATA \
-                         VISP_HAVE_BICLOPS \
+                         VISP_HAVE_PARPORT \
+                         VISP_HAVE_PCL \
+                         VISP_HAVE_PIONEER \
+                         VISP_HAVE_PNG \
+                         VISP_HAVE_PTHREAD \
                          VISP_HAVE_PTU46 \
+                         VISP_HAVE_PYLON \
+                         VISP_HAVE_QT \
+                         VISP_HAVE_REALSENSE \
+                         VISP_HAVE_REALSENSE_VERSION=0x020000 \
+                         VISP_HAVE_REALSENSE2 \
+                         VISP_HAVE_SOWIN \
+                         VISP_HAVE_SOQT \
+                         VISP_HAVE_SOXT \
+                         VISP_HAVE_V4L2 \
                          VISP_HAVE_VIPER650 \
                          VISP_HAVE_VIPER650_DATA \
                          VISP_HAVE_VIPER850 \
                          VISP_HAVE_VIPER850_DATA \
-                         VISP_HAVE_PIONEER \
-                         VISP_HAVE_PARPORT \
+                         VISP_HAVE_VIRTUOSE \
+                         VISP_HAVE_X11 \
                          VISP_HAVE_XML2 \
-                         VISP_HAVE_JPEG \
-                         VISP_HAVE_PNG \
-                         VISP_HAVE_FFMPEG \
-                         VISP_HAVE_LIBFREENECT_AND_DEPENDENCIES \
-                         VISP_HAVE_LIBFREENECT \
-                         VISP_HAVE_LIBUSB_1 \
-                         VISP_HAVE_REALSENSE \
                          VISP_HAVE_YARP \
                          VISP_HAVE_ZBAR \
-                         VISP_HAVE_DMTX \
-                         VISP_HAVE_FLYCAPTURE \
-                         VISP_HAVE_VIRTUOSE \
-                         VISP_HAVE_PCL \
-                         VISP_HAVE_CPP11_COMPATIBILITY \
                          VISP_HAVE_MODULE_AR \
                          VISP_HAVE_MODULE_CORE \
                          VISP_HAVE_MODULE_DETECTION \
                          VISP_HAVE_MODULE_GUI \
                          VISP_HAVE_MODULE_IO \
+                         VISP_HAVE_MODULE_IMGPROC \
                          VISP_HAVE_MODULE_ROBOT \
                          VISP_HAVE_MODULE_SENSOR \
                          VISP_HAVE_MODULE_BLOB \

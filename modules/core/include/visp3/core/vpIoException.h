@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,15 +36,15 @@
  *
  *****************************************************************************/
 
-
 #ifndef __vpIoException_H
 #define __vpIoException_H
 
-
-/* ------------------------------------------------------------------------- */
-/* --- INCLUDE ------------------------------------------------------------- */
-/* ------------------------------------------------------------------------- */
-
+/* -------------------------------------------------------------------------
+ */
+/* --- INCLUDE -------------------------------------------------------------
+ */
+/* -------------------------------------------------------------------------
+ */
 
 /*!
   \file vpIoException.h
@@ -56,9 +57,12 @@
 #include <iostream>
 #include <string>
 
-/* ------------------------------------------------------------------------- */
-/* --- CLASS --------------------------------------------------------------- */
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------
+ */
+/* --- CLASS ---------------------------------------------------------------
+ */
+/* -------------------------------------------------------------------------
+ */
 
 /*!
   \class vpIoException
@@ -67,33 +71,29 @@
  */
 class VISP_EXPORT vpIoException : public vpException
 {
-  public:
-    /*!
-    \brief Lists the possible error than can be emmited while calling
-    vpIo member.
-   */
-    enum error
-    {
-      invalidDirectoryName, /*! Directory name is invalid. */
-      cantCreateDirectory,  /*! Unable to create a directory. */
-      cantGetUserName,      /*! User name is not available. */
-      cantGetenv            /*! Cannot get environment variable value. */
-    } ;
+public:
+  /*!
+  \brief Lists the possible error than can be emmited while calling
+  vpIo member.
+ */
+  enum error {
+    invalidDirectoryName, /*! Directory name is invalid. */
+    cantCreateDirectory,  /*! Unable to create a directory. */
+    cantGetUserName,      /*! User name is not available. */
+    cantGetenv            /*! Cannot get environment variable value. */
+  };
 
-  public:
-    vpIoException (const int id,  const char* format, ...)
-    {
-      this->code = id;
-      va_list args;
-      va_start(args, format);
-      setMessage(format, args);
-      va_end (args);
-    }
-    vpIoException (const int id, const std::string & msg)
-      : vpException(id, msg){ ; }
-    vpIoException (const int id)
-      : vpException(id){ ; }
-
+public:
+  vpIoException(const int id, const char *format, ...)
+  {
+    this->code = id;
+    va_list args;
+    va_start(args, format);
+    setMessage(format, args);
+    va_end(args);
+  }
+  vpIoException(const int id, const std::string &msg) : vpException(id, msg) { ; }
+  explicit vpIoException(const int id) : vpException(id) { ; }
 };
 
 #endif

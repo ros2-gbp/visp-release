@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -48,34 +49,29 @@
 
 /*!
   \ingroup group_tt_tracker
-  The algorithm implemented in this class is described in \cite Baker04a and \cite Marchand16a.
+  The algorithm implemented in this class is described in \cite Baker04a and
+  \cite Marchand16a.
  */
-class VISP_EXPORT vpTemplateTrackerSSDForwardAdditional: public vpTemplateTrackerSSD
+class VISP_EXPORT vpTemplateTrackerSSDForwardAdditional : public vpTemplateTrackerSSD
 {
-  public:
+public:
   /*! Minimization method. */
-  typedef enum {
-    USE_NEWTON,
-    USE_LMA,
-    USE_GRADIENT,
-    USE_QUASINEWTON
-  } vpMinimizationTypeSSDForwardAdditional;
+  typedef enum { USE_NEWTON, USE_LMA, USE_GRADIENT, USE_QUASINEWTON } vpMinimizationTypeSSDForwardAdditional;
 
-  private:
-    vpMinimizationTypeSSDForwardAdditional minimizationMethod;
-    //valeur pour calculer Quasi_Newton
-    vpColVector        p_prec;
-    vpColVector        G_prec;
-    vpMatrix           KQuasiNewton;
+private:
+  vpMinimizationTypeSSDForwardAdditional minimizationMethod;
+  // valeur pour calculer Quasi_Newton
+  vpColVector p_prec;
+  vpColVector G_prec;
+  vpMatrix KQuasiNewton;
 
-  protected:
-    void  initHessienDesired(const vpImage<unsigned char> &/*I*/){}
-    void  trackNoPyr(const vpImage<unsigned char> &I);
+protected:
+  void initHessienDesired(const vpImage<unsigned char> & /*I*/) {}
+  void trackNoPyr(const vpImage<unsigned char> &I);
 
-  public:
-          vpTemplateTrackerSSDForwardAdditional(vpTemplateTrackerWarp *warp);
+public:
+  explicit vpTemplateTrackerSSDForwardAdditional(vpTemplateTrackerWarp *warp);
 
-    void  setMinimizationMethod(vpMinimizationTypeSSDForwardAdditional method){minimizationMethod=method;}
+  void setMinimizationMethod(vpMinimizationTypeSSDForwardAdditional method) { minimizationMethod = method; }
 };
 #endif
-
