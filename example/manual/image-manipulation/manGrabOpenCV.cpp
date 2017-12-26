@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -44,20 +45,21 @@
 #include <visp3/core/vpImage.h>
 #include <visp3/sensor/vpOpenCVGrabber.h>
 
-int main(){
+int main()
+{
   vpImage<unsigned char> I; // Grey level image
-  
+
 #ifdef VISP_HAVE_OPENCV
-  vpOpenCVGrabber g; 	// Create the grabber
-   
-  g.open();             // Initialize the grabber
- 
+  vpOpenCVGrabber g; // Create the grabber
+
+  g.open(); // Initialize the grabber
+
   g.setWidth(640);
-  g.setHeight(480);     // If the camera supports 640x480 image size 
-  g.setFramerate(30);   // If the camera supports 30fps framerate
-  
-  while(1)
-    g.acquire(I);       // Acquire an image
+  g.setHeight(480);   // If the camera supports 640x480 image size
+  g.setFramerate(30); // If the camera supports 30fps framerate
+
+  while (1)
+    g.acquire(I); // Acquire an image
 
 #endif
 }

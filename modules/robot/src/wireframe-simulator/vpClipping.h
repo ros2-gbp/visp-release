@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -48,16 +49,16 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "vpMy.h"
 #include "vpArit.h"
 #include "vpBound.h"
+#include "vpMy.h"
 
-void open_clipping (void);
-void open_clipping (void);
-void close_clipping (void);
-Bound *clipping_Bound (Bound *bp, Matrix m);
-void set_Point4f_code (Point4f *p4, int size, Byte *cp);
-Byte where_is_Point4f (Point4f *p4);
+void open_clipping(void);
+void open_clipping(void);
+void close_clipping(void);
+Bound *clipping_Bound(Bound *bp, Matrix m);
+void set_Point4f_code(Point4f *p4, int size, Byte *cp);
+Byte where_is_Point4f(Point4f *p4);
 
 #endif
 #endif
