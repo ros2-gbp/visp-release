@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,7 +36,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpFeatureLine_H
 #define vpFeatureLine_H
 
@@ -47,10 +47,8 @@
 #include <visp3/core/vpMatrix.h>
 #include <visp3/visual_features/vpBasicFeature.h>
 
-
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpRGBa.h>
-
 
 /*!
   \class vpFeatureLine
@@ -128,7 +126,7 @@ int main()
   //In this case the parameters A, B, C, D are not needed because the interaction matrix is computed
   //with the desired visual feature.
 
-  // Set eye-in-hand control law. 
+  // Set eye-in-hand control law.
   // The computed velocities will be expressed in the camera frame
   task.setServo(vpServo::EYEINHAND_CAMERA);
   // Interaction matrix is computed with the desired visual features sd
@@ -140,10 +138,10 @@ int main()
   // Control loop
   for ( ; ; ) {
     // The new parameters rho and theta must be computed here.
-    
+
     // Update the current line visual feature
     s.buildfrom(rho, theta);
-    
+
     // compute the control law
     vpColVector v = task.computeControlLaw(); // camera velocity
   }
@@ -151,11 +149,14 @@ int main()
 }
   \endcode
 
-  If you want to build your own control law, this other example shows how to create a current (\f$s\f$) and desired (\f$s^*\f$) 2D line visual feature, compute the corresponding error vector \f$(s-s^*)\f$ and finally build the interaction matrix \f$L_s\f$.
+  If you want to build your own control law, this other example shows how to
+create a current (\f$s\f$) and desired (\f$s^*\f$) 2D line visual feature,
+compute the corresponding error vector \f$(s-s^*)\f$ and finally build the
+interaction matrix \f$L_s\f$.
 
   \code
-#include <visp3/visual_features/vpFeatureLine.h>
 #include <visp3/core/vpMatrix.h>
+#include <visp3/visual_features/vpFeatureLine.h>
 
 int main()
 {
@@ -164,10 +165,7 @@ int main()
   double rhod = 0;
   double thetad = 0;
   //Sets the parameters which describe the equation of a plan in the camera frame : AX+BY+CZ+D=0.
-  double Ad = 0;
-  double Bd = 0;
-  double Cd = 1;
-  double Dd = -1;
+  double Ad = 0; double Bd = 0; double Cd = 1; double Dd = -1;
   //Set the line feature thanks to the desired parameters.
   sd.buildfrom(rhod, thetad, Ad,Bd, Cd, Dd);
 
@@ -203,60 +201,48 @@ class VISP_EXPORT vpFeatureLine : public vpBasicFeature
 private:
   //! FeatureLine depth (required to compute the interaction matrix)
   //!  equation of a plane
-  double A,B,C,D ;
+  double A, B, C, D;
 
 public:
-  vpFeatureLine() ;
+  vpFeatureLine();
   //! Destructor.
   virtual ~vpFeatureLine() {}
 
-
   //  void buildFrom(const vpLine &l) ;
   //  void buildFrom(const vpCylinder &c, const int l) ;
-  void buildFrom(const double rho, const double theta) ;
-  void buildFrom(const double rho, const double theta,
-                 const double A, const double B,
-                 const double C, const double D) ;
+  void buildFrom(const double rho, const double theta);
+  void buildFrom(const double rho, const double theta, const double A, const double B, const double C, const double D);
 
-  void display(const vpCameraParameters &cam,
-               const vpImage<unsigned char> &I,
-               const vpColor &color=vpColor::green,
-               unsigned int thickness=1) const ;
-  void display(const vpCameraParameters &cam,
-               const vpImage<vpRGBa> &I,
-               const vpColor &color=vpColor::green,
-               unsigned int thickness=1) const ;
-  vpFeatureLine *duplicate() const ;
+  void display(const vpCameraParameters &cam, const vpImage<unsigned char> &I, const vpColor &color = vpColor::green,
+               unsigned int thickness = 1) const;
+  void display(const vpCameraParameters &cam, const vpImage<vpRGBa> &I, const vpColor &color = vpColor::green,
+               unsigned int thickness = 1) const;
+  vpFeatureLine *duplicate() const;
 
-  vpColVector error(const vpBasicFeature &s_star,
-                    const unsigned int select = FEATURE_ALL)  ;
-  //vpColVector error(const int select = FEATURE_ALL)  ;
-
+  vpColVector error(const vpBasicFeature &s_star, const unsigned int select = FEATURE_ALL);
+  // vpColVector error(const int select = FEATURE_ALL)  ;
 
   /*!
     Return the \f$ \rho \f$ subset value of the visual feature \f$ s \f$.
   */
-  double getRho() const  { return s[0] ; }
+  double getRho() const { return s[0]; }
 
   /*!
     Return the \f$ \theta \f$ subset value of the visual feature \f$ s \f$.
   */
-  double getTheta() const { return s[1] ; }
+  double getTheta() const { return s[1]; }
 
-  void init() ;
-  vpMatrix  interaction(const unsigned int select = FEATURE_ALL);
+  void init();
+  vpMatrix interaction(const unsigned int select = FEATURE_ALL);
 
-  void print(const unsigned int select= FEATURE_ALL) const ;
+  void print(const unsigned int select = FEATURE_ALL) const;
 
-  void setRhoTheta(const double rho, const double theta) ;
-  void setABCD(const double A, const double B,
-               const double C, const double D) ;
-
+  void setRhoTheta(const double rho, const double theta);
+  void setABCD(const double A, const double B, const double C, const double D);
 
 public:
-
   static unsigned int selectRho();
   static unsigned int selectTheta();
-} ;
+};
 
 #endif

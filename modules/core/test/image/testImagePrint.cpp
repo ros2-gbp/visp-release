@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -40,7 +41,8 @@
 
   \brief Test image print.
 */
-int main() {
+int main()
+{
   unsigned int size = 16;
   vpImage<int> I_int(size, size);
   vpImage<unsigned char> I_uchar(size, size);
@@ -48,9 +50,9 @@ int main() {
 
   for (unsigned int i = 0, cpt = 0; i < size; i++) {
     for (unsigned int j = 0; j < size; j++, cpt++) {
-      I_int[i][j] = (int) cpt;
-      I_uchar[i][j] = (unsigned char) cpt;
-      I_char[i][j] = (char) cpt;
+      I_int[i][j] = (int)cpt;
+      I_uchar[i][j] = (unsigned char)cpt;
+      I_char[i][j] = (char)cpt;
     }
   }
 
@@ -61,9 +63,9 @@ int main() {
 
   for (unsigned int i = 0, cpt = 0; i < size; i++) {
     for (unsigned int j = 0; j < size; j++, cpt++) {
-      I_float[i][j] = (float) sqrt((double) cpt);
-      I_double[i][j] = sqrt((double) cpt);
-      I_rgba[i][j] = vpRGBa( (unsigned char) cpt);
+      I_float[i][j] = (float)sqrt((double)cpt);
+      I_double[i][j] = sqrt((double)cpt);
+      I_rgba[i][j] = vpRGBa((unsigned char)cpt);
     }
   }
 

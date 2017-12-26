@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -37,20 +38,21 @@
 
 #include <iostream>
 
-#include <visp3/robot/vpRobotPioneer.h> // Include before vpDisplayX to avoid build issues
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDisplay.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayX.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpIoTools.h>
-#include <visp3/io/vpImageIo.h>
 #include <visp3/core/vpTime.h>
+#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/io/vpImageIo.h>
+#include <visp3/robot/vpRobotPioneer.h> // Include before vpDisplayX to avoid build issues
 
 #ifndef VISP_HAVE_PIONEER
 int main()
 {
-  std::cout << "\nThis example requires Aria 3rd party library. You should install it.\n"
+  std::cout << "\nThis example requires Aria 3rd party library. You should "
+               "install it.\n"
             << std::endl;
   return 0;
 }
@@ -61,16 +63,17 @@ ArSonarDevice sonar;
 vpRobotPioneer *robot;
 #if defined(VISP_HAVE_X11)
 vpDisplayX *d;
-#elif defined (VISP_HAVE_GDI)
+#elif defined(VISP_HAVE_GDI)
 vpDisplayGDI *d;
 #endif
 vpImage<unsigned char> I;
 static bool isInitialized = false;
-static int half_size = 256*2;
+static int half_size = 256 * 2;
 
 void sonarPrinter(void)
 {
-  fprintf(stdout, "in sonarPrinter()\n"); fflush(stdout);
+  fprintf(stdout, "in sonarPrinter()\n");
+  fflush(stdout);
   double scale = (double)half_size / (double)sonar.getMaxRange();
 
   /*
@@ -108,24 +111,24 @@ void sonarPrinter(void)
   double end_angle = 45;
   range = sonar.currentReadingPolar(start_angle, end_angle, &angle);
   printf(" front quadrant: %5.0f  ", range);
-  //if (range != sonar.getMaxRange())
+  // if (range != sonar.getMaxRange())
   if (std::fabs(range - sonar.getMaxRange()) > std::numeric_limits<double>::epsilon())
     printf("%3.0f ", angle);
   printf("\n");
-#if defined(VISP_HAVE_X11) || defined (VISP_HAVE_GDI)
-  //if (isInitialized && range != sonar.getMaxRange())
-  if (isInitialized && std::fabs(range - sonar.getMaxRange()) > std::numeric_limits<double>::epsilon())
-  {
+#if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)
+  // if (isInitialized && range != sonar.getMaxRange())
+  if (isInitialized && std::fabs(range - sonar.getMaxRange()) > std::numeric_limits<double>::epsilon()) {
     double x = range * cos(vpMath::rad(angle)); // position of the obstacle in the sensor frame
     double y = range * sin(vpMath::rad(angle));
 
-    // Conversion in pixels so that the robot frame is in the middle of the image
+    // Conversion in pixels so that the robot frame is in the middle of the
+    // image
     double j = -y * scale + half_size; // obstacle position
     double i = -x * scale + half_size;
 
     vpDisplay::display(I);
     vpDisplay::displayLine(I, half_size, half_size, 0, 0, vpColor::red, 5);
-    vpDisplay::displayLine(I, half_size, half_size, 0, 2*half_size-1, vpColor::red, 5);
+    vpDisplay::displayLine(I, half_size, half_size, 0, 2 * half_size - 1, vpColor::red, 5);
     vpDisplay::displayLine(I, half_size, half_size, i, j, vpColor::green, 3);
     vpDisplay::displayCross(I, i, j, 7, vpColor::blue);
   }
@@ -133,21 +136,21 @@ void sonarPrinter(void)
 
   range = sonar.currentReadingPolar(-135, -45, &angle);
   printf(" right quadrant: %5.0f ", range);
-  //if (range != sonar.getMaxRange())
+  // if (range != sonar.getMaxRange())
   if (std::fabs(range - sonar.getMaxRange()) > std::numeric_limits<double>::epsilon())
     printf("%3.0f ", angle);
   printf("\n");
 
   range = sonar.currentReadingPolar(45, 135, &angle);
   printf(" left quadrant: %5.0f ", range);
-  //if (range != sonar.getMaxRange())
+  // if (range != sonar.getMaxRange())
   if (std::fabs(range - sonar.getMaxRange()) > std::numeric_limits<double>::epsilon())
     printf("%3.0f ", angle);
   printf("\n");
 
   range = sonar.currentReadingPolar(-135, 135, &angle);
   printf(" back quadrant: %5.0f ", range);
-  //if (range != sonar.getMaxRange())
+  // if (range != sonar.getMaxRange())
   if (std::fabs(range - sonar.getMaxRange()) > std::numeric_limits<double>::epsilon())
     printf("%3.0f ", angle);
   printf("\n");
@@ -156,11 +159,9 @@ void sonarPrinter(void)
    * example to show how get all sonar sensor data
    */
   ArSensorReading *reading;
-  for (int sensor = 0; sensor < robot->getNumSonar(); sensor++)
-  {
+  for (int sensor = 0; sensor < robot->getNumSonar(); sensor++) {
     reading = robot->getSonarReading(sensor);
-    if (reading != NULL)
-    {
+    if (reading != NULL) {
       angle = reading->getSensorTh();
       range = reading->getRange();
       double sx = reading->getSensorX(); // position of the sensor in the robot frame
@@ -170,31 +171,32 @@ void sonarPrinter(void)
       double x = sx + ox; // position of the obstacle in the robot frame
       double y = sy + oy;
 
-      // Conversion in pixels so that the robot frame is in the middle of the image
+      // Conversion in pixels so that the robot frame is in the middle of the
+      // image
       double sj = -sy * scale + half_size; // sensor position
       double si = -sx * scale + half_size;
       double j = -y * scale + half_size; // obstacle position
       double i = -x * scale + half_size;
 
-      //      printf("%d x: %.1f y: %.1f th: %.1f d: %d\n", sensor, reading->getSensorX(),
-      //             reading->getSensorY(), reading->getSensorTh(), reading->getRange());
+//      printf("%d x: %.1f y: %.1f th: %.1f d: %d\n", sensor,
+//      reading->getSensorX(),
+//             reading->getSensorY(), reading->getSensorTh(),
+//             reading->getRange());
 
-#if defined(VISP_HAVE_X11) || defined (VISP_HAVE_GDI)
-      //if (isInitialized && range != sonar.getMaxRange())
-      if (isInitialized && std::fabs(range - sonar.getMaxRange()) > std::numeric_limits<double>::epsilon())
-      {
+#if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)
+      // if (isInitialized && range != sonar.getMaxRange())
+      if (isInitialized && std::fabs(range - sonar.getMaxRange()) > std::numeric_limits<double>::epsilon()) {
         vpDisplay::displayLine(I, si, sj, i, j, vpColor::blue, 2);
         vpDisplay::displayCross(I, si, sj, 7, vpColor::blue);
         char legend[15];
-        sprintf(legend, "%d: %1.2fm", sensor, float(range)/1000);
-        vpDisplay::displayCharString(I, i-7, j+7, legend, vpColor::blue);
+        sprintf(legend, "%d: %1.2fm", sensor, float(range) / 1000);
+        vpDisplay::displayCharString(I, i - 7, j + 7, legend, vpColor::blue);
       }
 #endif
     }
-
   }
 
-#if defined(VISP_HAVE_X11) || defined (VISP_HAVE_GDI)
+#if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)
   if (isInitialized)
     vpDisplay::flush(I);
 #endif
@@ -215,20 +217,17 @@ int main(int argc, char **argv)
 
     robot = new vpRobotPioneer;
 
-    // ArRobotConnector connects to the robot, get some initial data from it such as type and name,
-    // and then loads parameter files for this robot.
+    // ArRobotConnector connects to the robot, get some initial data from it
+    // such as type and name, and then loads parameter files for this robot.
     ArRobotConnector robotConnector(&parser, robot);
-    if(!robotConnector.connectRobot())
-    {
+    if (!robotConnector.connectRobot()) {
       ArLog::log(ArLog::Terse, "Could not connect to the robot");
-      if(parser.checkHelpAndWarnUnparsed())
-      {
+      if (parser.checkHelpAndWarnUnparsed()) {
         Aria::logOptions();
         Aria::exit(1);
       }
     }
-    if (!Aria::parseArgs())
-    {
+    if (!Aria::parseArgs()) {
       Aria::logOptions();
       Aria::shutdown();
       return false;
@@ -236,16 +235,15 @@ int main(int argc, char **argv)
 
     std::cout << "Robot connected" << std::endl;
 
-#if defined(VISP_HAVE_X11) || defined (VISP_HAVE_GDI)
+#if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)
     // Create a display to show sensor data
-    if (isInitialized == false)
-    {
-      I.resize((unsigned int)half_size*2, (unsigned int)half_size*2);
+    if (isInitialized == false) {
+      I.resize((unsigned int)half_size * 2, (unsigned int)half_size * 2);
       I = 255;
 
 #if defined(VISP_HAVE_X11)
       d = new vpDisplayX;
-#elif defined (VISP_HAVE_GDI)
+#elif defined(VISP_HAVE_GDI)
       d = new vpDisplayGDI;
 #endif
       d->init(I, -1, -1, "Sonar range data");
@@ -263,8 +261,7 @@ int main(int argc, char **argv)
     // Robot velocities
     vpColVector v_mes(2);
 
-    for (int i=0; i < 1000; i++)
-    {
+    for (int i = 0; i < 1000; i++) {
       double t = vpTime::measureTimeMs();
 
       v_mes = robot->getVelocity(vpRobot::REFERENCE_FRAME);
@@ -273,7 +270,7 @@ int main(int argc, char **argv)
       std::cout << "Left wheel vel= " << v_mes[0] << " m/s, Right wheel vel=" << v_mes[1] << " m/s" << std::endl;
       std::cout << "Battery=" << robot->getBatteryVoltage() << std::endl;
 
-#if defined(VISP_HAVE_X11) || defined (VISP_HAVE_GDI)
+#if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)
       if (isInitialized) {
         // A mouse click to exit
         // Before exiting save the last sonar image
@@ -296,10 +293,8 @@ int main(int argc, char **argv)
               try {
                 // Create the dirname
                 vpIoTools::makeDirectory(opath);
-              }
-              catch (...) {
-                std::cerr << std::endl
-                          << "ERROR:" << std::endl;
+              } catch (...) {
+                std::cerr << std::endl << "ERROR:" << std::endl;
                 std::cerr << "  Cannot create " << opath << std::endl;
                 exit(-1);
               }
@@ -324,14 +319,17 @@ int main(int argc, char **argv)
     ArUtil::sleep(1000);
 
     robot->lock();
-    ArLog::log(ArLog::Normal, "simpleMotionCommands: Pose=(%.2f,%.2f,%.2f), Trans. Vel=%.2f, Rot. Vel=%.2f, Battery=%.2fV",
-               robot->getX(), robot->getY(), robot->getTh(), robot->getVel(), robot->getRotVel(), robot->getBatteryVoltage());
+    ArLog::log(ArLog::Normal,
+               "simpleMotionCommands: Pose=(%.2f,%.2f,%.2f), Trans. "
+               "Vel=%.2f, Rot. Vel=%.2f, Battery=%.2fV",
+               robot->getX(), robot->getY(), robot->getTh(), robot->getVel(), robot->getRotVel(),
+               robot->getBatteryVoltage());
     robot->unlock();
 
     std::cout << "Ending robot thread..." << std::endl;
     robot->stopRunning();
 
-#if defined(VISP_HAVE_X11) || defined (VISP_HAVE_GDI)
+#if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)
     if (isInitialized) {
       if (d != NULL)
         delete d;
@@ -346,12 +344,10 @@ int main(int argc, char **argv)
     // exit
     ArLog::log(ArLog::Normal, "simpleMotionCommands: Exiting.");
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }
 }
 
 #endif
-

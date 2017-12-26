@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,7 +36,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpMouseButton_h
 #define vpMouseButton_h
 
@@ -52,10 +52,10 @@ public:
   typedef enum {
     button1 = 1, /*!< Mouse left button. */
     button2 = 2, /*!< Mouse middle button, or roll. */
-    button3 = 3,  /*!< Mouse right button. */
-    none = 0  /*!< No button. */
-  } vpMouseButtonType ;
-} ;
+    button3 = 3, /*!< Mouse right button. */
+    none = 0     /*!< No button. */
+  } vpMouseButtonType;
+};
 
 #endif
 

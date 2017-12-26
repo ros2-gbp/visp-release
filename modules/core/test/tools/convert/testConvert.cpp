@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -43,17 +44,15 @@
 
 */
 
-#include <iostream>     // std::cout
-#include <limits>       // std::numeric_limits
+#include <iostream> // std::cout
+#include <limits>   // std::numeric_limits
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpConvert.h>
 
+bool areSame(double a, double b) { return fabs(a - b) < std::numeric_limits<double>::epsilon(); }
 
-bool areSame(double a, double b) {
-    return fabs(a - b) < std::numeric_limits<double>::epsilon();
-}
-
-void testConvertFromImagePointToPoint2f() {
+void testConvertFromImagePointToPoint2f()
+{
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
   vpImagePoint imPt1(12.5f, .85f);
   vpImagePoint imPt2(-44.26f, 125.11f);
@@ -65,9 +64,18 @@ void testConvertFromImagePointToPoint2f() {
   vpConvert::convertToOpenCV(imPt3, pt3);
 
   int nbOk = 0, nbNOk = 0;
-  if(areSame(imPt1.get_u(), pt1.x) && areSame(imPt1.get_v(), pt1.y)) nbOk++; else nbNOk++;
-  if(areSame(imPt2.get_u(), pt2.x) && areSame(imPt2.get_v(), pt2.y)) nbOk++; else nbNOk++;
-  if(areSame(imPt3.get_u(), pt3.x) && areSame(imPt3.get_v(), pt3.y)) nbOk++; else nbNOk++;
+  if (areSame(imPt1.get_u(), pt1.x) && areSame(imPt1.get_v(), pt1.y))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(imPt2.get_u(), pt2.x) && areSame(imPt2.get_v(), pt2.y))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(imPt3.get_u(), pt3.x) && areSame(imPt3.get_v(), pt3.y))
+    nbOk++;
+  else
+    nbNOk++;
 
   std::vector<vpImagePoint> listOfImPts(3);
   listOfImPts[0] = imPt1;
@@ -77,9 +85,12 @@ void testConvertFromImagePointToPoint2f() {
   std::vector<cv::Point2f> listOfPts;
   vpConvert::convertToOpenCV(listOfImPts, listOfPts);
 
-  if(listOfImPts.size() == listOfPts.size()) {
-    for(size_t i = 0; i < 3; i++) {
-      if(areSame(listOfImPts[i].get_u(), listOfPts[i].x) && areSame(listOfImPts[i].get_v(), listOfPts[i].y)) nbOk++; else nbNOk++;
+  if (listOfImPts.size() == listOfPts.size()) {
+    for (size_t i = 0; i < 3; i++) {
+      if (areSame(listOfImPts[i].get_u(), listOfPts[i].x) && areSame(listOfImPts[i].get_v(), listOfPts[i].y))
+        nbOk++;
+      else
+        nbNOk++;
     }
   } else {
     nbNOk += 3;
@@ -89,7 +100,8 @@ void testConvertFromImagePointToPoint2f() {
 #endif
 }
 
-void testConvertFromPoint2fToImagePoint() {
+void testConvertFromPoint2fToImagePoint()
+{
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
   vpImagePoint imPt1, imPt2, imPt3;
 
@@ -99,9 +111,18 @@ void testConvertFromPoint2fToImagePoint() {
   vpConvert::convertFromOpenCV(pt3, imPt3);
 
   int nbOk = 0, nbNOk = 0;
-  if(areSame(imPt1.get_u(), pt1.x) && areSame(imPt1.get_v(), pt1.y)) nbOk++; else nbNOk++;
-  if(areSame(imPt2.get_u(), pt2.x) && areSame(imPt2.get_v(), pt2.y)) nbOk++; else nbNOk++;
-  if(areSame(imPt3.get_u(), pt3.x) && areSame(imPt3.get_v(), pt3.y)) nbOk++; else nbNOk++;
+  if (areSame(imPt1.get_u(), pt1.x) && areSame(imPt1.get_v(), pt1.y))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(imPt2.get_u(), pt2.x) && areSame(imPt2.get_v(), pt2.y))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(imPt3.get_u(), pt3.x) && areSame(imPt3.get_v(), pt3.y))
+    nbOk++;
+  else
+    nbNOk++;
 
   std::vector<vpImagePoint> listOfImPts;
 
@@ -112,9 +133,12 @@ void testConvertFromPoint2fToImagePoint() {
 
   vpConvert::convertFromOpenCV(listOfPts, listOfImPts);
 
-  if(listOfImPts.size() == listOfPts.size()) {
-    for(size_t i = 0; i < 3; i++) {
-      if(areSame(listOfImPts[i].get_u(), listOfPts[i].x) && areSame(listOfImPts[i].get_v(), listOfPts[i].y)) nbOk++; else nbNOk++;
+  if (listOfImPts.size() == listOfPts.size()) {
+    for (size_t i = 0; i < 3; i++) {
+      if (areSame(listOfImPts[i].get_u(), listOfPts[i].x) && areSame(listOfImPts[i].get_v(), listOfPts[i].y))
+        nbOk++;
+      else
+        nbNOk++;
     }
   } else {
     nbNOk += 3;
@@ -124,7 +148,8 @@ void testConvertFromPoint2fToImagePoint() {
 #endif
 }
 
-void testConvertFromImagePointToPoint2d() {
+void testConvertFromImagePointToPoint2d()
+{
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
   vpImagePoint imPt1(12.5, .85);
   vpImagePoint imPt2(-44.26, 125.11);
@@ -136,9 +161,18 @@ void testConvertFromImagePointToPoint2d() {
   vpConvert::convertToOpenCV(imPt3, pt3);
 
   int nbOk = 0, nbNOk = 0;
-  if(areSame(imPt1.get_u(), pt1.x) && areSame(imPt1.get_v(), pt1.y)) nbOk++; else nbNOk++;
-  if(areSame(imPt2.get_u(), pt2.x) && areSame(imPt2.get_v(), pt2.y)) nbOk++; else nbNOk++;
-  if(areSame(imPt3.get_u(), pt3.x) && areSame(imPt3.get_v(), pt3.y)) nbOk++; else nbNOk++;
+  if (areSame(imPt1.get_u(), pt1.x) && areSame(imPt1.get_v(), pt1.y))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(imPt2.get_u(), pt2.x) && areSame(imPt2.get_v(), pt2.y))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(imPt3.get_u(), pt3.x) && areSame(imPt3.get_v(), pt3.y))
+    nbOk++;
+  else
+    nbNOk++;
 
   std::vector<vpImagePoint> listOfImPts(3);
   listOfImPts[0] = imPt1;
@@ -148,9 +182,12 @@ void testConvertFromImagePointToPoint2d() {
   std::vector<cv::Point2d> listOfPts;
   vpConvert::convertToOpenCV(listOfImPts, listOfPts);
 
-  if(listOfImPts.size() == listOfPts.size()) {
-    for(size_t i = 0; i < 3; i++) {
-      if(areSame(listOfImPts[i].get_u(), listOfPts[i].x) && areSame(listOfImPts[i].get_v(), listOfPts[i].y)) nbOk++; else nbNOk++;
+  if (listOfImPts.size() == listOfPts.size()) {
+    for (size_t i = 0; i < 3; i++) {
+      if (areSame(listOfImPts[i].get_u(), listOfPts[i].x) && areSame(listOfImPts[i].get_v(), listOfPts[i].y))
+        nbOk++;
+      else
+        nbNOk++;
     }
   } else {
     nbNOk += 3;
@@ -160,7 +197,8 @@ void testConvertFromImagePointToPoint2d() {
 #endif
 }
 
-void testConvertFromPoint2dToImagePoint() {
+void testConvertFromPoint2dToImagePoint()
+{
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
   vpImagePoint imPt1, imPt2, imPt3;
 
@@ -170,9 +208,18 @@ void testConvertFromPoint2dToImagePoint() {
   vpConvert::convertFromOpenCV(pt3, imPt3);
 
   int nbOk = 0, nbNOk = 0;
-  if(areSame(imPt1.get_u(), pt1.x) && areSame(imPt1.get_v(), pt1.y)) nbOk++; else nbNOk++;
-  if(areSame(imPt2.get_u(), pt2.x) && areSame(imPt2.get_v(), pt2.y)) nbOk++; else nbNOk++;
-  if(areSame(imPt3.get_u(), pt3.x) && areSame(imPt3.get_v(), pt3.y)) nbOk++; else nbNOk++;
+  if (areSame(imPt1.get_u(), pt1.x) && areSame(imPt1.get_v(), pt1.y))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(imPt2.get_u(), pt2.x) && areSame(imPt2.get_v(), pt2.y))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(imPt3.get_u(), pt3.x) && areSame(imPt3.get_v(), pt3.y))
+    nbOk++;
+  else
+    nbNOk++;
 
   std::vector<vpImagePoint> listOfImPts;
 
@@ -183,9 +230,12 @@ void testConvertFromPoint2dToImagePoint() {
 
   vpConvert::convertFromOpenCV(listOfPts, listOfImPts);
 
-  if(listOfImPts.size() == listOfPts.size()) {
-    for(size_t i = 0; i < 3; i++) {
-      if(areSame(listOfImPts[i].get_u(), listOfPts[i].x) && areSame(listOfImPts[i].get_v(), listOfPts[i].y)) nbOk++; else nbNOk++;
+  if (listOfImPts.size() == listOfPts.size()) {
+    for (size_t i = 0; i < 3; i++) {
+      if (areSame(listOfImPts[i].get_u(), listOfPts[i].x) && areSame(listOfImPts[i].get_v(), listOfPts[i].y))
+        nbOk++;
+      else
+        nbNOk++;
     }
   } else {
     nbNOk += 3;
@@ -195,7 +245,8 @@ void testConvertFromPoint2dToImagePoint() {
 #endif
 }
 
-void testConvertFromKeyPointToImagePoint() {
+void testConvertFromKeyPointToImagePoint()
+{
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
   cv::KeyPoint kp1(12.5f, .85f, 0), kp2(-44.26f, 125.11f, 0), kp3(0.0f, -1.756e-10f, 0);
   vpImagePoint imPt1, imPt2, imPt3;
@@ -205,9 +256,18 @@ void testConvertFromKeyPointToImagePoint() {
   vpConvert::convertFromOpenCV(kp3, imPt3);
 
   int nbOk = 0, nbNOk = 0;
-  if(areSame(imPt1.get_u(), kp1.pt.x) && areSame(imPt1.get_v(), kp1.pt.y)) nbOk++; else nbNOk++;
-  if(areSame(imPt2.get_u(), kp2.pt.x) && areSame(imPt2.get_v(), kp2.pt.y)) nbOk++; else nbNOk++;
-  if(areSame(imPt3.get_u(), kp3.pt.x) && areSame(imPt3.get_v(), kp3.pt.y)) nbOk++; else nbNOk++;
+  if (areSame(imPt1.get_u(), kp1.pt.x) && areSame(imPt1.get_v(), kp1.pt.y))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(imPt2.get_u(), kp2.pt.x) && areSame(imPt2.get_v(), kp2.pt.y))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(imPt3.get_u(), kp3.pt.x) && areSame(imPt3.get_v(), kp3.pt.y))
+    nbOk++;
+  else
+    nbNOk++;
 
   std::vector<cv::KeyPoint> listOfKeyPoints(3);
   listOfKeyPoints[0] = kp1;
@@ -217,9 +277,13 @@ void testConvertFromKeyPointToImagePoint() {
   std::vector<vpImagePoint> listOfImPts;
   vpConvert::convertFromOpenCV(listOfKeyPoints, listOfImPts);
 
-  if(listOfImPts.size() == listOfKeyPoints.size()) {
-    for(size_t i = 0; i < 3; i++) {
-      if(areSame(listOfImPts[i].get_u(), listOfKeyPoints[i].pt.x) && areSame(listOfImPts[i].get_v(), listOfKeyPoints[i].pt.y)) nbOk++; else nbNOk++;
+  if (listOfImPts.size() == listOfKeyPoints.size()) {
+    for (size_t i = 0; i < 3; i++) {
+      if (areSame(listOfImPts[i].get_u(), listOfKeyPoints[i].pt.x) &&
+          areSame(listOfImPts[i].get_v(), listOfKeyPoints[i].pt.y))
+        nbOk++;
+      else
+        nbNOk++;
     }
   } else {
     nbNOk += 3;
@@ -229,7 +293,8 @@ void testConvertFromKeyPointToImagePoint() {
 #endif
 }
 
-void testConvertFromPoint3fToPoint() {
+void testConvertFromPoint3fToPoint()
+{
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
   cv::Point3f pt1(12.5f, .85f, 110.0f), pt2(-44.26f, 125.11f, -98e2f), pt3(0.0f, -1.756e-10f, 0.00015f);
   vpPoint point1, point2, point3;
@@ -239,9 +304,18 @@ void testConvertFromPoint3fToPoint() {
   vpConvert::convertFromOpenCV(pt3, point3);
 
   int nbOk = 0, nbNOk = 0;
-  if(areSame(pt1.x, point1.get_oX()) && areSame(pt1.y, point1.get_oY()) && areSame(pt1.z, point1.get_oZ())) nbOk++; else nbNOk++;
-  if(areSame(pt2.x, point2.get_oX()) && areSame(pt2.y, point2.get_oY()) && areSame(pt2.z, point2.get_oZ())) nbOk++; else nbNOk++;
-  if(areSame(pt3.x, point3.get_oX()) && areSame(pt3.y, point3.get_oY()) && areSame(pt3.z, point3.get_oZ())) nbOk++; else nbNOk++;
+  if (areSame(pt1.x, point1.get_oX()) && areSame(pt1.y, point1.get_oY()) && areSame(pt1.z, point1.get_oZ()))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(pt2.x, point2.get_oX()) && areSame(pt2.y, point2.get_oY()) && areSame(pt2.z, point2.get_oZ()))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(pt3.x, point3.get_oX()) && areSame(pt3.y, point3.get_oY()) && areSame(pt3.z, point3.get_oZ()))
+    nbOk++;
+  else
+    nbNOk++;
 
   std::vector<cv::Point3f> listOfPoints3f(3);
   listOfPoints3f[0] = pt1;
@@ -251,9 +325,13 @@ void testConvertFromPoint3fToPoint() {
   std::vector<vpPoint> listOfPts;
   vpConvert::convertFromOpenCV(listOfPoints3f, listOfPts);
 
-  if(listOfPoints3f.size() == listOfPts.size()) {
-    for(size_t i = 0; i < 3; i++) {
-      if(areSame(listOfPts[i].get_oX(), listOfPoints3f[i].x) && areSame(listOfPts[i].get_oY(), listOfPoints3f[i].y) && areSame(listOfPts[i].get_oZ(), listOfPoints3f[i].z)) nbOk++; else nbNOk++;
+  if (listOfPoints3f.size() == listOfPts.size()) {
+    for (size_t i = 0; i < 3; i++) {
+      if (areSame(listOfPts[i].get_oX(), listOfPoints3f[i].x) && areSame(listOfPts[i].get_oY(), listOfPoints3f[i].y) &&
+          areSame(listOfPts[i].get_oZ(), listOfPoints3f[i].z))
+        nbOk++;
+      else
+        nbNOk++;
     }
   } else {
     nbNOk += 3;
@@ -263,7 +341,8 @@ void testConvertFromPoint3fToPoint() {
 #endif
 }
 
-void testConvertFromPointToPoint3f() {
+void testConvertFromPointToPoint3f()
+{
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
   cv::Point3f pt1, pt2, pt3;
   vpPoint point1, point2, point3;
@@ -284,9 +363,18 @@ void testConvertFromPointToPoint3f() {
   vpConvert::convertToOpenCV(point3, pt3);
 
   int nbOk = 0, nbNOk = 0;
-  if(areSame(pt1.x, point1.get_oX()) && areSame(pt1.y, point1.get_oY()) && areSame(pt1.z, point1.get_oZ())) nbOk++; else nbNOk++;
-  if(areSame(pt2.x, point2.get_oX()) && areSame(pt2.y, point2.get_oY()) && areSame(pt2.z, point2.get_oZ())) nbOk++; else nbNOk++;
-  if(areSame(pt3.x, point3.get_oX()) && areSame(pt3.y, point3.get_oY()) && areSame(pt3.z, point3.get_oZ())) nbOk++; else nbNOk++;
+  if (areSame(pt1.x, point1.get_oX()) && areSame(pt1.y, point1.get_oY()) && areSame(pt1.z, point1.get_oZ()))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(pt2.x, point2.get_oX()) && areSame(pt2.y, point2.get_oY()) && areSame(pt2.z, point2.get_oZ()))
+    nbOk++;
+  else
+    nbNOk++;
+  if (areSame(pt3.x, point3.get_oX()) && areSame(pt3.y, point3.get_oY()) && areSame(pt3.z, point3.get_oZ()))
+    nbOk++;
+  else
+    nbNOk++;
 
   std::vector<cv::Point3f> listOfPoints3f;
   std::vector<vpPoint> listOfPts(3);
@@ -296,9 +384,13 @@ void testConvertFromPointToPoint3f() {
 
   vpConvert::convertToOpenCV(listOfPts, listOfPoints3f);
 
-  if(listOfPoints3f.size() == listOfPts.size()) {
-    for(size_t i = 0; i < 3; i++) {
-      if(areSame(listOfPts[i].get_oX(), listOfPoints3f[i].x) && areSame(listOfPts[i].get_oY(), listOfPoints3f[i].y) && areSame(listOfPts[i].get_oZ(), listOfPoints3f[i].z)) nbOk++; else nbNOk++;
+  if (listOfPoints3f.size() == listOfPts.size()) {
+    for (size_t i = 0; i < 3; i++) {
+      if (areSame(listOfPts[i].get_oX(), listOfPoints3f[i].x) && areSame(listOfPts[i].get_oY(), listOfPoints3f[i].y) &&
+          areSame(listOfPts[i].get_oZ(), listOfPoints3f[i].z))
+        nbOk++;
+      else
+        nbNOk++;
     }
   } else {
     nbNOk += 3;
@@ -308,7 +400,8 @@ void testConvertFromPointToPoint3f() {
 #endif
 }
 
-int main() {
+int main()
+{
   testConvertFromImagePointToPoint2f();
   testConvertFromPoint2fToImagePoint();
   testConvertFromImagePointToPoint2d();
@@ -317,5 +410,5 @@ int main() {
   testConvertFromKeyPointToImagePoint();
   testConvertFromPoint3fToPoint();
   testConvertFromPointToPoint3f();
-	return 0;
+  return 0;
 }
