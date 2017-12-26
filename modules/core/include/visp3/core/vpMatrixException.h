@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -38,11 +39,12 @@
 #ifndef __vpMatrixException_H
 #define __vpMatrixException_H
 
-
-/* ------------------------------------------------------------------------- */
-/* --- INCLUDE ------------------------------------------------------------- */
-/* ------------------------------------------------------------------------- */
-
+/* -------------------------------------------------------------------------
+ */
+/* --- INCLUDE -------------------------------------------------------------
+ */
+/* -------------------------------------------------------------------------
+ */
 
 /* Classes standards. */
 //
@@ -50,12 +52,15 @@
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpException.h>
 
-#include <iostream>                /* Classe std::ostream.    */
-#include <string>                  /* Classe string.     */
+#include <iostream> /* Classe std::ostream.    */
+#include <string>   /* Classe string.     */
 
-/* ------------------------------------------------------------------------- */
-/* --- CLASS --------------------------------------------------------------- */
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------
+ */
+/* --- CLASS ---------------------------------------------------------------
+ */
+/* -------------------------------------------------------------------------
+ */
 
 /*!
   \class vpMatrixException
@@ -64,44 +69,41 @@
  */
 class VISP_EXPORT vpMatrixException : public vpException
 {
-  public:
-    /*!
-    \brief Lists the possible error than can be emmited while calling
-    vpMatrix member
-   */
-    enum errorCodeEnum
-    {
-      //! error returns by a constructor
-      constructionError,
-      //! something is not initialized
-      notInitializedError,
-      //! function not implemented
-      notImplementedError,
-      //! index out of range
-      outOfRangeError,
-      //! iterative algorithm doesn't converge (ex SVD)
-      convergencyError,
-      incorrectMatrixSizeError,
-      forbiddenOperatorError,
-      subMatrixError,
-      matrixError,
-      rankDeficient
-    } ;
+public:
+  /*!
+  \brief Lists the possible error than can be emmited while calling
+  vpMatrix member
+ */
+  enum errorCodeEnum {
+    //! error returns by a constructor
+    constructionError,
+    //! something is not initialized
+    notInitializedError,
+    //! function not implemented
+    notImplementedError,
+    //! index out of range
+    outOfRangeError,
+    //! iterative algorithm doesn't converge (ex SVD)
+    convergencyError,
+    incorrectMatrixSizeError,
+    forbiddenOperatorError,
+    subMatrixError,
+    matrixError,
+    rankDeficient
+  };
 
-  public:
-    vpMatrixException (const int id,  const char* format, ...)
-    {
-      this->code = id;
-      va_list args;
-      va_start(args, format);
-      setMessage(format, args);
-      va_end (args);
-    }
-    vpMatrixException (const int id, const std::string & msg)
-      : vpException(id, msg){ ; }
-    vpMatrixException (const int id)
-      : vpException(id){ ; }
-    // vpMatrixException() : vpException() { ;}
+public:
+  vpMatrixException(const int id, const char *format, ...)
+  {
+    this->code = id;
+    va_list args;
+    va_start(args, format);
+    setMessage(format, args);
+    va_end(args);
+  }
+  vpMatrixException(const int id, const std::string &msg) : vpException(id, msg) { ; }
+  explicit vpMatrixException(const int id) : vpException(id) { ; }
+  // vpMatrixException() : vpException() { ;}
 };
 
 #endif

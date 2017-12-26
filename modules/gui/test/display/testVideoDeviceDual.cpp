@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,19 +36,19 @@
  *
  *****************************************************************************/
 
-
-#include <visp3/core/vpConfig.h>
-#include <visp3/core/vpImage.h>
-#include <visp3/core/vpDisplay.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayX.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayD3D.h>
-#include <visp3/io/vpParseArgv.h>
-#include <stdlib.h>
 #include <iostream>
-#if (defined (VISP_HAVE_GTK) || defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI) || defined(VISP_HAVE_D3D9) || defined(VISP_HAVE_OPENCV))
+#include <stdlib.h>
+#include <visp3/core/vpConfig.h>
+#include <visp3/core/vpDisplay.h>
+#include <visp3/core/vpImage.h>
+#include <visp3/gui/vpDisplayD3D.h>
+#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayGTK.h>
+#include <visp3/gui/vpDisplayOpenCV.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/io/vpParseArgv.h>
+#if (defined(VISP_HAVE_GTK) || defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI) || defined(VISP_HAVE_D3D9) ||          \
+     defined(VISP_HAVE_OPENCV))
 
 /*!
   \example testVideoDeviceDual.cpp
@@ -56,17 +57,10 @@
 
 */
 
-
 // List of allowed command line options
-#define GETOPTARGS	"hlt:dc"
+#define GETOPTARGS "hlt:dc"
 
-typedef enum {
-  vpX11,
-  vpGTK,
-  vpGDI,
-  vpD3D,
-  vpCV 
-} vpDisplayType;
+typedef enum { vpX11, vpGTK, vpGDI, vpD3D, vpCV } vpDisplayType;
 
 void usage(const char *name, const char *badparam, vpDisplayType &dtype);
 bool getOptions(int argc, const char **argv, vpDisplayType &dtype, bool &list, bool &click_allowed, bool &display);
@@ -90,12 +84,22 @@ SYNOPSIS\n\
 ", name);
 
   std::string display;
-  switch(dtype) {
-  case vpX11: display = "X11"; break;
-  case vpGTK: display = "GTK"; break;
-  case vpGDI: display = "GDI"; break;
-  case vpD3D: display = "D3D"; break;
-  case vpCV: display = "CV"; break;
+  switch (dtype) {
+  case vpX11:
+    display = "X11";
+    break;
+  case vpGTK:
+    display = "GTK";
+    break;
+  case vpGDI:
+    display = "GDI";
+    break;
+  case vpD3D:
+    display = "D3D";
+    break;
+  case vpCV:
+    display = "CV";
+    break;
   }
 
   fprintf(stdout, "\n\
@@ -120,8 +124,7 @@ OPTIONS:                                               Default\n\
      Print the list of video-devices available and exit.\n\
 \n\
   -h\n\
-     Print the help.\n\n",
-	  display.c_str());
+     Print the help.\n\n", display.c_str());
 
   if (badparam)
     fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
@@ -140,42 +143,48 @@ OPTIONS:                                               Default\n\
   \return false if the program has to be stopped, true otherwise.
 
 */
-bool getOptions(int argc, const char **argv,
-                vpDisplayType &dtype, bool &list,
-                bool &click_allowed, bool &display)
+bool getOptions(int argc, const char **argv, vpDisplayType &dtype, bool &list, bool &click_allowed, bool &display)
 {
   const char *optarg_;
-  int	c;
+  int c;
   std::string sDisplayType;
   while ((c = vpParseArgv::parse(argc, argv, GETOPTARGS, &optarg_)) > 1) {
 
     switch (c) {
-    case 'l': list = true; break;
-    case 't': sDisplayType = optarg_;
+    case 'l':
+      list = true;
+      break;
+    case 't':
+      sDisplayType = optarg_;
       // Parse the display type option
       if (sDisplayType.compare("X11") == 0) {
         dtype = vpX11;
-      }
-      else if (sDisplayType.compare("GTK") == 0) {
+      } else if (sDisplayType.compare("GTK") == 0) {
         dtype = vpGTK;
-      }
-      else if (sDisplayType.compare("GDI") == 0) {
+      } else if (sDisplayType.compare("GDI") == 0) {
         dtype = vpGDI;
-      }
-      else if (sDisplayType.compare("D3D") == 0) {
+      } else if (sDisplayType.compare("D3D") == 0) {
         dtype = vpD3D;
-      }
-      else if (sDisplayType.compare("CV") == 0) {
+      } else if (sDisplayType.compare("CV") == 0) {
         dtype = vpCV;
       }
 
       break;
-    case 'h': usage(argv[0], NULL, dtype); return false; break;
-    case 'c': click_allowed = false; break;
-    case 'd': display = false; break;
+    case 'h':
+      usage(argv[0], NULL, dtype);
+      return false;
+      break;
+    case 'c':
+      click_allowed = false;
+      break;
+    case 'd':
+      display = false;
+      break;
 
     default:
-      usage(argv[0], optarg_, dtype); return false; break;
+      usage(argv[0], optarg_, dtype);
+      return false;
+      break;
     }
   }
 
@@ -190,15 +199,15 @@ bool getOptions(int argc, const char **argv,
   return true;
 }
 
-int main(int argc, const char ** argv)
+int main(int argc, const char **argv)
 {
   try {
-    bool opt_list = false; // To print the list of video devices
+    bool opt_list = false;   // To print the list of video devices
     vpDisplayType opt_dtype; // Type of display to use
     bool opt_click_allowed = true;
     bool opt_display = true;
 
-    // Default display is one available
+// Default display is one available
 #if defined VISP_HAVE_GTK
     opt_dtype = vpGTK;
 #elif defined VISP_HAVE_X11
@@ -212,9 +221,8 @@ int main(int argc, const char ** argv)
 #endif
 
     // Read the command line options
-    if (getOptions(argc, argv, opt_dtype, opt_list,
-                   opt_click_allowed, opt_display) == false) {
-      exit (-1);
+    if (getOptions(argc, argv, opt_dtype, opt_list, opt_click_allowed, opt_display) == false) {
+      exit(-1);
     }
 
     // Print the list of video-devices available
@@ -223,24 +231,24 @@ int main(int argc, const char ** argv)
       std::cout << "List of video-devices available: \n";
 #if defined VISP_HAVE_GTK
       std::cout << "  GTK (use \"-t GTK\" option to use it)\n";
-      nbDevices ++;
+      nbDevices++;
 #endif
 #if defined VISP_HAVE_X11
       std::cout << "  X11 (use \"-t X11\" option to use it)\n";
-      nbDevices ++;
+      nbDevices++;
 #endif
 #if defined VISP_HAVE_GDI
       std::cout << "  GDI (use \"-t GDI\" option to use it)\n";
-      nbDevices ++;
+      nbDevices++;
 #endif
 #if defined VISP_HAVE_D3D9
       std::cout << "  D3D (use \"-t D3D\" option to use it)\n";
-      nbDevices ++;
+      nbDevices++;
 #endif
 #if defined VISP_HAVE_OPENCV
       std::cout << "  CV (use \"-t CV\" option to use it)\n";
-      nbDevices ++;
-#endif   
+      nbDevices++;
+#endif
       if (!nbDevices) {
         std::cout << "  No display is available\n";
       }
@@ -256,7 +264,7 @@ int main(int argc, const char ** argv)
     vpDisplay *d1 = NULL, *d2 = NULL;
 
     // Initialize the displays
-    switch(opt_dtype) {
+    switch (opt_dtype) {
     case vpX11:
       std::cout << "Requested X11 display functionnalities..." << std::endl;
 #if defined VISP_HAVE_X11
@@ -264,8 +272,7 @@ int main(int argc, const char ** argv)
       d2 = new vpDisplayX;
 #else
       std::cout << "  Sorry, X11 video device is not available.\n";
-      std::cout << "Use \"" << argv[0]
-                << " -l\" to print the list of available devices.\n";
+      std::cout << "Use \"" << argv[0] << " -l\" to print the list of available devices.\n";
       return 0;
 #endif
       break;
@@ -276,8 +283,7 @@ int main(int argc, const char ** argv)
       d2 = new vpDisplayGTK;
 #else
       std::cout << "  Sorry, GTK video device is not available.\n";
-      std::cout << "Use \"" << argv[0]
-                << " -l\" to print the list of available devices.\n";
+      std::cout << "Use \"" << argv[0] << " -l\" to print the list of available devices.\n";
       return 0;
 #endif
       break;
@@ -288,8 +294,7 @@ int main(int argc, const char ** argv)
       d2 = new vpDisplayGDI;
 #else
       std::cout << "  Sorry, GDI video device is not available.\n";
-      std::cout << "Use \"" << argv[0]
-                << " -l\" to print the list of available devices.\n";
+      std::cout << "Use \"" << argv[0] << " -l\" to print the list of available devices.\n";
       return 0;
 #endif
       break;
@@ -300,8 +305,7 @@ int main(int argc, const char ** argv)
       d2 = new vpDisplayD3D;
 #else
       std::cout << "  Sorry, D3D video device is not available.\n";
-      std::cout << "Use \"" << argv[0]
-                << " -l\" to print the list of available devices.\n";
+      std::cout << "Use \"" << argv[0] << " -l\" to print the list of available devices.\n";
       return 0;
 #endif
       break;
@@ -312,18 +316,17 @@ int main(int argc, const char ** argv)
       d2 = new vpDisplayOpenCV;
 #else
       std::cout << "  Sorry, OpenCV video device is not available.\n";
-      std::cout << "Use \"" << argv[0]
-                << " -l\" to print the list of available devices.\n";
+      std::cout << "Use \"" << argv[0] << " -l\" to print the list of available devices.\n";
       return 0;
 #endif
       break;
     }
 
-    if (opt_display){
+    if (opt_display) {
       int winx1 = 100, winy1 = 200;
       d1->init(I1, winx1, winy1, "Display 1");
 
-      int winx2 = winx1+10+(int)I1.getWidth(), winy2 = winy1;
+      int winx2 = winx1 + 10 + (int)I1.getWidth(), winy2 = winy1;
       d2->init(I2, winx2, winy2, "Display 2");
 
       vpDisplay::display(I1);
@@ -334,23 +337,18 @@ int main(int argc, const char ** argv)
     }
 
     std::cout << "A click in display 1 to exit..." << std::endl;
-    if ( opt_click_allowed )
+    if (opt_click_allowed)
       vpDisplay::getClick(I1);
 
     delete d1;
     delete d2;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }
 }
 
 #else
-int
-main()
-{
-  vpERROR_TRACE("You do not have display functionalities...");
-}
+int main() { vpERROR_TRACE("You do not have display functionalities..."); }
 
 #endif

@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -43,12 +44,12 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "vpView.h"
 #include "vpArit.h"
+#include "vpView.h"
 
-void View_to_Matrix (View_parameters *vp, Matrix m);
-void set_parallel (View_parameters *vp, Matrix wc);
-void set_perspective (View_parameters *vp, Matrix wc);
+void View_to_Matrix(View_parameters *vp, Matrix m);
+void set_parallel(View_parameters *vp, Matrix wc);
+void set_perspective(View_parameters *vp, Matrix wc);
 
 #endif
 #endif

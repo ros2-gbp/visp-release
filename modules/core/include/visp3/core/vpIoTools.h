@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,7 +36,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpIoTools_HH
 #define vpIoTools_HH
 
@@ -48,8 +48,8 @@
 
 #include <iostream>
 #include <sstream>
-#include <string>
 #include <stdlib.h>
+#include <string>
 #include <vector>
 #include <visp3/core/vpColor.h>
 
@@ -87,8 +87,8 @@ int main()
   // Create a empty filename with name "username/file.txt"
   std::ofstream f;
   std::string filename = username + "/file.txt";
-  filename = vpIoTools::path(filename); // Under Windows converts the filename string into "username\\file.txt"
-
+  // Under Windows converts the filename string into "username\\file.txt"
+  filename = vpIoTools::path(filename);
   std::cout << "Create: " << filename << std::endl;
   f.open(filename.c_str());
   f.close();
@@ -106,8 +106,8 @@ int main()
 }
   \endcode
 
-  The example below shows how to read a configuration file and how to create a name for experiment files.
-  We assume the following file "/home/user/demo/config.txt" :
+  The example below shows how to read a configuration file and how to create a name
+  for experiment files. We assume the following file "/home/user/demo/config.txt" :
   \code
 expNumber 2
 save 0
@@ -133,14 +133,18 @@ int main()
 
   // creating name for experiment files
   vpIoTools::setBaseDir("/home/user/data");
-  vpIoTools::setBaseName("exp" + nExp);         // full name <- "/home/user/data/exp2"
-  vpIoTools::addNameElement("2D", use2D);       // full name <- "/home/user/data/exp2" since use2D==false
-  vpIoTools::addNameElement("3D", use3D);       // full name <- "/home/user/data/exp2_3D"
-  vpIoTools::addNameElement("lambda", lambda);  // full name <- "/home/user/data/exp2_3D_lambda0.4"
+  // full name <- "/home/user/data/exp2"
+  vpIoTools::setBaseName("exp" + nExp);
+  // full name <- "/home/user/data/exp2" since use2D==false
+  vpIoTools::addNameElement("2D", use2D);
+  // full name <- "/home/user/data/exp2_3D"
+  vpIoTools::addNameElement("3D", use3D);
+  // full name <- "/home/user/data/exp2_3D_lambda0.4"
+  vpIoTools::addNameElement("lambda", lambda);
 
-  // saving file
-  vpIoTools::saveConfigFile(doSave); // would copy "/home/user/demo/config.txt" to "/home/user/data/exp2_3D_lambda0.4_config.txt" if doSave was true
-
+  // Saving file.Would copy "/home/user/demo/config.txt" to
+  // "/home/user/data/exp2_3D_lambda0.4_config.txt" if doSave was true
+  vpIoTools::saveConfigFile(doSave);
   // create sub directory
   vpIoTools::createBaseNamePath();  // creates "/home/user/data/exp2_3D_lambda0.4/"
 }
@@ -152,7 +156,7 @@ class VISP_EXPORT vpIoTools
 {
 
 public:
-  static const std::string& getBuildInformation();
+  static const std::string &getBuildInformation();
   static void getUserName(std::string &username);
   static std::string getUserName();
   static std::string getenv(const char *env);
@@ -171,30 +175,32 @@ public:
   static bool remove(const std::string &filename);
   static bool rename(const char *oldfilename, const char *newfilename);
   static bool rename(const std::string &oldfilename, const std::string &newfilename);
-  
-  static std::string path(const char * pathname);
+
+  static std::string path(const char *pathname);
   static std::string path(const std::string &pathname);
-  
+
   /*!
-   	 Define the directory separator character, backslash ('\') for windows platform or slash ('/') otherwise.
+         Define the directory separator character, backslash ('\') for windows
+     platform or slash ('/') otherwise.
    */
   static const char separator =
-  #if defined(_WIN32)
-  	'\\';
-  #else
-  	'/';
-  #endif
+#if defined(_WIN32)
+      '\\';
+#else
+      '/';
+#endif
 
   static std::string getAbsolutePathname(const std::string &pathname);
-  static std::string getFileExtension(const std::string &pathname, const bool checkFile=false);
+  static std::string getFileExtension(const std::string &pathname, const bool checkFile = false);
   static std::string getName(const std::string &pathname);
   static std::string getNameWE(const std::string &pathname);
-  static std::string getParent(const std::string& pathname);
-  static std::string createFilePath(const std::string& parent, const std::string child);
-  static bool isAbsolutePathname(const std::string& pathname);
-  static bool isSamePathname(const std::string& pathname1, const std::string& pathname2);
-  static std::pair<std::string, std::string> splitDrive(const std::string& pathname);
-  static std::vector<std::string> splitChain(const std::string & chain, const std::string & sep);
+  static std::string getParent(const std::string &pathname);
+  static std::string createFilePath(const std::string &parent, const std::string &child);
+  static bool isAbsolutePathname(const std::string &pathname);
+  static bool isSamePathname(const std::string &pathname1, const std::string &pathname2);
+  static std::pair<std::string, std::string> splitDrive(const std::string &pathname);
+  static std::vector<std::string> splitChain(const std::string &chain, const std::string &sep);
+  static std::vector<std::string> getDirFiles(const std::string &dirname);
 
   /*!
     @name Configuration file parsing
@@ -209,32 +215,29 @@ public:
   static bool readConfigVar(const std::string &var, bool &value);
   static bool readConfigVar(const std::string &var, std::string &value);
   static bool readConfigVar(const std::string &var, vpColor &value);
-  static bool readConfigVar(const std::string &var, vpArray2D<double> &value,
-                            const unsigned int &nCols = 0,
+  static bool readConfigVar(const std::string &var, vpArray2D<double> &value, const unsigned int &nCols = 0,
                             const unsigned int &nRows = 0);
-  
+
   // construct experiment filename & path
   static void setBaseName(const std::string &s);
   static void setBaseDir(const std::string &dir);
-  static void addNameElement(const std::string &strTrue, 
-			     const bool &cond=true, 
-			     const std::string &strFalse="");
+  static void addNameElement(const std::string &strTrue, const bool &cond = true, const std::string &strFalse = "");
   static void addNameElement(const std::string &strTrue, const double &val);
   static std::string getBaseName();
   static std::string getFullName();
-  
+
   // write files
   static void saveConfigFile(const bool &actuallySave = true);
   static void createBaseNamePath(const bool &empty = false);
   //@}
 
- protected:
+protected:
   static std::string baseName;
   static std::string baseDir;
   static std::string configFile;
   static std::vector<std::string> configVars;
   static std::vector<std::string> configValues;
-} ;
 
-
+  static int mkdir_p(const char *path, const int mode);
+};
 #endif
