@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -41,7 +42,8 @@
 set(opt_incs "")
 set(opt_libs "")
 
-# camera devices: v4l, dc1394, cmu1394, directshow ?, freenect, flycapture
+# camera devices: v4l, dc1394, cmu1394, directshow ?, freenect,
+# flycapture, pylon
 if(USE_V4L2)
   list(APPEND opt_incs ${V4L2_INCLUDE_DIRS})
   list(APPEND opt_libs ${V4L2_LIBRARIES})
@@ -70,6 +72,10 @@ if(USE_FLYCAPTURE)
   list(APPEND opt_incs ${FLYCAPTURE_INCLUDE_DIRS})
   list(APPEND opt_libs ${FLYCAPTURE_LIBRARIES})
 endif()
+if(USE_PYLON)
+  list(APPEND opt_incs ${PYLON_INCLUDE_DIRS})
+  list(APPEND opt_libs ${PYLON_LIBRARIES})
+endif()
 if(USE_COMEDI)
   list(APPEND opt_incs ${COMEDI_INCLUDE_DIRS})
   list(APPEND opt_libs ${COMEDI_LIBRARIES})
@@ -77,6 +83,10 @@ endif()
 if(USE_REALSENSE)
   list(APPEND opt_incs ${REALSENSE_INCLUDE_DIRS})
   list(APPEND opt_libs ${REALSENSE_LIBRARIES})
+endif()
+if(USE_REALSENSE2)
+  list(APPEND opt_incs ${REALSENSE2_INCLUDE_DIRS})
+  list(APPEND opt_libs ${REALSENSE2_LIBRARIES})
 endif()
 if(USE_PCL)
   list(APPEND opt_incs ${PCL_INCLUDE_DIRS})
@@ -149,7 +159,7 @@ if(USE_PCL)
     endforeach()
     if(VTK_VERSION VERSION_EQUAL 6.2.0)
       mark_as_advanced(Qt5Core_DIR Qt5Gui_DIR Qt5Network_DIR Qt5WebKit_DIR Qt5Widgets_DIR)
-    elseif(VTK_VERSION VERSION_EQUAL 7.1.0)
+    elseif(VTK_VERSION VERSION_EQUAL 7.1.0 OR VTK_VERSION VERSION_EQUAL 8.0.0)
       mark_as_advanced(DAVIDSDK_INCLUDE_DIR DAVIDSDK_LIBRARY DSSDK_DIR ENSENSO_INCLUDE_DIR ENSENSO_LIBRARY)
       mark_as_advanced(GLEW_INCLUDE_DIR GLEW_GLEW_LIBRARY)
       mark_as_advanced(Qt5Core_DIR Qt5Gui_DIR Qt5Sql_DIR Qt5Widgets_DIR RSSDK_DIR)
@@ -157,8 +167,11 @@ if(USE_PCL)
   endif()
 endif()
 
-# atidac is private
-include_directories(${ATIDAQ_INCLUDE_DIRS})
+if(WITH_ATIDAQ)
+  # atidac is private
+  include_directories(${ATIDAQ_INCLUDE_DIRS})
+endif()
+
 vp_add_module(sensor visp_core PRIVATE_OPTIONAL ${ATIDAQ_LIBRARIES})
 vp_glob_module_sources()
 
@@ -166,9 +179,22 @@ if(USE_FLYCAPTURE)
   # Add specific build flag to turn off warnings coming from PointGrey flycapture 3rd party
   vp_set_source_file_compile_flag(src/framegrabber/flycapture/vpFlyCaptureGrabber.cpp -Wno-unknown-pragmas -Wno-ignored-qualifiers)
 endif()
+if(USE_PYLON)
+  # Add specific build flag to turn off warnings coming from Basler
+  # pylon headers
+  vp_set_source_file_compile_flag(src/framegrabber/pylon/vpPylonFactory.cpp -Wno-unknown-pragmas -Wno-unused-parameter -Wno-overloaded-virtual)
+  vp_set_source_file_compile_flag(src/framegrabber/pylon/vpPylonGrabberGigE.cpp -Wno-unknown-pragmas -Wno-unused-parameter -Wno-overloaded-virtual -Wno-non-pod-varargs /wd"4244" /wd"4267")
+  vp_set_source_file_compile_flag(src/framegrabber/pylon/vpPylonGrabberUsb.cpp -Wno-unknown-pragmas -Wno-unused-parameter -Wno-overloaded-virtual -Wno-non-pod-varargs /wd"4244" /wd"4267")
+  vp_set_source_file_compile_flag(test/framegrabber/testPylonGrabber.cpp -Wno-unknown-pragmas -Wno-overloaded-virtual -Wno-unused-parameter)
+endif()
 if(USE_REALSENSE)
   # Add specific build flag to turn off warnings coming from RealSense 3rd party
-  vp_set_source_file_compile_flag(src/rgb-depth/realsense/vpRealSense.cpp -Wno-strict-aliasing)
+  vp_set_source_file_compile_flag(src/rgb-depth/realsense/vpRealSense.cpp -Wno-strict-aliasing -Wno-pessimizing-move -Wno-unused-parameter)
+endif()
+if(USE_REALSENSE2)
+  # Add specific build flag to turn off warnings coming from RealSense2 3rd party
+  vp_set_source_file_compile_flag(src/rgb-depth/realsense/vpRealSense2.cpp -Wno-reorder -Wno-unused-function)
+  vp_set_source_file_compile_flag(test/rgb-depth/testRealSense2_SR300.cpp -Wno-reorder -Wno-unused-function)
 endif()
 
 vp_module_include_directories(${opt_incs})
@@ -177,5 +203,7 @@ vp_add_tests(CTEST_EXCLUDE_PATH framegrabber force-torque rgb-depth DEPENDS_ON v
 
 if(USE_PCL)
   # Add specific build flag to turn off warnings coming from PCL 3rd party
-  vp_set_source_file_compile_flag(test/rgb-depth/testRealSense.cpp -Wno-deprecated-declarations -Wno-inconsistent-missing-override -Wno-sign-conversion -Wno-float-equal)
+  vp_set_source_file_compile_flag(test/rgb-depth/testRealSense_R200.cpp -Wno-deprecated-declarations -Wno-inconsistent-missing-override -Wno-sign-conversion -Wno-float-equal -Wno-pessimizing-move -Wno-unused-parameter)
+  vp_set_source_file_compile_flag(test/rgb-depth/testRealSense_SR300.cpp -Wno-deprecated-declarations -Wno-inconsistent-missing-override -Wno-sign-conversion -Wno-float-equal -Wno-pessimizing-move -Wno-unused-parameter)
+  vp_set_source_file_compile_flag(test/rgb-depth/testRealSense2_SR300.cpp -Wno-deprecated-declarations -Wno-inconsistent-missing-override -Wno-sign-conversion -Wno-float-equal -Wno-pessimizing-move -Wno-unused-parameter)
 endif()

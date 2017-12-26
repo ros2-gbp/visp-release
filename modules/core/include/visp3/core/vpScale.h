@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -28,7 +29,8 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Description:
- * Median Absolute Deviation (MAD), MPDE, Mean shift kernel density estimation.
+ * Median Absolute Deviation (MAD), MPDE, Mean shift kernel density
+ *estimation.
  *
  * Authors:
  * Andrew Comport
@@ -43,19 +45,16 @@
 /*!
  * \brief Contains various estimators for scale.
  * \n Methods : Median Absolute Deviation (MAD),
- * 							MPDE, Mean shift kernel density estimation.
- * \author Andrew Comport
- * \date 24/10/03
+ * 							MPDE, Mean shift kernel
+ * density estimation. \author Andrew Comport \date 24/10/03
  */
 // ==========================================================
-
 
 #ifndef VPSCALE_HH
 #define VPSCALE_HH
 
-#include <visp3/core/vpColVector.h>
 #include <math.h>
-
+#include <visp3/core/vpColVector.h>
 
 /*!
   \class vpScale
@@ -78,10 +77,9 @@ private:
   unsigned int dimension;
 
 public:
-
   //! Constructor
   vpScale();
-  vpScale(double kernel_bandwidth, unsigned int dim=1);
+  vpScale(double kernel_bandwidth, unsigned int dim = 1);
   //! Destructor
   virtual ~vpScale(void);
 
@@ -91,7 +89,6 @@ public:
 
   double KernelDensity_EPANECHNIKOV(vpColVector &X);
   double KernelDensityGradient_EPANECHNIKOV(double X, unsigned int n);
-
 };
 
 #endif

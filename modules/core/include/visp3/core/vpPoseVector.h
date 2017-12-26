@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -37,7 +38,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpPOSEVECTOR_H
 #define vpPOSEVECTOR_H
 
@@ -56,10 +56,9 @@ class vpThetaUVector;
 class vpRowVector;
 
 #include <visp3/core/vpArray2D.h>
+#include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpMatrix.h>
 #include <visp3/core/vpRotationMatrix.h>
-#include <visp3/core/vpHomogeneousMatrix.h>
-
 
 /*!
   \class vpPoseVector
@@ -68,8 +67,8 @@ class vpRowVector;
 
   \brief Implementation of a pose vector and operations on poses.
 
-  The vpPose class implements a complete representation of every rigid motion in the
-  euclidian space.
+  The vpPose class implements a complete representation of every rigid motion
+  in the euclidian space.
 
   The vpPose class is derived from vpArray2D<double>.
 
@@ -83,8 +82,8 @@ class vpRowVector;
   axis and \f$\theta \bf u \f$, the axis-angle representation of the
   rotation \f$^{a}\bf{R}_{b}\f$ between these frames.
 
-  Translations are expressed in meters, while the angles in the \f$\theta {\bf u}\f$
-  axis-angle representation are expressed in radians.
+  Translations are expressed in meters, while the angles in the \f$\theta {\bf
+  u}\f$ axis-angle representation are expressed in radians.
 
   To know more about the \f$\theta \bf u\f$ rotation representation,
   see vpThetaUVector documentation.
@@ -94,45 +93,40 @@ class VISP_EXPORT vpPoseVector : public vpArray2D<double>
 {
 public:
   // constructor
-  vpPoseVector() ;
+  vpPoseVector();
   // constructor from 3 angles (in radian)
-  vpPoseVector(const double tx, const double ty, const double tz,
-               const double tux, const double tuy, const double tuz) ;
+  vpPoseVector(const double tx, const double ty, const double tz, const double tux, const double tuy, const double tuz);
   // constructor convert an homogeneous matrix in a pose
-  vpPoseVector(const vpHomogeneousMatrix& M) ;
+  explicit vpPoseVector(const vpHomogeneousMatrix &M);
   // constructor  convert a translation and a "thetau" vector into a pose
-  vpPoseVector(const vpTranslationVector& tv,
-               const vpThetaUVector& tu) ;
+  vpPoseVector(const vpTranslationVector &tv, const vpThetaUVector &tu);
   // constructor  convert a translation and a rotation matrix into a pose
-  vpPoseVector(const vpTranslationVector& tv,
-               const vpRotationMatrix& R) ;
+  vpPoseVector(const vpTranslationVector &tv, const vpRotationMatrix &R);
   /*!
     Destructor.
   */
-  virtual ~vpPoseVector() {};
+  virtual ~vpPoseVector(){};
 
-  vpPoseVector buildFrom(const double tx, const double ty, const double tz,
-                         const double tux, const double tuy, const double tuz) ;
+  vpPoseVector buildFrom(const double tx, const double ty, const double tz, const double tux, const double tuy,
+                         const double tuz);
   // convert an homogeneous matrix in a pose
-  vpPoseVector buildFrom(const vpHomogeneousMatrix& M) ;
+  vpPoseVector buildFrom(const vpHomogeneousMatrix &M);
   //  convert a translation and a "thetau" vector into a pose
-  vpPoseVector buildFrom(const vpTranslationVector& tv,
-                         const vpThetaUVector& tu) ;
+  vpPoseVector buildFrom(const vpTranslationVector &tv, const vpThetaUVector &tu);
   //  convert a translation and a rotation matrix into a pose
-  vpPoseVector buildFrom(const vpTranslationVector& tv,
-                         const vpRotationMatrix& R) ;
+  vpPoseVector buildFrom(const vpTranslationVector &tv, const vpRotationMatrix &R);
 
   void extract(vpRotationMatrix &R) const;
   void extract(vpThetaUVector &tu) const;
   void extract(vpTranslationVector &tv) const;
-  void extract(vpQuaternionVector& q) const;
+  void extract(vpQuaternionVector &q) const;
 
   vpRotationMatrix getRotationMatrix() const;
   vpThetaUVector getThetaUVector() const;
   vpTranslationVector getTranslationVector() const;
 
   // Load an homogeneous matrix from a file
-  void load(std::ifstream &f) ;
+  void load(std::ifstream &f);
 
   /*!
     Set the value of an element of the pose vector: r[i] = x.
@@ -158,7 +152,7 @@ public:
     \endcode
 
   */
-  inline double &operator [](unsigned int i) {  return *(data + i);  }
+  inline double &operator[](unsigned int i) { return *(data + i); }
   /*!
     Get the value of an element of the pose vector: x = r[i].
 
@@ -166,7 +160,7 @@ public:
 
     \code
     vpPoseVector r(1, 2, 3, M_PI, -M_PI, 0);
-    
+
     double tx,ty,tz; // Translation
     double tux, tuy,tuz; // Theta u rotation
     tx  = r[0];
@@ -177,19 +171,18 @@ public:
     tuz = r[5];
     \endcode
   */
-  inline const double &operator [](unsigned int i) const { return *(data+i);  }
+  inline const double &operator[](unsigned int i) const { return *(data + i); }
 
   // Print  a vector [T thetaU] thetaU in degree
   void print() const;
-  int print(std::ostream& s, unsigned int length, char const* intro=0) const;
+  int print(std::ostream &s, unsigned int length, char const *intro = 0) const;
 
   /*!
     This function is not applicable to a pose vector that is always a
     6-by-1 column vector.
     \exception vpException::fatalError When this function is called.
     */
-  void resize(const unsigned int nrows, const unsigned int ncols,
-              const bool flagNullify = true)
+  void resize(const unsigned int nrows, const unsigned int ncols, const bool flagNullify = true)
   {
     (void)nrows;
     (void)ncols;
@@ -198,9 +191,8 @@ public:
   };
 
   // Save an homogeneous matrix in a file
-  void save(std::ofstream &f) const ;
-  void set(const double tx, const double ty, const double tz,
-           const double tux, const double tuy, const double tuz);
+  void save(std::ofstream &f) const;
+  void set(const double tx, const double ty, const double tz, const double tux, const double tuy, const double tuz);
   vpRowVector t() const;
 
 #if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
@@ -212,9 +204,9 @@ public:
      \deprecated Provided only for compat with previous releases.
      This function does nothing.
    */
-  vp_deprecated void init() {};
-  //@}
+  vp_deprecated void init(){};
+//@}
 #endif
-} ;
+};
 
 #endif

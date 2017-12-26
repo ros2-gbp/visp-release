@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -37,48 +38,42 @@
 
 #include <visp3/core/vpRequest.h>
 
-vpRequest::vpRequest()
-  : request_id(""), listOfParams()
-{}
+vpRequest::vpRequest() : request_id(""), listOfParams() {}
 
-vpRequest::~vpRequest()
-{}
-  
+vpRequest::~vpRequest() {}
+
 /*!
   Add a message as parameter of the request.
-  
+
   \sa vpNetwork::addParameterObject()
-  
+
   \param params : Array of characters representing the message to add.
 */
 void vpRequest::addParameter(char *params)
-{  
+{
   std::string val = params;
   listOfParams.push_back(val);
 }
 
 /*!
   Add a message as parameter of the request.
-  
+
   \sa vpNetwork::addParameterObject()
-  
+
   \param params : std::string representing the message to add.
 */
-void vpRequest::addParameter(std::string &params)
-{
-  listOfParams.push_back(params);
-}
+void vpRequest::addParameter(std::string &params) { listOfParams.push_back(params); }
 
 /*!
   Add messages as parameters of the request.
   Each message corresponds to one parameter.
-  
+
   \sa vpNetwork::addParameterObject()
-  
+
   \param listOfparams : Array of std::string representing the messages to add.
 */
-void vpRequest::addParameter(std::vector< std::string > &listOfparams)
-{  
-  for(unsigned int i = 0; i < listOfparams.size() ; i++)
+void vpRequest::addParameter(std::vector<std::string> &listOfparams)
+{
+  for (unsigned int i = 0; i < listOfparams.size(); i++)
     listOfparams.push_back(listOfparams[i]);
 }

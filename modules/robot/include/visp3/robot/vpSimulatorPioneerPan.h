@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,7 +36,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpSimulatorPioneerPan_H
 #define vpSimulatorPioneerPan_H
 
@@ -62,11 +62,12 @@
 
   It intends to simulate the mobile robot described in vpPioneerPan class.
   This robot has 3 dof: \f$(v_x, w_z, \dot{q_1})\f$, the translational and
-  rotational velocities of the mobile platform, the pan head velocity respectively.
+  rotational velocities of the mobile platform, the pan head velocity
+respectively.
 
-  The robot position evolves with respect to a world frame; wMc. When a new joint velocity
-  is applied to the robot using setVelocity(), the position of the camera wrt the world frame
-  is updated.
+  The robot position evolves with respect to a world frame; wMc. When a new
+joint velocity is applied to the robot using setVelocity(), the position of
+the camera wrt the world frame is updated.
 
   \image html pioneer-pan.png
 
@@ -96,7 +97,8 @@ int main()
 }
   \endcode
 
-  The usage of this class is also highlighted in \ref tutorial-simu-robot-pioneer.
+  The usage of this class is also highlighted in \ref
+tutorial-simu-robot-pioneer.
 
 */
 class VISP_EXPORT vpSimulatorPioneerPan : public vpPioneerPan, public vpRobotSimulator
@@ -104,8 +106,8 @@ class VISP_EXPORT vpSimulatorPioneerPan : public vpPioneerPan, public vpRobotSim
 
 protected:
   //! robot / camera location in the world frame
-  vpHomogeneousMatrix wMc_ ; // world to camera
-  vpHomogeneousMatrix wMm_ ; // world to mobile robot frame located between the two weels
+  vpHomogeneousMatrix wMc_; // world to camera
+  vpHomogeneousMatrix wMm_; // world to mobile robot frame located between the two weels
   // mMp_ mobile robot to pan frame is a protected member of vpPioneerPan
   // pMe_ pan head to end effector frame is a protected member of vpPioneerPan
   // cMe_ is a protected member of vpUnicycle
@@ -116,7 +118,7 @@ protected:
   double q_pan_;
 
 public:
-  vpSimulatorPioneerPan() ;
+  vpSimulatorPioneerPan();
   virtual ~vpSimulatorPioneerPan();
 
 public:
@@ -126,18 +128,16 @@ public:
 
   void getPosition(vpHomogeneousMatrix &wMc) const;
   void getPosition(const vpRobot::vpControlFrameType frame, vpColVector &q);
-  void setVelocity(const vpRobot::vpControlFrameType frame,
-                   const  vpColVector &vel)  ;
+  void setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &vel);
   //@}
 
 private:
-  void init() ;
+  void init();
 
   // Non implemented virtual pure functions
-  void get_fJe(vpMatrix & /*_fJe */) {};
-  void getDisplacement(const vpRobot::vpControlFrameType /* frame */, vpColVector & /* q */) {};
-  void setPosition(const vpRobot::vpControlFrameType /* frame */, const vpColVector & /* q */) {};
-} ;
+  void get_fJe(vpMatrix & /*_fJe */){};
+  void getDisplacement(const vpRobot::vpControlFrameType /* frame */, vpColVector & /* q */){};
+  void setPosition(const vpRobot::vpControlFrameType /* frame */, const vpColVector & /* q */){};
+};
 
 #endif
-

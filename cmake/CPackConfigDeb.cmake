@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -113,9 +114,6 @@ IF(USE_LIBJPEG)
   else()
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libjpeg-dev (>=6b-15)")
   endif()
-ENDIF()
-IF(USE_FFMPEG)
-  set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libswscale-dev (>=4:0.5.1), libavutil-dev (>=4:0.5.1), libavformat-dev (>=4:0.5.1), libavcodec-dev (>=4:0.5.1), libbz2-dev (>=1.0.5-4), libbz2-1.0 (>=1.0.5-4)")
 ENDIF()
 IF(USE_COIN)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libcoin60-dev (>=3.1.2-1)")
