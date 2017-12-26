@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -44,12 +45,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <visp3/core/vpExponentialMap.h>
 #include <visp3/core/vpDebug.h>
-#include <visp3/core/vpVelocityTwistMatrix.h>
-#include <visp3/core/vpThetaUVector.h>
+#include <visp3/core/vpExponentialMap.h>
 #include <visp3/core/vpIoTools.h>
 #include <visp3/core/vpRotationMatrix.h>
+#include <visp3/core/vpThetaUVector.h>
+#include <visp3/core/vpVelocityTwistMatrix.h>
 #include <visp3/robot/vpRobotAfma6.h>
 #include <visp3/robot/vpRobotException.h>
 
@@ -81,24 +82,27 @@ const double vpRobotAfma6::defaultPositioningVelocity = 15.0;
 */
 void emergencyStopAfma6(int signo)
 {
-  std::cout << "Stop the Afma6 application by signal (" 
-	    << signo << "): " << (char)7 ;
-  switch(signo)
-    {
-    case SIGINT:
-      std::cout << "SIGINT (stop by ^C) " << std::endl ; break ;
-    case SIGBUS:
-      std::cout <<"SIGBUS (stop due to a bus error) " << std::endl ; break ;
-    case SIGSEGV:
-      std::cout <<"SIGSEGV (stop due to a segmentation fault) " << std::endl ; break ;
-    case SIGKILL:
-      std::cout <<"SIGKILL (stop by CTRL \\) " << std::endl ; break ;
-    case SIGQUIT:
-      std::cout <<"SIGQUIT " << std::endl ; break ;
-    default :
-      std::cout << signo << std::endl ;
-    }
-  //std::cout << "Emergency stop called\n";
+  std::cout << "Stop the Afma6 application by signal (" << signo << "): " << (char)7;
+  switch (signo) {
+  case SIGINT:
+    std::cout << "SIGINT (stop by ^C) " << std::endl;
+    break;
+  case SIGBUS:
+    std::cout << "SIGBUS (stop due to a bus error) " << std::endl;
+    break;
+  case SIGSEGV:
+    std::cout << "SIGSEGV (stop due to a segmentation fault) " << std::endl;
+    break;
+  case SIGKILL:
+    std::cout << "SIGKILL (stop by CTRL \\) " << std::endl;
+    break;
+  case SIGQUIT:
+    std::cout << "SIGQUIT " << std::endl;
+    break;
+  default:
+    std::cout << signo << std::endl;
+  }
+  // std::cout << "Emergency stop called\n";
   //  PrimitiveESTOP_Afma6();
   PrimitiveSTOP_Afma6();
   std::cout << "Robot was stopped\n";
@@ -109,7 +113,7 @@ void emergencyStopAfma6(int signo)
   fprintf(stdout, "Application ");
   fflush(stdout);
   kill(getpid(), SIGKILL);
-  exit(1) ;
+  exit(1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,8 +139,8 @@ void emergencyStopAfma6(int signo)
   vpRobotAfma6 robot;
   // Set the extrinsic camera parameters obtained with a perpective
   // projection model including a distorsion parameter
-  robot.init(vpAfma6::TOOL_CCMOP, vpCameraParameters::perspectiveProjWithDistortion);
-  \endcode
+  robot.init(vpAfma6::TOOL_CCMOP,
+  vpCameraParameters::perspectiveProjWithDistortion); \endcode
 
   Now, you can get the intrinsic camera parameters of the image I
   acquired with the camera, with:
@@ -152,10 +156,7 @@ void emergencyStopAfma6(int signo)
   vpCameraParameters::vpCameraParametersProjType)
 
 */
-vpRobotAfma6::vpRobotAfma6 (bool verbose)
-  :
-  vpAfma6 (),
-  vpRobot ()
+vpRobotAfma6::vpRobotAfma6(bool verbose) : vpAfma6(), vpRobot()
 {
 
   /*
@@ -178,8 +179,8 @@ vpRobotAfma6::vpRobotAfma6 (bool verbose)
   */
 
   signal(SIGINT, emergencyStopAfma6);
-  signal(SIGBUS, emergencyStopAfma6) ;
-  signal(SIGSEGV, emergencyStopAfma6) ;
+  signal(SIGBUS, emergencyStopAfma6);
+  signal(SIGSEGV, emergencyStopAfma6);
   signal(SIGKILL, emergencyStopAfma6);
   signal(SIGQUIT, emergencyStopAfma6);
 
@@ -188,19 +189,17 @@ vpRobotAfma6::vpRobotAfma6 (bool verbose)
     std::cout << "Open communication with MotionBlox.\n";
   try {
     this->init();
-    this->setRobotState(vpRobot::STATE_STOP) ;
-  }
-  catch(...) {
+    this->setRobotState(vpRobot::STATE_STOP);
+  } catch (...) {
     //  vpERROR_TRACE("Error caught") ;
-    throw ;
+    throw;
   }
-  positioningVelocity = defaultPositioningVelocity ;
+  positioningVelocity = defaultPositioningVelocity;
 
   vpRobotAfma6::robotAlreadyCreated = true;
 
-  return ;
+  return;
 }
-
 
 /* ------------------------------------------------------------------------ */
 /* --- INITIALISATION ----------------------------------------------------- */
@@ -225,8 +224,7 @@ vpRobotAfma6::vpRobotAfma6 (bool verbose)
   \sa vpCameraParameters, init(vpAfma6::vpAfma6CameraRobotType,
   vpCameraParameters::vpCameraParametersProjType)
 */
-void
-vpRobotAfma6::init (void)
+void vpRobotAfma6::init(void)
 {
   InitTry;
 
@@ -242,12 +240,12 @@ vpRobotAfma6::init (void)
   first_time_getdis = true;
 
   // Initialize the firewire connection
-  Try( InitializeConnection(verbose_) );
+  Try(InitializeConnection(verbose_));
 
   // Connect to the servoboard using the servo board GUID
-  Try( InitializeNode_Afma6() );
+  Try(InitializeNode_Afma6());
 
-  Try( PrimitiveRESET_Afma6() );
+  Try(PrimitiveRESET_Afma6());
 
   // Update the eMc matrix in the low level controller
   init(vpAfma6::defaultTool);
@@ -255,14 +253,13 @@ vpRobotAfma6::init (void)
   // Look if the power is on or off
   UInt32 HIPowerStatus;
   UInt32 EStopStatus;
-  Try( PrimitiveSTATUS_Afma6(NULL, NULL, &EStopStatus, NULL, NULL, NULL, 
-			     &HIPowerStatus));
+  Try(PrimitiveSTATUS_Afma6(NULL, NULL, &EStopStatus, NULL, NULL, NULL, &HIPowerStatus));
   CAL_Wait(0.1);
 
   // Print the robot status
   if (verbose_) {
     std::cout << "Robot status: ";
-    switch(EStopStatus) {
+    switch (EStopStatus) {
     case ESTOP_AUTO:
     case ESTOP_MANUAL:
       if (HIPowerStatus == 0)
@@ -281,19 +278,21 @@ vpRobotAfma6::init (void)
     std::cout << std::endl;
   }
   // get real joint min/max from the MotionBlox
-  Try( PrimitiveJOINT_MINMAX_Afma6(_joint_min, _joint_max) );
-//   for (unsigned int i=0; i < njoint; i++) {
-//     printf("axis %d: joint min %lf, max %lf\n", i, _joint_min[i], _joint_max[i]);
-//   }
+  Try(PrimitiveJOINT_MINMAX_Afma6(_joint_min, _joint_max));
+  //   for (unsigned int i=0; i < njoint; i++) {
+  //     printf("axis %d: joint min %lf, max %lf\n", i, _joint_min[i],
+  //     _joint_max[i]);
+  //   }
 
   // If an error occur in the low level controller, goto here
-  //CatchPrint();
+  // CatchPrint();
   Catch();
 
   // Test if an error occurs
   if (TryStt == -20001)
     printf("No connection detected. Check if the robot is powered on \n"
-	   "and if the firewire link exist between the MotionBlox and this computer.\n");
+           "and if the firewire link exist between the MotionBlox and this "
+           "computer.\n");
   else if (TryStt == -675)
     printf(" Timeout enabling power...\n");
 
@@ -304,10 +303,9 @@ vpRobotAfma6::init (void)
     ShutDownConnection();
 
     std::cout << "Cannot open connection with the motionblox..." << std::endl;
-    throw vpRobotException (vpRobotException::constructionError,
-          "Cannot open connection with the motionblox");
+    throw vpRobotException(vpRobotException::constructionError, "Cannot open connection with the motionblox");
   }
-  return ;
+  return;
 }
 
 /*!
@@ -331,8 +329,8 @@ vpRobotAfma6::init (void)
   vpRobotAfma6 robot;
   // Set the extrinsic camera parameters obtained with a perpective
   // projection model including a distorsion parameter
-  robot.init(vpAfma6::TOOL_CCMOP, vpCameraParameters::perspectiveProjWithDistortion);
-  \endcode
+  robot.init(vpAfma6::TOOL_CCMOP,
+  vpCameraParameters::perspectiveProjWithDistortion); \endcode
 
   Now, you can get the intrinsic camera parameters of the image \e I
   acquired with the camera, with:
@@ -346,9 +344,7 @@ vpRobotAfma6::init (void)
 
   \sa vpCameraParameters, init()
 */
-void
-vpRobotAfma6::init (vpAfma6::vpAfma6ToolType tool,
-                    vpCameraParameters::vpCameraParametersProjType projModel)
+void vpRobotAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::vpCameraParametersProjType projModel)
 {
   InitTry;
   // Read the robot constants from files
@@ -357,27 +353,28 @@ vpRobotAfma6::init (vpAfma6::vpAfma6ToolType tool,
   vpAfma6::init(tool, projModel);
 
   // Set the robot constant (coupl_56, long_56) in the MotionBlox
-  Try( PrimitiveROBOT_CONST_Afma6(_coupl_56, _long_56) );
+  Try(PrimitiveROBOT_CONST_Afma6(_coupl_56, _long_56));
 
   // Set the camera constant (eMc pose) in the MotionBlox
   double eMc_pose[6];
-  for (unsigned int i=0; i < 3; i ++) {
-    eMc_pose[i] = _etc[i];   // translation in meters
-    eMc_pose[i+3] = _erc[i]; // rotation in rad
+  for (unsigned int i = 0; i < 3; i++) {
+    eMc_pose[i] = _etc[i];     // translation in meters
+    eMc_pose[i + 3] = _erc[i]; // rotation in rad
   }
   // Update the eMc pose in the low level controller
-  Try( PrimitiveCAMERA_CONST_Afma6(eMc_pose) );
+  Try(PrimitiveCAMERA_CONST_Afma6(eMc_pose));
 
   // get real joint min/max from the MotionBlox
-  Try( PrimitiveJOINT_MINMAX_Afma6(_joint_min, _joint_max) );
-//   for (unsigned int i=0; i < njoint; i++) {
-//     printf("axis %d: joint min %lf, max %lf\n", i, _joint_min[i], _joint_max[i]);
-//   }
+  Try(PrimitiveJOINT_MINMAX_Afma6(_joint_min, _joint_max));
+  //   for (unsigned int i=0; i < njoint; i++) {
+  //     printf("axis %d: joint min %lf, max %lf\n", i, _joint_min[i],
+  //     _joint_max[i]);
+  //   }
 
   setToolType(tool);
 
   CatchPrint();
-  return ;
+  return;
 }
 
 /*!
@@ -391,8 +388,7 @@ vpRobotAfma6::init (vpAfma6::vpAfma6ToolType tool,
   \param eMc : Transformation between the end-effector frame
   and the tool frame.
 */
-void
-vpRobotAfma6::set_eMc(const vpHomogeneousMatrix &eMc)
+void vpRobotAfma6::set_eMc(const vpHomogeneousMatrix &eMc)
 {
   InitTry;
   // Set camera extrinsic parameters equal to eMc
@@ -400,12 +396,12 @@ vpRobotAfma6::set_eMc(const vpHomogeneousMatrix &eMc)
 
   // Set the camera constant (eMc pose) in the MotionBlox
   double eMc_pose[6];
-  for (unsigned int i=0; i < 3; i ++) {
-    eMc_pose[i] = _etc[i];   // translation in meters
-    eMc_pose[i+3] = _erc[i]; // rotation in rad
+  for (unsigned int i = 0; i < 3; i++) {
+    eMc_pose[i] = _etc[i];     // translation in meters
+    eMc_pose[i + 3] = _erc[i]; // rotation in rad
   }
   // Update the eMc pose in the low level controller
-  Try( PrimitiveCAMERA_CONST_Afma6(eMc_pose) );
+  Try(PrimitiveCAMERA_CONST_Afma6(eMc_pose));
 
   CatchPrint();
 }
@@ -445,8 +441,7 @@ int main()
   vpCameraParameters::vpCameraParametersProjType),
   init(vpAfma6::vpAfma6ToolType, const std::string&)
 */
-void
-vpRobotAfma6::init(vpAfma6::vpAfma6ToolType tool, const vpHomogeneousMatrix &eMc)
+void vpRobotAfma6::init(vpAfma6::vpAfma6ToolType tool, const vpHomogeneousMatrix &eMc)
 {
   InitTry;
   // Read the robot constants from files
@@ -455,19 +450,19 @@ vpRobotAfma6::init(vpAfma6::vpAfma6ToolType tool, const vpHomogeneousMatrix &eMc
   vpAfma6::init(tool, eMc);
 
   // Set the robot constant (coupl_56, long_56) in the MotionBlox
-  Try( PrimitiveROBOT_CONST_Afma6(_coupl_56, _long_56) );
+  Try(PrimitiveROBOT_CONST_Afma6(_coupl_56, _long_56));
 
   // Set the camera constant (eMc pose) in the MotionBlox
   double eMc_pose[6];
-  for (unsigned int i=0; i < 3; i ++) {
-    eMc_pose[i] = _etc[i];   // translation in meters
-    eMc_pose[i+3] = _erc[i]; // rotation in rad
+  for (unsigned int i = 0; i < 3; i++) {
+    eMc_pose[i] = _etc[i];     // translation in meters
+    eMc_pose[i + 3] = _erc[i]; // rotation in rad
   }
   // Update the eMc pose in the low level controller
-  Try( PrimitiveCAMERA_CONST_Afma6(eMc_pose) );
+  Try(PrimitiveCAMERA_CONST_Afma6(eMc_pose));
 
   // get real joint min/max from the MotionBlox
-  Try( PrimitiveJOINT_MINMAX_Afma6(_joint_min, _joint_max) );
+  Try(PrimitiveJOINT_MINMAX_Afma6(_joint_min, _joint_max));
 
   setToolType(tool);
 
@@ -524,8 +519,7 @@ eMc_TRANS_XYZ  0.05 0.01 0.06
   vpCameraParameters::vpCameraParametersProjType),
   init(vpAfma6::vpAfma6ToolType, const vpHomogeneousMatrix&)
 */
-void
-vpRobotAfma6::init (vpAfma6::vpAfma6ToolType tool, const std::string &filename)
+void vpRobotAfma6::init(vpAfma6::vpAfma6ToolType tool, const std::string &filename)
 {
   InitTry;
   // Read the robot constants from files
@@ -534,19 +528,19 @@ vpRobotAfma6::init (vpAfma6::vpAfma6ToolType tool, const std::string &filename)
   vpAfma6::init(tool, filename);
 
   // Set the robot constant (coupl_56, long_56) in the MotionBlox
-  Try( PrimitiveROBOT_CONST_Afma6(_coupl_56, _long_56) );
+  Try(PrimitiveROBOT_CONST_Afma6(_coupl_56, _long_56));
 
   // Set the camera constant (eMc pose) in the MotionBlox
   double eMc_pose[6];
-  for (unsigned int i=0; i < 3; i ++) {
-    eMc_pose[i] = _etc[i];   // translation in meters
-    eMc_pose[i+3] = _erc[i]; // rotation in rad
+  for (unsigned int i = 0; i < 3; i++) {
+    eMc_pose[i] = _etc[i];     // translation in meters
+    eMc_pose[i + 3] = _erc[i]; // rotation in rad
   }
   // Update the eMc pose in the low level controller
-  Try( PrimitiveCAMERA_CONST_Afma6(eMc_pose) );
+  Try(PrimitiveCAMERA_CONST_Afma6(eMc_pose));
 
   // get real joint min/max from the MotionBlox
-  Try( PrimitiveJOINT_MINMAX_Afma6(_joint_min, _joint_max) );
+  Try(PrimitiveJOINT_MINMAX_Afma6(_joint_min, _joint_max));
 
   setToolType(tool);
 
@@ -563,24 +557,23 @@ vpRobotAfma6::init (vpAfma6::vpAfma6ToolType tool, const std::string &filename)
 
   Free allocated resources.
 */
-vpRobotAfma6::~vpRobotAfma6 (void)
+vpRobotAfma6::~vpRobotAfma6(void)
 {
   InitTry;
 
-  setRobotState(vpRobot::STATE_STOP) ;
+  setRobotState(vpRobot::STATE_STOP);
 
   // Look if the power is on or off
   UInt32 HIPowerStatus;
-  Try( PrimitiveSTATUS_Afma6(NULL, NULL, NULL, NULL, NULL, NULL,
-			     &HIPowerStatus));
+  Try(PrimitiveSTATUS_Afma6(NULL, NULL, NULL, NULL, NULL, NULL, &HIPowerStatus));
   CAL_Wait(0.1);
 
-//   if (HIPowerStatus == 1) {
-//     fprintf(stdout, "Power OFF the robot\n");
-//     fflush(stdout);
+  //   if (HIPowerStatus == 1) {
+  //     fprintf(stdout, "Power OFF the robot\n");
+  //     fflush(stdout);
 
-//     Try( PrimitivePOWEROFF_Afma6() );
-//   }
+  //     Try( PrimitivePOWEROFF_Afma6() );
+  //   }
 
   // Free allocated resources
   ShutDownConnection();
@@ -591,54 +584,49 @@ vpRobotAfma6::~vpRobotAfma6 (void)
   return;
 }
 
-
-
-
 /*!
 
 Change the robot state.
 
 \param newState : New requested robot state.
 */
-vpRobot::vpRobotStateType
-vpRobotAfma6::setRobotState(vpRobot::vpRobotStateType newState)
+vpRobot::vpRobotStateType vpRobotAfma6::setRobotState(vpRobot::vpRobotStateType newState)
 {
   InitTry;
 
   switch (newState) {
   case vpRobot::STATE_STOP: {
-    if (vpRobot::STATE_STOP != getRobotState ()) {
-      Try( PrimitiveSTOP_Afma6() );
+    if (vpRobot::STATE_STOP != getRobotState()) {
+      Try(PrimitiveSTOP_Afma6());
     }
     break;
   }
   case vpRobot::STATE_POSITION_CONTROL: {
-    if (vpRobot::STATE_VELOCITY_CONTROL  == getRobotState ()) {
+    if (vpRobot::STATE_VELOCITY_CONTROL == getRobotState()) {
       std::cout << "Change the control mode from velocity to position control.\n";
-      Try( PrimitiveSTOP_Afma6() );
-    }
-    else {
-      //std::cout << "Change the control mode from stop to position control.\n";
+      Try(PrimitiveSTOP_Afma6());
+    } else {
+      // std::cout << "Change the control mode from stop to position
+      // control.\n";
     }
     this->powerOn();
     break;
   }
   case vpRobot::STATE_VELOCITY_CONTROL: {
-    if (vpRobot::STATE_VELOCITY_CONTROL != getRobotState ()) {
+    if (vpRobot::STATE_VELOCITY_CONTROL != getRobotState()) {
       std::cout << "Change the control mode from stop to velocity control.\n";
     }
     this->powerOn();
     break;
   }
   default:
-    break ;
+    break;
   }
 
   CatchPrint();
 
-  return vpRobot::setRobotState (newState);
+  return vpRobot::setRobotState(newState);
 }
-
 
 /* ------------------------------------------------------------------------ */
 /* --- STOP --------------------------------------------------------------- */
@@ -651,18 +639,16 @@ vpRobotAfma6::setRobotState(vpRobot::vpRobotStateType newState)
   \exception vpRobotException::lowLevelError : If the low level
   controller returns an error during robot stopping.
 */
-void
-vpRobotAfma6::stopMotion(void)
+void vpRobotAfma6::stopMotion(void)
 {
   InitTry;
-  Try( PrimitiveSTOP_Afma6() );
-  setRobotState (vpRobot::STATE_STOP);
+  Try(PrimitiveSTOP_Afma6());
+  setRobotState(vpRobot::STATE_STOP);
 
   CatchPrint();
   if (TryStt < 0) {
-    vpERROR_TRACE ("Cannot stop robot motion");
-    throw vpRobotException (vpRobotException::lowLevelError,
-			      "Cannot stop robot motion.");
+    vpERROR_TRACE("Cannot stop robot motion");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot stop robot motion.");
   }
 }
 
@@ -675,8 +661,7 @@ vpRobotAfma6::stopMotion(void)
 
   \sa powerOff(), getPowerState()
 */
-void
-vpRobotAfma6::powerOn(void)
+void vpRobotAfma6::powerOn(void)
 {
   InitTry;
 
@@ -686,26 +671,24 @@ vpRobotAfma6::powerOn(void)
   bool firsttime = true;
   unsigned int nitermax = 10;
 
-  for (unsigned int i=0; i<nitermax; i++) {
-    Try( PrimitiveSTATUS_Afma6(NULL, NULL, &EStopStatus, NULL, NULL, NULL,
-                                  &HIPowerStatus));
+  for (unsigned int i = 0; i < nitermax; i++) {
+    Try(PrimitiveSTATUS_Afma6(NULL, NULL, &EStopStatus, NULL, NULL, NULL, &HIPowerStatus));
     if (EStopStatus == ESTOP_AUTO) {
       break; // exit for loop
-    }
-    else if (EStopStatus == ESTOP_MANUAL) {
+    } else if (EStopStatus == ESTOP_MANUAL) {
       break; // exit for loop
-    }
-    else if (EStopStatus == ESTOP_ACTIVATED) {
+    } else if (EStopStatus == ESTOP_ACTIVATED) {
       if (firsttime) {
         std::cout << "Emergency stop is activated! \n"
-            << "Check the emergency stop button and push the yellow button before continuing." << std::endl;
+                  << "Check the emergency stop button and push the yellow "
+                     "button before continuing."
+                  << std::endl;
         firsttime = false;
       }
-      fprintf(stdout, "Remaining time %us  \r", nitermax-i);
+      fprintf(stdout, "Remaining time %us  \r", nitermax - i);
       fflush(stdout);
       CAL_Wait(1);
-    }
-    else {
+    } else {
       std::cout << "Sorry there is an error on the emergency chain." << std::endl;
       std::cout << "You have to call Adept for maintenance..." << std::endl;
       // Free allocated resources
@@ -719,22 +702,20 @@ vpRobotAfma6::powerOn(void)
 
   if (EStopStatus == ESTOP_ACTIVATED) {
     std::cout << "Sorry, cannot power on the robot." << std::endl;
-    throw vpRobotException (vpRobotException::lowLevelError,
-			      "Cannot power on the robot.");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot power on the robot.");
   }
 
   if (HIPowerStatus == 0) {
     fprintf(stdout, "Power ON the Afma6 robot\n");
     fflush(stdout);
 
-    Try( PrimitivePOWERON_Afma6() );
+    Try(PrimitivePOWERON_Afma6());
   }
 
   CatchPrint();
   if (TryStt < 0) {
-    vpERROR_TRACE ("Cannot power on the robot");
-    throw vpRobotException (vpRobotException::lowLevelError,
-			      "Cannot power off the robot.");
+    vpERROR_TRACE("Cannot power on the robot");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot power off the robot.");
   }
 }
 
@@ -747,29 +728,26 @@ vpRobotAfma6::powerOn(void)
 
   \sa powerOn(), getPowerState()
 */
-void
-vpRobotAfma6::powerOff(void)
+void vpRobotAfma6::powerOff(void)
 {
   InitTry;
 
   // Look if the power is on or off
   UInt32 HIPowerStatus;
-  Try( PrimitiveSTATUS_Afma6(NULL, NULL, NULL, NULL, NULL, NULL, 
-			     &HIPowerStatus));
+  Try(PrimitiveSTATUS_Afma6(NULL, NULL, NULL, NULL, NULL, NULL, &HIPowerStatus));
   CAL_Wait(0.1);
 
   if (HIPowerStatus == 1) {
     fprintf(stdout, "Power OFF the Afma6 robot\n");
     fflush(stdout);
 
-    Try( PrimitivePOWEROFF_Afma6() );
+    Try(PrimitivePOWEROFF_Afma6());
   }
 
   CatchPrint();
   if (TryStt < 0) {
-    vpERROR_TRACE ("Cannot power off the robot");
-    throw vpRobotException (vpRobotException::lowLevelError,
-			      "Cannot power off the robot.");
+    vpERROR_TRACE("Cannot power off the robot");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot power off the robot.");
   }
 }
 
@@ -784,15 +762,13 @@ vpRobotAfma6::powerOff(void)
 
   \sa powerOn(), powerOff()
 */
-bool
-vpRobotAfma6::getPowerState(void)
+bool vpRobotAfma6::getPowerState(void)
 {
   InitTry;
   bool status = false;
   // Look if the power is on or off
   UInt32 HIPowerStatus;
-  Try( PrimitiveSTATUS_Afma6(NULL, NULL, NULL, NULL, NULL, NULL, 
-			     &HIPowerStatus));
+  Try(PrimitiveSTATUS_Afma6(NULL, NULL, NULL, NULL, NULL, NULL, &HIPowerStatus));
   CAL_Wait(0.1);
 
   if (HIPowerStatus == 1) {
@@ -801,9 +777,8 @@ vpRobotAfma6::getPowerState(void)
 
   CatchPrint();
   if (TryStt < 0) {
-    vpERROR_TRACE ("Cannot get the power status");
-    throw vpRobotException (vpRobotException::lowLevelError,
-			      "Cannot get the power status.");
+    vpERROR_TRACE("Cannot get the power status");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot get the power status.");
   }
   return status;
 }
@@ -817,13 +792,12 @@ vpRobotAfma6::getPowerState(void)
   \param cVe : Twist transformation.
 
 */
-void
-vpRobotAfma6::get_cVe(vpVelocityTwistMatrix &cVe) const
+void vpRobotAfma6::get_cVe(vpVelocityTwistMatrix &cVe) const
 {
-  vpHomogeneousMatrix cMe ;
-  vpAfma6::get_cMe(cMe) ;
+  vpHomogeneousMatrix cMe;
+  vpAfma6::get_cMe(cMe);
 
-  cVe.buildFrom(cMe) ;
+  cVe.buildFrom(cMe);
 }
 
 /*!
@@ -836,12 +810,7 @@ vpRobotAfma6::get_cVe(vpVelocityTwistMatrix &cVe) const
   end-effector frame.
 
 */
-void
-vpRobotAfma6::get_cMe(vpHomogeneousMatrix &cMe) const
-{
-  vpAfma6::get_cMe(cMe) ;
-}
-
+void vpRobotAfma6::get_cMe(vpHomogeneousMatrix &cMe) const { vpAfma6::get_cMe(cMe); }
 
 /*!
 
@@ -853,30 +822,26 @@ vpRobotAfma6::get_cMe(vpHomogeneousMatrix &cMe) const
   \param eJe : Robot jacobian expressed in the end-effector frame.
 
 */
-void
-vpRobotAfma6::get_eJe(vpMatrix &eJe)
+void vpRobotAfma6::get_eJe(vpMatrix &eJe)
 {
 
   double position[6];
   double timestamp;
 
   InitTry;
-  Try( PrimitiveACQ_POS_Afma6(position, &timestamp) );
+  Try(PrimitiveACQ_POS_Afma6(position, &timestamp));
   CatchPrint();
 
   vpColVector q(6);
-  for (unsigned int i=0; i < njoint; i++)
+  for (unsigned int i = 0; i < njoint; i++)
     q[i] = position[i];
 
-  try
-    {
-      vpAfma6::get_eJe(q, eJe) ;
-    }
-  catch(...)
-    {
-      vpERROR_TRACE("catch exception ") ;
-      throw ;
-    }
+  try {
+    vpAfma6::get_eJe(q, eJe);
+  } catch (...) {
+    vpERROR_TRACE("catch exception ");
+    throw;
+  }
 }
 /*!
 
@@ -901,30 +866,26 @@ vpRobotAfma6::get_eJe(vpMatrix &eJe)
   \param fJe : Robot jacobian expressed in the reference frame.
 */
 
-  void
-  vpRobotAfma6::get_fJe(vpMatrix &fJe)
+void vpRobotAfma6::get_fJe(vpMatrix &fJe)
 {
 
   double position[6];
   double timestamp;
 
   InitTry;
-  Try( PrimitiveACQ_POS_Afma6(position, &timestamp) );
+  Try(PrimitiveACQ_POS_Afma6(position, &timestamp));
   CatchPrint();
 
   vpColVector q(6);
-  for (unsigned int i=0; i < njoint; i++)
+  for (unsigned int i = 0; i < njoint; i++)
     q[i] = position[i];
 
-  try
-    {
-      vpAfma6::get_fJe(q, fJe) ;
-    }
-  catch(...)
-    {
-      vpERROR_TRACE("Error caught");
-      throw ;
-    }
+  try {
+    vpAfma6::get_fJe(q, fJe);
+  } catch (...) {
+    vpERROR_TRACE("Error caught");
+    throw;
+  }
 }
 
 /*!
@@ -955,22 +916,14 @@ vpRobotAfma6::get_eJe(vpMatrix &eJe)
 
   \sa getPositioningVelocity()
 */
-void
-vpRobotAfma6::setPositioningVelocity (const double velocity)
-{
-  positioningVelocity = velocity;
-}
+void vpRobotAfma6::setPositioningVelocity(const double velocity) { positioningVelocity = velocity; }
 
 /*!
   Get the maximal velocity percentage used for a position control.
 
   \sa setPositioningVelocity()
 */
-double
-vpRobotAfma6::getPositioningVelocity (void)
-{
-  return positioningVelocity;
-}
+double vpRobotAfma6::getPositioningVelocity(void) { return positioningVelocity; }
 
 /*!
 
@@ -983,8 +936,8 @@ vpRobotAfma6::getPositioningVelocity (void)
   is reached by the robot.
 
   \param pose : A six dimension pose vector corresponding to the position
-  to reach. The three first parameters are the translations in meter, the three
-  last parameters are the rotations expressed as a theta u vector in
+  to reach. The three first parameters are the translations in meter, the
+three last parameters are the rotations expressed as a theta u vector in
   radians. If the position is out of range, an exception is provided.
 
   \param frame : Frame in which the position is expressed.
@@ -992,9 +945,9 @@ vpRobotAfma6::getPositioningVelocity (void)
   - In the camera and the reference frame, rotations are
   represented by a vpThetaUVector.
 
-  - Mixt frame of joint frame is not implemented. 
+  - Mixt frame of joint frame is not implemented.
 
-  \exception vpRobotException::lowLevelError : vpRobot::MIXT_FRAME 
+  \exception vpRobotException::lowLevelError : vpRobot::MIXT_FRAME
   and vpRobot::ARTICULAR_FRAME not implemented.
 
   \exception vpRobotException::positionOutOfRangeError : The requested
@@ -1002,8 +955,8 @@ vpRobotAfma6::getPositioningVelocity (void)
 
   \code
 #include <visp3/core/vpConfig.h>
-#include <visp3/robot/vpRobotAfma6.h>
 #include <visp3/core/vpPoseVector.h>
+#include <visp3/robot/vpRobotAfma6.h>
 
 int main()
 {
@@ -1032,7 +985,8 @@ int main()
 }
  \endcode
 
-  To catch the exception if the position is out of range, modify the code like:
+  To catch the exception if the position is out of range, modify the code
+like:
 
   \code
   try {
@@ -1046,28 +1000,25 @@ int main()
   \endcode
 
 */
-void
-vpRobotAfma6::setPosition (const vpRobot::vpControlFrameType frame,
-			   const vpPoseVector & pose )
+void vpRobotAfma6::setPosition(const vpRobot::vpControlFrameType frame, const vpPoseVector &pose)
 
 {
   vpColVector position(6);
   vpRxyzVector rxyz;
   vpRotationMatrix R;
 
-  R.buildFrom(pose[3], pose[4], pose[5]); //thetau
+  R.buildFrom(pose[3], pose[4], pose[5]); // thetau
   rxyz.buildFrom(R);
 
-  for (unsigned int i=0; i < 3; i++) {
+  for (unsigned int i = 0; i < 3; i++) {
     position[i] = pose[i];
-    position[i+3] =  rxyz[i];
+    position[i + 3] = rxyz[i];
   }
   if (frame == vpRobot::ARTICULAR_FRAME) {
-    throw vpRobotException (vpRobotException::lowLevelError,
-			    "Positionning error: "
-			    "Joint frame not implemented for pose positionning.");
+    throw vpRobotException(vpRobotException::lowLevelError, "Positionning error: "
+                                                            "Joint frame not implemented for pose positionning.");
   }
-  setPosition (frame, position);
+  setPosition(frame, position);
 }
 /*!
 
@@ -1104,9 +1055,9 @@ vpRobotAfma6::setPosition (const vpRobot::vpControlFrameType frame,
   position is out of range.
 
   \code
+#include <visp3/core/vpColVector.h>
 #include <visp3/core/vpConfig.h>
 #include <visp3/robot/vpRobotAfma6.h>
-#include <visp3/core/vpColVector.h>
 #include <visp3/robot/vpRobotException.h>
 
 int main()
@@ -1130,13 +1081,14 @@ int main()
 
   // Moves the robot in the camera frame
   robot.setPosition(vpRobot::CAMERA_FRAME, position);
-  
+
   return 0;
 #endif
 }
   \endcode
 
-  To catch the exception if the position is out of range, modify the code like:
+  To catch the exception if the position is out of range, modify the code
+like:
 
   \code
   try {
@@ -1151,30 +1103,27 @@ int main()
 
 */
 
-void
-vpRobotAfma6::setPosition (const vpRobot::vpControlFrameType frame,
-			   const vpColVector & position )
+void vpRobotAfma6::setPosition(const vpRobot::vpControlFrameType frame, const vpColVector &position)
 {
 
-  if (vpRobot::STATE_POSITION_CONTROL != getRobotState ())
-    {
-      vpERROR_TRACE ("Robot was not in position-based control\n"
-		     "Modification of the robot state");
-      setRobotState(vpRobot::STATE_POSITION_CONTROL) ;
-    }
+  if (vpRobot::STATE_POSITION_CONTROL != getRobotState()) {
+    vpERROR_TRACE("Robot was not in position-based control\n"
+                  "Modification of the robot state");
+    setRobotState(vpRobot::STATE_POSITION_CONTROL);
+  }
 
   double _destination[6];
   int error = 0;
   double timestamp;
 
   InitTry;
-  switch(frame) {
-  case vpRobot::CAMERA_FRAME : {
+  switch (frame) {
+  case vpRobot::CAMERA_FRAME: {
     double _q[njoint];
-    Try( PrimitiveACQ_POS_Afma6(_q, &timestamp) );
+    Try(PrimitiveACQ_POS_Afma6(_q, &timestamp));
 
     vpColVector q(njoint);
-    for (unsigned int i=0; i < njoint; i++)
+    for (unsigned int i = 0; i < njoint; i++)
       q[i] = _q[i];
 
     // Get fMc from the inverse kinematics
@@ -1184,9 +1133,9 @@ vpRobotAfma6::setPosition (const vpRobot::vpControlFrameType frame,
     // Set cMc from the input position
     vpTranslationVector txyz;
     vpRxyzVector rxyz;
-    for (unsigned int i=0; i < 3; i++) {
+    for (unsigned int i = 0; i < 3; i++) {
       txyz[i] = position[i];
-      rxyz[i] = position[i+3];
+      rxyz[i] = position[i + 3];
     }
 
     // Compute cMc2
@@ -1200,35 +1149,33 @@ vpRobotAfma6::setPosition (const vpRobot::vpControlFrameType frame,
     bool nearest = true;
     int solution = this->getInverseKinematics(fMc2, q, nearest);
     if (solution) { // Position is reachable
-      for (unsigned int i=0; i < njoint; i ++) {
-	_destination[i] = q[i];
+      for (unsigned int i = 0; i < njoint; i++) {
+        _destination[i] = q[i];
       }
-      Try( PrimitiveMOVE_Afma6(_destination, positioningVelocity) );
-      Try( WaitState_Afma6(ETAT_ATTENTE_AFMA6, 1000) );
-    }
-    else {
+      Try(PrimitiveMOVE_Afma6(_destination, positioningVelocity));
+      Try(WaitState_Afma6(ETAT_ATTENTE_AFMA6, 1000));
+    } else {
       // Cartesian position is out of range
       error = -1;
     }
 
-    break ;
+    break;
   }
   case vpRobot::ARTICULAR_FRAME: {
-    for (unsigned int i=0; i < njoint; i ++) {
+    for (unsigned int i = 0; i < njoint; i++) {
       _destination[i] = position[i];
     }
-    Try( PrimitiveMOVE_Afma6(_destination, positioningVelocity) );
-    Try( WaitState_Afma6(ETAT_ATTENTE_AFMA6, 1000) );
-    break ;
-
+    Try(PrimitiveMOVE_Afma6(_destination, positioningVelocity));
+    Try(WaitState_Afma6(ETAT_ATTENTE_AFMA6, 1000));
+    break;
   }
   case vpRobot::REFERENCE_FRAME: {
     // Set fMc from the input position
     vpTranslationVector txyz;
     vpRxyzVector rxyz;
-    for (unsigned int i=0; i < 3; i++) {
+    for (unsigned int i = 0; i < 3; i++) {
       txyz[i] = position[i];
-      rxyz[i] = position[i+3];
+      rxyz[i] = position[i + 3];
     }
     // Compute fMc from the input position
     vpRotationMatrix fRc(rxyz);
@@ -1239,26 +1186,23 @@ vpRobotAfma6::setPosition (const vpRobot::vpControlFrameType frame,
     bool nearest = true;
     int solution = this->getInverseKinematics(fMc, q, nearest);
     if (solution) { // Position is reachable
-      for (unsigned int i=0; i < njoint; i ++) {
-	_destination[i] = q[i];
+      for (unsigned int i = 0; i < njoint; i++) {
+        _destination[i] = q[i];
       }
-      Try( PrimitiveMOVE_Afma6(_destination, positioningVelocity) );
-      Try( WaitState_Afma6(ETAT_ATTENTE_AFMA6, 1000) );
-    }
-    else {
+      Try(PrimitiveMOVE_Afma6(_destination, positioningVelocity));
+      Try(WaitState_Afma6(ETAT_ATTENTE_AFMA6, 1000));
+    } else {
       // Cartesian position is out of range
       error = -1;
     }
 
-    break ;
+    break;
   }
-  case vpRobot::MIXT_FRAME:
-    {
-      vpERROR_TRACE ("Positionning error. Mixt frame not implemented");
-      throw vpRobotException (vpRobotException::lowLevelError,
-			      "Positionning error: "
-            "Mixt frame not implemented.");
-    }
+  case vpRobot::MIXT_FRAME: {
+    vpERROR_TRACE("Positionning error. Mixt frame not implemented");
+    throw vpRobotException(vpRobotException::lowLevelError, "Positionning error: "
+                                                            "Mixt frame not implemented.");
+  }
   }
 
   CatchPrint();
@@ -1267,15 +1211,14 @@ vpRobotAfma6::setPosition (const vpRobot::vpControlFrameType frame,
   else if (TryStt < 0)
     std::cout << " : Unknown error (see Fabien).\n";
   else if (error == -1)
-     std::cout << "Position out of range.\n";
+    std::cout << "Position out of range.\n";
 
   if (TryStt < 0 || error < 0) {
-     vpERROR_TRACE ("Positionning error.");
-     throw vpRobotException (vpRobotException::positionOutOfRangeError,
- 			    "Position out of range.");
+    vpERROR_TRACE("Positionning error.");
+    throw vpRobotException(vpRobotException::positionOutOfRangeError, "Position out of range.");
   }
 
-  return ;
+  return;
 }
 
 /*!
@@ -1345,30 +1288,23 @@ int main()
 
   \sa setPosition()
 */
-void vpRobotAfma6::setPosition (const vpRobot::vpControlFrameType frame,
-				const double pos1,
-				const double pos2,
-				const double pos3,
-				const double pos4,
-				const double pos5,
-				const double pos6)
+void vpRobotAfma6::setPosition(const vpRobot::vpControlFrameType frame, const double pos1, const double pos2,
+                               const double pos3, const double pos4, const double pos5, const double pos6)
 {
-  try{
-    vpColVector position(6) ;
-    position[0] = pos1 ;
-    position[1] = pos2 ;
-    position[2] = pos3 ;
-    position[3] = pos4 ;
-    position[4] = pos5 ;
-    position[5] = pos6 ;
+  try {
+    vpColVector position(6);
+    position[0] = pos1;
+    position[1] = pos2;
+    position[2] = pos3;
+    position[3] = pos4;
+    position[4] = pos5;
+    position[5] = pos6;
 
-    setPosition(frame, position) ;
+    setPosition(frame, position);
+  } catch (...) {
+    vpERROR_TRACE("Error caught");
+    throw;
   }
-  catch(...)
-    {
-      vpERROR_TRACE("Error caught");
-      throw ;
-    }
 }
 
 /*!
@@ -1384,9 +1320,9 @@ void vpRobotAfma6::setPosition (const vpRobot::vpControlFrameType frame,
 
   This method has the same behavior than the sample code given below;
   \code
+#include <visp3/core/vpColVector.h>
 #include <visp3/core/vpConfig.h>
 #include <visp3/robot/vpRobotAfma6.h>
-#include <visp3/core/vpColVector.h>
 
 int main()
 {
@@ -1420,9 +1356,8 @@ void vpRobotAfma6::setPosition(const std::string &filename)
   ret = this->readPosFile(filename, q);
 
   if (ret == false) {
-    vpERROR_TRACE ("Bad position in \"%s\"", filename.c_str());
-    throw vpRobotException (vpRobotException::lowLevelError,
-			    "Bad position in filename.");
+    vpERROR_TRACE("Bad position in \"%s\"", filename.c_str());
+    throw vpRobotException(vpRobotException::lowLevelError, "Bad position in filename.");
   }
   this->setRobotState(vpRobot::STATE_POSITION_CONTROL);
   this->setPosition(vpRobot::ARTICULAR_FRAME, q);
@@ -1468,7 +1403,8 @@ void vpRobotAfma6::setPosition(const std::string &filename)
   }
 
   // Create a rotation matrix from the Rxyz rotation angles
-  vpRotationMatrix fRc(frc); // reference frame to camera frame rotation matrix
+  vpRotationMatrix fRc(frc); // reference frame to camera frame rotation
+  matrix
 
   // Create the camera to fix frame pose in terms of a homogeneous matrix
   vpHomogeneousMatrix fMc(ftc, fRc);
@@ -1481,35 +1417,33 @@ void vpRobotAfma6::setPosition(const std::string &filename)
   vpColVector & r)
 
 */
-void
-vpRobotAfma6::getPosition (const vpRobot::vpControlFrameType frame,
-                           vpColVector & position, double &timestamp)
+void vpRobotAfma6::getPosition(const vpRobot::vpControlFrameType frame, vpColVector &position, double &timestamp)
 {
 
   InitTry;
 
-  position.resize (6);
+  position.resize(6);
 
   switch (frame) {
-  case vpRobot::CAMERA_FRAME : {
+  case vpRobot::CAMERA_FRAME: {
     position = 0;
     return;
   }
-  case vpRobot::ARTICULAR_FRAME : {
+  case vpRobot::ARTICULAR_FRAME: {
     double _q[njoint];
-    Try( PrimitiveACQ_POS_Afma6(_q, &timestamp) );
-    for (unsigned int i=0; i < njoint; i ++) {
+    Try(PrimitiveACQ_POS_Afma6(_q, &timestamp));
+    for (unsigned int i = 0; i < njoint; i++) {
       position[i] = _q[i];
     }
 
     return;
   }
-  case vpRobot::REFERENCE_FRAME : {
+  case vpRobot::REFERENCE_FRAME: {
     double _q[njoint];
-    Try( PrimitiveACQ_POS_Afma6(_q, &timestamp) );
+    Try(PrimitiveACQ_POS_Afma6(_q, &timestamp));
 
     vpColVector q(njoint);
-    for (unsigned int i=0; i < njoint; i++)
+    for (unsigned int i = 0; i < njoint; i++)
       q[i] = _q[i];
 
     // Compute fMc
@@ -1522,31 +1456,30 @@ vpRobotAfma6::getPosition (const vpRobot::vpControlFrameType frame,
     vpRxyzVector rxyz;
     rxyz.buildFrom(fRc);
 
-    for (unsigned int i=0; i < 3; i++) {
-      position[i] = fMc[i][3]; // translation x,y,z
-      position[i+3] = rxyz[i]; // Euler rotation x,y,z
+    for (unsigned int i = 0; i < 3; i++) {
+      position[i] = fMc[i][3];   // translation x,y,z
+      position[i + 3] = rxyz[i]; // Euler rotation x,y,z
     }
-    break ;
+    break;
   }
   case vpRobot::MIXT_FRAME: {
-    vpERROR_TRACE ("Cannot get position in mixt frame: not implemented");
-    throw vpRobotException (vpRobotException::lowLevelError,
-			    "Cannot get position in mixt frame: "
-          "not implemented");
+    vpERROR_TRACE("Cannot get position in mixt frame: not implemented");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot get position in mixt frame: "
+                                                            "not implemented");
   }
   }
 
   CatchPrint();
   if (TryStt < 0) {
-    vpERROR_TRACE ("Cannot get position.");
-    throw vpRobotException (vpRobotException::lowLevelError,
-			    "Cannot get position.");
+    vpERROR_TRACE("Cannot get position.");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot get position.");
   }
 
   return;
 }
 /*!
-  Returns the robot controller current time (in second) since last robot power on.
+  Returns the robot controller current time (in second) since last robot power
+  on.
 */
 double vpRobotAfma6::getTime() const
 {
@@ -1559,13 +1492,13 @@ double vpRobotAfma6::getTime() const
 
   Get the current position of the robot.
 
-  Similar as getPosition(const vpRobot::vpControlFrameType frame, vpColVector &, double &).
+  Similar as getPosition(const vpRobot::vpControlFrameType frame, vpColVector
+  &, double &).
 
   The difference is here that the timestamp is not used.
 
 */
-void vpRobotAfma6::getPosition(const vpRobot::vpControlFrameType frame,
-                               vpColVector &position)
+void vpRobotAfma6::getPosition(const vpRobot::vpControlFrameType frame, vpColVector &position)
 {
   double timestamp;
   getPosition(frame, position, timestamp);
@@ -1575,28 +1508,26 @@ void vpRobotAfma6::getPosition(const vpRobot::vpControlFrameType frame,
 
   Get the current position of the robot.
   Similar as :
-   void getPosition (const vpRobot::vpControlFrameType frame,   vpColVector &position)
-  as the difference the position is returned using a ThetaU representation.
+   void getPosition (const vpRobot::vpControlFrameType frame,   vpColVector
+  &position) as the difference the position is returned using a ThetaU
+  representation.
 
 */
-void 
-vpRobotAfma6::getPosition (const vpRobot::vpControlFrameType frame,   
-                            vpPoseVector &position, double &timestamp)
+void vpRobotAfma6::getPosition(const vpRobot::vpControlFrameType frame, vpPoseVector &position, double &timestamp)
 {
   vpColVector posRxyz;
-  //recupere  position en Rxyz
+  // recupere  position en Rxyz
   this->getPosition(frame, posRxyz, timestamp);
   vpRxyzVector RxyzVect;
-  for(unsigned int j=0;j<3;j++)
-    RxyzVect[j]=posRxyz[j+3];
-  //recupere le vecteur thetaU correspondant
+  for (unsigned int j = 0; j < 3; j++)
+    RxyzVect[j] = posRxyz[j + 3];
+  // recupere le vecteur thetaU correspondant
   vpThetaUVector RtuVect(RxyzVect);
 
-  //remplit le vpPoseVector avec translation et rotation ThetaU
-  for(unsigned int j=0;j<3;j++)
-  {
-    position[j]=posRxyz[j];
-    position[j+3]=RtuVect[j];
+  // remplit le vpPoseVector avec translation et rotation ThetaU
+  for (unsigned int j = 0; j < 3; j++) {
+    position[j] = posRxyz[j];
+    position[j + 3] = RtuVect[j];
   }
 }
 
@@ -1604,13 +1535,13 @@ vpRobotAfma6::getPosition (const vpRobot::vpControlFrameType frame,
 
   Get the current position of the robot.
 
-  Similar as getPosition(const vpRobot::vpControlFrameType frame, vpPoseVector &, double &).
+  Similar as getPosition(const vpRobot::vpControlFrameType frame, vpPoseVector
+  &, double &).
 
   The difference is here that the timestamp is not used.
 
 */
-void vpRobotAfma6::getPosition(const vpRobot::vpControlFrameType frame,
-                               vpPoseVector &position)
+void vpRobotAfma6::getPosition(const vpRobot::vpControlFrameType frame, vpPoseVector &position)
 {
   double timestamp;
   getPosition(frame, position, timestamp);
@@ -1620,27 +1551,36 @@ void vpRobotAfma6::getPosition(const vpRobot::vpControlFrameType frame,
   Apply a velocity to the robot.
 
   \param frame : Control frame in which the velocity is expressed. Velocities
-  could be expressed in articular, camera frame, reference frame or mixt frame.
+  could be expressed in articular, camera frame, reference frame or mixt
+  frame.
 
   \param vel : Velocity vector. Translation velocities are expressed
   in m/s while rotation velocities in rad/s. The size of this vector
   is always 6.
 
   - In articular, \f$ vel = [\dot{q}_1, \dot{q}_2, \dot{q}_3, \dot{q}_4,
-  \dot{q}_5, \dot{q}_6]^t \f$ correspond to joint velocities.
+  \dot{q}_5, \dot{q}_6]^t \f$ correspond to joint velocities, where
+  \f$\dot{q}_1, \dot{q}_2, \dot{q}_3 \f$ are the translation  velocities in
+  m/s and \f$\dot{q}_4, \dot{q}_5, \dot{q}_6\f$ are the rotation velocities in
+  rad/s.
 
   - In camera frame, \f$ vel = [^{c} v_x, ^{c} v_y, ^{c} v_z, ^{c}
-  \omega_x, ^{c} \omega_y, ^{c} \omega_z]^t \f$ is expressed in the
-  camera frame.
+  \omega_x, ^{c} \omega_y, ^{c} \omega_z]^t \f$ is a velocity twist vector
+  expressed in the camera frame, with translations velocities \f$ ^{c} v_x,
+  ^{c} v_y, ^{c} v_z \f$ in m/s and rotation velocities \f$ ^{c}\omega_x, ^{c}
+  \omega_y, ^{c} \omega_z \f$ in rad/s.
 
   - In reference frame, \f$ vel = [^{r} v_x, ^{r} v_y, ^{r} v_z, ^{r}
-  \omega_x, ^{r} \omega_y, ^{r} \omega_z]^t \f$ is expressed in the
-  reference frame.
+  \omega_x, ^{r} \omega_y, ^{r} \omega_z]^t \f$ is a velocity twist vector
+  expressed in the reference frame, with translations velocities \f$ ^{c} v_x,
+  ^{c} v_y, ^{c} v_z \f$ in m/s and rotation velocities \f$ ^{c}\omega_x, ^{c}
+  \omega_y, ^{c} \omega_z \f$ in rad/s.
 
   - In mixt frame, \f$ vel = [^{r} v_x, ^{r} v_y, ^{r} v_z, ^{c} \omega_x,
-  ^{c} \omega_y, ^{c} \omega_z]^t \f$.  In mixt frame, translations \f$ v_x,
-  v_y, v_z \f$ are expressed in the reference frame and rotations \f$
-  \omega_x, \omega_y, \omega_z \f$ in the camera frame.
+  ^{c} \omega_y, ^{c} \omega_z]^t \f$ is a velocity twist vector where,
+  translations \f$ ^{r} v_x, ^{r} v_y, ^{r} v_z \f$ are expressed in the
+  reference frame in m/s and rotations \f$ ^{c} \omega_x, ^{c} \omega_y, ^{c}
+  \omega_z \f$ in the camera frame in rad/s.
 
   \exception vpRobotException::wrongStateError : If a the robot is not
   configured to handle a velocity. The robot can handle a velocity only if the
@@ -1670,53 +1610,50 @@ void vpRobotAfma6::getPosition(const vpRobot::vpControlFrameType frame,
   robot.setVelocity(vpRobot::ARTICULAR_FRAME, q_dot);
   \endcode
 */
-void
-vpRobotAfma6::setVelocity (const vpRobot::vpControlFrameType frame,
-                           const vpColVector & vel)
+void vpRobotAfma6::setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &vel)
 {
-  if (vpRobot::STATE_VELOCITY_CONTROL != getRobotState ())
-  {
-    vpERROR_TRACE ("Cannot send a velocity to the robot "
-                   "use setRobotState(vpRobot::STATE_VELOCITY_CONTROL) first) ");
-    throw vpRobotException (vpRobotException::wrongStateError,
-                            "Cannot send a velocity to the robot "
-                            "use setRobotState(vpRobot::STATE_VELOCITY_CONTROL) first) ");
+  if (vpRobot::STATE_VELOCITY_CONTROL != getRobotState()) {
+    vpERROR_TRACE("Cannot send a velocity to the robot "
+                  "use setRobotState(vpRobot::STATE_VELOCITY_CONTROL) first) ");
+    throw vpRobotException(vpRobotException::wrongStateError,
+                           "Cannot send a velocity to the robot "
+                           "use setRobotState(vpRobot::STATE_VELOCITY_CONTROL) first) ");
   }
 
   vpColVector vel_max(6);
 
-  for (unsigned int i=0; i<3; i++)
+  for (unsigned int i = 0; i < 3; i++)
     vel_max[i] = getMaxTranslationVelocity();
-  for (unsigned int i=3; i<6; i++)
+  for (unsigned int i = 3; i < 6; i++)
     vel_max[i] = getMaxRotationVelocity();
 
   vpColVector vel_sat = vpRobot::saturateVelocities(vel, vel_max, true);
 
   InitTry;
 
-  switch(frame) {
-    case vpRobot::CAMERA_FRAME : {
-        Try( PrimitiveMOVESPEED_CART_Afma6(vel_sat.data, REPCAM_AFMA6) );
-        break ;
-      }
-    case vpRobot::ARTICULAR_FRAME : {
-        //Try( PrimitiveMOVESPEED_CART(vel_sat.data, REPART_AFMA6) );
-        Try( PrimitiveMOVESPEED_Afma6(vel_sat.data) );
-        break ;
-      }
-    case vpRobot::REFERENCE_FRAME : {
-        Try( PrimitiveMOVESPEED_CART_Afma6(vel_sat.data, REPFIX_AFMA6) );
-        break ;
-      }
-    case vpRobot::MIXT_FRAME : {
-        Try( PrimitiveMOVESPEED_CART_Afma6(vel_sat.data, REPMIX_AFMA6) );
-        break ;
-      }
-    default: {
-        vpERROR_TRACE ("Error in spec of vpRobot. "
-                       "Case not taken in account.");
-        return;
-      }
+  switch (frame) {
+  case vpRobot::CAMERA_FRAME: {
+    Try(PrimitiveMOVESPEED_CART_Afma6(vel_sat.data, REPCAM_AFMA6));
+    break;
+  }
+  case vpRobot::ARTICULAR_FRAME: {
+    // Try( PrimitiveMOVESPEED_CART(vel_sat.data, REPART_AFMA6) );
+    Try(PrimitiveMOVESPEED_Afma6(vel_sat.data));
+    break;
+  }
+  case vpRobot::REFERENCE_FRAME: {
+    Try(PrimitiveMOVESPEED_CART_Afma6(vel_sat.data, REPFIX_AFMA6));
+    break;
+  }
+  case vpRobot::MIXT_FRAME: {
+    Try(PrimitiveMOVESPEED_CART_Afma6(vel_sat.data, REPMIX_AFMA6));
+    break;
+  }
+  default: {
+    vpERROR_TRACE("Error in spec of vpRobot. "
+                  "Case not taken in account.");
+    return;
+  }
   }
 
   Catch();
@@ -1724,19 +1661,16 @@ vpRobotAfma6::setVelocity (const vpRobot::vpControlFrameType frame,
     if (TryStt == VelStopOnJoint) {
       Int32 axisInJoint[njoint];
       PrimitiveSTATUS_Afma6(NULL, NULL, NULL, NULL, NULL, axisInJoint, NULL);
-      for (unsigned int i=0; i < njoint; i ++) {
+      for (unsigned int i = 0; i < njoint; i++) {
         if (axisInJoint[i])
-          std::cout << "\nWarning: Velocity control stopped: axis "
-                    << i+1 << " on joint limit!" <<std::endl;
+          std::cout << "\nWarning: Velocity control stopped: axis " << i + 1 << " on joint limit!" << std::endl;
       }
-    }
-    else {
+    } else {
       printf("\n%s(%d): Error %d", __FUNCTION__, TryLine, TryStt);
       if (TryString != NULL) {
         // The statement is in TryString, but we need to check the validity
         printf(" Error sentence %s\n", TryString); // Print the TryString
-      }
-      else {
+      } else {
         printf("\n");
       }
     }
@@ -1745,15 +1679,9 @@ vpRobotAfma6::setVelocity (const vpRobot::vpControlFrameType frame,
   return;
 }
 
-
-
-
-
-
 /* ------------------------------------------------------------------------ */
 /* --- GET ---------------------------------------------------------------- */
 /* ------------------------------------------------------------------------ */
-
 
 /*!
 
@@ -1767,8 +1695,8 @@ vpRobotAfma6::setVelocity (const vpRobot::vpControlFrameType frame,
   \param timestamp : Time in second since last robot power on.
 
   \warning In camera frame, reference frame and mixt frame, the representation
-  of the rotation is ThetaU. In that cases, \f$velocity = [\dot x, \dot y, \dot
-  z, \dot {\theta U}_x, \dot {\theta U}_y, \dot {\theta U}_z]\f$.
+  of the rotation is ThetaU. In that cases, \f$velocity = [\dot x, \dot y,
+  \dot z, \dot {\theta U}_x, \dot {\theta U}_y, \dot {\theta U}_z]\f$.
 
   \warning The first time this method is called, \e velocity is set to 0. The
   first call is used to intialise the velocity computation for the next call.
@@ -1804,11 +1732,9 @@ vpRobotAfma6::setVelocity (const vpRobot::vpControlFrameType frame,
   }
   \endcode
 */
-void
-vpRobotAfma6::getVelocity (const vpRobot::vpControlFrameType frame,
-                           vpColVector & velocity, double &timestamp)
+void vpRobotAfma6::getVelocity(const vpRobot::vpControlFrameType frame, vpColVector &velocity, double &timestamp)
 {
-  velocity.resize (6);
+  velocity.resize(6);
   velocity = 0;
 
   double q[6];
@@ -1820,16 +1746,16 @@ vpRobotAfma6::getVelocity (const vpRobot::vpControlFrameType frame,
   InitTry;
 
   // Get the current joint position
-  Try( PrimitiveACQ_POS_Afma6(q, &timestamp) );
+  Try(PrimitiveACQ_POS_Afma6(q, &timestamp));
   time_cur = timestamp;
-  for (unsigned int i=0; i < njoint; i ++) {
+  for (unsigned int i = 0; i < njoint; i++) {
     q_cur[i] = q[i];
   }
 
   // Get the camera pose from the direct kinematics
   vpAfma6::get_fMc(q_cur, fMc_cur);
 
-  if ( ! first_time_getvel ) {
+  if (!first_time_getvel) {
 
     switch (frame) {
     case vpRobot::CAMERA_FRAME: {
@@ -1839,12 +1765,12 @@ vpRobotAfma6::getVelocity (const vpRobot::vpControlFrameType frame,
       // Compute the velocity of the camera from this displacement
       velocity = vpExponentialMap::inverse(cMc, time_cur - time_prev_getvel);
 
-      break ;
+      break;
     }
 
     case vpRobot::ARTICULAR_FRAME: {
       velocity = (q_cur - q_prev_getvel) / (time_cur - time_prev_getvel);
-      break ;
+      break;
     }
 
     case vpRobot::REFERENCE_FRAME: {
@@ -1859,7 +1785,7 @@ vpRobotAfma6::getVelocity (const vpRobot::vpControlFrameType frame,
       vpVelocityTwistMatrix fVc(fMc_cur);
       velocity = fVc * v;
 
-      break ;
+      break;
     }
 
     case vpRobot::MIXT_FRAME: {
@@ -1872,20 +1798,19 @@ vpRobotAfma6::getVelocity (const vpRobot::vpControlFrameType frame,
       vpThetaUVector thetaU;
       thetaU.buildFrom(cRc);
 
-      for (unsigned int i=0; i < 3; i++) {
+      for (unsigned int i = 0; i < 3; i++) {
         // Compute the translation displacement in the reference frame
         velocity[i] = fMc_prev_getvel[i][3] - fMc_cur[i][3];
         // Update the rotation displacement in the camera frame
-        velocity[i+3] = thetaU[i];
+        velocity[i + 3] = thetaU[i];
       }
 
       // Compute the velocity
       velocity /= (time_cur - time_prev_getvel);
-      break ;
+      break;
     }
     }
-  }
-  else {
+  } else {
     first_time_getvel = false;
   }
 
@@ -1898,12 +1823,10 @@ vpRobotAfma6::getVelocity (const vpRobot::vpControlFrameType frame,
   // Memorize the time associated to the joint position for the next call
   time_prev_getvel = time_cur;
 
-
   CatchPrint();
   if (TryStt < 0) {
-    vpERROR_TRACE ("Cannot get velocity.");
-    throw vpRobotException (vpRobotException::lowLevelError,
-			    "Cannot get velocity.");
+    vpERROR_TRACE("Cannot get velocity.");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot get velocity.");
   }
 }
 
@@ -1911,17 +1834,15 @@ vpRobotAfma6::getVelocity (const vpRobot::vpControlFrameType frame,
 
   Get robot velocities.
 
-  The behavior is the same than getVelocity(const vpRobot::vpControlFrameType, vpColVector &, double &)
-  except that the timestamp is not returned.
+  The behavior is the same than getVelocity(const vpRobot::vpControlFrameType,
+  vpColVector &, double &) except that the timestamp is not returned.
 
   */
-void vpRobotAfma6::getVelocity(const vpRobot::vpControlFrameType frame,
-                               vpColVector & velocity)
+void vpRobotAfma6::getVelocity(const vpRobot::vpControlFrameType frame, vpColVector &velocity)
 {
   double timestamp;
   getVelocity(frame, velocity, timestamp);
 }
-
 
 /*!
 
@@ -1964,11 +1885,10 @@ void vpRobotAfma6::getVelocity(const vpRobot::vpControlFrameType frame,
   }
   \endcode
 */
-vpColVector
-vpRobotAfma6::getVelocity (vpRobot::vpControlFrameType frame, double &timestamp)
+vpColVector vpRobotAfma6::getVelocity(vpRobot::vpControlFrameType frame, double &timestamp)
 {
   vpColVector velocity;
-  getVelocity (frame, velocity, timestamp);
+  getVelocity(frame, velocity, timestamp);
 
   return velocity;
 }
@@ -1977,15 +1897,15 @@ vpRobotAfma6::getVelocity (vpRobot::vpControlFrameType frame, double &timestamp)
 
   Get robot velocities.
 
-  The behavior is the same than getVelocity(const vpRobot::vpControlFrameType, double &)
-  except that the timestamp is not returned.
+  The behavior is the same than getVelocity(const vpRobot::vpControlFrameType,
+  double &) except that the timestamp is not returned.
 
   */
-vpColVector vpRobotAfma6::getVelocity (vpRobot::vpControlFrameType frame)
+vpColVector vpRobotAfma6::getVelocity(vpRobot::vpControlFrameType frame)
 {
   vpColVector velocity;
   double timestamp;
-  getVelocity (frame, velocity, timestamp);
+  getVelocity(frame, velocity, timestamp);
 
   return velocity;
 }
@@ -2024,7 +1944,8 @@ expressed in meters, while joint rotations A,B,C in radians.
 \return true if the positions were successfully readen in the file. false, if
 an error occurs.
 
-The code below shows how to read a position from a file and move the robot to this position.
+The code below shows how to read a position from a file and move the robot to
+this position.
 \code
 vpRobotAfma6 robot;
 vpColVector q;        // Joint position
@@ -2038,12 +1959,11 @@ robot.setPosition(vpRobot::ARTICULAR_FRAME, q); // Move to the joint position
 \sa savePosFile()
 */
 
-bool
-vpRobotAfma6::readPosFile(const std::string &filename, vpColVector &q)
+bool vpRobotAfma6::readPosFile(const std::string &filename, vpColVector &q)
 {
   std::ifstream fd(filename.c_str(), std::ios::in);
 
-  if(! fd.is_open()) {
+  if (!fd.is_open()) {
     return false;
   }
 
@@ -2055,29 +1975,29 @@ vpRobotAfma6::readPosFile(const std::string &filename, vpColVector &q)
 
   q.resize(njoint);
 
-  while(std::getline(fd, line)) {
-    lineNum ++;
+  while (std::getline(fd, line)) {
+    lineNum++;
     if (lineNum == 1) {
-      if(! (line.compare(0, id.size(), id) == 0)) { // check if Afma6 position file
+      if (!(line.compare(0, id.size(), id) == 0)) { // check if Afma6 position file
         std::cout << "Error: this position file " << filename << " is not for Afma6 robot" << std::endl;
         return false;
       }
     }
-    if((line.compare(0, 1, "#") == 0)) { // skip comment
+    if ((line.compare(0, 1, "#") == 0)) { // skip comment
       continue;
     }
-    if((line.compare(0, key.size(), key) == 0)) { // decode position
+    if ((line.compare(0, key.size(), key) == 0)) { // decode position
       // check if there are at least njoint values in the line
       std::vector<std::string> chain = vpIoTools::splitChain(line, std::string(" "));
-      if (chain.size() < njoint+1) // try to split with tab separator
+      if (chain.size() < njoint + 1) // try to split with tab separator
         chain = vpIoTools::splitChain(line, std::string("\t"));
-      if(chain.size() < njoint+1)
+      if (chain.size() < njoint + 1)
         continue;
 
       std::istringstream ss(line);
       std::string key_;
       ss >> key_;
-      for (unsigned int i=0; i< njoint; i++)
+      for (unsigned int i = 0; i < njoint; i++)
         ss >> q[i];
       pos_found = true;
       break;
@@ -2123,12 +2043,11 @@ vpRobotAfma6::readPosFile(const std::string &filename, vpColVector &q)
   \sa readPosFile()
 */
 
-bool
-vpRobotAfma6::savePosFile(const std::string &filename, const vpColVector &q)
+bool vpRobotAfma6::savePosFile(const std::string &filename, const vpColVector &q)
 {
 
-  FILE * fd ;
-  fd = fopen(filename.c_str(), "w") ;
+  FILE *fd;
+  fd = fopen(filename.c_str(), "w");
   if (fd == NULL)
     return false;
 
@@ -2142,15 +2061,10 @@ vpRobotAfma6::savePosFile(const std::string &filename, const vpColVector &q)
 #\n\n");
 
   // Save positions in mm and deg
-  fprintf(fd, "R: %lf %lf %lf %lf %lf %lf\n",
-	  q[0],
-	  q[1],
-	  q[2],
-	  vpMath::deg(q[3]),
-	  vpMath::deg(q[4]),
-	  vpMath::deg(q[5]));
+  fprintf(fd, "R: %lf %lf %lf %lf %lf %lf\n", q[0], q[1], q[2], vpMath::deg(q[3]), vpMath::deg(q[4]),
+          vpMath::deg(q[5]));
 
-  fclose(fd) ;
+  fclose(fd);
   return (true);
 }
 
@@ -2164,15 +2078,14 @@ vpRobotAfma6::savePosFile(const std::string &filename, const vpColVector &q)
   \sa readPosFile(), move(const char *, const double)
 
 */
-void
-vpRobotAfma6::move(const std::string &filename)
+void vpRobotAfma6::move(const std::string &filename)
 {
   vpColVector q;
 
-  this->readPosFile(filename, q)  ;
-  this->setRobotState(vpRobot::STATE_POSITION_CONTROL) ;
+  this->readPosFile(filename, q);
+  this->setRobotState(vpRobot::STATE_POSITION_CONTROL);
   this->setPositioningVelocity(10);
-  this->setPosition ( vpRobot::ARTICULAR_FRAME,  q) ;
+  this->setPosition(vpRobot::ARTICULAR_FRAME, q);
 }
 
 /*!
@@ -2187,15 +2100,14 @@ vpRobotAfma6::move(const std::string &filename)
   \sa readPosFile(), move(const char *)
 
 */
-void
-vpRobotAfma6::move(const std::string &filename, const double velocity)
+void vpRobotAfma6::move(const std::string &filename, const double velocity)
 {
   vpColVector q;
 
-  this->readPosFile(filename, q)  ;
-  this->setRobotState(vpRobot::STATE_POSITION_CONTROL) ;
+  this->readPosFile(filename, q);
+  this->setRobotState(vpRobot::STATE_POSITION_CONTROL);
   this->setPositioningVelocity(velocity);
-  this->setPosition ( vpRobot::ARTICULAR_FRAME,  q) ;
+  this->setPosition(vpRobot::ARTICULAR_FRAME, q);
 }
 
 /*!
@@ -2204,17 +2116,15 @@ vpRobotAfma6::move(const std::string &filename, const double velocity)
 
   \sa closeGripper()
 */
-void
-vpRobotAfma6::openGripper()
+void vpRobotAfma6::openGripper()
 {
   InitTry;
-  Try( PrimitiveGripper_Afma6(1) );
-  std::cout << "Open the gripper..." << std::endl; 
+  Try(PrimitiveGripper_Afma6(1));
+  std::cout << "Open the gripper..." << std::endl;
   CatchPrint();
   if (TryStt < 0) {
-    vpERROR_TRACE ("Cannot open the gripper");
-    throw vpRobotException (vpRobotException::lowLevelError,
-			      "Cannot open the gripper.");
+    vpERROR_TRACE("Cannot open the gripper");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot open the gripper.");
   }
 }
 
@@ -2225,53 +2135,16 @@ vpRobotAfma6::openGripper()
   \sa openGripper()
 
 */
-void
-vpRobotAfma6::closeGripper()
+void vpRobotAfma6::closeGripper()
 {
   InitTry;
-  Try( PrimitiveGripper_Afma6(0) );
-  std::cout << "Close the gripper..." << std::endl; 
+  Try(PrimitiveGripper_Afma6(0));
+  std::cout << "Close the gripper..." << std::endl;
   CatchPrint();
   if (TryStt < 0) {
-    vpERROR_TRACE ("Cannot close the gripper");
-    throw vpRobotException (vpRobotException::lowLevelError,
-			      "Cannot close the gripper.");
+    vpERROR_TRACE("Cannot close the gripper");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot close the gripper.");
   }
-}
-
-/*!
-
-  Get the robot displacement expressed in the camera frame since the last call
-  of this method.
-
-  \param displacement : The measured displacement in camera frame. The
-  dimension of \e displacement is 6 (tx, ty, ty, rx, ry,
-  rz). Translations are expressed in meters, rotations in radians with
-  the Euler Rxyz representation.
-
-  \sa getDisplacement(), getArticularDisplacement()
-
-*/
-void
-vpRobotAfma6::getCameraDisplacement(vpColVector &displacement)
-{
-  getDisplacement(vpRobot::CAMERA_FRAME, displacement);
-}
-/*!
-
-  Get the robot articular displacement since the last call of this method.
-
-  \param displacement : The measured articular displacement. The
-  dimension of \e displacement is 6 (the number of axis of the
-  robot). Translations are expressed in meters, rotations in radians.
-
-  \sa getDisplacement(), getCameraDisplacement()
-
-*/
-void
-vpRobotAfma6::getArticularDisplacement(vpColVector  &displacement)
-{
-  getDisplacement(vpRobot::ARTICULAR_FRAME, displacement);
 }
 
 /*!
@@ -2291,33 +2164,29 @@ vpRobotAfma6::getArticularDisplacement(vpColVector  &displacement)
   In camera or reference frame, rotations are expressed with the
   Euler Rxyz representation.
 
-  \sa getArticularDisplacement(), getCameraDisplacement()
-
 */
-void
-vpRobotAfma6::getDisplacement(vpRobot::vpControlFrameType frame,
-                              vpColVector &displacement)
+void vpRobotAfma6::getDisplacement(vpRobot::vpControlFrameType frame, vpColVector &displacement)
 {
-  displacement.resize (6);
+  displacement.resize(6);
   displacement = 0;
 
   double q[6];
   vpColVector q_cur(6);
-  vpHomogeneousMatrix fMc_cur, c_prevMc_cur;  
+  vpHomogeneousMatrix fMc_cur, c_prevMc_cur;
   double timestamp;
 
   InitTry;
 
   // Get the current joint position
-  Try( PrimitiveACQ_POS_Afma6(q, &timestamp) );
-  for (unsigned int i=0; i < njoint; i ++) {
+  Try(PrimitiveACQ_POS_Afma6(q, &timestamp));
+  for (unsigned int i = 0; i < njoint; i++) {
     q_cur[i] = q[i];
   }
 
   // Compute the camera pose in the reference frame
   fMc_cur = get_fMc(q_cur);
 
-  if ( ! first_time_getdis ) {
+  if (!first_time_getdis) {
     switch (frame) {
     case vpRobot::CAMERA_FRAME: {
       // Compute the camera dispacement from the previous pose
@@ -2327,20 +2196,20 @@ vpRobotAfma6::getDisplacement(vpRobot::vpControlFrameType frame,
       vpRotationMatrix R;
       c_prevMc_cur.extract(t);
       c_prevMc_cur.extract(R);
-      
+
       vpRxyzVector rxyz;
       rxyz.buildFrom(R);
-      
-      for (unsigned int i=0; i<3; i++) {
-	displacement[i]   = t[i];
-	displacement[i+3] = rxyz[i];
+
+      for (unsigned int i = 0; i < 3; i++) {
+        displacement[i] = t[i];
+        displacement[i + 3] = rxyz[i];
       }
-      break ;
+      break;
     }
 
     case vpRobot::ARTICULAR_FRAME: {
       displacement = q_cur - q_prev_getdis;
-      break ;
+      break;
     }
 
     case vpRobot::REFERENCE_FRAME: {
@@ -2353,8 +2222,7 @@ vpRobotAfma6::getDisplacement(vpRobot::vpControlFrameType frame,
       return;
     }
     }
-  }
-  else {
+  } else {
     first_time_getdis = false;
   }
 
@@ -2366,9 +2234,8 @@ vpRobotAfma6::getDisplacement(vpRobot::vpControlFrameType frame,
 
   CatchPrint();
   if (TryStt < 0) {
-    vpERROR_TRACE ("Cannot get velocity.");
-    throw vpRobotException (vpRobotException::lowLevelError,
-			    "Cannot get velocity.");
+    vpERROR_TRACE("Cannot get velocity.");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot get velocity.");
   }
 }
 
@@ -2376,47 +2243,41 @@ vpRobotAfma6::getDisplacement(vpRobot::vpControlFrameType frame,
 
   Test the joints of the robot to detect if one or more is at its limit.
 
-  \param jointsStatus : A vector (size 6) of the status of the joints. For each 
-  joint, the value is equal to 1 if the joint is at its maximal limit, -1 if the
-   joint is at its minimal value and 0 otherwise.
-  
+  \param jointsStatus : A vector (size 6) of the status of the joints. For
+  each joint, the value is equal to 1 if the joint is at its maximal limit, -1
+  if the joint is at its minimal value and 0 otherwise.
+
   \return false if at least one joint is at one of its limit.
 */
-bool
-vpRobotAfma6::checkJointLimits(vpColVector& jointsStatus)
+bool vpRobotAfma6::checkJointLimits(vpColVector &jointsStatus)
 {
   Int32 axisInJoint[njoint];
   bool status = true;
   jointsStatus.resize(6);
   InitTry;
 
-  Try (PrimitiveSTATUS_Afma6(NULL, NULL, NULL, NULL, NULL, axisInJoint,
-NULL));
-  for (unsigned int i=0; i < njoint; i ++) {
-    if (axisInJoint[i]){
-      std::cout << "\nWarning: Velocity control stopped: axis "
-		<< i+1 << " on joint limit!" <<std::endl;
-		  jointsStatus[i] = axisInJoint[i];
-		  status = false;
-		}
-		else{
-		  jointsStatus[i] = 0;
-		}
+  Try(PrimitiveSTATUS_Afma6(NULL, NULL, NULL, NULL, NULL, axisInJoint, NULL));
+  for (unsigned int i = 0; i < njoint; i++) {
+    if (axisInJoint[i]) {
+      std::cout << "\nWarning: Velocity control stopped: axis " << i + 1 << " on joint limit!" << std::endl;
+      jointsStatus[i] = axisInJoint[i];
+      status = false;
+    } else {
+      jointsStatus[i] = 0;
+    }
   }
 
   Catch();
   if (TryStt < 0) {
-    vpERROR_TRACE ("Cannot check joint limits.");
-    throw vpRobotException (vpRobotException::lowLevelError,
-			    "Cannot check joint limits.");
+    vpERROR_TRACE("Cannot check joint limits.");
+    throw vpRobotException(vpRobotException::lowLevelError, "Cannot check joint limits.");
   }
 
   return status;
-
 }
 
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_robot.a(vpRobotAfma6.cpp.o) has no symbols
-void dummy_vpRobotAfma6() {};
+// Work arround to avoid warning: libvisp_robot.a(vpRobotAfma6.cpp.o) has no
+// symbols
+void dummy_vpRobotAfma6(){};
 #endif
-
