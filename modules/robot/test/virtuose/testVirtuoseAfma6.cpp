@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -39,13 +40,14 @@
 /*!
   \example testVirtuoseAfma6.cpp
 
-  Test Haption Virtuose SDK wrapper to control Afma6 robot velocity from haptic device velocity.
-  Movements are allowed inside a cube of pre-determined side.
+  Test Haption Virtuose SDK wrapper to control Afma6 robot velocity from
+  haptic device velocity. Movements are allowed inside a cube of
+  pre-determined side.
 */
 
 #include <visp3/core/vpTime.h>
-#include <visp3/robot/vpVirtuose.h>
 #include <visp3/robot/vpRobotAfma6.h>
+#include <visp3/robot/vpVirtuose.h>
 
 int main()
 {
@@ -56,7 +58,7 @@ int main()
     virtuose.setVerbose(true);
     virtuose.setCommandType(COMMAND_TYPE_IMPEDANCE);
     virtuose.setPowerOn();
-//    virtuose.setSaturation(1.0f,0.0f);
+    //    virtuose.setSaturation(1.0f,0.0f);
 
     vpColVector virt_velocity;
     vpColVector robot_velocity;
@@ -89,9 +91,9 @@ int main()
 
     robot.getPosition(vpRobot::REFERENCE_FRAME, robot_cart_position_init);
     vpColVector min(3), max(3);
-    for (unsigned int i=0; i<3; i++) {
-      min[i] = robot_cart_position_init[i] - cube_size/2;
-      max[i] = robot_cart_position_init[i] + cube_size/2;
+    for (unsigned int i = 0; i < 3; i++) {
+      min[i] = robot_cart_position_init[i] - cube_size / 2;
+      max[i] = robot_cart_position_init[i] + cube_size / 2;
     }
     std::cout << "min: " << min.t() << std::endl;
     std::cout << "max: " << max.t() << std::endl;
@@ -99,24 +101,22 @@ int main()
     // Initialize the controller to position control
     robot.setRobotState(vpRobot::STATE_VELOCITY_CONTROL);
 
-    for(unsigned int iter=0; iter<10000; iter++) {
+    for (unsigned int iter = 0; iter < 10000; iter++) {
       virt_velocity = virtuose.getVelocity();
       std::cout << "Virtuose velocity: " << virt_velocity.t() << std::endl;
 
       robot.getPosition(vpRobot::REFERENCE_FRAME, robot_cart_position);
 
-      for (int i=0; i < 3; i++) {
-        if (robot_cart_position[i] >= max[i])
-        {
+      for (int i = 0; i < 3; i++) {
+        if (robot_cart_position[i] >= max[i]) {
           force_feedback_robot[i] = (max[i] - robot_cart_position[i]) * force_increase_rate;
-          if (force_feedback_robot[i] <= -force_limit) force_feedback_robot[i] = -force_limit;
-        }
-        else if (robot_cart_position[i] <= min[i])
-        {
+          if (force_feedback_robot[i] <= -force_limit)
+            force_feedback_robot[i] = -force_limit;
+        } else if (robot_cart_position[i] <= min[i]) {
           force_feedback_robot[i] = (min[i] - robot_cart_position[i]) * force_increase_rate;
-          if (force_feedback_robot[i] >= force_limit) force_feedback_robot[i] = force_limit;
-        }
-        else
+          if (force_feedback_robot[i] >= force_limit)
+            force_feedback_robot[i] = force_limit;
+        } else
           force_feedback_robot[i] = 0;
       }
       vpColVector force_feedback_virt = rMv.getRotationMatrix().inverse() * force_feedback_robot;
@@ -138,8 +138,7 @@ int main()
     robot.stopMotion();
     virtuose.setPowerOff();
     std::cout << "The end" << std::endl;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     robot.stopMotion();
     std::cout << "Catch an exception: " << e.getStringMessage() << std::endl;
   }

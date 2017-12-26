@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -42,20 +43,17 @@
   images (it define a RGB 32 bits structure, fourth byte is not used - yet -)
 */
 
-
-#include <visp3/core/vpRGBa.h>
 #include <visp3/core/vpColor.h>
 #include <visp3/core/vpDebug.h>
 #include <visp3/core/vpException.h>
-
+#include <visp3/core/vpRGBa.h>
 
 /*!
   Copy operator (from an unsigned char value)
 
   \param v : Input color ( R = G = B = v )
 */
-vpRGBa &
-vpRGBa::operator=(const unsigned char &v)
+vpRGBa &vpRGBa::operator=(const unsigned char &v)
 {
   this->R = v;
   this->G = v;
@@ -67,8 +65,7 @@ vpRGBa::operator=(const unsigned char &v)
 /*!
   Copy operator.
 */
-vpRGBa &
-vpRGBa::operator=(const vpRGBa &v)
+vpRGBa &vpRGBa::operator=(const vpRGBa &v)
 {
   this->R = v.R;
   this->G = v.G;
@@ -81,8 +78,7 @@ vpRGBa::operator=(const vpRGBa &v)
 /*!
   Move operator.
 */
-vpRGBa &
-vpRGBa::operator=(const vpRGBa &&v)
+vpRGBa &vpRGBa::operator=(const vpRGBa &&v)
 {
   this->R = std::move(v.R);
   this->G = std::move(v.G);
@@ -101,11 +97,10 @@ vpRGBa::operator=(const vpRGBa &&v)
   \exception vpException::dimensionError : If v is not a 4 four
   dimention vector.
 */
-vpRGBa &
-vpRGBa::operator=(const vpColVector &v)
+vpRGBa &vpRGBa::operator=(const vpColVector &v)
 {
   if (v.getRows() != 4) {
-    vpERROR_TRACE("Bad vector dimension ") ;
+    vpERROR_TRACE("Bad vector dimension ");
     throw(vpException(vpException::dimensionError, "Bad vector dimension "));
   }
   R = (unsigned char)v[0];
@@ -131,25 +126,21 @@ bool vpRGBa::operator==(const vpRGBa &v)
   if (A != v.A)
     return false;
 
-  return true ;
+  return true;
 }
 /*!
   Compare two color pixels.
 
   \return true if the images are different, false if they are the same.
 */
-bool vpRGBa::operator!=(const vpRGBa &v)
-{
-  return (R != v.R || G != v.G || B != v.B || A != v.A);
-}
+bool vpRGBa::operator!=(const vpRGBa &v) { return (R != v.R || G != v.G || B != v.B || A != v.A); }
 
 /*!
   Substraction operator : "this" - v.
   \param v : Color to substract to the current object "this".
   \return "this" - v
 */
-vpColVector
-vpRGBa::operator-(const vpRGBa &v) const
+vpColVector vpRGBa::operator-(const vpRGBa &v) const
 {
   vpColVector n(4); // new color
   n[0] = (double)R - (double)v.R;
@@ -165,14 +156,13 @@ vpRGBa::operator-(const vpRGBa &v) const
   \return "this" + v
   \warning in case of overflow : e.g. 128+128 returns 0 for all 4 channels
 */
-vpRGBa
-vpRGBa::operator+(const vpRGBa &v) const
+vpRGBa vpRGBa::operator+(const vpRGBa &v) const
 {
   vpRGBa n; // new color
-  n.R = static_cast<unsigned char>( R + v.R );
-  n.G = static_cast<unsigned char>( G + v.G );
-  n.B = static_cast<unsigned char>( B + v.B );
-  n.A = static_cast<unsigned char>( A + v.A );
+  n.R = static_cast<unsigned char>(R + v.R);
+  n.G = static_cast<unsigned char>(G + v.G);
+  n.B = static_cast<unsigned char>(B + v.B);
+  n.A = static_cast<unsigned char>(A + v.A);
   return n;
 }
 
@@ -181,8 +171,7 @@ vpRGBa::operator+(const vpRGBa &v) const
   \param v : Color to substract to the current object "this".
   \return "this" - v
 */
-vpColVector
-vpRGBa::operator-(const vpColVector &v) const
+vpColVector vpRGBa::operator-(const vpColVector &v) const
 {
   vpColVector n(4); // new color
   n[0] = R - v[0];
@@ -197,8 +186,7 @@ vpRGBa::operator-(const vpColVector &v) const
   \param v : Color to add to the current object "this".
   \return "this" + v
 */
-vpColVector
-vpRGBa::operator+(const vpColVector &v) const
+vpColVector vpRGBa::operator+(const vpColVector &v) const
 {
   vpColVector n(4); // new color
   n[0] = R + v[0];
@@ -213,8 +201,7 @@ vpRGBa::operator+(const vpColVector &v) const
   \param v : Value to multiply.
   \return v * "this"
 */
-vpColVector
-vpRGBa::operator*(const float &v) const
+vpColVector vpRGBa::operator*(const float &v) const
 {
   vpColVector n(4);
   n[0] = R * v;
@@ -229,8 +216,7 @@ vpRGBa::operator*(const float &v) const
   \param v : Value to multiply.
   \return v * "this"
 */
-vpColVector
-vpRGBa::operator*(const double &v) const
+vpColVector vpRGBa::operator*(const double &v) const
 {
   vpColVector n(4);
   n[0] = R * v;
@@ -240,28 +226,23 @@ vpRGBa::operator*(const double &v) const
   return n;
 }
 
-bool
-vpRGBa::operator<(const vpRGBa &v) const
+bool vpRGBa::operator<(const vpRGBa &v) const
 {
-	double gray1 = 0.2126*R+0.7152*G+0.0722*B;
-	double gray2 = 0.2126*v.R+0.7152*v.G+0.0722*v.B;
+  double gray1 = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+  double gray2 = 0.2126 * v.R + 0.7152 * v.G + 0.0722 * v.B;
 
-	return (gray1 < gray2);
+  return (gray1 < gray2);
 }
 
-bool
-vpRGBa::operator>(const vpRGBa &v) const
+bool vpRGBa::operator>(const vpRGBa &v) const
 {
-	double gray1 = 0.2126*R+0.7152*G+0.0722*B;
-	double gray2 = 0.2126*v.R+0.7152*v.G+0.0722*v.B;
+  double gray1 = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+  double gray2 = 0.2126 * v.R + 0.7152 * v.G + 0.0722 * v.B;
 
-	return (gray1 > gray2);
+  return (gray1 > gray2);
 }
 
-vpRGBa operator*(const double &x, const vpRGBa  &rgb)
-{
-	return rgb*x;
-}
+vpRGBa operator*(const double &x, const vpRGBa &rgb) { return rgb * x; }
 
 /*!
 
@@ -272,7 +253,7 @@ vpRGBa operator*(const double &x, const vpRGBa  &rgb)
   coordinates are separated by a comma.
 
   The following code prints the intensity of the pixel in the middle of the image:
-  \code
+\code
 #include <visp3/core/vpImage.h>
 
 int main()
@@ -285,7 +266,7 @@ int main()
 }
   \endcode
 */
-VISP_EXPORT std::ostream& operator<< (std::ostream &os, const vpRGBa& rgba)
+VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpRGBa &rgba)
 {
   os << "(" << (int)rgba.R << "," << (int)rgba.G << "," << (int)rgba.B << "," << (int)rgba.A << ")";
   return os;

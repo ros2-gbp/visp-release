@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -41,27 +42,27 @@
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDebug.h>
 #include <visp3/core/vpException.h>
-#include <visp3/core/vpRequest.h>
 #include <visp3/core/vpNetwork.h>
+#include <visp3/core/vpRequest.h>
 #include <visp3/core/vpTime.h>
-
 
 /*!
   \class vpClient
-  
+
   \ingroup group_core_network
 
   \brief This class represents a Transmission Control Protocol (TCP) client.
-  
-  TCP provides reliable, ordered delivery of a stream of bytes from a program 
+
+  TCP provides reliable, ordered delivery of a stream of bytes from a program
   on one computer to another program on another computer.
 
   Exemple of client's code, receiving and sending basic message
-  It corresponds to the client used in the first exemple of vpServer class' documentation:
-  
+  It corresponds to the client used in the first exemple of vpServer class'
+documentation:
+
   \code
-#include <visp3/core/vpClient.h>
 #include <iostream>
+#include <visp3/core/vpClient.h>
 
 int main(int argc, char **argv)
 {
@@ -76,43 +77,47 @@ int main(int argc, char **argv)
 
   while(1)
   {
-    if(client.send(&val) != sizeof(int)) //Sending the new value to the first client
+    // Sending the new value to the first client
+    if(client.send(&val) != sizeof(int))
       std::cout << "Error while sending" << std::endl;
     else
-      std::cout << "Sending : " << val << std::endl;
-    
-    if(client.receive(&val) != sizeof(int)) //Receiving a value from the first client
-        std::cout << "Error while receiving" << std::endl;
+      std::cout << Sending : " << val << std::endl;
+
+    // Receiving a value from the first client
+    if(client.receive(&val) != sizeof(int))
+      std::cout << "Error while receiving" << std::endl;
     else
       std::cout << "Received : " << val << std::endl;
   }
-  
+
   return 0;
 }
   \endcode
-  
+
   Exemple of client's code, sending a vpImage on request form.
-  It correspond to the server used in the second exemple of vpServer class' documentation.
-  
+  It correspond to the server used in the second exemple of vpServer class'
+documentation.
+
   \code
-#include <visp3/core/vpClient.h>
-#include <visp3/sensor/vpV4l2Grabber.h>
-#include <visp3/core/vpImage.h>
-#include <visp3/gui/vpDisplayX.h>
-#include <visp3/gui/vpDisplayGDI.h>
 #include <iostream>
+#include <visp3/core/vpClient.h>
+#include <visp3/core/vpImage.h>
+#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/sensor/vpV4l2Grabber.h>
 
 #include "vpRequestImage.h" //See vpRequest class documentation
 
 int main(int argc, char **argv)
 {
-#if defined(VISP_HAVE_V4L2)  
+#if defined(VISP_HAVE_V4L2)
   std::string servername = "localhost";
   unsigned int port = 35000;
-  
+
   vpImage<unsigned char> I; // Create a gray level image container
-  
-  // Create a grabber based on v4l2 third party lib (for usb cameras under Linux)
+
+  // Create a grabber based on v4l2 third party lib (for usb cameras under
+  // Linux)
   vpV4l2Grabber g;
   g.setScale(1);
   g.setInput(0);
@@ -136,10 +141,10 @@ int main(int argc, char **argv)
     double t = vpTime::measureTimeMs();
     // Acquire a new image
     g.acquire(I);
-    
+
     vpDisplay::display(I);
     vpDisplay::flush(I);
-    
+
     client.sendAndEncodeRequest(reqImage);
 
     // A click in the viewer to exit
@@ -151,7 +156,7 @@ int main(int argc, char **argv)
 #endif
 }
   \endcode
-  
+
   \sa vpClient
   \sa vpRequest
   \sa vpNetwork
@@ -162,51 +167,51 @@ private:
   //######## PARAMETERS ########
   //#                          #
   //############################
-  
-  unsigned int  numberOfAttempts;
-  
+
+  unsigned int numberOfAttempts;
+
   //######## Private Functions ########
   //#                                 #
   //###################################
-  
-  bool          connectServer(vpNetwork::vpReceptor &serv);
-  
+
+  bool connectServer(vpNetwork::vpReceptor &serv);
+
 public:
-                vpClient();
-  virtual       ~vpClient();
-  
-  bool          connectToHostname(const std::string &hostname, const unsigned int &port_serv);
-  bool          connectToIP(const std::string &ip, const unsigned int &port_serv);
-  
-  void          deconnect(const unsigned int &index = 0);
+  vpClient();
+  virtual ~vpClient();
+
+  bool connectToHostname(const std::string &hostname, const unsigned int &port_serv);
+  bool connectToIP(const std::string &ip, const unsigned int &port_serv);
+
+  void deconnect(const unsigned int &index = 0);
   /*!
     Get the actual number of attempts to connect to the server.
-    
+
     \sa vpClient::setNumberOfAttempts()
 
     \return Actual number of attempts.
   */
-  unsigned int  getNumberOfAttempts(){ return numberOfAttempts; }
-  
+  unsigned int getNumberOfAttempts() { return numberOfAttempts; }
+
   /*!
     Get the number of server that the client is connected on.
 
     \return Number of servers.
   */
-  unsigned int  getNumberOfServers(){ return (unsigned int)receptor_list.size(); }
-  
-  void          print();
-  
+  unsigned int getNumberOfServers() { return (unsigned int)receptor_list.size(); }
+
+  void print();
+
   /*!
     Set the number of attempts to connect to the server.
-    
+
     \sa vpClient::getNumberOfAttempts()
 
     \param nb : Number of attempts.
   */
-  void          setNumberOfAttempts(const unsigned int &nb){ numberOfAttempts = nb; }
-  
-  void          stop();
+  void setNumberOfAttempts(const unsigned int &nb) { numberOfAttempts = nb; }
+
+  void stop();
 };
 
 #endif

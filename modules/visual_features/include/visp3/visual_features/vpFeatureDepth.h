@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,7 +36,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpFeatureDepth_H
 #define vpFeatureDepth_H
 
@@ -49,7 +49,6 @@
 
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpRGBa.h>
-
 
 /*!
   \class vpFeatureDepth
@@ -103,7 +102,7 @@ int main()
   //Set the point feature thanks to the current parameters.
   s.buildfrom(x, y, Z, log(Z/Zs));
 
-  // Set eye-in-hand control law. 
+  // Set eye-in-hand control law.
   // The computed velocities will be expressed in the camera frame
   task.setServo(vpServo::EYEINHAND_CAMERA);
   // Interaction matrix is computed with the desired visual features sd
@@ -115,10 +114,10 @@ int main()
   // Control loop
   for ( ; ; ) {
     // The new parameters x, y and Z must be computed here.
-    
+
     // Update the current point visual feature
     s.buildfrom(x, y, Z, log(Z/Zs));
-    
+
     // compute the control law
     vpColVector v = task.computeControlLaw(); // camera velocity
   }
@@ -127,14 +126,14 @@ int main()
   \endcode
 
   If you want to build your own control law, this other example shows how
-  to create a current (\f$s\f$) and desired (\f$s^*\f$) 2D point visual 
-  feature, compute the corresponding error vector \f$(s-s^*)\f$ and finally 
+  to create a current (\f$s\f$) and desired (\f$s^*\f$) 2D point visual
+  feature, compute the corresponding error vector \f$(s-s^*)\f$ and finally
   build the interaction matrix \f$L_s\f$.
 
   \code
-#include <visp3/visual_features/vpFeatureDepth.h>
-#include <visp3/core/vpMatrix.h>
 #include <visp3/core/vpColVector.h>
+#include <visp3/core/vpMatrix.h>
+#include <visp3/visual_features/vpFeatureDepth.h>
 
 int main()
 {
@@ -151,27 +150,29 @@ int main()
   vpMatrix L = s.interaction();
 
   // Compute the error vector (s-s*) for the point feature with s* considered as 0.
-  vpColVector s_star(1); //the dimension is 1.
-  s_star(1) = 0; //The value of s* is 0.
+  vpColVector s_star(1); // The dimension is 1.
+  s_star(1) = 0; // The value of s* is 0.
   s.error(s_star);
 }
   \endcode
 */
 
-
 class VISP_EXPORT vpFeatureDepth : public vpBasicFeature
 {
 
 private:
-  //! The \f$ x \f$ 2D coordinate of the point in the camera frame (required to compute the interaction matrix)
+  //! The \f$ x \f$ 2D coordinate of the point in the camera frame (required
+  //! to compute the interaction matrix)
   double x;
-  //! The \f$ y \f$ 2D coordinate of the point in the camera frame (required to compute the interaction matrix)
+  //! The \f$ y \f$ 2D coordinate of the point in the camera frame (required
+  //! to compute the interaction matrix)
   double y;
-  //! The \f$ Z \f$ 3D coordinate of the point in the camera frame (required to compute the interaction matrix)
+  //! The \f$ Z \f$ 3D coordinate of the point in the camera frame (required
+  //! to compute the interaction matrix)
   double Z;
 
 public:
-  vpFeatureDepth() ;
+  vpFeatureDepth();
   //! Destructor.
   virtual ~vpFeatureDepth() {}
 
@@ -179,43 +180,37 @@ public:
     section Set coordinates
   */
 
-  void buildFrom(const double x, const double y, const double Z, const double LogZoverZstar) ;
+  void buildFrom(const double x, const double y, const double Z, const double LogZoverZstar);
 
-  void display(const vpCameraParameters &cam,
-               const vpImage<unsigned char> &I,
-               const vpColor &color=vpColor::green,
-               unsigned int thickness=1) const ;
-  void display(const vpCameraParameters &cam,
-               const vpImage<vpRGBa> &I,
-               const vpColor &color=vpColor::green,
-               unsigned int thickness=1) const ;
-  vpFeatureDepth *duplicate() const ;
-  vpColVector error(const vpBasicFeature &s_star, const unsigned int select = FEATURE_ALL)  ;
+  void display(const vpCameraParameters &cam, const vpImage<unsigned char> &I, const vpColor &color = vpColor::green,
+               unsigned int thickness = 1) const;
+  void display(const vpCameraParameters &cam, const vpImage<vpRGBa> &I, const vpColor &color = vpColor::green,
+               unsigned int thickness = 1) const;
+  vpFeatureDepth *duplicate() const;
+  vpColVector error(const vpBasicFeature &s_star, const unsigned int select = FEATURE_ALL);
 
-  double get_x()  const ;
+  double get_x() const;
 
-  double get_y()   const ;
+  double get_y() const;
 
-  double get_Z() const  ;
+  double get_Z() const;
 
-  double get_LogZoverZstar() const  ;
+  double get_LogZoverZstar() const;
 
-  void init() ;
-  vpMatrix  interaction(const unsigned int select = FEATURE_ALL);
+  void init();
+  vpMatrix interaction(const unsigned int select = FEATURE_ALL);
 
-  void print(const unsigned int select = FEATURE_ALL ) const ;
-  void set_x(const double x) ;
+  void print(const unsigned int select = FEATURE_ALL) const;
+  void set_x(const double x);
 
-  void set_y(const double y) ;
+  void set_y(const double y);
 
-  void set_Z(const double Z) ;
+  void set_Z(const double Z);
 
   void set_LogZoverZstar(const double LogZoverZstar);
 
-  void set_xyZLogZoverZstar(const double x, const double y, const double Z, const double logZZs) ;
-} ;
-
-
+  void set_xyZLogZoverZstar(const double x, const double y, const double Z, const double logZZs);
+};
 
 #endif
 

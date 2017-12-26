@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -37,9 +38,10 @@
 
 /*!
   \example testForceTorqueAti.cpp
-  This example shows how to retrieve data from an ATI F/T sensor connected to a DAQ board.
-  He we have 2 threads:
-  - the main thread running at 1KHz that get the measures from an ATI F/T sensor and records data in recorded-ft-sync.txt file
+  This example shows how to retrieve data from an ATI F/T sensor connected to
+  a DAQ board. He we have 2 threads:
+  - the main thread running at 1KHz that get the measures from an ATI F/T
+  sensor and records data in recorded-ft-sync.txt file
   - the scope thread that plots the F/T values in real-time.
 */
 
@@ -47,19 +49,14 @@
 
 #include <visp3/core/vpIoTools.h>
 #include <visp3/core/vpMutex.h>
-#include <visp3/core/vpTime.h>
 #include <visp3/core/vpThread.h>
-#include <visp3/sensor/vpForceTorqueAtiSensor.h>
+#include <visp3/core/vpTime.h>
 #include <visp3/gui/vpPlot.h>
+#include <visp3/sensor/vpForceTorqueAtiSensor.h>
 
 #if defined(VISP_HAVE_PTHREAD)
 
-typedef enum {
-  BIAS_DONE,
-  UNBIAS_DONE,
-  TO_BIAS,
-  TO_UNBIAS
-} BiasState;
+typedef enum { BIAS_DONE, UNBIAS_DONE, TO_BIAS, TO_UNBIAS } BiasState;
 
 vpMutex s_mutex_data;
 
@@ -82,8 +79,8 @@ vpThread::Return scopeFunction(vpThread::Args args)
 
 #ifdef VISP_HAVE_DISPLAY
   vpPlot scope(2, 700, 700, 100, 200, "ATI F/T sensor data");
-  scope.initGraph(0,3);
-  scope.initGraph(1,3);
+  scope.initGraph(0, 3);
+  scope.initGraph(1, 3);
   scope.setTitle(0, "Forces (N)");
   scope.setTitle(1, "Torques (Nm)");
   scope.setLegend(0, 0, "x");
@@ -128,8 +125,10 @@ vpThread::Return scopeFunction(vpThread::Args args)
     vpDisplay::flush(scope.I);
     click = vpDisplay::getClick(scope.I, button, false);
     if (click && button == vpMouseButton::button3) {
-      if      (shared_data.bias_state == BIAS_DONE)   shared_data.bias_state = TO_UNBIAS;
-      else if (shared_data.bias_state == UNBIAS_DONE) shared_data.bias_state = TO_BIAS;
+      if (shared_data.bias_state == BIAS_DONE)
+        shared_data.bias_state = TO_UNBIAS;
+      else if (shared_data.bias_state == UNBIAS_DONE)
+        shared_data.bias_state = TO_BIAS;
       { // Set new bias state
         vpMutex::vpScopedLock lock(s_mutex_data);
         s_shared_data.bias_state = shared_data.bias_state;
@@ -139,9 +138,9 @@ vpThread::Return scopeFunction(vpThread::Args args)
 #endif
   }
 #ifdef VISP_HAVE_DISPLAY
-  while(! (click && button == vpMouseButton::button1));  // Stop recording by a user left click
+  while (!(click && button == vpMouseButton::button1)); // Stop recording by a user left click
 #else
-  while(vpTime::measureTimeMs() - start_time < 20000);   // Stop recording after 20 seconds
+  while (vpTime::measureTimeMs() - start_time < 20000); // Stop recording after 20 seconds
 #endif
 
   { // Update state to stop
@@ -153,7 +152,7 @@ vpThread::Return scopeFunction(vpThread::Args args)
   return 0;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 #if defined(VISP_HAVE_ATIDAQ) && defined(VISP_HAVE_COMEDI)
 
@@ -161,12 +160,12 @@ int main(int argc, char** argv)
   (void)argc;
   (void)argv;
   std::string calibfile = std::string(VISP_VIPER850_DATA_PATH) + std::string("/ati/FT17824.cal");
-  if (! vpIoTools::checkFilename(calibfile)) {
+  if (!vpIoTools::checkFilename(calibfile)) {
     std::cout << "ATI F/T calib file \"" << calibfile << "\" doesn't exist";
     return 0;
   }
 #else
-  if(argc != 2) {
+  if (argc != 2) {
     std::cout << "Usage: " << argv[0] << " <ATI calibration file FT*.cal]>" << std::endl;
     return -1;
   }
@@ -205,8 +204,7 @@ int main(int argc, char** argv)
       ati.bias();
       std::cout << "Unbias sensor" << std::endl;
       shared_data.bias_state = BIAS_DONE;
-    }
-    else if (shared_data.bias_state == TO_UNBIAS) {
+    } else if (shared_data.bias_state == TO_UNBIAS) {
       ati.unbias();
       shared_data.bias_state = UNBIAS_DONE;
     }
@@ -224,8 +222,7 @@ int main(int argc, char** argv)
 
     f << timestamp << " " << ft.t() << std::endl;
     vpTime::wait(loop_time, 1); // Get a new data each 1 millisecond
-  }
-  while(! state_stop);
+  } while (!state_stop);
 
   // Wait until thread ends up
   thread_scope.join();
@@ -241,8 +238,5 @@ int main(int argc, char** argv)
 }
 
 #else
-int main()
-{
-  std::cout << "You should build this test with threading capabilities..." << std::endl;
-}
+int main() { std::cout << "You should build this test with threading capabilities..." << std::endl; }
 #endif

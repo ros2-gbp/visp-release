@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -39,19 +40,19 @@
 #ifndef vpRfstack_h
 #define vpRfstack_h
 
-#include <visp3/core/vpConfig.h>
 #include <stdio.h>
+#include <visp3/core/vpConfig.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-void	fprintf_rfstack (FILE *fp);
-int	*get_rfstack (void);
-void	load_rfstack (int i);
-void	pop_rfstack (void);
-void	push_rfstack (void);
-void	swap_rfstack (void);
-void	add_rfstack (int i);
-void	sub_rfstack (int i);
+void fprintf_rfstack(FILE *fp);
+int *get_rfstack(void);
+void load_rfstack(int i);
+void pop_rfstack(void);
+void push_rfstack(void);
+void swap_rfstack(void);
+void add_rfstack(int i);
+void sub_rfstack(int i);
 
 #endif
 #endif
