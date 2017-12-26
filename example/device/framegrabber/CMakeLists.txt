@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -51,6 +52,7 @@ set(example_cpp
   grabFlyCapture.cpp
   grabOpenCV.cpp
   grabRealSense.cpp
+  grabRealSense2.cpp
   grabV4l2MultiCpp11Thread.cpp
 )
 
@@ -61,7 +63,7 @@ endif()
 
 if(VISP_HAVE_PCL)
   # Add specific build flag to turn off warnings coming from PCL 3rd party
-  visp_set_source_file_compile_flag(grabRealSense.cpp -Wno-deprecated-declarations -Wno-inconsistent-missing-override -Wno-sign-conversion -Wno-float-equal)
+  visp_set_source_file_compile_flag(grabRealSense.cpp -Wno-deprecated-declarations -Wno-inconsistent-missing-override -Wno-sign-conversion -Wno-float-equal -Wno-unused-parameter -Wno-pessimizing-move)
 endif()
 
 foreach(cpp ${example_cpp})

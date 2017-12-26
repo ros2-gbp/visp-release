@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -40,27 +41,26 @@
   \brief Base class for all 2D moments.
 */
 
-
-#include <visp3/core/vpMomentObject.h>
+#include <cstring>
 #include <visp3/core/vpMoment.h>
 #include <visp3/core/vpMomentDatabase.h>
-#include <cstring>
+#include <visp3/core/vpMomentObject.h>
 /*!
   Default constructor
 */
-vpMoment::vpMoment(): object(NULL), moments(NULL), values() {}
-
+vpMoment::vpMoment() : object(NULL), moments(NULL), values() {}
 
 /*!
   Links the moment to a database of moment primitives.
-  If the moment depends on other moments, these moments must be linked to the same database.
-  \attention Two moments of the same class cannot be stored in the same database
-  \code
+  If the moment depends on other moments, these moments must be linked to the
+same database. \attention Two moments of the same class cannot be stored in
+the same database
+\code
+#include <visp3/core/vpMomentCentered.h>
+#include <visp3/core/vpMomentDatabase.h>
+#include <visp3/core/vpMomentGravityCenter.h>
 #include <visp3/core/vpMomentObject.h>
 #include <visp3/core/vpPoint.h>
-#include <visp3/core/vpMomentGravityCenter.h>
-#include <visp3/core/vpMomentDatabase.h>
-#include <visp3/core/vpMomentCentered.h>
 
 int main()
 {
@@ -68,8 +68,7 @@ int main()
   std::vector<vpPoint> vec_p;
 
   p.set_x(1); p.set_y(1); // coordinates in meters in the image plane (vertex 1)
-  vec_p.push_back(p);
-  p.set_x(2); p.set_y(2); // coordinates in meters in the image plane (vertex 2)
+  vec_p.push_back(p); p.set_x(2); p.set_y(2); // coordinates in meters in the image plane (vertex 2)
 
   vpMomentObject obj(2);
   obj.setType(vpMomentObject::DISCRETE); // Discrete mode.
@@ -96,44 +95,47 @@ int main()
 
   \param data_base : database of moment primitives.
 */
-void vpMoment::linkTo(vpMomentDatabase& data_base){
-  if (strlen( name() ) >= 255) {
-    throw(vpException(vpException::memoryAllocationError,
-                      "Not enough memory to intialize the moment name"));
+void vpMoment::linkTo(vpMomentDatabase &data_base)
+{
+  if (strlen(name()) >= 255) {
+    throw(vpException(vpException::memoryAllocationError, "Not enough memory to intialize the moment name"));
   }
 
-  std::strcpy(_name,name());
-  this->moments=&data_base;
+  std::strcpy(_name, name());
+  this->moments = &data_base;
 
-  data_base.add(*this,_name);
+  data_base.add(*this, _name);
 }
-
 
 /*!
-  Updates the moment with the current object. This does not compute any values.
-  \param moment_object : object descriptor of the current camera vision.
+  Updates the moment with the current object. This does not compute any
+  values. \param moment_object : object descriptor of the current camera
+  vision.
 */
-void vpMoment::update(vpMomentObject& moment_object){
-    this->object=&moment_object;
-}
+void vpMoment::update(vpMomentObject &moment_object) { this->object = &moment_object; }
 
 /*!
   Prints the moment contents to a stream
   \param os : a std::stream.
   \param m : a moment instance.
 */
-VISP_EXPORT std::ostream & operator<<(std::ostream & os, const vpMoment& m){
-  for(std::vector<double>::const_iterator i = m.values.begin();i!=m.values.end(); ++i)
+VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpMoment &m)
+{
+  for (std::vector<double>::const_iterator i = m.values.begin(); i != m.values.end(); ++i)
     os << *i << ",";
 
   return os;
 }
 
 /*!
-Prints values of all dependent moments required to calculate a specific vpMoment.
-Not made pure to maintain compatibility
-Recommended : Types inheriting from vpMoment should implement this function
+Prints values of all dependent moments required to calculate a specific
+vpMoment. Not made pure to maintain compatibility Recommended : Types
+inheriting from vpMoment should implement this function
 */
-void vpMoment::printDependencies(std::ostream& os) const{
-    os << " WARNING : Falling back to base class version of printDependencies(). To prevent that, this has to be implemented in the derived classes!" << std::endl;
+void vpMoment::printDependencies(std::ostream &os) const
+{
+  os << " WARNING : Falling back to base class version of "
+        "printDependencies(). To prevent that, this has to be implemented in "
+        "the derived classes!"
+     << std::endl;
 }

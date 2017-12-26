@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -28,7 +29,7 @@
 # WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
 # Description:
-# This file generates the ViSPConfig.cmake file: 
+# This file generates the ViSPConfig.cmake file:
 #  Part 1/3: ${BIN_DIR}/VISPConfig.cmake              -> For use *without* "make install"
 #  Part 2/3: ${BIN_DIR}/unix-install/VISPConfig.cmake -> For use with "make install"
 #  Part 3/3: ${BIN_DIR}/win-install/VISPConfig.cmake  -> For use within binary installers/packages
@@ -71,6 +72,21 @@ if(VISP_LIB_COMPONENTS)
   list(REMOVE_ITEM VISP_MODULES_CONFIGCMAKE ${VISP_LIB_COMPONENTS})
 endif()
 
+# -------------------------------------------------------------------------------------------
+#  Handle cmake extra vars (like USTK_HAVE_FFTW) that should be exported in VISPConfig.cmake thanks
+#  to vp_cmake_configure()
+#  All these vars are added in VISP_CONTRIB_MODULES_CONFIGCMAKE that is used in VISPConfig.cmake.in
+#  See ustk_core/cmake/templates/VISPConfig-ustk_core.cmake.in example
+# -------------------------------------------------------------------------------------------
+set(VISP_CONTRIB_MODULES_CONFIGCMAKE "")
+foreach(m ${VISP_MODULES_BUILD} ${VISP_MODULES_DISABLED_USER} ${VISP_MODULES_DISABLED_AUTO} ${VISP_MODULES_DISABLED_FORCE})
+  set(__shortname ${m})
+  vp_short_module_name(__shortname)
+  if(EXISTS "${CMAKE_BINARY_DIR}/CMakeConfig-${__shortname}.cmake")
+    file(READ "${CMAKE_BINARY_DIR}/CMakeConfig-${__shortname}.cmake" __var)
+    set(VISP_CONTRIB_MODULES_CONFIGCMAKE "${VISP_CONTRIB_MODULES_CONFIGCMAKE}\n${__var}")
+  endif()
+endforeach()
 
 # -------------------------------------------------------------------------------------------
 #  Part 1/3: ${BIN_DIR}/VISPConfig.cmake              -> For use *without* "make install"

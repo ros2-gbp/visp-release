@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -36,7 +37,6 @@
  *
  *****************************************************************************/
 
-
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpImagePoint.h>
 #include <visp3/core/vpRect.h>
@@ -44,25 +44,24 @@
 /*!
 
   Check if an image point belongs to a rectangle.
-  
+
   \param rect : the rectangle.
-  
+
   \return Returns true if the point belongs to the rectangle.
 
 */
-bool vpImagePoint::inRectangle( const vpRect &rect ) const
+bool vpImagePoint::inRectangle(const vpRect &rect) const
 {
-  return ( this->i <= rect.getBottom() && 
-	   this->i >= rect.getTop() &&
-	   this->j <= rect.getRight() &&
-	   this->j >= rect.getLeft());
+  return (this->i <= rect.getBottom() && this->i >= rect.getTop() && this->j <= rect.getRight() &&
+          this->j >= rect.getLeft());
 }
 
 /*!
 
   Operator +=.
 
-  This operator can be used to compute the center of gravity of a set of image points.
+  This operator can be used to compute the center of gravity of a set of image
+points.
 
   \code
 #include <iostream>
@@ -71,21 +70,22 @@ bool vpImagePoint::inRectangle( const vpRect &rect ) const
 
 int main()
 {
-std::vector<vpImagePoint> ip(2);
+  std::vector<vpImagePoint> ip(2);
 
-ip[0].set_ij(100, 200);
-ip[1].set_ij(300, 400);
+  ip[0].set_ij(100, 200);
+  ip[1].set_ij(300, 400);
 
-vpImagePoint cog(0,0);
-for(unsigned int i=0; i<ip.size(); i++)
-  cog += ip[i];
-cog /= ip.size();
-std::cout << "cog: " << cog << std::endl;
+  vpImagePoint cog(0,0);
+  for(unsigned int i=0; i<ip.size(); i++)
+    cog += ip[i];
+  cog /= ip.size();
+  std::cout << "cog: " << cog << std::endl;
 }
   \endcode
 
 */
-vpImagePoint& vpImagePoint::operator+=(const vpImagePoint &ip) {
+vpImagePoint &vpImagePoint::operator+=(const vpImagePoint &ip)
+{
   this->i += ip.i;
   this->j += ip.j;
   return *this;
@@ -95,29 +95,31 @@ vpImagePoint& vpImagePoint::operator+=(const vpImagePoint &ip) {
 
   Operator /=.
 
-  This operator can be used to compute the center of gravity of a set of image points.
-  \code
+  This operator can be used to compute the center of gravity of a set of image
+points.
+\code
 #include <iostream>
 #include <vector>
 #include <visp3/core/vpImagePoint.h>
 
 int main()
 {
-std::vector<vpImagePoint> ip(2);
+  std::vector<vpImagePoint> ip(2);
 
-ip[0].set_ij(100, 200);
-ip[1].set_ij(300, 400);
+  ip[0].set_ij(100, 200);
+  ip[1].set_ij(300, 400);
 
-vpImagePoint cog(0,0);
-for(unsigned int i=0; i<ip.size(); i++)
-  cog += ip[i];
-cog /= ip.size();
-std::cout << "cog: " << cog << std::endl;
+  vpImagePoint cog(0,0);
+  for(unsigned int i=0; i<ip.size(); i++)
+    cog += ip[i];
+  cog /= ip.size();
+  std::cout << "cog: " << cog << std::endl;
 }
   \endcode
 
 */
-vpImagePoint& vpImagePoint::operator/=(const double scale) {
+vpImagePoint &vpImagePoint::operator/=(const double scale)
+{
   this->i /= scale;
   this->j /= scale;
   return *this;
@@ -129,19 +131,18 @@ vpImagePoint& vpImagePoint::operator/=(const double scale) {
   Returns true if ip1 and ip2 are equal; otherwire returns false.
 
 */
-VISP_EXPORT bool operator==( const vpImagePoint &ip1, const vpImagePoint &ip2 ) {
-  //return ( ( ip1.get_i() == ip2.get_i() ) && ( ip1.get_j() == ip2.get_j() ) );
+VISP_EXPORT bool operator==(const vpImagePoint &ip1, const vpImagePoint &ip2)
+{
+  // return ( ( ip1.get_i() == ip2.get_i() ) && ( ip1.get_j() == ip2.get_j() )
+  // );
 
   double i1 = ip1.get_i();
   double j1 = ip1.get_j();
   double i2 = ip2.get_i();
   double j2 = ip2.get_j();
 
-  return (
-    ( std::fabs(i1-i2) <= std::fabs(vpMath::maximum(i1, i2))*std::numeric_limits<double>::epsilon() )
-    &&
-    ( std::fabs(j1-j2) <= std::fabs(vpMath::maximum(j1, j2))*std::numeric_limits<double>::epsilon() )
-    );
+  return ((std::fabs(i1 - i2) <= std::fabs(vpMath::maximum(i1, i2)) * std::numeric_limits<double>::epsilon()) &&
+          (std::fabs(j1 - j2) <= std::fabs(vpMath::maximum(j1, j2)) * std::numeric_limits<double>::epsilon()));
 }
 
 /*!
@@ -151,18 +152,17 @@ VISP_EXPORT bool operator==( const vpImagePoint &ip1, const vpImagePoint &ip2 ) 
   Returns true if ip1 and ip2 are different; otherwire returns true.
 
 */
-VISP_EXPORT bool operator!=( const vpImagePoint &ip1, const vpImagePoint &ip2 ) {
-  //return ( ( ip1.get_i() != ip2.get_i() ) || ( ip1.get_j() != ip2.get_j() ) );
+VISP_EXPORT bool operator!=(const vpImagePoint &ip1, const vpImagePoint &ip2)
+{
+  // return ( ( ip1.get_i() != ip2.get_i() ) || ( ip1.get_j() != ip2.get_j() )
+  // );
   double i1 = ip1.get_i();
   double j1 = ip1.get_j();
   double i2 = ip2.get_i();
   double j2 = ip2.get_j();
 
-  return (
-    ( std::fabs(i1-i2) > std::fabs(vpMath::maximum(i1, i2))*std::numeric_limits<double>::epsilon() )
-    ||
-    ( std::fabs(j1-j2) > std::fabs(vpMath::maximum(j1, j2))*std::numeric_limits<double>::epsilon() )
-    );
+  return ((std::fabs(i1 - i2) > std::fabs(vpMath::maximum(i1, i2)) * std::numeric_limits<double>::epsilon()) ||
+          (std::fabs(j1 - j2) > std::fabs(vpMath::maximum(j1, j2)) * std::numeric_limits<double>::epsilon()));
 }
 
 /*!
@@ -172,8 +172,9 @@ VISP_EXPORT bool operator!=( const vpImagePoint &ip1, const vpImagePoint &ip2 ) 
   Returns a vpImagePoint wich is the sum of \f$ ip1 \f$ and \f$ ip2 \f$.
 
 */
-VISP_EXPORT vpImagePoint operator+( const vpImagePoint &ip1, const vpImagePoint &ip2 ) {
-  return ( vpImagePoint(ip1.get_i()+ip2.get_i(), ip1.get_j()+ip2.get_j()));
+VISP_EXPORT vpImagePoint operator+(const vpImagePoint &ip1, const vpImagePoint &ip2)
+{
+  return (vpImagePoint(ip1.get_i() + ip2.get_i(), ip1.get_j() + ip2.get_j()));
 }
 /*!
 
@@ -182,8 +183,9 @@ VISP_EXPORT vpImagePoint operator+( const vpImagePoint &ip1, const vpImagePoint 
   Returns a vpImagePoint wich is the sum of \f$ ip1 \f$ and \f$ ip2 \f$.
 
 */
-VISP_EXPORT vpImagePoint operator+=( const vpImagePoint &ip1, const vpImagePoint &ip2 ) {
-  return ( vpImagePoint(ip1.get_i()+ip2.get_i(), ip1.get_j()+ip2.get_j()));
+VISP_EXPORT vpImagePoint operator+=(const vpImagePoint &ip1, const vpImagePoint &ip2)
+{
+  return (vpImagePoint(ip1.get_i() + ip2.get_i(), ip1.get_j() + ip2.get_j()));
 }
 /*!
 
@@ -205,8 +207,9 @@ int main()
 }
   \endcode
 */
-VISP_EXPORT vpImagePoint operator+( const vpImagePoint &ip1, const int offset ) {
-  return ( vpImagePoint(ip1.get_i()+offset, ip1.get_j()+offset));
+VISP_EXPORT vpImagePoint operator+(const vpImagePoint &ip1, const int offset)
+{
+  return (vpImagePoint(ip1.get_i() + offset, ip1.get_j() + offset));
 }
 
 /*!
@@ -229,8 +232,9 @@ int main()
 }
   \endcode
 */
-VISP_EXPORT vpImagePoint operator+( const vpImagePoint &ip1, const unsigned int offset ) {
-  return ( vpImagePoint(ip1.get_i()+offset, ip1.get_j()+offset));
+VISP_EXPORT vpImagePoint operator+(const vpImagePoint &ip1, const unsigned int offset)
+{
+  return (vpImagePoint(ip1.get_i() + offset, ip1.get_j() + offset));
 }
 
 /*!
@@ -253,19 +257,22 @@ int main()
 }
   \endcode
 */
-VISP_EXPORT vpImagePoint operator+( const vpImagePoint &ip1, const double offset ) {
-  return ( vpImagePoint(ip1.get_i()+offset, ip1.get_j()+offset));
+VISP_EXPORT vpImagePoint operator+(const vpImagePoint &ip1, const double offset)
+{
+  return (vpImagePoint(ip1.get_i() + offset, ip1.get_j() + offset));
 }
 
 /*!
 
   \relates vpImagePoint
 
-  Returns a vpImagePoint wich is the difference between \f$ ip1 \f$ and \f$ ip2 \f$.
+  Returns a vpImagePoint wich is the difference between \f$ ip1 \f$ and \f$
+  ip2 \f$.
 
 */
-VISP_EXPORT vpImagePoint operator-( const vpImagePoint &ip1, const vpImagePoint &ip2 ) {
-  return ( vpImagePoint(ip1.get_i()-ip2.get_i(), ip1.get_j()-ip2.get_j()));
+VISP_EXPORT vpImagePoint operator-(const vpImagePoint &ip1, const vpImagePoint &ip2)
+{
+  return (vpImagePoint(ip1.get_i() - ip2.get_i(), ip1.get_j() - ip2.get_j()));
 }
 /*!
 
@@ -287,8 +294,9 @@ int main()
 }
   \endcode
 */
-VISP_EXPORT vpImagePoint operator-( const vpImagePoint &ip1, const int offset ) {
-  return ( vpImagePoint(ip1.get_i()-offset, ip1.get_j()-offset));
+VISP_EXPORT vpImagePoint operator-(const vpImagePoint &ip1, const int offset)
+{
+  return (vpImagePoint(ip1.get_i() - offset, ip1.get_j() - offset));
 }
 /*!
 
@@ -310,8 +318,9 @@ int main()
 }
   \endcode
 */
-VISP_EXPORT vpImagePoint operator-( const vpImagePoint &ip1, const unsigned int offset ) {
-  return ( vpImagePoint(ip1.get_i()-offset, ip1.get_j()-offset));
+VISP_EXPORT vpImagePoint operator-(const vpImagePoint &ip1, const unsigned int offset)
+{
+  return (vpImagePoint(ip1.get_i() - offset, ip1.get_j() - offset));
 }
 
 /*!
@@ -334,8 +343,9 @@ int main()
 }
   \endcode
 */
-VISP_EXPORT vpImagePoint operator-( const vpImagePoint &ip1, const double offset ) {
-  return ( vpImagePoint(ip1.get_i()-offset, ip1.get_j()-offset));
+VISP_EXPORT vpImagePoint operator-(const vpImagePoint &ip1, const double offset)
+{
+  return (vpImagePoint(ip1.get_i() - offset, ip1.get_j() - offset));
 }
 /*!
 
@@ -357,8 +367,9 @@ int main()
 }
   \endcode
 */
-VISP_EXPORT vpImagePoint operator*( const vpImagePoint &ip1, const double scale ) {
-  return ( vpImagePoint(ip1.get_i()*scale, ip1.get_j()*scale));
+VISP_EXPORT vpImagePoint operator*(const vpImagePoint &ip1, const double scale)
+{
+  return (vpImagePoint(ip1.get_i() * scale, ip1.get_j() * scale));
 }
 /*!
 
@@ -380,8 +391,9 @@ int main()
 }
   \endcode
 */
-VISP_EXPORT vpImagePoint operator/( const vpImagePoint &ip1, const double scale ) {
-  return ( vpImagePoint(ip1.get_i()/scale, ip1.get_j()/scale));
+VISP_EXPORT vpImagePoint operator/(const vpImagePoint &ip1, const double scale)
+{
+  return (vpImagePoint(ip1.get_i() / scale, ip1.get_j() / scale));
 }
 
 /*!
@@ -416,7 +428,7 @@ int main()
 Image point with coordinates: 10, 11.1
   \endverbatim
 */
-VISP_EXPORT std::ostream& operator<< (std::ostream &os, const vpImagePoint& ip)
+VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpImagePoint &ip)
 {
   os << ip.get_i() << ", " << ip.get_j();
   return os;
@@ -427,7 +439,7 @@ VISP_EXPORT std::ostream& operator<< (std::ostream &os, const vpImagePoint& ip)
  * @param ipVec : Vector of input image points.
  * @return Bounding box of the points.
  */
-vpRect vpImagePoint::getBBox(const std::vector<vpImagePoint>& ipVec)
+vpRect vpImagePoint::getBBox(const std::vector<vpImagePoint> &ipVec)
 {
   vpRect rec(ipVec);
 

@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -41,39 +42,39 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <visp3/core/vpConfig.h>
-#if ( defined(VISP_HAVE_DIRECTSHOW) )
+#if (defined(VISP_HAVE_DIRECTSHOW))
 
 #include <atlbase.h>
+#include <dshow.h>
 #include <iostream>
 #include <string>
-#include <dshow.h>
 
 class VISP_EXPORT vpDirectShowDevice
 {
 
-	std::string name;		//the device's name
-	std::string desc;		//the device's description
-	std::string devPath;		//the device's device path (unique)
+  std::string name;    // the device's name
+  std::string desc;    // the device's description
+  std::string devPath; // the device's device path (unique)
 
-	bool inUse;			//true if the device is already used by a grabber
+  bool inUse; // true if the device is already used by a grabber
 
 public:
-	vpDirectShowDevice() : inUse(false){}
-	vpDirectShowDevice(const CComPtr<IMoniker>& moniker) : inUse(false){ init(moniker); }
+  vpDirectShowDevice() : inUse(false) {}
+  explicit vpDirectShowDevice(const CComPtr<IMoniker> &moniker) : inUse(false) { init(moniker); }
 
-	bool init(const CComPtr<IMoniker>& moniker);
+  bool init(const CComPtr<IMoniker> &moniker);
 
-	bool getState(){ return inUse; }
-	void setInUse(){ inUse=true; }
-	void resetInUse() { inUse=false; }
+  bool getState() { return inUse; }
+  void setInUse() { inUse = true; }
+  void resetInUse() { inUse = false; }
 
-	std::string& getName(){ return name; }
-	std::string& getDesc(){ return desc; }
-	std::string& getDevPath(){ return devPath; }
+  std::string &getName() { return name; }
+  std::string &getDesc() { return desc; }
+  std::string &getDevPath() { return devPath; }
 
-	bool operator==(vpDirectShowDevice& dev);
+  bool operator==(vpDirectShowDevice &dev);
 
-  friend VISP_EXPORT std::ostream& operator<<(std::ostream& os, vpDirectShowDevice& dev);
+  friend VISP_EXPORT std::ostream &operator<<(std::ostream &os, vpDirectShowDevice &dev);
 };
 #endif
 #endif

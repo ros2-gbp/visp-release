@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -62,17 +63,18 @@
  */
 class VISP_EXPORT vpLaserScan
 {
- public:
-  /*! Default constructor that initialize all the internal variable to zero. */
-    vpLaserScan()
-      : listScanPoints(), startTimestamp(0), endTimestamp(0), measurementId(0),
-        numSteps(0), startAngle(0), stopAngle(0), numPoints(0)
+public:
+  /*! Default constructor that initialize all the internal variable to zero.
+   */
+  vpLaserScan()
+    : listScanPoints(), startTimestamp(0), endTimestamp(0), measurementId(0), numSteps(0), startAngle(0), stopAngle(0),
+      numPoints(0)
   {
   }
   /*! Copy constructor. */
   vpLaserScan(const vpLaserScan &scan)
-    : listScanPoints(), startTimestamp(0), endTimestamp(0), measurementId(0),
-      numSteps(0), startAngle(0), stopAngle(0), numPoints(0)
+    : listScanPoints(scan.listScanPoints), startTimestamp(0), endTimestamp(0), measurementId(0), numSteps(0),
+      startAngle(0), stopAngle(0), numPoints(0)
   {
     startTimestamp = scan.startTimestamp;
     endTimestamp = scan.endTimestamp;
@@ -81,61 +83,36 @@ class VISP_EXPORT vpLaserScan
     startAngle = scan.startAngle;
     stopAngle = scan.stopAngle;
     numPoints = scan.numPoints;
-    listScanPoints = scan.listScanPoints;
   }
   /*! Default destructor that does nothing. */
-  virtual ~vpLaserScan() {};
+  virtual ~vpLaserScan(){};
   /*! Add the scan point at the end of the list. */
-  inline void addPoint(const vpScanPoint &p) {
-    listScanPoints.push_back( p );
-  }
+  inline void addPoint(const vpScanPoint &p) { listScanPoints.push_back(p); }
   /*! Drop the list of points. */
-  inline void clear() {
-    listScanPoints.clear(  );
-  }
+  inline void clear() { listScanPoints.clear(); }
   /*! Get the list of points. */
-  inline std::vector<vpScanPoint> getScanPoints() {
-    return listScanPoints;
-  }
+  inline std::vector<vpScanPoint> getScanPoints() { return listScanPoints; }
   /*! Specifies the id of former measurements and increases with
       every measurement. */
-  inline void setMeasurementId(const unsigned short &id) {
-    this->measurementId = id;
-  }
+  inline void setMeasurementId(const unsigned short &id) { this->measurementId = id; }
   /*! Start time of measurement. */
-  inline void setStartTimestamp(const double &start_timestamp) {
-    this->startTimestamp = start_timestamp;
-  }
+  inline void setStartTimestamp(const double &start_timestamp) { this->startTimestamp = start_timestamp; }
   /*! End time of measurement. */
-  inline void setEndTimestamp(const double &end_timestamp) {
-    this->endTimestamp = end_timestamp;
-  }
+  inline void setEndTimestamp(const double &end_timestamp) { this->endTimestamp = end_timestamp; }
   /*! Angular steps per scanner rotation. */
-  inline void setNumSteps(const unsigned short &num_steps) {
-    this->numSteps = num_steps;
-  }
+  inline void setNumSteps(const unsigned short &num_steps) { this->numSteps = num_steps; }
   /*! Start angle of the measurement in angular steps. */
-  inline void setStartAngle(const short &start_angle) {
-    this->startAngle = start_angle;
-  }
+  inline void setStartAngle(const short &start_angle) { this->startAngle = start_angle; }
   /*! Stop angle of the measurement in angular steps. */
-  inline void setStopAngle(const short &stop_angle) {
-    this->stopAngle = stop_angle;
-  }
+  inline void setStopAngle(const short &stop_angle) { this->stopAngle = stop_angle; }
   /*! Number of measured points of the measurement. */
-  inline void setNumPoints(const unsigned short &num_points) {
-    this->numPoints = num_points;
-  }
+  inline void setNumPoints(const unsigned short &num_points) { this->numPoints = num_points; }
   /*! Return the measurement start time. */
-  inline double getStartTimestamp() {
-    return startTimestamp;
-  }
+  inline double getStartTimestamp() { return startTimestamp; }
   /*! Return the measurement end time. */
-  inline double getEndTimestamp() {
-    return endTimestamp;
-  }
+  inline double getEndTimestamp() { return endTimestamp; }
 
- private:
+private:
   std::vector<vpScanPoint> listScanPoints;
   double startTimestamp;
   double endTimestamp;
@@ -144,7 +121,6 @@ class VISP_EXPORT vpLaserScan
   short startAngle;
   short stopAngle;
   unsigned short numPoints;
-
 };
 
 #endif

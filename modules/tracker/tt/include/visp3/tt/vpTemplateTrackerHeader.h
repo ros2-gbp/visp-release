@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -51,53 +52,54 @@
   \ingroup group_tt_tools
 */
 struct vpTemplateTrackerZPoint {
-    int x,y;
+  int x, y;
 
-    vpTemplateTrackerZPoint() : x(0), y(0) {}
+  vpTemplateTrackerZPoint() : x(0), y(0) {}
 };
 /*!
   \struct vpTemplateTrackerDPoint
   \ingroup group_tt_tools
 */
 struct vpTemplateTrackerDPoint {
-    double x,y;
+  double x, y;
 
-    vpTemplateTrackerDPoint() : x(0), y(0) {}
+  vpTemplateTrackerDPoint() : x(0), y(0) {}
 };
 /*!
   \struct vpTemplateTrackerPoint
   \ingroup group_tt_tools
 */
 struct vpTemplateTrackerPoint {
-    int x,y;
-    double dx,dy;
-    double val;
-    double *dW;
-    double *HiG;
+  int x, y;
+  double dx, dy;
+  double val;
+  double *dW;
+  double *HiG;
 
-    vpTemplateTrackerPoint() : x(0), y(0), dx(0), dy(0), val(0), dW(NULL), HiG(NULL) {}
+  vpTemplateTrackerPoint() : x(0), y(0), dx(0), dy(0), val(0), dW(NULL), HiG(NULL) {}
 };
 /*!
   \struct vpTemplateTrackerPointCompo
   \ingroup group_tt_tools
 */
 struct vpTemplateTrackerPointCompo {
-    double *dW;
-    vpTemplateTrackerPointCompo() : dW(NULL) {}
+  double *dW;
+  vpTemplateTrackerPointCompo() : dW(NULL) {}
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 struct vpTemplateTrackerPointSuppMIInv {
-    double et;
-    int ct;
-    double *BtInit;
-    double *Bt;
-    double *dBt;
-    double *d2W;
-    double *d2Wx;
-    double *d2Wy;
-    vpTemplateTrackerPointSuppMIInv() : et(0), ct(0), BtInit(NULL), Bt(NULL), dBt(NULL),
-      d2W(NULL), d2Wx(NULL), d2Wy(NULL) {}
+  double et;
+  int ct;
+  double *BtInit;
+  double *Bt;
+  double *dBt;
+  double *d2W;
+  double *d2Wx;
+  double *d2Wy;
+  vpTemplateTrackerPointSuppMIInv() : et(0), ct(0), BtInit(NULL), Bt(NULL), dBt(NULL), d2W(NULL), d2Wx(NULL), d2Wy(NULL)
+  {
+  }
 };
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
