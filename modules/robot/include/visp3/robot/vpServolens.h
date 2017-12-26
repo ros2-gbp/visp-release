@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -28,7 +29,7 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Description:
- * Interface for the Servolens lens attached to the camera fixed on the 
+ * Interface for the Servolens lens attached to the camera fixed on the
  * Afma4 robot.
  *
  * Authors:
@@ -47,7 +48,7 @@
 
   \file vpServolens.h
 
-  Interface for the Servolens lens attached to the camera fixed on the 
+  Interface for the Servolens lens attached to the camera fixed on the
   Afma4 robot.
 
 */
@@ -61,7 +62,7 @@
 
   \ingroup group_robot_real_cylindrical
 
-  \brief Interface for the Servolens lens attached to the camera fixed on the 
+  \brief Interface for the Servolens lens attached to the camera fixed on the
   Afma4 robot.
 
   The code below shows how to manipulate this class to get and modify
@@ -74,7 +75,7 @@
 int main()
 {
   // Open the serial device to communicate with the Servolens lens
-  vpServolens servolens("/dev/ttyS0"); 
+  vpServolens servolens("/dev/ttyS0");
 
   // Get the current zoom position
   unsigned zoom;
@@ -82,7 +83,7 @@ int main()
   std::cout << "Actual zoom value: " << zoom << std::endl;
 
   // Set a new zoom value
-  servolens.setPosition(vpServolens::ZOOM, zoom+1000);  
+  servolens.setPosition(vpServolens::ZOOM, zoom+1000);
 }
   \endcode
 
@@ -90,31 +91,23 @@ int main()
 
 class VISP_EXPORT vpServolens
 {
- public:
+public:
+  typedef enum { ZOOM = 1, FOCUS = 2, IRIS = 3 } vpServoType;
   typedef enum {
-    ZOOM = 1,
-    FOCUS= 2,
-    IRIS = 3
-  } vpServoType;
-  typedef enum {
-    ZOOM_MAX  = 10000,	// Valeur maxi zoom (mm/100)
-    ZOOM_MIN  = 1000,	// Valeur mini zoom (mm/100)
-    FOCUS_MAX = 1500,	// Valeur maxi focus (metres/100)
-    FOCUS_MIN = 100,	// Valeur mini focus (metres/100)
-    IRIS_MAX  = 1000,	// Valeur maxi diaph (ouverture/100)
-    IRIS_MIN  = 160	// Valeur mini disph (ouverture/100)
+    ZOOM_MAX = 10000, // Valeur maxi zoom (mm/100)
+    ZOOM_MIN = 1000,  // Valeur mini zoom (mm/100)
+    FOCUS_MAX = 1500, // Valeur maxi focus (metres/100)
+    FOCUS_MIN = 100,  // Valeur mini focus (metres/100)
+    IRIS_MAX = 1000,  // Valeur maxi diaph (ouverture/100)
+    IRIS_MIN = 160    // Valeur mini disph (ouverture/100)
   } vpLimitsType;
-  typedef enum {
-    AUTO       = 1,
-    CONTROLLED = 2,
-    RELEASED   = 3    
-  } vpControllerType;
+  typedef enum { AUTO = 1, CONTROLLED = 2, RELEASED = 3 } vpControllerType;
 
   vpServolens();
-  vpServolens(const char *port);
+  explicit vpServolens(const char *port);
   ~vpServolens();
 
-  void open(const char *port="/dev/ttyS0");
+  void open(const char *port = "/dev/ttyS0");
   void close();
   void reset() const;
 
@@ -126,11 +119,8 @@ class VISP_EXPORT vpServolens
 
   void enablePrompt(bool active) const;
 
- private:
-
+private:
   void init() const;
-
-  void enableCmdComplete(vpServoType servo, bool active) const;
 
   char wait() const;
   void wait(vpServoType servo) const;
@@ -146,4 +136,3 @@ class VISP_EXPORT vpServolens
 
 #endif
 #endif
-

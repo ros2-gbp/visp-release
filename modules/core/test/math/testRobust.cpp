@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -41,17 +42,16 @@
   Test some vpMath functionalities.
 */
 
-
-#include <visp3/core/vpRobust.h>
-#include <string>
 #include <fstream>
-#include <visp3/core/vpIoTools.h>
-#include <visp3/io/vpParseArgv.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <visp3/core/vpIoTools.h>
+#include <visp3/core/vpRobust.h>
+#include <visp3/io/vpParseArgv.h>
 // List of allowed command line options
-#define GETOPTARGS	"cdho:"
+#define GETOPTARGS "cdho:"
 
 void usage(const char *name, const char *badparam, std::string ofilename);
 bool getOptions(int argc, const char **argv, std::string &ofilename);
@@ -88,8 +88,7 @@ OPTIONS:                                              Default\n\
      weights.\n\
 \n\
   -h\n\
-     Print the help.\n",
-	  ofilename.c_str());
+     Print the help.\n", ofilename.c_str());
 
   if (badparam)
     fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
@@ -107,19 +106,25 @@ OPTIONS:                                              Default\n\
 bool getOptions(int argc, const char **argv, std::string &ofilename)
 {
   const char *optarg_;
-  int	c;
+  int c;
   while ((c = vpParseArgv::parse(argc, argv, GETOPTARGS, &optarg_)) > 1) {
 
     switch (c) {
-    case 'o': ofilename = optarg_; break;
-    case 'h': usage(argv[0], NULL, ofilename); return false; break;
+    case 'o':
+      ofilename = optarg_;
+      break;
+    case 'h':
+      usage(argv[0], NULL, ofilename);
+      return false;
+      break;
 
     case 'c':
     case 'd':
       break;
     default:
       usage(argv[0], optarg_, ofilename);
-      return false; break;
+      return false;
+      break;
     }
   }
 
@@ -134,16 +139,13 @@ bool getOptions(int argc, const char **argv, std::string &ofilename)
   return true;
 }
 
-
-
-int
-main(int argc, const char ** argv)
+int main(int argc, const char **argv)
 {
   try {
     std::string ofilename;
     std::string username;
 
-    // Set the default output filename
+// Set the default output filename
 #if defined(_WIN32)
     ofilename = "C:/temp";
 #else
@@ -161,11 +163,9 @@ main(int argc, const char ** argv)
       try {
         // Create the dirname
         vpIoTools::makeDirectory(ofilename);
-      }
-      catch (...) {
+      } catch (...) {
         usage(argv[0], NULL, ofilename);
-        std::cerr << std::endl
-                  << "ERROR:" << std::endl;
+        std::cerr << std::endl << "ERROR:" << std::endl;
         std::cerr << "  Cannot create " << ofilename << std::endl;
         std::cerr << "  Check your -o " << ofilename << " option " << std::endl;
         exit(-1);
@@ -177,43 +177,35 @@ main(int argc, const char ** argv)
 
     // Read the command line options
     if (getOptions(argc, argv, ofilename) == false) {
-      exit (-1);
+      exit(-1);
     }
 
-    double sig = 1 ;
+    double sig = 1;
 
-    double w ;
+    double w;
     std::ofstream f;
     std::cout << "Create file: " << ofilename << std::endl;
     f.open(ofilename.c_str());
     if (f.fail()) {
       usage(argv[0], NULL, ofilename);
-      std::cerr << std::endl
-                << "ERROR:" << std::endl;
+      std::cerr << std::endl << "ERROR:" << std::endl;
       std::cerr << "  Cannot create the file: " << ofilename << std::endl;
       std::cerr << "  Check your -o " << ofilename << " option " << std::endl;
       exit(-1);
-
     }
-    double x = -10 ;
-    while (x<10)
-    {
-      if (fabs(x/sig)<=(4.6851))
-      {
-        w = vpMath::sqr(1-vpMath::sqr(x/(sig*4.6851)));
-      }
-      else
-      {
+    double x = -10;
+    while (x < 10) {
+      if (fabs(x / sig) <= (4.6851)) {
+        w = vpMath::sqr(1 - vpMath::sqr(x / (sig * 4.6851)));
+      } else {
         w = 0;
       }
-      f << x <<"  "<<w <<std::endl ;
-      x+= 0.01 ;
+      f << x << "  " << w << std::endl;
+      x += 0.01;
     }
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }
 }
-

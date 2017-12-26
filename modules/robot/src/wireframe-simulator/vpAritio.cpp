@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -39,29 +40,25 @@
  *
  *****************************************************************************/
 
-
-
 #include <visp3/core/vpConfig.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-#include "vpMy.h"
 #include "vpArit.h"
-#include "vpToken.h"
 #include "vpLex.h"
+#include "vpMy.h"
+#include "vpToken.h"
 
-#include	<stdio.h>
+#include <stdio.h>
 /*
  * La procedure "fprintf_Position" ecrit en ascii un positionnement.
  * Entree :
  * f		Fichier en sortie.
  * pp		Positionnement a ecrite.
  */
-void fprintf_Position (FILE *f, AritPosition *pp)
+void fprintf_Position(FILE *f, AritPosition *pp)
 {
-	fprintf (f, "%.3f\t%.3f\t%.3f\n%.3f\t%.3f\t%.3f\n%.3f\t%.3f\t%.3f\n",
-		pp->rotate.x,	 pp->rotate.y,	  pp->rotate.z,
-		pp->scale.x,	 pp->scale.y,	  pp->scale.z,
-		pp->translate.x, pp->translate.y, pp->translate.z);
+  fprintf(f, "%.3f\t%.3f\t%.3f\n%.3f\t%.3f\t%.3f\n%.3f\t%.3f\t%.3f\n", pp->rotate.x, pp->rotate.y, pp->rotate.z,
+          pp->scale.x, pp->scale.y, pp->scale.z, pp->translate.x, pp->translate.y, pp->translate.z);
 }
 
 /*
@@ -69,31 +66,28 @@ void fprintf_Position (FILE *f, AritPosition *pp)
  * Entree :
  * pp		Point flottant 3D a lire.
  */
-void fscanf_Point3f (Point3f *pp)
+void fscanf_Point3f(Point3f *pp)
 {
-static const char	*err_tbl[] = {
-"float expected (coordinate ",
-" of point)"
-};
-	 int	t;
+  static const char *err_tbl[] = {"float expected (coordinate ", " of point)"};
+  int t;
 
-	/* Lecture de la premiere coordonnee du point.	*/
+  /* Lecture de la premiere coordonnee du point.	*/
 
-	if ((t = lex ()) != T_FLOAT && t != T_INT)
-	  lexerr ("start",err_tbl[0], "X", err_tbl[1], NULL);	
-	pp->x = (t == T_INT) ? (float) myint : myfloat;
+  if ((t = lex()) != T_FLOAT && t != T_INT)
+    lexerr("start", err_tbl[0], "X", err_tbl[1], NULL);
+  pp->x = (t == T_INT) ? (float)myint : myfloat;
 
-	/* Lecture de la seconde coordonnee du point.	*/
+  /* Lecture de la seconde coordonnee du point.	*/
 
-	if ((t= lex ()) != T_FLOAT && t != T_INT)
-		lexerr ("start",err_tbl[0], "Y", err_tbl[1], NULL);	
-	pp->y = (t == T_INT) ? (float) myint : myfloat;
+  if ((t = lex()) != T_FLOAT && t != T_INT)
+    lexerr("start", err_tbl[0], "Y", err_tbl[1], NULL);
+  pp->y = (t == T_INT) ? (float)myint : myfloat;
 
-	/* Lecture de la troisieme coordonnee du point.	*/
+  /* Lecture de la troisieme coordonnee du point.	*/
 
-	if ((t= lex ()) != T_FLOAT && t != T_INT)
-		lexerr ("start",err_tbl[0], "Z", err_tbl[1], NULL);	
-	pp->z = (t == T_INT) ? (float) myint : myfloat;
+  if ((t = lex()) != T_FLOAT && t != T_INT)
+    lexerr("start", err_tbl[0], "Z", err_tbl[1], NULL);
+  pp->z = (t == T_INT) ? (float)myint : myfloat;
 }
 
 /*
@@ -101,32 +95,29 @@ static const char	*err_tbl[] = {
  * Entree :
  * vp		Vecteur a lire.
  */
-void fscanf_Vector (Vector *vp)
+void fscanf_Vector(Vector *vp)
 {
-static const char	*err_tbl[] = {
-"float expected (coordinate ",
-" of vector)"
-};
+  static const char *err_tbl[] = {"float expected (coordinate ", " of vector)"};
 
-	 int	t;
+  int t;
 
-	/* Lecture de la premiere coordonnee du vecteur.	*/
+  /* Lecture de la premiere coordonnee du vecteur.	*/
 
-	if ((t= lex ()) != T_FLOAT && t != T_INT)
-		lexerr ("start",err_tbl[0], "X", err_tbl[1], NULL);	
-	vp->x = (t == T_INT) ? (float) myint : myfloat;
+  if ((t = lex()) != T_FLOAT && t != T_INT)
+    lexerr("start", err_tbl[0], "X", err_tbl[1], NULL);
+  vp->x = (t == T_INT) ? (float)myint : myfloat;
 
-	/* Lecture de la seconde coordonnee du vecteur.		*/
+  /* Lecture de la seconde coordonnee du vecteur.		*/
 
-	if ((t= lex ()) != T_FLOAT && t != T_INT)
-		lexerr ("start",err_tbl[0], "Y", err_tbl[1], NULL);	
-	vp->y = (t == T_INT) ? (float) myint : myfloat;
+  if ((t = lex()) != T_FLOAT && t != T_INT)
+    lexerr("start", err_tbl[0], "Y", err_tbl[1], NULL);
+  vp->y = (t == T_INT) ? (float)myint : myfloat;
 
-	/* Lecture de la troisieme coordonnee du vecteur.	*/
+  /* Lecture de la troisieme coordonnee du vecteur.	*/
 
-	if ((t= lex ()) != T_FLOAT && t != T_INT)
-		lexerr ("start",err_tbl[0], "Z", err_tbl[1], NULL);	
-	vp->z = (t == T_INT) ? (float) myint : myfloat;
+  if ((t = lex()) != T_FLOAT && t != T_INT)
+    lexerr("start", err_tbl[0], "Z", err_tbl[1], NULL);
+  vp->z = (t == T_INT) ? (float)myint : myfloat;
 }
 
 /*
@@ -134,15 +125,15 @@ static const char	*err_tbl[] = {
  * Entree :
  * pp		Positionnement a lire.
  */
-void fscanf_Position (AritPosition *pp)
+void fscanf_Position(AritPosition *pp)
 {
-	pusherr ("rotate: ");
-	fscanf_Vector (&pp->rotate);
-	popuperr ("scale: ");
-	fscanf_Vector (&pp->scale);
-	popuperr ("translate: ");
-	fscanf_Vector (&pp->translate);
-	poperr ();
+  pusherr("rotate: ");
+  fscanf_Vector(&pp->rotate);
+  popuperr("scale: ");
+  fscanf_Vector(&pp->scale);
+  popuperr("translate: ");
+  fscanf_Vector(&pp->translate);
+  poperr();
 }
 
 #endif

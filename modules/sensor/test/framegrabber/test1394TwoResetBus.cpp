@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,15 +36,12 @@
  *
  *****************************************************************************/
 
-
 /*!
   \file test1394TwoResetBus.cpp
 
   \brief Resets the IEEE1394 bus using libdc1394-2.x library.
 
 */
-
-
 
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDebug.h>
@@ -52,10 +50,9 @@
 
 #if defined(VISP_HAVE_DC1394)
 
-#include <visp3/sensor/vp1394TwoGrabber.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/io/vpImageIo.h>
-
+#include <visp3/sensor/vp1394TwoGrabber.h>
 
 /*!
   \example test1394TwoResetBus.cpp
@@ -69,30 +66,27 @@
   effect.
 
 */
-int
-main()
+int main()
 {
-  try  {
+  try {
     std::cout << "IEEE1394 bus reset in progress..." << std::endl;
     vp1394TwoGrabber g;
     g.resetBus(); // Reset the bus attached to the first camera found
     std::cout << "IEEE1394 bus was reset." << std::endl;
 
     vpImage<unsigned char> I;
-    g.acquire(I);    
+    g.acquire(I);
     //     std::cout << "write /tmp/test.pgm" << std::endl;
     //     vpImageIo::write(I, "/tmp/test.pgm");
-  }
-  catch (...) {
+  } catch (...) {
     vpCERROR << "Failure: exit" << std::endl;
   }
 }
 #else
-int
-main()
+int main()
 {
   vpTRACE("Ieee 1394 grabber capabilities are not available...\n"
-          "You should install libdc1394-2 to use this binary.") ;
+          "You should install libdc1394-2 to use this binary.");
 }
 
 #endif

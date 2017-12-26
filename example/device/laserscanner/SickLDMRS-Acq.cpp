@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,21 +36,19 @@
  *
  *****************************************************************************/
 
-
 /*!
   \example SickLDMRS-Acq.cpp
 
   \brief Example that shows how to acquire Sick LD-MRS laser
-  measurements.  
+  measurements.
 
   \warning For the moment, this example is only working on UNIX
   platforms since the Sick LD-MRS driver was not ported to Windows.
 
 */
 #include <visp3/core/vpDebug.h>
-#include <visp3/sensor/vpSickLDMRS.h>
 #include <visp3/io/vpParseArgv.h>
-
+#include <visp3/sensor/vpSickLDMRS.h>
 
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
 
@@ -63,31 +62,28 @@ int main()
     laser.setup();
     unsigned long int iter = 0;
 
-    for ( ; ; ) {
+    for (;;) {
       double t1 = vpTime::measureTimeMs();
       vpLaserScan laserscan[4];
       if (laser.measure(laserscan) == false)
         continue;
 
-      iter ++;
-      std::cout << "iter: " << iter << " time: "
-                << vpTime::measureTimeMs() - t1 << " ms" << std::endl;
+      iter++;
+      std::cout << "iter: " << iter << " time: " << vpTime::measureTimeMs() - t1 << " ms" << std::endl;
     }
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }
 }
 
-#else // #ifdef UNIX
+#else  // #ifdef UNIX
 
 int main()
-{ 
+{
   std::cout << "This example is only working on UNIX platforms \n"
-            << "since the Sick LD-MRS driver was not ported to Windows."
-            << std::endl;
+            << "since the Sick LD-MRS driver was not ported to Windows." << std::endl;
 
   return 0;
 }

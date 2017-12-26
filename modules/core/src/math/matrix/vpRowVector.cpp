@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,40 +36,37 @@
  *
  *****************************************************************************/
 
-
 /*!
   \file vpRowVector.cpp
   \brief Definition of vpRowVector class member
 */
 
-#include <string.h>
-#include <stdlib.h>
-#include <sstream>
 #include <assert.h>
 #include <cmath>
+#include <sstream>
+#include <stdlib.h>
+#include <string.h>
 
 #include <visp3/core/vpArray2D.h>
-#include <visp3/core/vpMatrix.h>
-#include <visp3/core/vpException.h>
-#include <visp3/core/vpRowVector.h>
 #include <visp3/core/vpColVector.h>
 #include <visp3/core/vpDebug.h>
+#include <visp3/core/vpException.h>
+#include <visp3/core/vpMatrix.h>
+#include <visp3/core/vpRowVector.h>
 
 //! Copy operator.   Allow operation such as A = v
-vpRowVector & vpRowVector::operator=(const vpRowVector &v)
+vpRowVector &vpRowVector::operator=(const vpRowVector &v)
 {
-  unsigned int k = v.colNum ;
-  if (colNum != k){
+  unsigned int k = v.colNum;
+  if (colNum != k) {
     try {
       resize(k);
-    }
-    catch(...)
-    {
+    } catch (...) {
       throw;
     }
   }
 
-  memcpy(data, v.data, colNum*sizeof(double)) ;
+  memcpy(data, v.data, colNum * sizeof(double));
 
   return *this;
 }
@@ -77,49 +75,49 @@ vpRowVector & vpRowVector::operator=(const vpRowVector &v)
   Initialize a row vector from a 1-by-n size matrix.
   \warning  Handled with care m should be a 1 column matrix.
 
-  \exception vpException::dimensionError If the matrix is not a 1-by-n dimension matrix.
+  \exception vpException::dimensionError If the matrix is not a 1-by-n
+  dimension matrix.
 */
-vpRowVector & vpRowVector::operator=(const vpMatrix &M)
+vpRowVector &vpRowVector::operator=(const vpMatrix &M)
 {
-  if (M.getRows() != 1 ) {
-    throw(vpException(vpException::dimensionError,
-                      "Cannot initialize a (1x%d) row vector from a (%dx%d) matrix",
-                      M.getCols(), M.getRows(), M.getCols())) ;
+  if (M.getRows() != 1) {
+    throw(vpException(vpException::dimensionError, "Cannot initialize a (1x%d) row vector from a (%dx%d) matrix",
+                      M.getCols(), M.getRows(), M.getCols()));
   }
 
   if (M.getCols() != colNum)
     resize(M.getCols());
 
-  memcpy(data, M.data, colNum*sizeof(double)) ;
+  memcpy(data, M.data, colNum * sizeof(double));
   return *this;
 }
 
 /*!
   Initialize a row vector from a standard vector of double.
 */
-vpRowVector & vpRowVector::operator=(const std::vector<double> &v)
+vpRowVector &vpRowVector::operator=(const std::vector<double> &v)
 {
   resize((unsigned int)v.size());
-  for(unsigned int i=0; i<v.size(); i++)
+  for (unsigned int i = 0; i < v.size(); i++)
     (*this)[i] = v[i];
   return *this;
 }
 /*!
   Initialize a row vector from a standard vector of double.
 */
-vpRowVector & vpRowVector::operator=(const std::vector<float> &v)
+vpRowVector &vpRowVector::operator=(const std::vector<float> &v)
 {
   resize((unsigned int)v.size());
-  for(unsigned int i=0; i<v.size(); i++)
+  for (unsigned int i = 0; i < v.size(); i++)
     (*this)[i] = (float)v[i];
   return *this;
 }
 
 //! Initialize each element of the vector with \e x.
-vpRowVector & vpRowVector::operator=(double x)
+vpRowVector &vpRowVector::operator=(double x)
 {
-  for (unsigned int i=0; i<rowNum; i++) {
-    for (unsigned int j=0; j<colNum; j++) {
+  for (unsigned int i = 0; i < rowNum; i++) {
+    for (unsigned int j = 0; j < colNum; j++) {
       rowPtrs[i][j] = x;
     }
   }
@@ -143,15 +141,14 @@ vpRowVector & vpRowVector::operator=(double x)
 double vpRowVector::operator*(const vpColVector &x) const
 {
   unsigned int nelements = x.getRows();
-  if (getCols() != nelements ) {
-    throw(vpException(vpException::dimensionError,
-                      "Cannot multiply (1x%d) row vector by (%dx1) column vector",
-                      colNum, x.getRows())) ;
+  if (getCols() != nelements) {
+    throw(vpException(vpException::dimensionError, "Cannot multiply (1x%d) row vector by (%dx1) column vector", colNum,
+                      x.getRows()));
   }
 
   double scalar = 0.0;
 
-  for (unsigned int i=0; i<nelements; i++) {
+  for (unsigned int i = 0; i < nelements; i++) {
     scalar += (*this)[i] * x[i];
   }
   return scalar;
@@ -162,8 +159,8 @@ double vpRowVector::operator*(const vpColVector &x) const
 
   \param M : Matrix.
 
-  \warning The number of elements of the row vector must be equal to the number
-  of rows of the matrix.
+  \warning The number of elements of the row vector must be equal to the
+  number of rows of the matrix.
 
   \exception vpException::dimensionError If the number of elements of the
   row vector is not equal to the number of rows of the matrix.
@@ -176,21 +173,20 @@ vpRowVector vpRowVector::operator*(const vpMatrix &M) const
   vpRowVector c(M.getCols());
 
   if (colNum != M.getRows()) {
-    throw(vpException(vpException::dimensionError,
-                      "Cannot multiply (1x%d) row vector by (%dx%d) matrix",
-                      colNum, M.getRows(), M.getCols())) ;
+    throw(vpException(vpException::dimensionError, "Cannot multiply (1x%d) row vector by (%dx%d) matrix", colNum,
+                      M.getRows(), M.getCols()));
   }
 
   c = 0.0;
 
-  for (unsigned int i=0;i<colNum;i++) {
-    double bi = data[i] ; // optimization em 5/12/2006
-    for (unsigned int j=0;j<M.getCols();j++) {
-      c[j]+=bi*M[i][j];
+  for (unsigned int i = 0; i < colNum; i++) {
+    double bi = data[i]; // optimization em 5/12/2006
+    for (unsigned int j = 0; j < M.getCols(); j++) {
+      c[j] += bi * M[i][j];
     }
   }
 
-  return c ;
+  return c;
 }
 
 /*!
@@ -216,9 +212,10 @@ vpRowVector vpRowVector::operator*(double x) const
 {
   vpRowVector v(colNum);
 
-  double *vd = v.data ;   double *d = data ;
+  double *vd = v.data;
+  double *d = data;
 
-  for (unsigned int i=0;i<colNum;i++)
+  for (unsigned int i = 0; i < colNum; i++)
     *(vd++) = (*d++) * x;
   return v;
 }
@@ -242,7 +239,7 @@ vpRowVector vpRowVector::operator*(double x) const
 */
 vpRowVector &vpRowVector::operator*=(double x)
 {
-  for (unsigned int i=0;i<colNum;i++)
+  for (unsigned int i = 0; i < colNum; i++)
     (*this)[i] *= x;
   return (*this);
 }
@@ -270,9 +267,10 @@ vpRowVector vpRowVector::operator/(double x) const
 {
   vpRowVector v(colNum);
 
-  double *vd = v.data ;   double *d = data ;
+  double *vd = v.data;
+  double *d = data;
 
-  for (unsigned int i=0;i<colNum;i++)
+  for (unsigned int i = 0; i < colNum; i++)
     *(vd++) = (*d++) / x;
   return v;
 }
@@ -297,7 +295,7 @@ vpRowVector vpRowVector::operator/(double x) const
 */
 vpRowVector &vpRowVector::operator/=(double x)
 {
-  for (unsigned int i=0;i<colNum;i++)
+  for (unsigned int i = 0; i < colNum; i++)
     (*this)[i] /= x;
   return (*this);
 }
@@ -316,10 +314,11 @@ vpRowVector vpRowVector::operator-() const
 {
   vpRowVector A(colNum);
 
-  double *vd = A.data ;   double *d = data ;
+  double *vd = A.data;
+  double *d = data;
 
-  for (unsigned int i=0; i<colNum; i++)
-    *(vd++)= - (*d++);
+  for (unsigned int i = 0; i < colNum; i++)
+    *(vd++) = -(*d++);
 
   return A;
 }
@@ -330,15 +329,14 @@ vpRowVector vpRowVector::operator-() const
  */
 vpRowVector vpRowVector::operator-(const vpRowVector &m) const
 {
-  if (getCols() != m.getCols() ) {
-    throw(vpException(vpException::dimensionError,
-                      "Cannot substract (1x%d) row vector to (1x%d) row vector",
-                      getCols(), m.getCols())) ;
+  if (getCols() != m.getCols()) {
+    throw(vpException(vpException::dimensionError, "Cannot substract (1x%d) row vector to (1x%d) row vector", getCols(),
+                      m.getCols()));
   }
 
-  vpRowVector v(colNum) ;
+  vpRowVector v(colNum);
 
-  for (unsigned int i=0;i<colNum;i++)
+  for (unsigned int i = 0; i < colNum; i++)
     v[i] = (*this)[i] - m[i];
   return v;
 }
@@ -349,51 +347,48 @@ vpRowVector vpRowVector::operator-(const vpRowVector &m) const
  */
 vpRowVector vpRowVector::operator+(const vpRowVector &v) const
 {
-  if (getCols() != v.getCols() ) {
-    throw(vpException(vpException::dimensionError,
-                      "Cannot add (1x%d) row vector to (1x%d) row vector",
-                      getCols(), v.getCols())) ;
+  if (getCols() != v.getCols()) {
+    throw(vpException(vpException::dimensionError, "Cannot add (1x%d) row vector to (1x%d) row vector", getCols(),
+                      v.getCols()));
   }
 
-  vpRowVector r(colNum) ;
+  vpRowVector r(colNum);
 
-  for (unsigned int i=0;i<colNum;i++)
+  for (unsigned int i = 0; i < colNum; i++)
     r[i] = (*this)[i] + v[i];
   return r;
 }
 
 /*!
    Operator that allows to add two row vectors that have the same size.
-   \exception vpException::dimensionError If the size of the two vectors differ.
+   \exception vpException::dimensionError If the size of the two vectors
+   differ.
  */
-vpRowVector &
-vpRowVector::operator+=(vpRowVector v)
+vpRowVector &vpRowVector::operator+=(vpRowVector v)
 {
-  if (getCols() != v.getCols() ) {
-    throw(vpException(vpException::dimensionError,
-                      "Cannot add (1x%d) row vector to (1x%d) row vector",
-                      getCols(), v.getCols())) ;
+  if (getCols() != v.getCols()) {
+    throw(vpException(vpException::dimensionError, "Cannot add (1x%d) row vector to (1x%d) row vector", getCols(),
+                      v.getCols()));
   }
 
-  for (unsigned int i=0;i<colNum;i++)
+  for (unsigned int i = 0; i < colNum; i++)
     (*this)[i] += v[i];
   return (*this);
 }
 
 /*!
    Operator that allows to substract two row vectors that have the same size.
-   \exception vpException::dimensionError If the size of the two vectors differ.
+   \exception vpException::dimensionError If the size of the two vectors
+   differ.
  */
-vpRowVector &
-vpRowVector::operator-=(vpRowVector v)
+vpRowVector &vpRowVector::operator-=(vpRowVector v)
 {
-  if (getCols() != v.getCols() ) {
-    throw(vpException(vpException::dimensionError,
-                      "Cannot substract (1x%d) row vector to (1x%d) row vector",
-                      getCols(), v.getCols())) ;
+  if (getCols() != v.getCols()) {
+    throw(vpException(vpException::dimensionError, "Cannot substract (1x%d) row vector to (1x%d) row vector", getCols(),
+                      v.getCols()));
   }
 
-  for (unsigned int i=0;i<colNum;i++)
+  for (unsigned int i = 0; i < colNum; i++)
     (*this)[i] -= v[i];
   return (*this);
 }
@@ -419,7 +414,7 @@ A: 0  1  2  3  4
   \endcode
 
   */
-vpRowVector & vpRowVector::operator<<(const vpRowVector &v)
+vpRowVector &vpRowVector::operator<<(const vpRowVector &v)
 {
   *this = v;
   return *this;
@@ -431,7 +426,7 @@ vpRowVector & vpRowVector::operator<<(const vpRowVector &v)
 vpColVector vpRowVector::t() const
 {
   vpColVector v(colNum);
-  memcpy(v.data, data, colNum*sizeof(double)) ;
+  memcpy(v.data, data, colNum * sizeof(double));
   return v;
 }
 
@@ -439,63 +434,53 @@ vpColVector vpRowVector::t() const
   Transpose the row vector. The resulting vector becomes a column vector.
   \sa t()
 */
-vpColVector vpRowVector::transpose() const
-{
-  return t();
-}
+vpColVector vpRowVector::transpose() const { return t(); }
 /*!
   Transpose the row vector. The resulting vector \e v becomes a column vector.
   \sa t()
 */
-void vpRowVector::transpose(vpColVector &v) const
-{
-  v = t();
-}
+void vpRowVector::transpose(vpColVector &v) const { v = t(); }
 
 /*!
    Constructor that creates a row vector corresponding to row \e i
    of matrix \e M.
  */
-vpRowVector::vpRowVector (const vpMatrix &M, unsigned int i)
-  : vpArray2D<double>(1, M.getCols())
+vpRowVector::vpRowVector(const vpMatrix &M, unsigned int i) : vpArray2D<double>(1, M.getCols())
 {
-  for(unsigned int j=0; j< M.getCols(); j++)
+  for (unsigned int j = 0; j < M.getCols(); j++)
     (*this)[j] = M[i][j];
 }
 /*!
    Constructor that creates a row vector from a 1-by-n matrix \e M.
 
-   \exception vpException::dimensionError If the matrix is not a 1-by-n matrix.
+   \exception vpException::dimensionError If the matrix is not a 1-by-n
+   matrix.
  */
-vpRowVector::vpRowVector (const vpMatrix &M)
-  : vpArray2D<double>(1, M.getCols())
+vpRowVector::vpRowVector(const vpMatrix &M) : vpArray2D<double>(1, M.getCols())
 {
-  if(M.getRows()!=1) {
-    throw(vpException(vpException::dimensionError,
-                      "Cannot construct a (1x%d) row vector from a (%dx%d) matrix",
-                      M.getCols(), M.getRows(), M.getCols())) ;
+  if (M.getRows() != 1) {
+    throw(vpException(vpException::dimensionError, "Cannot construct a (1x%d) row vector from a (%dx%d) matrix",
+                      M.getCols(), M.getRows(), M.getCols()));
   }
 
-  for(unsigned int j=0; j< M.getCols(); j++)
+  for (unsigned int j = 0; j < M.getCols(); j++)
     (*this)[j] = M[0][j];
 }
 
 /*!
    Constructor that creates a row vector from a std vector of double.
  */
-vpRowVector::vpRowVector (const std::vector<double> &v)
-  : vpArray2D<double>(1, (unsigned int)v.size())
+vpRowVector::vpRowVector(const std::vector<double> &v) : vpArray2D<double>(1, (unsigned int)v.size())
 {
-  for(unsigned int j=0; j< v.size(); j++)
+  for (unsigned int j = 0; j < v.size(); j++)
     (*this)[j] = v[j];
 }
 /*!
    Constructor that creates a row vector from a std vector of float.
  */
-vpRowVector::vpRowVector (const std::vector<float> &v)
-  : vpArray2D<double>(1, (unsigned int)v.size())
+vpRowVector::vpRowVector(const std::vector<float> &v) : vpArray2D<double>(1, (unsigned int)v.size())
 {
-  for(unsigned int j=0; j< v.size(); j++)
+  for (unsigned int j = 0; j < v.size(); j++)
     (*this)[j] = (double)(v[j]);
 }
 
@@ -503,22 +488,23 @@ vpRowVector::vpRowVector (const std::vector<float> &v)
   Construct a row vector from a part of an input row vector \e v.
 
   \param v : Input row vector used for initialization.
-  \param c : column index in \e v that corresponds to the first element of the row vector to contruct.
-  \param ncols : Number of columns of the constructed row vector.
+  \param c : column index in \e v that corresponds to the first element of the
+  row vector to contruct. \param ncols : Number of columns of the constructed
+  row vector.
 
   The sub-vector starting from v[c] element and ending on v[c+ncols-1] element
   is used to initialize the contructed row vector.
 
   \sa init()
 */
-vpRowVector::vpRowVector (const vpRowVector &v, unsigned int c, unsigned int ncols)
-  : vpArray2D<double>(1, ncols)
+vpRowVector::vpRowVector(const vpRowVector &v, unsigned int c, unsigned int ncols) : vpArray2D<double>(1, ncols)
 {
   init(v, c, ncols);
 }
 
 /*!
-  Normalise the vector given as input parameter and return the normalized vector:
+  Normalise the vector given as input parameter and return the normalized
+  vector:
 
   \f[
   {\bf x} = \frac{{\bf x}}{\sqrt{\sum_{i=1}^{n}x^2_i}}
@@ -527,11 +513,10 @@ vpRowVector::vpRowVector (const vpRowVector &v, unsigned int c, unsigned int nco
 */
 vpRowVector &vpRowVector::normalize(vpRowVector &x) const
 {
-  x = x/sqrt(x.sumSquare());
+  x = x / sqrt(x.sumSquare());
 
   return x;
 }
-
 
 /*!
   Normalise the vector modifying the vector as:
@@ -545,7 +530,7 @@ vpRowVector &vpRowVector::normalize()
 {
   double sum_square = sumSquare();
   if (std::fabs(sum_square) > std::numeric_limits<double>::epsilon()) {
-    *this /= sqrt(sum_square) ;
+    *this /= sqrt(sum_square);
   }
 
   // If sum = 0, we have a nul vector. So we return just.
@@ -558,13 +543,14 @@ vpRowVector &vpRowVector::normalize()
   \param ncols : number of columns of the matrix.
   \return The resulting matrix.
 
-  \exception vpException::dimensionError If the matrix and the row vector have not the same size.
+  \exception vpException::dimensionError If the matrix and the row vector have
+  not the same size.
 
   \sa reshape(vpMatrix &, const unsigned int &, const unsigned int &)
 */
 vpMatrix vpRowVector::reshape(const unsigned int &nrows, const unsigned int &ncols)
 {
-  vpMatrix M(nrows,ncols);
+  vpMatrix M(nrows, ncols);
   reshape(M, nrows, ncols);
   return M;
 }
@@ -575,7 +561,8 @@ vpMatrix vpRowVector::reshape(const unsigned int &nrows, const unsigned int &nco
   \param nrows : number of rows of the matrix.
   \param ncols : number of columns of the matrix.
 
-  \exception vpException::dimensionError If the matrix and the row vector have not the same size.
+  \exception vpException::dimensionError If the matrix and the row vector have
+not the same size.
 
   The following example shows how to use this method.
   \code
@@ -613,26 +600,25 @@ remat:
 */
 void vpRowVector::reshape(vpMatrix &M, const unsigned int &nrows, const unsigned int &ncols)
 {
-  if(dsize!=nrows*ncols) {
-    throw(vpException(vpException::dimensionError,
-                      "Cannot reshape (1x%d) row vector in (%dx%d) matrix",
-                      colNum, M.getRows(), M.getCols())) ;
+  if (dsize != nrows * ncols) {
+    throw(vpException(vpException::dimensionError, "Cannot reshape (1x%d) row vector in (%dx%d) matrix", colNum,
+                      M.getRows(), M.getCols()));
   }
   try {
-    if ((M.getRows() != nrows) || (M.getCols() != ncols)) M.resize(nrows,ncols);
+    if ((M.getRows() != nrows) || (M.getCols() != ncols))
+      M.resize(nrows, ncols);
+  } catch (...) {
+    throw;
   }
-  catch(...) {
-    throw ;
-  }
-  for(unsigned int i =0; i< nrows; i++)
-    for(unsigned int j =0; j< ncols; j++)
-      M[i][j]=data[i*ncols+j];
+  for (unsigned int i = 0; i < nrows; i++)
+    for (unsigned int j = 0; j < ncols; j++)
+      M[i][j] = data[i * ncols + j];
 }
 
 /*!
   Insert a row vector.
-  \param i : Index of the first element to introduce. This index starts from 0.
-  \param v : Row vector to insert.
+  \param i : Index of the first element to introduce. This index starts from
+0. \param v : Row vector to insert.
 
   The following example shows how to use this function:
   \code
@@ -662,12 +648,13 @@ v: 0  10  11  3
  */
 void vpRowVector::insert(unsigned int i, const vpRowVector &v)
 {
-  if (i+v.size() > this->size())
+  if (i + v.size() > this->size())
     throw(vpException(vpException::dimensionError,
-                      "Unable to insert (1x%d) row vector in (1x%d) row vector at position (%d)",
+                      "Unable to insert (1x%d) row vector in (1x%d) row "
+                      "vector at position (%d)",
                       v.getCols(), colNum, i));
-  for (unsigned int j=0; j < v.size(); j++)
-    (*this)[i+j] = v[j];
+  for (unsigned int j = 0; j < v.size(); j++)
+    (*this)[i + j] = v[j];
 }
 
 /*!
@@ -688,8 +675,8 @@ void vpRowVector::insert(unsigned int i, const vpRowVector &v)
 */
 void vpRowVector::stack(const double &d)
 {
-  this->resize(colNum+1,false);
-  (*this)[colNum-1] = d;
+  this->resize(colNum + 1, false);
+  (*this)[colNum - 1] = d;
 }
 
 /*!
@@ -711,10 +698,7 @@ void vpRowVector::stack(const double &d)
   \sa stack(const vpRowVector &, const vpRowVector &, vpRowVector &)
 
 */
-void vpRowVector::stack(const vpRowVector &v)
-{
-  *this = vpRowVector::stack(*this, v);
-}
+void vpRowVector::stack(const vpRowVector &v) { *this = vpRowVector::stack(*this, v); }
 
 /*!
   Stack row vectors.
@@ -786,11 +770,11 @@ void vpRowVector::stack(const vpRowVector &A, const vpRowVector &B, vpRowVector 
   // General case
   C.resize(nrA + nrB);
 
-  for (unsigned int i=0; i<nrA; i++)
+  for (unsigned int i = 0; i < nrA; i++)
     C[i] = A[i];
 
-  for (unsigned int i=0; i<nrB; i++)
-    C[nrA+i] = B[i];
+  for (unsigned int i = 0; i < nrB; i++)
+    C[nrA + i] = B[i];
 }
 
 /*!
@@ -798,9 +782,8 @@ void vpRowVector::stack(const vpRowVector &A, const vpRowVector &B, vpRowVector 
 */
 double vpRowVector::mean(const vpRowVector &v)
 {
-  if (v.data == NULL) {
-    throw(vpException(vpException::fatalError,
-                      "Cannot compute mean value of an empty row vector"));
+  if (v.data == NULL || v.size() == 0) {
+    throw(vpException(vpException::dimensionError, "Cannot compute mean value of an empty row vector"));
   }
 
   double mean = 0;
@@ -814,18 +797,13 @@ double vpRowVector::mean(const vpRowVector &v)
 /*!
   Compute the median value of all the elements of the vector.
 */
-double
-vpRowVector::median(const vpRowVector &v)
+double vpRowVector::median(const vpRowVector &v)
 {
-  if (v.data==NULL) {
-    throw(vpException(vpException::fatalError,
-                      "Cannot compute mean value of an empty row vector"));
+  if (v.data == NULL || v.size() == 0) {
+    throw(vpException(vpException::dimensionError, "Cannot compute mean value of an empty row vector"));
   }
 
-  std::vector<double> vectorOfDoubles(v.size());
-  for(unsigned int i = 0; i < v.size(); i++) {
-    vectorOfDoubles[i] = v[i];
-  }
+  std::vector<double> vectorOfDoubles(v.data, v.data + v.colNum);
 
   return vpMath::getMedian(vectorOfDoubles);
 }
@@ -833,23 +811,21 @@ vpRowVector::median(const vpRowVector &v)
 /*!
   Compute the standard deviation value of all the elements of the vector.
 */
-double
-vpRowVector::stdev(const vpRowVector &v, const bool useBesselCorrection)
+double vpRowVector::stdev(const vpRowVector &v, const bool useBesselCorrection)
 {
-  if (v.data==NULL) {
-    throw(vpException(vpException::fatalError,
-                      "Cannot compute mean value of an empty row vector"));
+  if (v.data == NULL || v.size() == 0) {
+    throw(vpException(vpException::dimensionError, "Cannot compute mean value of an empty row vector"));
   }
 
   double mean_value = mean(v);
   double sum_squared_diff = 0.0;
-  for(unsigned int i = 0; i < v.size(); i++) {
-    sum_squared_diff += (v[i]-mean_value) * (v[i]-mean_value);
+  for (unsigned int i = 0; i < v.size(); i++) {
+    sum_squared_diff += (v[i] - mean_value) * (v[i] - mean_value);
   }
 
-  double divisor = (double) v.size();
-  if(useBesselCorrection && v.size() > 1) {
-    divisor = divisor-1;
+  double divisor = (double)v.size();
+  if (useBesselCorrection && v.size() > 1) {
+    divisor = divisor - 1;
   }
 
   return std::sqrt(sum_squared_diff / divisor);
@@ -874,98 +850,97 @@ vpRowVector::stdev(const vpRowVector &v, const bool useBesselCorrection)
 
   \sa std::ostream &operator<<(std::ostream &s, const vpArray2D<Type> &A)
 */
-int
-vpRowVector::print(std::ostream& s, unsigned int length, char const* intro) const
+int vpRowVector::print(std::ostream &s, unsigned int length, char const *intro) const
 {
   typedef std::string::size_type size_type;
 
   unsigned int m = 1;
   unsigned int n = getCols();
 
-  std::vector<std::string> values(m*n);
+  std::vector<std::string> values(m * n);
   std::ostringstream oss;
   std::ostringstream ossFixed;
   std::ios_base::fmtflags original_flags = oss.flags();
 
   // ossFixed <<std::fixed;
-  ossFixed.setf ( std::ios::fixed, std::ios::floatfield );
+  ossFixed.setf(std::ios::fixed, std::ios::floatfield);
 
-  size_type maxBefore=0;  // the length of the integral part
-  size_type maxAfter=0;   // number of decimals plus
+  size_type maxBefore = 0; // the length of the integral part
+  size_type maxAfter = 0;  // number of decimals plus
   // one place for the decimal point
-  for (unsigned int j=0;j<n;++j){
+  for (unsigned int j = 0; j < n; ++j) {
     oss.str("");
     oss << (*this)[j];
-    if (oss.str().find("e")!=std::string::npos){
+    if (oss.str().find("e") != std::string::npos) {
       ossFixed.str("");
       ossFixed << (*this)[j];
       oss.str(ossFixed.str());
     }
 
-    values[j]=oss.str();
-    size_type thislen=values[j].size();
-    size_type p=values[j].find('.');
+    values[j] = oss.str();
+    size_type thislen = values[j].size();
+    size_type p = values[j].find('.');
 
-    if (p==std::string::npos){
-      maxBefore=vpMath::maximum(maxBefore, thislen);
+    if (p == std::string::npos) {
+      maxBefore = vpMath::maximum(maxBefore, thislen);
       // maxAfter remains the same
-    } else{
-      maxBefore=vpMath::maximum(maxBefore, p);
-      maxAfter=vpMath::maximum(maxAfter, thislen-p-1);
+    } else {
+      maxBefore = vpMath::maximum(maxBefore, p);
+      maxAfter = vpMath::maximum(maxAfter, thislen - p - 1);
     }
   }
 
-
-  size_type totalLength=length;
+  size_type totalLength = length;
   // increase totalLength according to maxBefore
-  totalLength=vpMath::maximum(totalLength,maxBefore);
+  totalLength = vpMath::maximum(totalLength, maxBefore);
   // decrease maxAfter according to totalLength
-  maxAfter=std::min(maxAfter, totalLength-maxBefore);
-  if (maxAfter==1) maxAfter=0;
+  maxAfter = (std::min)(maxAfter, totalLength - maxBefore);
+  if (maxAfter == 1)
+    maxAfter = 0;
 
   // the following line is useful for debugging
-  //std::cerr <<totalLength <<" " <<maxBefore <<" " <<maxAfter <<"\n";
+  // std::cerr <<totalLength <<" " <<maxBefore <<" " <<maxAfter <<"\n";
 
-  if (intro) s <<intro;
-  s <<"["<<m<<","<<n<<"]=\n";
+  if (intro)
+    s << intro;
+  s << "[" << m << "," << n << "]=\n";
 
-  s <<"  ";
-  for (unsigned int j=0;j<n;j++){
-    size_type p=values[j].find('.');
+  s << "  ";
+  for (unsigned int j = 0; j < n; j++) {
+    size_type p = values[j].find('.');
     s.setf(std::ios::right, std::ios::adjustfield);
     s.width((std::streamsize)maxBefore);
-    s <<values[j].substr(0,p).c_str();
+    s << values[j].substr(0, p).c_str();
 
-    if (maxAfter>0){
+    if (maxAfter > 0) {
       s.setf(std::ios::left, std::ios::adjustfield);
-      if (p!=std::string::npos){
+      if (p != std::string::npos) {
         s.width((std::streamsize)maxAfter);
-        s <<values[j].substr(p,maxAfter).c_str();
-      } else{
-        assert(maxAfter>1);
+        s << values[j].substr(p, maxAfter).c_str();
+      } else {
+        assert(maxAfter > 1);
         s.width((std::streamsize)maxAfter);
-        s <<".0";
+        s << ".0";
       }
     }
 
-    s <<' ';
+    s << ' ';
   }
-  s <<std::endl;
-
+  s << std::endl;
 
   s.flags(original_flags); // restore s to standard state
 
-  return (int)(maxBefore+maxAfter);
+  return (int)(maxBefore + maxAfter);
 }
 
 /*!
   Allows to multiply a scalar by row vector.
 */
-vpRowVector operator*(const double &x,const vpRowVector &v)
+vpRowVector operator*(const double &x, const vpRowVector &v)
 {
-  vpRowVector vout ;
-  vout = v*x ;
-  return vout ;
+  vpRowVector vout;
+  vout = v * x;
+  return vout;
 }
 
 /*!
@@ -975,9 +950,9 @@ vpRowVector operator*(const double &x,const vpRowVector &v)
   */
 double vpRowVector::sum() const
 {
-  double sum=0.0;
+  double sum = 0.0;
 
-  for (unsigned int j=0;j<colNum;j++) {
+  for (unsigned int j = 0; j < colNum; j++) {
     sum += rowPtrs[0][j];
   }
 
@@ -985,17 +960,18 @@ double vpRowVector::sum() const
 }
 
 /*!
-  Return the sum square of all the elements \f$v_{i}\f$ of the row vector v(n).
+  Return the sum square of all the elements \f$v_{i}\f$ of the row vector
+  v(n).
 
   \return The sum square value: \f$\sum_{j=0}^{n} v_j^{2}\f$.
   */
 double vpRowVector::sumSquare() const
 {
-  double sum_square=0.0;
+  double sum_square = 0.0;
 
-  for (unsigned int j=0;j<colNum;j++) {
-    double x=rowPtrs[0][j];
-    sum_square += x*x;
+  for (unsigned int j = 0; j < colNum; j++) {
+    double x = rowPtrs[0][j];
+    sum_square += x * x;
   }
 
   return sum_square;
@@ -1008,9 +984,10 @@ double vpRowVector::sumSquare() const
 */
 double vpRowVector::euclideanNorm() const
 {
-  double norm=0.0;
-  for (unsigned int i=0;i<dsize;i++) {
-    double x = *(data +i); norm += x*x;
+  double norm = 0.0;
+  for (unsigned int i = 0; i < dsize; i++) {
+    double x = *(data + i);
+    norm += x * x;
   }
 
   return sqrt(norm);
@@ -1020,8 +997,9 @@ double vpRowVector::euclideanNorm() const
   Initialize the row vector from a part of an input row vector \e v.
 
   \param v : Input row vector used for initialization.
-  \param c : column index in \e v that corresponds to the first element of the row vector to contruct.
-  \param ncols : Number of columns of the constructed row vector.
+  \param c : column index in \e v that corresponds to the first element of the
+row vector to contruct. \param ncols : Number of columns of the constructed
+row vector.
 
   The sub-vector starting from v[c] element and ending on v[c+ncols-1] element
   is used to initialize the contructed row vector.
@@ -1050,20 +1028,18 @@ v: 0 1 2 3
 w: 1 2
   \endcode
  */
-void
-vpRowVector::init(const vpRowVector &v, unsigned int c, unsigned int ncols)
+void vpRowVector::init(const vpRowVector &v, unsigned int c, unsigned int ncols)
 {
-  unsigned int cncols = c+ncols ;
+  unsigned int cncols = c + ncols;
 
   if (cncols > v.getCols())
-    throw(vpException(vpException::dimensionError,
-                      "Bad column dimension (%d > %d) used to initialize vpRowVector",
+    throw(vpException(vpException::dimensionError, "Bad column dimension (%d > %d) used to initialize vpRowVector",
                       cncols, v.getCols()));
   resize(ncols);
   if (this->rowPtrs == NULL) // Fix coverity scan: explicit null dereferenced
-    return; // Noting to do
-  for (unsigned int i=0 ; i < ncols; i++)
-    (*this)[i] = v[i+c];
+    return;                  // Noting to do
+  for (unsigned int i = 0; i < ncols; i++)
+    (*this)[i] = v[i + c];
 }
 
 /*!
@@ -1096,23 +1072,17 @@ r[2] = 2;
 
   \endcode
 */
-std::ostream & vpRowVector::cppPrint(std::ostream & os, const std::string &matrixName, bool octet) const
+std::ostream &vpRowVector::cppPrint(std::ostream &os, const std::string &matrixName, bool octet) const
 {
-  os << "vpRowVector " << matrixName
-     << " ("<< this ->getCols () << "); " <<std::endl;
+  os << "vpRowVector " << matrixName << " (" << this->getCols() << "); " << std::endl;
 
-  for (unsigned int j=0; j < this ->getCols(); ++ j) {
-    if (! octet) {
-      os << matrixName << "[" << j
-         << "] = " << (*this)[j] << "; " << std::endl;
-    }
-    else {
-      for (unsigned int k = 0; k < sizeof(double); ++ k) {
-        os << "((unsigned char*)&(" << matrixName
-           << "[" << j << "]) )[" << k
-           <<"] = 0x" <<std::hex<<
-             (unsigned int)((unsigned char*)& ((*this)[j])) [k]
-             << "; " << std::endl;
+  for (unsigned int j = 0; j < this->getCols(); ++j) {
+    if (!octet) {
+      os << matrixName << "[" << j << "] = " << (*this)[j] << "; " << std::endl;
+    } else {
+      for (unsigned int k = 0; k < sizeof(double); ++k) {
+        os << "((unsigned char*)&(" << matrixName << "[" << j << "]) )[" << k << "] = 0x" << std::hex
+           << (unsigned int)((unsigned char *)&((*this)[j]))[k] << "; " << std::endl;
       }
     }
   }
@@ -1144,11 +1114,11 @@ int main()
 0, 1, 2
   \endcode
 */
-std::ostream & vpRowVector::csvPrint(std::ostream & os) const
+std::ostream &vpRowVector::csvPrint(std::ostream &os) const
 {
-  for (unsigned int j=0; j < this->getCols(); ++ j) {
-    os <<  (*this)[j];
-    if (!(j==(this->getCols()-1)))
+  for (unsigned int j = 0; j < this->getCols(); ++j) {
+    os << (*this)[j];
+    if (!(j == (this->getCols() - 1)))
       os << ", ";
   }
   os << std::endl;
@@ -1178,12 +1148,12 @@ r = ([
   \endcode
   that could be copy/paste in Maple.
 */
-std::ostream & vpRowVector::maplePrint(std::ostream & os) const
+std::ostream &vpRowVector::maplePrint(std::ostream &os) const
 {
   os << "([ " << std::endl;
   os << "[";
-  for (unsigned int j=0; j < this->getCols(); ++ j) {
-    os <<  (*this)[j] << ", ";
+  for (unsigned int j = 0; j < this->getCols(); ++j) {
+    os << (*this)[j] << ", ";
   }
   os << "]," << std::endl;
   os << "])" << std::endl;
@@ -1220,11 +1190,11 @@ r =
 >>
   \endcode
 */
-std::ostream & vpRowVector::matlabPrint(std::ostream & os) const
+std::ostream &vpRowVector::matlabPrint(std::ostream &os) const
 {
   os << "[ ";
-  for (unsigned int j=0; j < this ->getCols(); ++ j) {
-    os <<  (*this)[j] << ", ";
+  for (unsigned int j = 0; j < this->getCols(); ++j) {
+    os << (*this)[j] << ", ";
   }
   os << "]" << std::endl;
   return os;

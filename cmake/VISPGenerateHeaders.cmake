@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -32,12 +33,66 @@
 #
 #############################################################################
 
-# platform-specific config file
+# ----------------------------------------------------------------------------
+# platform-specific config file vpConfig.h
+# ----------------------------------------------------------------------------
+
+# case 1: when ViSP is build with make; files are used in <binary dir>
+set(data_location_ ${VISP_BINARY_DIR})
+set(VISP_SCENES_DIR ${data_location_}/data/wireframe-simulator)
+set(VISP_ROBOT_ARMS_DIR ${data_location_}/data/robot-simulator)
+# Note that VISP_HAVE_OGRE_RESOURCES_PATH and VISP_HAVE_OGRE_PLUGINS_PATH are set in OgreTools.cmake
+if(UNIX)
+  set(data_location_ "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/visp-${VISP_VERSION}")
+else()
+  set(data_location_ "${CMAKE_INSTALL_PREFIX}")
+endif()
+list(APPEND VISP_SCENES_DIR ${data_location_}/data/wireframe-simulator)
+list(APPEND VISP_ROBOT_ARMS_DIR ${data_location_}/data/robot-simulator)
+if(VISP_INSTALL_DIR_OGRE_RESOURCES)
+  list(APPEND VISP_HAVE_OGRE_RESOURCES_PATH "${data_location_}/data/ogre-simulator")
+endif()
+# append to VISP_HAVE_OGRE_PLUGINS_PATH the path of the installed plugins.cfg file
+# to be able to use ViSP from install tree
+if(VISP_INSTALL_DIR_OGRE_RESOURCES)
+  list(APPEND VISP_HAVE_OGRE_PLUGINS_PATH "${CMAKE_INSTALL_PREFIX}/${VISP_LIB_INSTALL_PATH}/visp/data/ogre-simulator")
+endif()
+
 configure_file("${VISP_SOURCE_DIR}/cmake/templates/vpConfig.h.in" "${VISP_INCLUDE_DIR}/visp3/core/vpConfig.h")
-install(FILES "${VISP_INCLUDE_DIR}/visp3/core/vpConfig.h"
-  DESTINATION ${VISP_INC_INSTALL_PATH}/visp3/core
-  COMPONENT dev
-)
+
+# case 2: when ViSP is build with make install; files are used in <install dir>
+if(UNIX)
+  set(data_location_ "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/visp-${VISP_VERSION}")
+else()
+  set(data_location_ "${CMAKE_INSTALL_PREFIX}")
+endif()
+set(VISP_SCENES_DIR ${data_location_}/data/wireframe-simulator)
+set(VISP_ROBOT_ARMS_DIR ${data_location_}/data/robot-simulator)
+if(VISP_INSTALL_DIR_OGRE_RESOURCES)
+  set(VISP_HAVE_OGRE_RESOURCES_PATH "${data_location_}/data/ogre-simulator")
+endif()
+# append to VISP_HAVE_OGRE_PLUGINS_PATH the path of the installed plugins.cfg file
+# to be able to use ViSP from install tree
+if(VISP_INSTALL_DIR_OGRE_RESOURCES)
+  set(VISP_HAVE_OGRE_PLUGINS_PATH "${CMAKE_INSTALL_PREFIX}/${VISP_LIB_INSTALL_PATH}/visp/data/ogre-simulator")
+endif()
+
+if(UNIX)
+  configure_file("${VISP_SOURCE_DIR}/cmake/templates/vpConfig.h.in" "${VISP_BINARY_DIR}/unix-install/vpConfig.h")
+
+  install(FILES "${VISP_BINARY_DIR}/unix-install/vpConfig.h"
+    DESTINATION ${VISP_INC_INSTALL_PATH}/visp3/core
+    COMPONENT dev
+  )
+
+else()
+  configure_file("${VISP_SOURCE_DIR}/cmake/templates/vpConfig.h.in" "${VISP_BINARY_DIR}/win-install/vpConfig.h")
+
+  install(FILES "${VISP_BINARY_DIR}/win-install/vpConfig.h"
+    DESTINATION ${VISP_INC_INSTALL_PATH}/visp3/core
+    COMPONENT dev
+  )
+endif()
 
 # ----------------------------------------------------------------------------
 # visp_modules.h that contains all the build modules defines

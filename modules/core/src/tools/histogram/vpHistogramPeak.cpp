@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -44,7 +45,6 @@
 
 #include <visp3/core/vpHistogramPeak.h>
 
-
 /*!
   Defaut constructor for a gray level histogram peak.
 */
@@ -53,17 +53,12 @@ vpHistogramPeak::vpHistogramPeak() : level(0), value(0) {}
 /*!
   Defaut constructor for a gray level histogram peak.
 */
-vpHistogramPeak::vpHistogramPeak(unsigned char lvl, unsigned val)
-  : level(lvl), value(val) {}
+vpHistogramPeak::vpHistogramPeak(unsigned char lvl, unsigned val) : level(lvl), value(val) {}
 
 /*!
   Copy constructor of a gray level histogram peak.
 */
-vpHistogramPeak::vpHistogramPeak(const vpHistogramPeak &p)
-  : level(0), value(0)
-{
-  *this = p;
-}
+vpHistogramPeak::vpHistogramPeak(const vpHistogramPeak &p) : level(0), value(0) { *this = p; }
 
 /*!
 
@@ -75,8 +70,7 @@ vpHistogramPeak::vpHistogramPeak(const vpHistogramPeak &p)
   vpHistogramPeak p2 = p1; // Peak p2 is set to 0, 255
   \endcode
 */
-vpHistogramPeak &
-vpHistogramPeak::operator=(const vpHistogramPeak &p)
+vpHistogramPeak &vpHistogramPeak::operator=(const vpHistogramPeak &p)
 {
   setLevel(p.level);
   setValue(p.value);
@@ -91,19 +85,15 @@ vpHistogramPeak::operator=(const vpHistogramPeak &p)
   \param p : Gray level histogram peak to compar.
 
 */
-bool
-vpHistogramPeak::operator==(const vpHistogramPeak &p) const
-{
-  return ( (level == p.level) && (value == p.value) );
-}
+bool vpHistogramPeak::operator==(const vpHistogramPeak &p) const { return ((level == p.level) && (value == p.value)); }
 
 /*!
   \relates vpHistogramPeak
   \brief std::cout a peak
 */
-VISP_EXPORT std::ostream &operator <<(std::ostream &s,const vpHistogramPeak &p)
+VISP_EXPORT std::ostream &operator<<(std::ostream &s, const vpHistogramPeak &p)
 {
-  
+
   s << (int)p.getLevel() << " " << p.getValue();
 
   return s;
