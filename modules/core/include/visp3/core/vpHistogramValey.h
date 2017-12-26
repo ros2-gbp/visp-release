@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,8 +36,6 @@
  *
  *****************************************************************************/
 
-
-
 /*!
   \file vpHistogramValey.h
   \brief Declaration of the vpHistogramValey class.
@@ -63,20 +62,17 @@
 
 class VISP_EXPORT vpHistogramValey : vpHistogramPeak
 {
- public:
-  vpHistogramValey() :
-    vpHistogramPeak() {};
-    
-  vpHistogramValey(unsigned char lvl, unsigned val) :
-    vpHistogramPeak(lvl, val) {};
+public:
+  vpHistogramValey() : vpHistogramPeak(){};
 
-  vpHistogramValey(const vpHistogramValey & v) : 
-    vpHistogramPeak(v) {};
+  vpHistogramValey(unsigned char lvl, unsigned val) : vpHistogramPeak(lvl, val){};
+
+  vpHistogramValey(const vpHistogramValey &v) : vpHistogramPeak(v){};
 
   /*! Destructor that does nothing. */
   virtual ~vpHistogramValey() {}
 
-  vpHistogramValey & operator=(const vpHistogramValey &v);
+  vpHistogramValey &operator=(const vpHistogramValey &v);
   bool operator==(const vpHistogramValey &v) const;
 
   /*!
@@ -89,10 +85,7 @@ class VISP_EXPORT vpHistogramValey : vpHistogramPeak
     \sa setValue(), set()
 
   */
-  inline void setLevel(unsigned char lvl)
-    {
-      this->level = lvl;
-    };
+  inline void setLevel(unsigned char lvl) { this->level = lvl; };
   /*!
 
     Set the valey number of pixels having a same gray level. To set the
@@ -103,10 +96,7 @@ class VISP_EXPORT vpHistogramValey : vpHistogramPeak
     \sa setPosition(), set()
 
   */
-  inline void setValue(unsigned val)
-    {
-      this->value = val;
-    };
+  inline void setValue(unsigned val) { this->value = val; };
   /*!
 
     Set the valey gray \e level and number of pixels at this location.
@@ -118,11 +108,11 @@ class VISP_EXPORT vpHistogramValey : vpHistogramPeak
 
   */
   inline void set(unsigned char lvl, unsigned val)
-    {
-      this->level = lvl;
-      this->value = val;
-    };
-      
+  {
+    this->level = lvl;
+    this->value = val;
+  };
+
   /*!
 
     Get the valey gray \e level. The number of pixels having this
@@ -133,10 +123,7 @@ class VISP_EXPORT vpHistogramValey : vpHistogramPeak
     \sa getValue()
 
   */
-  inline unsigned char getLevel() const
-    { 
-      return level;
-    };
+  inline unsigned char getLevel() const { return level; };
   /*!
 
     Get the valey number of pixels having a same gray level. The
@@ -147,15 +134,12 @@ class VISP_EXPORT vpHistogramValey : vpHistogramPeak
     \sa getLevel()
 
   */
-  inline unsigned getValue() const
-    {
-      return value;
-    };
+  inline unsigned getValue() const { return value; };
 
   //---------------------------------
   // Printing
   //---------------------------------
-  friend VISP_EXPORT std::ostream &operator << (std::ostream &s, const vpHistogramValey &v);
+  friend VISP_EXPORT std::ostream &operator<<(std::ostream &s, const vpHistogramValey &v);
 };
 
 /*

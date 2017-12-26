@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -70,22 +71,20 @@
 
 */
 
-
-
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string>
 
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpIoTools.h>
 #include <visp3/core/vpMath.h>
-#include <visp3/io/vpParseArgv.h>
-#include <visp3/robot/vpSimulatorCamera.h>
 #include <visp3/core/vpThetaUVector.h>
 #include <visp3/core/vpTranslationVector.h>
+#include <visp3/io/vpParseArgv.h>
+#include <visp3/robot/vpSimulatorCamera.h>
 
 // List of allowed command line options
-#define GETOPTARGS	"h"
+#define GETOPTARGS "h"
 
 void usage(const char *name, const char *badparam);
 bool getOptions(int argc, const char **argv);
@@ -131,15 +130,19 @@ Set the program options.
 bool getOptions(int argc, const char **argv)
 {
   const char *optarg_;
-  int	c;
+  int c;
   while ((c = vpParseArgv::parse(argc, argv, GETOPTARGS, &optarg_)) > 1) {
 
     switch (c) {
-    case 'h': usage(argv[0], NULL); return false; break;
+    case 'h':
+      usage(argv[0], NULL);
+      return false;
+      break;
 
     default:
       usage(argv[0], optarg_);
-      return false; break;
+      return false;
+      break;
     }
   }
 
@@ -154,13 +157,12 @@ bool getOptions(int argc, const char **argv)
   return true;
 }
 
-int
-main(int argc, const char ** argv)
+int main(int argc, const char **argv)
 {
   try {
     // Read the command line options
     if (getOptions(argc, argv) == false) {
-      exit (-1);
+      exit(-1);
     }
     // Log file creation in /tmp/$USERNAME/log.dat
     // This file contains by line:
@@ -173,9 +175,9 @@ main(int argc, const char ** argv)
     // Create a log filename to save velocities...
     std::string logdirname;
 #if defined(_WIN32)
-    logdirname ="C:/temp/" + username;
+    logdirname = "C:/temp/" + username;
 #else
-    logdirname ="/tmp/" + username;
+    logdirname = "/tmp/" + username;
 #endif
 
     // Test if the output path exist. If no try to create it
@@ -183,10 +185,8 @@ main(int argc, const char ** argv)
       try {
         // Create the dirname
         vpIoTools::makeDirectory(logdirname);
-      }
-      catch (...) {
-        std::cerr << std::endl
-                  << "ERROR:" << std::endl;
+      } catch (...) {
+        std::cerr << std::endl << "ERROR:" << std::endl;
         std::cerr << "  Cannot create " << logdirname << std::endl;
         exit(-1);
       }
@@ -197,59 +197,58 @@ main(int argc, const char ** argv)
     // Open the log file name
     std::ofstream flog(logfilename.c_str());
 
-    vpSimulatorCamera robot ;
+    vpSimulatorCamera robot;
 
-    std::cout << std::endl ;
-    std::cout << "-------------------------------------------------------" << std::endl ;
-    std::cout << " Test program without vpServo and vpFeature classes "  <<std::endl ;
-    std::cout << " Eye-in-hand task control, velocity computed in the camera frame" << std::endl ;
-    std::cout << " Simulation " << std::endl ;
-    std::cout << " task :  3D visual servoing " << std::endl ;
-    std::cout << "-------------------------------------------------------" << std::endl ;
-    std::cout << std::endl ;
-
+    std::cout << std::endl;
+    std::cout << "-------------------------------------------------------" << std::endl;
+    std::cout << " Test program without vpServo and vpFeature classes " << std::endl;
+    std::cout << " Eye-in-hand task control, velocity computed in the camera frame" << std::endl;
+    std::cout << " Simulation " << std::endl;
+    std::cout << " task :  3D visual servoing " << std::endl;
+    std::cout << "-------------------------------------------------------" << std::endl;
+    std::cout << std::endl;
 
     // Sets the initial camera location
-    vpPoseVector c_r_o(// Translation tx,ty,tz
-                       0.1, 0.2, 2,
-                       // ThetaU rotation
-                       vpMath::rad(20), vpMath::rad(10),  vpMath::rad(50) ) ;
+    vpPoseVector c_r_o( // Translation tx,ty,tz
+        0.1, 0.2, 2,
+        // ThetaU rotation
+        vpMath::rad(20), vpMath::rad(10), vpMath::rad(50));
 
     // From the camera pose build the corresponding homogeneous matrix
-    vpHomogeneousMatrix cMo(c_r_o) ;
+    vpHomogeneousMatrix cMo(c_r_o);
 
     // Set the robot initial position
     vpHomogeneousMatrix wMc, wMo;
-    robot.getPosition(wMc) ;
+    robot.getPosition(wMc);
     wMo = wMc * cMo; // Compute the position of the object in the world frame
 
     // Sets the desired camera location
-    vpPoseVector cd_r_o(// Translation tx,ty,tz
-                        0, 0, 1,
-                        // ThetaU rotation
-                        vpMath::rad(0),vpMath::rad(0),vpMath::rad(0)) ;
+    vpPoseVector cd_r_o( // Translation tx,ty,tz
+        0, 0, 1,
+        // ThetaU rotation
+        vpMath::rad(0), vpMath::rad(0), vpMath::rad(0));
     // From the camera desired pose build the corresponding homogeneous matrix
-    vpHomogeneousMatrix cdMo(cd_r_o) ;
+    vpHomogeneousMatrix cdMo(cd_r_o);
 
     vpHomogeneousMatrix cdMc; // Transformation between desired and current camera frame
-    vpRotationMatrix cdRc; // Rotation between desired and current camera frame
-    vpRotationMatrix cRcd; // Rotation between current and desired camera frame
+    vpRotationMatrix cdRc;    // Rotation between desired and current camera frame
+    vpRotationMatrix cRcd;    // Rotation between current and desired camera frame
 
     // Set the constant gain of the servo
     double lambda = 1;
 
-    unsigned int iter=0 ;
+    unsigned int iter = 0;
     // Start the visual servoing loop. We stop the servo after 200 iterations
-    while(iter++ < 200) {
-      std::cout << "-----------------------------------" << iter <<std::endl ;
+    while (iter++ < 200) {
+      std::cout << "-----------------------------------" << iter << std::endl;
 
       // get the robot position
-      robot.getPosition(wMc) ;
+      robot.getPosition(wMc);
       // Compute the position of the camera wrt the object frame
       cMo = wMc.inverse() * wMo;
 
       // new displacement to achieve
-      cdMc = cdMo*cMo.inverse() ;
+      cdMc = cdMo * cMo.inverse();
 
       // Extract the translation vector c*tc which is the current
       // translational visual feature.
@@ -270,13 +269,13 @@ main(int argc, const char ** argv)
 
       // Update the complete camera velocity vector
       vpColVector velocity(6);
-      for (unsigned int i=0; i<3; i++) {
-        velocity[i]   = v[i]; // Translational velocity
-        velocity[i+3] = w[i]; // Rotational velocity
+      for (unsigned int i = 0; i < 3; i++) {
+        velocity[i] = v[i];     // Translational velocity
+        velocity[i + 3] = w[i]; // Rotational velocity
       }
 
       // Send the camera velocity to the controller
-      robot.setVelocity(vpRobot::CAMERA_FRAME, velocity) ;
+      robot.setVelocity(vpRobot::CAMERA_FRAME, velocity);
 
       // Retrieve the error (s-s*)
       std::cout << "|| s - s* || = " << cdtc.t() << " " << tu_cdRc.t() << std::endl;
@@ -287,10 +286,8 @@ main(int argc, const char ** argv)
     // Close the log file
     flog.close();
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch a ViSP exception: " << e << std::endl;
     return 1;
   }
 }
-

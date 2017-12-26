@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -38,7 +39,8 @@
 /*!
   \file vpXmlParserHomogeneousMatrix.h
   \brief Declaration of the vpXmlParserHomogeneousMatrix class.
-  Class vpXmlParserHomogeneousMatrix allowed to load and save Homogeneous Matrixes in a file XML
+  Class vpXmlParserHomogeneousMatrix allowed to load and save Homogeneous
+  Matrixes in a file XML
 
 */
 
@@ -49,10 +51,10 @@
 
 #ifdef VISP_HAVE_XML2
 
+#include <libxml/xmlmemory.h> /* Functions of libxml.                */
 #include <string>
-#include <visp3/core/vpXmlParser.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
-#include <libxml/xmlmemory.h>      /* Functions of libxml.                */
+#include <visp3/core/vpXmlParser.h>
 
 /*!
   \class vpXmlParserHomogeneousMatrix
@@ -61,11 +63,12 @@
 
   \brief XML parser to load and save an homogeneous matrix in a file.
 
-  \warning This class is only available if libxml2 is installed and detected by ViSP.
-  Installation instructions are provided here https://visp.inria.fr/3rd_xml2.
+  \warning This class is only available if libxml2 is installed and detected
+by ViSP. Installation instructions are provided here
+https://visp.inria.fr/3rd_xml2.
 
-  To have a complete description of the homogeneous matrix implemented in ViSP, see
-  vpHomogeneousMatrix.
+  To have a complete description of the homogeneous matrix implemented in
+ViSP, see vpHomogeneousMatrix.
 
   Example of an XML file "homogeneous_matrixes.xml" containing a Pose vector
   that will be converted in an homogeneous matrix:
@@ -81,9 +84,8 @@
       <tx>1.00</tx>
       <ty>1.30</ty>
       <tz>3.50</tz>
-      <!--Rotational vector expressed in angle axis representation with values in radians -->
-      <theta_ux>0.20</theta_ux>
-      <theta_uy>0.30</theta_uy>
+      <!--Rotational vector expressed in angle axis representation with values
+in radians --> <theta_ux>0.20</theta_ux> <theta_uy>0.30</theta_uy>
       <theta_uz>0.50</theta_uz>
     </values>
   </homogeneous_transformation>
@@ -160,14 +162,13 @@ int main(int argc, char* argv[])
   \endcode
 */
 
-class VISP_EXPORT vpXmlParserHomogeneousMatrix: public vpXmlParser
+class VISP_EXPORT vpXmlParserHomogeneousMatrix : public vpXmlParser
 {
 
 public:
-
-  /* --- XML Code------------------------------------------------------------ */
-  typedef enum
-  {
+  /* --- XML Code------------------------------------------------------------
+   */
+  typedef enum {
     CODE_XML_BAD = -1,
     CODE_XML_OTHER,
     CODE_XML_M,
@@ -181,82 +182,60 @@ public:
     CODE_XML_TUZ
   } vpXmlCodeType;
 
-  typedef enum
-  {
-    SEQUENCE_OK,
-    SEQUENCE_ERROR
-  } vpXmlCodeSequenceType;
+  typedef enum { SEQUENCE_OK, SEQUENCE_ERROR } vpXmlCodeSequenceType;
 
-private :
-
+private:
   vpHomogeneousMatrix m_M;
   std::string m_name;
 
 public:
-
   vpXmlParserHomogeneousMatrix();
-  vpXmlParserHomogeneousMatrix(vpXmlParserHomogeneousMatrix& twinParser);
+  vpXmlParserHomogeneousMatrix(vpXmlParserHomogeneousMatrix &twinParser);
   //! Default destructor.
-  virtual ~vpXmlParserHomogeneousMatrix(){}
+  virtual ~vpXmlParserHomogeneousMatrix() {}
 
   // get/set functions
-  vpHomogeneousMatrix getHomogeneousMatrix() const {return this->m_M;}
-  std::string getHomogeneousMatrixName() const {return this->m_name;}
+  vpHomogeneousMatrix getHomogeneousMatrix() const { return this->m_M; }
+  std::string getHomogeneousMatrixName() const { return this->m_name; }
 
-  vpXmlParserHomogeneousMatrix& operator =(const vpXmlParserHomogeneousMatrix& twinparser);
+  vpXmlParserHomogeneousMatrix &operator=(const vpXmlParserHomogeneousMatrix &twinparser);
   int parse(vpHomogeneousMatrix &M, const std::string &filename, const std::string &name);
 
   int save(const vpHomogeneousMatrix &M, const std::string &filename, const std::string &name);
 
-  void setHomogeneousMatrixName(const std::string& name){
-    this->m_name = name;
-  }
+  void setHomogeneousMatrixName(const std::string &name) { this->m_name = name; }
 
 private:
-  int read (xmlDocPtr doc, xmlNodePtr node,
-            const std::string& name);
+  int read(xmlDocPtr doc, xmlNodePtr node, const std::string &name);
 
-  int count (xmlDocPtr doc, xmlNodePtr node,
-             const std::string& name);
+  int count(xmlDocPtr doc, xmlNodePtr node, const std::string &name);
 
-  int read_matrix (xmlDocPtr doc, xmlNodePtr node,
-                   const std::string& name);
-  
-  vpXmlCodeSequenceType read_values (xmlDocPtr doc, xmlNodePtr node,
-                                     vpHomogeneousMatrix &M);
-  
-  static vpXmlCodeSequenceType str2xmlcode (char * str, vpXmlCodeType & res);
-  void myXmlReadIntChild (xmlDocPtr doc,
-                          xmlNodePtr node,
-                          int &res,
-                          vpXmlCodeSequenceType &code_error);
+  int read_matrix(xmlDocPtr doc, xmlNodePtr node, const std::string &name);
 
-  void myXmlReadDoubleChild (xmlDocPtr doc,
-                             xmlNodePtr node,
-                             double &res,
-                             vpXmlCodeSequenceType &code_error);
+  vpXmlCodeSequenceType read_values(xmlDocPtr doc, xmlNodePtr node, vpHomogeneousMatrix &M);
 
-  void myXmlReadCharChild (xmlDocPtr doc,
-                           xmlNodePtr node,
-                           char **res);
-  int write (xmlNodePtr node, const std::string& name);
+  static vpXmlCodeSequenceType str2xmlcode(char *str, vpXmlCodeType &res);
+  void myXmlReadIntChild(xmlDocPtr doc, xmlNodePtr node, int &res, vpXmlCodeSequenceType &code_error);
+
+  void myXmlReadDoubleChild(xmlDocPtr doc, xmlNodePtr node, double &res, vpXmlCodeSequenceType &code_error);
+
+  void myXmlReadCharChild(xmlDocPtr doc, xmlNodePtr node, char **res);
+  int write(xmlNodePtr node, const std::string &name);
 
 private:
-
   /*!
 
     \param 2doc : a pointer representing the document
     \param node : the root node of the document
   */
-  virtual void readMainClass(xmlDocPtr , xmlNodePtr ){};
-  
+  virtual void readMainClass(xmlDocPtr, xmlNodePtr){};
+
   /*!
 
-    
+
     \param node2 : the root node of the document
   */
-  virtual void writeMainClass(xmlNodePtr ){};
-  
+  virtual void writeMainClass(xmlNodePtr){};
 };
-#endif //VISP_HAVE_XML2
+#endif // VISP_HAVE_XML2
 #endif

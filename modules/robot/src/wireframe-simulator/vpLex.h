@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -41,22 +42,22 @@
 #ifndef vpLex_h
 #define vpLex_h
 
-#include <visp3/core/vpConfig.h>
 #include <stdio.h>
+#include <visp3/core/vpConfig.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-void open_lex (void);
-void close_lex (void);
+void open_lex(void);
+void close_lex(void);
 int lex(void);
-void unlex (void);
-void open_source (FILE *fd, const char *str);
-void close_source (void);
-void lexerr (const char* path, ...);
-void pusherr (const char *str);
-void popuperr (const char *str);
-void poperr (void);
-int lexecho (FILE *f, int token);
+void unlex(void);
+void open_source(FILE *fd, const char *str);
+void close_source(void);
+void lexerr(const char *path, ...);
+void pusherr(const char *str);
+void popuperr(const char *str);
+void poperr(void);
+int lexecho(FILE *f, int token);
 
 #endif
 #endif

@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -36,12 +37,10 @@
  *
  *****************************************************************************/
 
-
 #include <ctime>
 
-#include <visp3/core/vpTime.h>
 #include <visp3/core/vpDebug.h>
-
+#include <visp3/core/vpTime.h>
 
 /*!
   \file vpTime.cpp
@@ -49,15 +48,14 @@
 
 */
 
-
 // Unix depend version
 
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-#  include <sys/time.h>
-#  include <unistd.h>
+#include <sys/time.h>
+#include <unistd.h>
 #elif defined(_WIN32)
-#  include <windows.h>
-#  include <winbase.h>
+//#include <winbase.h>
+#include <windows.h>
 #endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -76,13 +74,10 @@ double minTimeForUsleepCall = 4;
 
 /*!
    \return The time during which a while loop is used to handle the time
-   wainting functions. When the time to wait is greater than that value, we use
-   non blocking functions like usleep() instead.
+   wainting functions. When the time to wait is greater than that value, we
+   use non blocking functions like usleep() instead.
  */
-double getMinTimeForUsleepCall()
-{
-  return minTimeForUsleepCall;
-}
+double getMinTimeForUsleepCall() { return minTimeForUsleepCall; }
 
 /*!
   \fn vpTime::measureTimeMs()
@@ -94,22 +89,21 @@ double measureTimeMs()
 {
 #if defined(_WIN32)
 #if !defined(WINRT)
-	LARGE_INTEGER time, frequency;
+  LARGE_INTEGER time, frequency;
   QueryPerformanceFrequency(&frequency);
-  if(frequency.QuadPart == 0){
-    return(timeGetTime());
-  }
-  else{
+  if (frequency.QuadPart == 0) {
+    return (timeGetTime());
+  } else {
     QueryPerformanceCounter(&time);
-    return (double)(1000.0*time.QuadPart/frequency.QuadPart);
+    return (double)(1000.0 * time.QuadPart / frequency.QuadPart);
   }
-#  else
-	throw(vpException(vpException::fatalError, "Cannot get time: not implemented on Universal Windows Platform"));
-#  endif
+#else
+  throw(vpException(vpException::fatalError, "Cannot get time: not implemented on Universal Windows Platform"));
+#endif
 #elif !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
   struct timeval tp;
-  gettimeofday(&tp,0);
-  return(1000.0*tp.tv_sec + tp.tv_usec/1000.0);
+  gettimeofday(&tp, 0);
+  return (1000.0 * tp.tv_sec + tp.tv_usec / 1000.0);
 #endif
 }
 
@@ -121,23 +115,22 @@ double measureTimeMs()
 double measureTimeMicros()
 {
 #if defined(_WIN32)
-#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-	LARGE_INTEGER time, frequency;
+#if !defined(WINRT)
+  LARGE_INTEGER time, frequency;
   QueryPerformanceFrequency(&frequency);
-  if(frequency.QuadPart == 0){
-    return(timeGetTime());
-  }
-  else{
+  if (frequency.QuadPart == 0) {
+    return (timeGetTime());
+  } else {
     QueryPerformanceCounter(&time);
-    return (double)(1000000.0*time.QuadPart/frequency.QuadPart);
+    return (double)(1000000.0 * time.QuadPart / frequency.QuadPart);
   }
-#  elif WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
-	throw(vpException(vpException::fatalError, "Cannot get time: not implemented on Universal Windows Platform"));
-#  endif
 #else
+  throw(vpException(vpException::fatalError, "Cannot get time: not implemented on Universal Windows Platform"));
+#endif
+#elif !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
   struct timeval tp;
-  gettimeofday(&tp,0);
-  return(1000000.0*tp.tv_sec + tp.tv_usec);
+  gettimeofday(&tp, 0);
+  return (1000000.0 * tp.tv_sec + tp.tv_usec);
 #endif
 }
 
@@ -145,8 +138,8 @@ double measureTimeMicros()
 
   Wait t miliseconds after t0 (in ms).
 
-  The waiting is done by a call to usleep() if the time to wait is greater than
-  vpTime::minTimeForUsleepCall.
+  The waiting is done by a call to usleep() if the time to wait is greater
+  than vpTime::minTimeForUsleepCall.
 
   \param t0 : reference time (in ms)
   \param t  : time to wait (in ms)
@@ -161,12 +154,12 @@ int wait(double t0, double t)
 
   timeToWait = t0 + t - timeCurrent;
 
-  if ( timeToWait <= 0. ) // no need to wait
-    return(1);
+  if (timeToWait <= 0.) // no need to wait
+    return (1);
   else {
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
     if (timeToWait > vpTime::minTimeForUsleepCall) {
-      usleep((useconds_t)((timeToWait-vpTime::minTimeForUsleepCall)*1000));
+      usleep((useconds_t)((timeToWait - vpTime::minTimeForUsleepCall) * 1000));
     }
     // Blocking loop to have an accurate waiting
     do {
@@ -177,9 +170,9 @@ int wait(double t0, double t)
 
     return 0;
 #elif defined(_WIN32)
-#  if !defined(WINRT_8_0) 
+#if !defined(WINRT_8_0)
     if (timeToWait > vpTime::minTimeForUsleepCall) {
-      Sleep((DWORD)(timeToWait-vpTime::minTimeForUsleepCall));
+      Sleep((DWORD)(timeToWait - vpTime::minTimeForUsleepCall));
     }
     // Blocking loop to have an accurate waiting
     do {
@@ -189,9 +182,10 @@ int wait(double t0, double t)
     } while (timeToWait > 0.);
 
     return 0;
-#  else
-    throw(vpException(vpException::functionNotImplementedError, "vpTime::wait() is not implemented on Windows Phone 8.0"));
-#  endif
+#else
+    throw(vpException(vpException::functionNotImplementedError,
+                      "vpTime::wait() is not implemented on Windows Phone 8.0"));
+#endif
 #endif
   }
 }
@@ -199,8 +193,8 @@ int wait(double t0, double t)
 /*!
   Wait t miliseconds from now.
 
-  The waiting is done by a call to usleep() if the time to wait is greater than
-  vpTime::minTimeForUsleepCall.
+  The waiting is done by a call to usleep() if the time to wait is greater
+  than vpTime::minTimeForUsleepCall.
 
   \param t : Time to wait in ms.
 
@@ -209,13 +203,13 @@ void wait(double t)
 {
   double timeToWait = t;
 
-  if ( timeToWait <= 0. ) // no need to wait
+  if (timeToWait <= 0.) // no need to wait
     return;
   else {
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
     double t0 = measureTimeMs();
     if (timeToWait > vpTime::minTimeForUsleepCall) {
-      usleep((useconds_t)((timeToWait-vpTime::minTimeForUsleepCall)*1000));
+      usleep((useconds_t)((timeToWait - vpTime::minTimeForUsleepCall) * 1000));
     }
     // Blocking loop to have an accurate waiting
     do {
@@ -226,10 +220,10 @@ void wait(double t)
 
     return;
 #elif defined(_WIN32)
-#  if !defined(WINRT_8_0) 
+#if !defined(WINRT_8_0)
     double t0 = measureTimeMs();
     if (timeToWait > vpTime::minTimeForUsleepCall) {
-      Sleep((DWORD)(timeToWait-vpTime::minTimeForUsleepCall));
+      Sleep((DWORD)(timeToWait - vpTime::minTimeForUsleepCall));
     }
     // Blocking loop to have an accurate waiting
     do {
@@ -239,9 +233,10 @@ void wait(double t)
     } while (timeToWait > 0.);
 
     return;
-#  else
-    throw(vpException(vpException::functionNotImplementedError, "vpTime::wait() is not implemented on Windows Phone 8.0"));
-#  endif
+#else
+    throw(vpException(vpException::functionNotImplementedError,
+                      "vpTime::wait() is not implemented on Windows Phone 8.0"));
+#endif
 #endif
   }
 }
@@ -252,10 +247,7 @@ void wait(double t)
 
   \sa measureTimeMs()
 */
-double  measureTimeSecond()
-{
-  return vpTime::measureTimeMs()/1000.0 ;
-}
+double measureTimeSecond() { return vpTime::measureTimeMs() / 1000.0; }
 
 /*!
   Sleep t miliseconds from now.
@@ -266,13 +258,14 @@ double  measureTimeSecond()
 void sleepMs(double t)
 {
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-  usleep((useconds_t)(t*1000));
+  usleep((useconds_t)(t * 1000));
 #elif defined(_WIN32)
-#  if !defined(WINRT_8_0) 
+#if !defined(WINRT_8_0)
   Sleep((DWORD)(t));
-#  else
-  throw(vpException(vpException::functionNotImplementedError, "vpTime::sleepMs() is not implemented on Windows Phone 8.0"));
-#  endif
+#else
+  throw(vpException(vpException::functionNotImplementedError,
+                    "vpTime::sleepMs() is not implemented on Windows Phone 8.0"));
+#endif
 #endif
 }
 
@@ -323,7 +316,8 @@ void sleepMs(double t)
    | %%        | A % sign                                             |	%                        |
    * The specifiers marked with an asterisk (*) are locale-dependent.
 
-   \return A formated date and time string. When default format is used, the returned string contains "YYYY/MM/DD hh:mm:ss".
+   \return A formated date and time string. When default format is used, the
+returned string contains "YYYY/MM/DD hh:mm:ss".
 
    The following example shows how to use this function:
    \code
@@ -333,8 +327,8 @@ int main()
 {
   std::cout << "%Y/%m/%d %H:%M:%S (default): " << vpTime::getDateTime() << std::endl;
   std::cout << "%Y-%m-%d_%H.%M.%S format   : " << vpTime::getDateTime("%Y-%m-%d_%H.%M.%S") << std::endl;
-  std::cout << "%F                format   : " << vpTime::getDateTime("%F") << std::endl;
-  std::cout << "%X                format   : " << vpTime::getDateTime("%X") << std::endl;
+  std::cout << "%F format   : " << vpTime::getDateTime("%F") << std::endl;
+  std::cout << "%X format   : " << vpTime::getDateTime("%X") << std::endl;
 
   return 0;
 }
@@ -348,12 +342,13 @@ int main()
    \endcode
 
  */
-std::string getDateTime(const std::string &format) {
+std::string getDateTime(const std::string &format)
+{
   time_t rawtime;
-  struct tm * timeinfo;
+  struct tm *timeinfo;
   char buffer[80];
 
-  time (&rawtime);
+  time(&rawtime);
   timeinfo = localtime(&rawtime);
 
   strftime(buffer, 80, format.c_str(), timeinfo);

@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -46,14 +47,13 @@
 
 #include <math.h>
 
-#include <visp3/tt/vpTemplateTracker.h>
-#include <visp3/core/vpImage.h>
 #include <visp3/core/vpDisplay.h>
+#include <visp3/core/vpImage.h>
+#include <visp3/core/vpImageFilter.h>
 #include <visp3/core/vpImageTools.h>
 #include <visp3/core/vpIoTools.h>
-#include <visp3/core/vpImageTools.h>
-#include <visp3/core/vpImageFilter.h>
 #include <visp3/core/vpMath.h>
+#include <visp3/tt/vpTemplateTracker.h>
 #include <visp3/vision/vpHomography.h>
 
 #define APPROX_NCC
@@ -62,22 +62,25 @@
   \class vpTemplateTrackerZNCC
   \ingroup group_tt_tracker
 */
-class VISP_EXPORT vpTemplateTrackerZNCC: public vpTemplateTracker
+class VISP_EXPORT vpTemplateTrackerZNCC : public vpTemplateTracker
 {
-  protected:
-    vpRowVector   DI;
-    vpRowVector   temp;
+protected:
+  vpRowVector DI;
+  vpRowVector temp;
 
-  protected:
-            double getCost(const vpImage<unsigned char> &I, const vpColVector &tp) ;
-            double getCost(const vpImage<unsigned char> &I) {vpColVector tp; return getCost(I,tp);}
-    virtual void   initHessienDesired(const vpImage<unsigned char> &I)=0;
-    virtual void   trackNoPyr(const vpImage<unsigned char> &I)=0;
+protected:
+  double getCost(const vpImage<unsigned char> &I, const vpColVector &tp);
+  double getCost(const vpImage<unsigned char> &I)
+  {
+    vpColVector tp;
+    return getCost(I, tp);
+  }
+  virtual void initHessienDesired(const vpImage<unsigned char> &I) = 0;
+  virtual void trackNoPyr(const vpImage<unsigned char> &I) = 0;
 
-  public:
-    vpTemplateTrackerZNCC(vpTemplateTrackerWarp *warp);
+public:
+  explicit vpTemplateTrackerZNCC(vpTemplateTrackerWarp *warp);
 
-    void   setGain(double _gain){gain=_gain;}
+  void setGain(double _gain) { gain = _gain; }
 };
 #endif
-
