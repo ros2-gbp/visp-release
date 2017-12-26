@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -39,10 +40,9 @@
 #ifndef vpTemplateTrackerMIESM_hh
 #define vpTemplateTrackerMIESM_hh
 
-
+#include <visp3/core/vpImageFilter.h>
 #include <visp3/tt/vpTemplateTracker.h>
 #include <visp3/tt/vpTemplateTrackerHeader.h>
-#include <visp3/core/vpImageFilter.h>
 
 #include <visp3/tt_mi/vpTemplateTrackerMI.h>
 #include <visp3/tt_mi/vpTemplateTrackerMIBSpline.h>
@@ -51,14 +51,14 @@
   \class vpTemplateTrackerMIESM
   \ingroup group_tt_mi_tracker
 */
-class VISP_EXPORT vpTemplateTrackerMIESM: public vpTemplateTrackerMI
+class VISP_EXPORT vpTemplateTrackerMIESM : public vpTemplateTrackerMI
 {
   /*! Minimization method. */
   typedef enum {
     USE_NEWTON, // not used
-    USE_LMA, // not used
+    USE_LMA,    // not used
     USE_GRADIENT,
-    USE_QUASINEWTON //not used => see default equivalence
+    USE_QUASINEWTON // not used => see default equivalence
   } vpMinimizationTypeMIESM;
 
 protected:
@@ -76,30 +76,33 @@ protected:
   void initHessienDesired(const vpImage<unsigned char> &I);
   void trackNoPyr(const vpImage<unsigned char> &I);
 
-//private:
-//#ifndef DOXYGEN_SHOULD_SKIP_THIS
-//  vpTemplateTrackerMIESM(const vpTemplateTrackerMIESM &)
-//    : vpTemplateTrackerMI(), minimizationMethod(USE_NEWTON), CompoInitialised(false),
-//      HDirect(), HInverse(), HdesireDirect(), HdesireInverse(), GDirect(), GInverse()
-//  {
-//    throw vpException(vpException::functionNotImplementedError, "Not implemented!");
-//  }
-//  vpTemplateTrackerMIESM &operator=(const vpTemplateTrackerMIESM &){
-//    throw vpException(vpException::functionNotImplementedError, "Not implemented!");
-//    return *this;
-//  }
-//#endif
+  // private:
+  //#ifndef DOXYGEN_SHOULD_SKIP_THIS
+  //  vpTemplateTrackerMIESM(const vpTemplateTrackerMIESM &)
+  //    : vpTemplateTrackerMI(), minimizationMethod(USE_NEWTON),
+  //    CompoInitialised(false),
+  //      HDirect(), HInverse(), HdesireDirect(), HdesireInverse(), GDirect(),
+  //      GInverse()
+  //  {
+  //    throw vpException(vpException::functionNotImplementedError, "Not
+  //    implemented!");
+  //  }
+  //  vpTemplateTrackerMIESM &operator=(const vpTemplateTrackerMIESM &){
+  //    throw vpException(vpException::functionNotImplementedError, "Not
+  //    implemented!"); return *this;
+  //  }
+  //#endif
 
 public:
   //! Default constructor.
   vpTemplateTrackerMIESM()
-    : vpTemplateTrackerMI(), minimizationMethod(USE_NEWTON), CompoInitialised(false),
-      HDirect(), HInverse(), HdesireDirect(), HdesireInverse(), GDirect(), GInverse()
-  {}
-  vpTemplateTrackerMIESM(vpTemplateTrackerWarp *_warp);
+    : vpTemplateTrackerMI(), minimizationMethod(USE_NEWTON), CompoInitialised(false), HDirect(), HInverse(),
+      HdesireDirect(), HdesireInverse(), GDirect(), GInverse()
+  {
+  }
+  explicit vpTemplateTrackerMIESM(vpTemplateTrackerWarp *_warp);
 
-  void  setMinimizationMethod(vpMinimizationTypeMIESM method){minimizationMethod=method;}
+  void setMinimizationMethod(vpMinimizationTypeMIESM method) { minimizationMethod = method; }
 };
 
 #endif
-

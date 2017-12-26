@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -40,22 +41,22 @@
 
 #if VISP_HAVE_OPENCV_VERSION >= 0x020300
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include <visp3/vision/vpCalibration.h>
 
-#include <visp3/gui/vpDisplayX.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayD3D.h>
-#include <visp3/gui/vpDisplayGTK.h>
 #include <visp3/core/vpIoTools.h>
 #include <visp3/core/vpPoint.h>
-#include <visp3/io/vpVideoReader.h>
 #include <visp3/core/vpXmlParserCamera.h>
+#include <visp3/gui/vpDisplayD3D.h>
+#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayGTK.h>
+#include <visp3/gui/vpDisplayOpenCV.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/io/vpVideoReader.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -70,14 +71,13 @@ public:
     squareSize = 0.025f;
     goodInput = false;
     tempo = 1.f;
-
   }
-  enum Pattern { UNDEFINED, CHESSBOARD, CIRCLES_GRID};
+  enum Pattern { UNDEFINED, CHESSBOARD, CIRCLES_GRID };
 
-  bool read(const std::string &filename)    // Read the parameters
+  bool read(const std::string &filename) // Read the parameters
   {
     // reading configuration file
-    if (! vpIoTools::loadConfigFile(filename) )
+    if (!vpIoTools::loadConfigFile(filename))
       return false;
     vpIoTools::readConfigVar("BoardSize_Width:", boardSize.width);
     vpIoTools::readConfigVar("BoardSize_Height:", boardSize.height);
@@ -107,12 +107,14 @@ public:
       goodInput = false;
     }
 
-    if (input.empty())      // Check for valid input
+    if (input.empty()) // Check for valid input
       goodInput = false;
 
     calibrationPattern = UNDEFINED;
-    if (patternToUse.compare("CHESSBOARD") == 0) calibrationPattern = CHESSBOARD;
-    else if (patternToUse.compare("CIRCLES_GRID") == 0) calibrationPattern = CIRCLES_GRID;
+    if (patternToUse.compare("CHESSBOARD") == 0)
+      calibrationPattern = CHESSBOARD;
+    else if (patternToUse.compare("CIRCLES_GRID") == 0)
+      calibrationPattern = CIRCLES_GRID;
     if (calibrationPattern == UNDEFINED) {
       std::cerr << " Inexistent camera calibration mode: " << patternToUse << std::endl;
       goodInput = false;
@@ -120,11 +122,15 @@ public:
   }
 
 public:
-  cv::Size boardSize;        // The size of the board -> Number of items by width and height
-  Pattern calibrationPattern;// One of the Chessboard, circles, or asymmetric circle pattern
-  float squareSize;          // The size of a square in your defined unit (point, millimeter,etc).
-  std::string input;         // The input image sequence
-  float tempo;               // Tempo in seconds between two images. If > 10 wait a click to continue
+  cv::Size boardSize;         // The size of the board -> Number of items by width and
+                              // height
+  Pattern calibrationPattern; // One of the Chessboard, circles, or asymmetric
+                              // circle pattern
+  float squareSize;           // The size of a square in your defined unit (point,
+                              // millimeter,etc).
+  std::string input;          // The input image sequence
+  float tempo;                // Tempo in seconds between two images. If > 10 wait a click to
+                              // continue
   bool goodInput;
 
 private:
@@ -132,21 +138,20 @@ private:
 };
 #endif
 
-int main(int argc, const char ** argv)
+int main(int argc, const char **argv)
 {
   try {
     std::string outputFileName = "camera.xml";
 
     Settings s;
     const std::string inputSettingsFile = argc > 1 ? argv[1] : "default.cfg";
-    if (! s.read(inputSettingsFile) ) {
+    if (!s.read(inputSettingsFile)) {
       std::cout << "Could not open the configuration file: \"" << inputSettingsFile << "\"" << std::endl;
       std::cout << std::endl << "Usage: " << argv[0] << " <configuration file>.cfg" << std::endl;
       return -1;
     }
 
-    if (! s.goodInput)
-    {
+    if (!s.goodInput) {
       std::cout << "Invalid input detected. Application stopping. " << std::endl;
       return -1;
     }
@@ -170,16 +175,15 @@ int main(int argc, const char ** argv)
     std::vector<vpPoint> model;
     std::vector<vpCalibration> calibrator;
 
-    for (int i=0; i< s.boardSize.height; i++) {
-      for (int j=0; j< s.boardSize.width; j++) {
-        model.push_back( vpPoint(j*s.squareSize, i*s.squareSize, 0) );
+    for (int i = 0; i < s.boardSize.height; i++) {
+      for (int j = 0; j < s.boardSize.width; j++) {
+        model.push_back(vpPoint(j * s.squareSize, i * s.squareSize, 0));
       }
     }
 
-    long frame_index;
-    while(! reader.end()) {
-      frame_index = reader.getFrameIndex();
+    while (!reader.end()) {
       reader.acquire(I);
+      long frame_index = reader.getFrameIndex();
       vpDisplay::display(I);
 
       cv::Mat cvI;
@@ -187,20 +191,22 @@ int main(int argc, const char ** argv)
       vpImageConvert::convert(I, cvI);
 
       bool found = false;
-      switch( s.calibrationPattern ) // Find feature points on the input format
+      switch (s.calibrationPattern) // Find feature points on the input format
       {
       case Settings::CHESSBOARD:
-        //std::cout << "Use chessboard " << std::endl;
-        found = findChessboardCorners( cvI, s.boardSize, pointBuf,
+        // std::cout << "Use chessboard " << std::endl;
+        found = findChessboardCorners(cvI, s.boardSize, pointBuf,
 #if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
-                                       cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FAST_CHECK | cv::CALIB_CB_NORMALIZE_IMAGE);
+                                      cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FAST_CHECK |
+                                          cv::CALIB_CB_NORMALIZE_IMAGE);
 #else
-                                       CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FAST_CHECK | CV_CALIB_CB_NORMALIZE_IMAGE);
+                                      CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FAST_CHECK |
+                                          CV_CALIB_CB_NORMALIZE_IMAGE);
 #endif
-          break;
+        break;
       case Settings::CIRCLES_GRID:
-        //std::cout << "Use circle grid " << std::endl;
-        found = findCirclesGrid( cvI, s.boardSize, pointBuf, cv::CALIB_CB_SYMMETRIC_GRID  );
+        // std::cout << "Use circle grid " << std::endl;
+        found = findCirclesGrid(cvI, s.boardSize, pointBuf, cv::CALIB_CB_SYMMETRIC_GRID);
         break;
       case Settings::UNDEFINED:
       default:
@@ -214,23 +220,23 @@ int main(int argc, const char ** argv)
       else
         std::cout << ", image used as input data" << std::endl;
 
-      if ( found)                // If done with success,
+      if (found) // If done with success,
       {
         std::vector<vpImagePoint> data;
 
         if (s.calibrationPattern == Settings::CHESSBOARD) {
           // improve the found corners' coordinate accuracy for chessboard
-          cornerSubPix( cvI, pointBuf, cv::Size(11,11),
-                        cv::Size(-1,-1),
+          cornerSubPix(cvI, pointBuf, cv::Size(11, 11), cv::Size(-1, -1),
 #if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
-                        cv::TermCriteria( cv::TermCriteria::EPS+cv::TermCriteria::COUNT, 30, 0.1 ));
+                       cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 30, 0.1));
 #else
-                        cv::TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1 ));
+                       cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
 #endif
         }
-        char title[20]; sprintf(title, "image %ld", frame_index);
-        vpDisplay::setTitle(I, title);
-        for (unsigned int i=0; i < pointBuf.size(); i++) {
+        std::stringstream ss;
+        ss << "image " << frame_index;
+        vpDisplay::setTitle(I, ss.str());
+        for (unsigned int i = 0; i < pointBuf.size(); i++) {
           vpImagePoint ip(pointBuf[i].y, pointBuf[i].x);
           data.push_back(ip);
           vpDisplay::displayCross(I, ip, 10, vpColor::red);
@@ -240,7 +246,7 @@ int main(int argc, const char ** argv)
         vpCalibration calib;
         calib.setLambda(0.5);
         calib.clearPoint();
-        for (unsigned int i=0; i<model.size(); i++) {
+        for (unsigned int i = 0; i < model.size(); i++) {
           calib.addPoint(model[i].get_oX(), model[i].get_oY(), model[i].get_oZ(), data[i]);
         }
         vpHomogeneousMatrix cMo;
@@ -249,12 +255,12 @@ int main(int argc, const char ** argv)
         // Set (u0,v0) in the middle of the image
         double px = cam.get_px();
         double py = cam.get_px();
-        double u0 = I.getWidth()/2;
-        double v0 = I.getHeight()/2;
+        double u0 = I.getWidth() / 2;
+        double v0 = I.getHeight() / 2;
         cam.initPersProjWithoutDistortion(px, py, u0, v0);
 
         if (calib.computeCalibration(vpCalibration::CALIB_VIRTUAL_VS, cMo, cam, false) == 0) {
-          //std::cout << "camera parameters: " << cam << std::endl;
+          // std::cout << "camera parameters: " << cam << std::endl;
           calibrator.push_back(calib);
         }
       }
@@ -268,10 +274,9 @@ int main(int argc, const char ** argv)
         vpDisplay::displayText(I, 35, 15, "A click to process the next image", vpColor::green);
         vpDisplay::flush(I);
         vpDisplay::getClick(I);
-      }
-      else {
+      } else {
         vpDisplay::flush(I);
-        vpTime::wait(s.tempo*1000);
+        vpTime::wait(s.tempo * 1000);
       }
     }
 
@@ -287,7 +292,7 @@ int main(int argc, const char ** argv)
     ss_additional_info << "<nb_calibration_images>" << calibrator.size() << "</nb_calibration_images>";
     ss_additional_info << "<calibration_pattern_type>";
 
-    switch(s.calibrationPattern) {
+    switch (s.calibrationPattern) {
     case Settings::CHESSBOARD:
       ss_additional_info << "Chessboard";
       break;
@@ -316,19 +321,24 @@ int main(int argc, const char ** argv)
 #ifdef VISP_HAVE_XML2
       vpXmlParserCamera xml;
 
-      if(xml.save(cam, outputFileName.c_str(), "Camera", I.getWidth(), I.getHeight()) == vpXmlParserCamera::SEQUENCE_OK)
-        std::cout << "Camera parameters without distortion successfully saved in \"" << outputFileName << "\"" << std::endl;
+      if (xml.save(cam, outputFileName.c_str(), "Camera", I.getWidth(), I.getHeight()) ==
+          vpXmlParserCamera::SEQUENCE_OK)
+        std::cout << "Camera parameters without distortion successfully saved in \"" << outputFileName << "\""
+                  << std::endl;
       else {
-        std::cout << "Failed to save the camera parameters without distortion in \"" << outputFileName << "\"" << std::endl;
-        std::cout << "A file with the same name exists. Remove it to be able to save the parameters..." << std::endl;
+        std::cout << "Failed to save the camera parameters without distortion in \"" << outputFileName << "\""
+                  << std::endl;
+        std::cout << "A file with the same name exists. Remove it to be able "
+                     "to save the parameters..."
+                  << std::endl;
       }
 #endif
-    }
-    else
+    } else
       std::cout << "Calibration without distortion failed." << std::endl;
 
     std::cout << "\nCalibration with distortion in progress on " << calibrator.size() << " images..." << std::endl;
-    if (vpCalibration::computeCalibrationMulti(vpCalibration::CALIB_VIRTUAL_VS_DIST, calibrator, cam, error, false) == 0) {
+    if (vpCalibration::computeCalibrationMulti(vpCalibration::CALIB_VIRTUAL_VS_DIST, calibrator, cam, error, false) ==
+        0) {
       std::cout << cam << std::endl;
       std::cout << "Global reprojection error: " << error << std::endl;
       ss_additional_info << "<with_distortion>" << error << "</with_distortion></global_reprojection_error>";
@@ -336,31 +346,32 @@ int main(int argc, const char ** argv)
 #ifdef VISP_HAVE_XML2
       vpXmlParserCamera xml;
 
-      if(xml.save(cam, outputFileName.c_str(), "Camera", I.getWidth(), I.getHeight(), ss_additional_info.str()) == vpXmlParserCamera::SEQUENCE_OK)
-        std::cout << "Camera parameters without distortion successfully saved in \"" << outputFileName << "\"" << std::endl;
+      if (xml.save(cam, outputFileName.c_str(), "Camera", I.getWidth(), I.getHeight(), ss_additional_info.str()) ==
+          vpXmlParserCamera::SEQUENCE_OK)
+        std::cout << "Camera parameters without distortion successfully saved in \"" << outputFileName << "\""
+                  << std::endl;
       else {
-        std::cout << "Failed to save the camera parameters without distortion in \"" << outputFileName << "\"" << std::endl;
-        std::cout << "A file with the same name exists. Remove it to be able to save the parameters..." << std::endl;
+        std::cout << "Failed to save the camera parameters without distortion in \"" << outputFileName << "\""
+                  << std::endl;
+        std::cout << "A file with the same name exists. Remove it to be able "
+                     "to save the parameters..."
+                  << std::endl;
       }
 #endif
       std::cout << std::endl;
-      for (unsigned int i=0; i<calibrator.size(); i++)
-        std::cout << "Estimated pose on input data " << i << ": " << vpPoseVector(calibrator[i].cMo_dist).t() << std::endl;
+      for (unsigned int i = 0; i < calibrator.size(); i++)
+        std::cout << "Estimated pose on input data " << i << ": " << vpPoseVector(calibrator[i].cMo_dist).t()
+                  << std::endl;
 
-    }
-    else
+    } else
       std::cout << "Calibration with distortion failed." << std::endl;
 
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }
 }
 #else
-int main()
-{
-  std::cout << "OpenCV 2.3.0 or higher is requested to run the calibration." << std::endl;
-}
+int main() { std::cout << "OpenCV 2.3.0 or higher is requested to run the calibration." << std::endl; }
 #endif

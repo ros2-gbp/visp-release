@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -47,15 +48,18 @@ set(ZBAR_LIB_SEARCH_PATH "")
 if(MSVC)
   list(APPEND ZBAR_INC_SEARCH_PATH $ENV{ZBAR_DIR}/include)
   list(APPEND ZBAR_INC_SEARCH_PATH "C:/ZBarWin64/include")
+  list(APPEND ZBAR_INC_SEARCH_PATH "C:/workspace/ZBarWin64/include")
   list(APPEND ZBAR_INC_SEARCH_PATH "C:/zbar/ZBarWin64/include")
   
   if(CMAKE_CL_64)
     list(APPEND ZBAR_LIB_SEARCH_PATH $ENV{ZBAR_DIR}/x64)
     list(APPEND ZBAR_LIB_SEARCH_PATH "C:/ZBarWin64/x64")
+    list(APPEND ZBAR_LIB_SEARCH_PATH "C:/workspace/ZBarWin64/x64")
     list(APPEND ZBAR_LIB_SEARCH_PATH "C:/zbar/ZBarWin64/x64")
   else()
     list(APPEND ZBAR_LIB_SEARCH_PATH $ENV{ZBAR_DIR})
     list(APPEND ZBAR_LIB_SEARCH_PATH "C:/ZBarWin64")
+    list(APPEND ZBAR_LIB_SEARCH_PATH "C:/workspace/ZBarWin64")
     list(APPEND ZBAR_LIB_SEARCH_PATH "C:/zbar/ZBarWin64")
   endif()
 
@@ -90,11 +94,14 @@ if(MSVC)
     PATHS
       ${ZBAR_LIB_SEARCH_PATH_DBG}
   )
-  if(ZBAR_LIBRARIES_OPT)
+
+  if(ZBAR_LIBRARIES_OPT AND ZBAR_LIBRARIES_DBG)
     set(ZBAR_LIBRARIES optimized ${ZBAR_LIBRARIES_OPT})
-  endif()
-  if(ZBAR_LIBRARIES_DBG)
     list(APPEND ZBAR_LIBRARIES debug ${ZBAR_LIBRARIES_DBG})
+  elseif(ZBAR_LIBRARIES_OPT)
+    list(APPEND ZBAR_LIBRARIES ${ZBAR_LIBRARIES_OPT})
+  elseif(ZBAR_LIBRARIES_DBG)
+    list(APPEND ZBAR_LIBRARIES ${ZBAR_LIBRARIES_DBG})
   endif()
 
   mark_as_advanced(ZBAR_LIBRARIES_OPT ZBAR_LIBRARIES_DBG)
