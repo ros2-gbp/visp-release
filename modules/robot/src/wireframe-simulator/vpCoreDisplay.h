@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -43,14 +44,14 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "vpBound.h"
 #include "vpArit.h"
+#include "vpBound.h"
 
-void open_display (void);
-void close_display (void);
-void point_3D_2D (Point3f *p3, Index size, int xsize, int ysize, Point2i *p2);
-void set_Bound_face_display (Bound *bp, Byte b);
-void wireframe_Face (Face *fp, Point2i *pp);
+void open_display(void);
+void close_display(void);
+void point_3D_2D(Point3f *p3, Index size, int xsize, int ysize, Point2i *p2);
+void set_Bound_face_display(Bound *bp, Byte b);
+void wireframe_Face(Face *fp, Point2i *pp);
 
 #endif
 #endif

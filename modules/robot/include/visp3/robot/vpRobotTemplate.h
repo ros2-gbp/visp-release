@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,13 +36,13 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpRobotTemplate_H
 #define vpRobotTemplate_H
 
 /*!
   \file vpRobotTemplate.h
-  \brief class that defines a robot just to show which function you must implement
+  \brief class that defines a robot just to show which function you must
+  implement
 */
 
 #include <visp3/robot/vpRobot.h>
@@ -49,51 +50,46 @@
 /*!
   \class vpRobotTemplate
   \ingroup group_robot_real_template
-  \brief class that defines a robot just to show which function you must implement
+  \brief class that defines a robot just to show which function you must
+  implement
 */
 
 class VISP_EXPORT vpRobotTemplate : public vpRobot
 {
 
 public:
-
   //! basic initialization
-  void init() ;
+  void init();
 
   //! constructor
-  vpRobotTemplate() ;
+  vpRobotTemplate();
   //! destructor
-  virtual ~vpRobotTemplate() ;
-
+  virtual ~vpRobotTemplate();
 
   //! get the robot Jacobian expressed in the end-effector frame
-  void get_eJe(vpMatrix &_eJe) ;
+  void get_eJe(vpMatrix &_eJe);
   //! get the robot Jacobian expressed in the robot reference frame
-  void get_fJe(vpMatrix &_fJe) ;
+  void get_fJe(vpMatrix &_fJe);
 
   //! send to the controller a velocity expressed in the camera frame
-  void sendCameraVelocity(const vpColVector &v)   ;
+  void sendCameraVelocity(const vpColVector &v);
   //! send to the controller a velocity expressed in the articular frame
-  void sendArticularVelocity(const vpColVector &qdot)  ;
+  void sendArticularVelocity(const vpColVector &qdot);
   //! send to the controller a velocity (frame as to be specified)
-  void setVelocity(const vpRobot::vpControlFrameType frame,
-                   const  vpColVector &vel) ;
+  void setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &vel);
 
   //! get a position expressed in the robot reference frame
-  void getPosition(vpPoseVector &q) ;
+  void getPosition(vpPoseVector &q);
   //! get a position expressed in the articular frame
-  void getArticularPosition(vpColVector &q) ;
+  void getArticularPosition(vpColVector &q);
   //! get a displacement (frame as to be specified)
-  void getPosition(const vpRobot::vpControlFrameType frame,
-                   vpColVector &q) ;
+  void getPosition(const vpRobot::vpControlFrameType frame, vpColVector &q);
   //! set a displacement (frame as to be specified)
-  void setPosition(const vpRobot::vpControlFrameType frame,
-                   const vpColVector &q) ;
+  void setPosition(const vpRobot::vpControlFrameType frame, const vpColVector &q);
 
   //! get a displacement (frame as to be specified)
-  void getDisplacement(const vpRobot::vpControlFrameType frame,
-                       vpColVector &q) ;
-} ;
+  void getDisplacement(const vpRobot::vpControlFrameType frame, vpColVector &q);
+};
 
 #endif
 
