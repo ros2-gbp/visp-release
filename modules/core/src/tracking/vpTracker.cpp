@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,43 +36,28 @@
  *
  *****************************************************************************/
 
-
-#include <visp3/core/vpTracker.h>
 #include <visp3/core/vpDebug.h>
-
+#include <visp3/core/vpTracker.h>
 
 /*!
   \file vpTracker.cpp
   \brief Class that defines what is a generic tracker.
 */
 
-
-void
-vpTracker::init()
-{
-  cPAvailable = false ;
-}
-
-
+void vpTracker::init() { cPAvailable = false; }
 
 vpTracker::vpTracker() : p(), cP(), cPAvailable(false) {}
 
-vpTracker::vpTracker(const vpTracker &tracker) : p(), cP(), cPAvailable(false)
-{
-  *this = tracker;
-}
-
+vpTracker::vpTracker(const vpTracker &tracker) : p(), cP(), cPAvailable(false) { *this = tracker; }
 
 vpTracker &vpTracker::operator=(const vpTracker &tracker)
 {
   p = tracker.p;
   cP = tracker.cP;
   cPAvailable = tracker.cPAvailable;
-  
+
   return *this;
 }
-
-
 
 /*
  * Local variables:

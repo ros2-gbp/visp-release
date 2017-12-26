@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -44,14 +45,16 @@
 
 #ifdef VISP_HAVE_CMU1394
 
-#include <windows.h>
+// Include WinSock2.h before windows.h to ensure that winsock.h is not
+// included by windows.h since winsock.h and winsock2.h are incompatible
 #include <1394Camera.h> // CMU library
+#include <WinSock2.h>
+#include <windows.h>
 
-#include <visp3/core/vpImage.h>
 #include <visp3/core/vpFrameGrabber.h>
 #include <visp3/core/vpFrameGrabberException.h>
+#include <visp3/core/vpImage.h>
 #include <visp3/core/vpRGBa.h>
-
 
 /*!
   \file vp1394CMUGrabber.h
@@ -65,27 +68,29 @@
 
   \brief Firewire cameras video capture based on CMU 1394 Digital Camera SDK.
 
-  Thus to be enabled, this class needs the optional CMU 1394 3rd party. Installation instruction
-  are provided here https://visp.inria.fr/3rd_cmu1394.
+  Thus to be enabled, this class needs the optional CMU 1394 3rd party.
+Installation instruction are provided here https://visp.inria.fr/3rd_cmu1394.
 
-   This block is based on the CMU 1394 Digital Camera SDK. The CMU 1394 Digital
-   Camera Driver must be installed (go to http://www.cs.cmu.edu/~iwan/1394/index.html
-   to download it).
+   This block is based on the CMU 1394 Digital Camera SDK. The CMU 1394
+Digital Camera Driver must be installed (go to
+http://www.cs.cmu.edu/~iwan/1394/index.html to download it).
    - Parameters:
     - Camera index (0, 1, 2, ... or 10). First camera has index 0.
     - Image format
     - Frame rate. Real frame rate depends on device capacities.
-    - Control : shutter speed and gain can be internally set, but it is possible to set manually them.
-          * Exposure time register value. Real exposure time depends on device capacities.
+    - Control : shutter speed and gain can be internally set, but it is
+possible to set manually them.
+          * Exposure time register value. Real exposure time depends on device
+capacities.
           * Gain register value. Real gain depends on device capacities.
 
-  This first example available in tutorial-grabber-CMU1394.cpp shows how to grab
-  and display images from a firewire camera under Windows.
+  This first example available in tutorial-grabber-CMU1394.cpp shows how to
+grab and display images from a firewire camera under Windows.
 
   \include tutorial-grabber-CMU1394.cpp
 
-  This other example shows how to consider more than one firewire camera, and how
-  to grab and display images from the first camera found on the bus.
+  This other example shows how to consider more than one firewire camera, and
+how to grab and display images from the first camera found on the bus.
 
   \code
 #include <iostream>
@@ -104,10 +109,10 @@ int main()
 
   if( g.getNumberOfConnectedCameras() > 1 )
     std::cout << "There are " << g.getNumberOfConnectedCameras() << " connected cameras." << std::endl;
-  if( g.getNumberOfConnectedCameras() == 1 )
-    std::cout << "There is " << g.getNumberOfConnectedCameras() << " connected camera." << std::endl;
-  else
-    std::cout << "There is no connected camera." << std::endl;
+    if( g.getNumberOfConnectedCameras() == 1 )
+      std::cout << "There is " << g.getNumberOfConnectedCameras() << " connected camera." << std::endl;
+    else
+      std::cout << "There is no connected camera." << std::endl;
 
   // Setting camera parameters manually
   g.selectCamera(0);
@@ -149,17 +154,9 @@ public:
   /*!
     Enumeration of color codings.
   */
-  typedef enum {
-    YUV444,
-    YUV422,
-    YUV411,
-    RGB8,
-    MONO8,
-    MONO16,
-    UNKNOWN
-  } vpColorCodingType;
+  typedef enum { YUV444, YUV422, YUV411, RGB8, MONO8, MONO16, UNKNOWN } vpColorCodingType;
 
-private :
+private:
   //! Current camera handle
   C1394Camera *camera;
   //! Camera index on the bus
@@ -167,9 +164,9 @@ private :
   //! Current video format
   unsigned long _format;
   //! Current video mode
-  unsigned long _mode ;
+  unsigned long _mode;
   //! Current video frame rate
-  unsigned long _fps ;
+  unsigned long _fps;
   //! Current auto mode
   bool _modeauto;
   //! Current gain
@@ -180,7 +177,6 @@ private :
   vpColorCodingType _color;
 
 public:
-
   // Constructor.
   vp1394CMUGrabber();
   // Destructor.
@@ -198,64 +194,103 @@ public:
   // Display information about the camera on the standard output.
   void displayCameraDescription(int cam_id);
 
-  // Display camera model on the standard output. Call it after open the grabber.
+  // Display camera model on the standard output. Call it after open the
+  // grabber.
   void displayCameraModel();
 
   // Get the video framerate
   int getFramerate();
 
-  // Get the gain min and max values. 
+  // Get the gain min and max values.
   void getGainMinMax(unsigned short &min, unsigned short &max);
 
   // Get the number of connected cameras.
-  int getNumberOfConnectedCameras() const ;
+  int getNumberOfConnectedCameras() const;
 
-  // Get the shutter min and max values. 
+  // Get the shutter min and max values.
   void getShutterMinMax(unsigned short &min, unsigned short &max);
 
   //! Get the video color coding format.
   vpColorCodingType getVideoColorCoding() const
   {
     vpColorCodingType color = vp1394CMUGrabber::UNKNOWN;
-    if (_format == 0)
-    {
-      switch(_mode)
-      {
-        case 0: color = vp1394CMUGrabber::YUV444; break;
-        case 1: color = vp1394CMUGrabber::YUV422; break;
-        case 2: color = vp1394CMUGrabber::YUV411; break;
-        case 3: color = vp1394CMUGrabber::YUV422; break;
-        case 4: color = vp1394CMUGrabber::RGB8; break;
-        case 5: color = vp1394CMUGrabber::MONO8; break;
-        case 6: color = vp1394CMUGrabber::MONO16; break;
+    if (_format == 0) {
+      switch (_mode) {
+      case 0:
+        color = vp1394CMUGrabber::YUV444;
+        break;
+      case 1:
+        color = vp1394CMUGrabber::YUV422;
+        break;
+      case 2:
+        color = vp1394CMUGrabber::YUV411;
+        break;
+      case 3:
+        color = vp1394CMUGrabber::YUV422;
+        break;
+      case 4:
+        color = vp1394CMUGrabber::RGB8;
+        break;
+      case 5:
+        color = vp1394CMUGrabber::MONO8;
+        break;
+      case 6:
+        color = vp1394CMUGrabber::MONO16;
+        break;
       }
-    }
-    else if (_format == 1)
-    {
-      switch(_mode)
-      {
-        case 0: color = vp1394CMUGrabber::YUV422; break;
-        case 1: color = vp1394CMUGrabber::RGB8; break;
-        case 2: color = vp1394CMUGrabber::MONO8; break;
-        case 3: color = vp1394CMUGrabber::YUV422; break;
-        case 4: color = vp1394CMUGrabber::RGB8; break;
-        case 5: color = vp1394CMUGrabber::MONO8; break;
-        case 6: color = vp1394CMUGrabber::MONO16; break;
-        case 7: color = vp1394CMUGrabber::MONO16; break;
+    } else if (_format == 1) {
+      switch (_mode) {
+      case 0:
+        color = vp1394CMUGrabber::YUV422;
+        break;
+      case 1:
+        color = vp1394CMUGrabber::RGB8;
+        break;
+      case 2:
+        color = vp1394CMUGrabber::MONO8;
+        break;
+      case 3:
+        color = vp1394CMUGrabber::YUV422;
+        break;
+      case 4:
+        color = vp1394CMUGrabber::RGB8;
+        break;
+      case 5:
+        color = vp1394CMUGrabber::MONO8;
+        break;
+      case 6:
+        color = vp1394CMUGrabber::MONO16;
+        break;
+      case 7:
+        color = vp1394CMUGrabber::MONO16;
+        break;
       }
-    }
-    else if (_format == 2)
-    {
-      switch(_mode)
-      {
-        case 0: color = vp1394CMUGrabber::YUV422; break;
-        case 1: color = vp1394CMUGrabber::RGB8; break;
-        case 2: color = vp1394CMUGrabber::MONO8; break;
-        case 3: color = vp1394CMUGrabber::YUV422; break;
-        case 4: color = vp1394CMUGrabber::RGB8; break;
-        case 5: color = vp1394CMUGrabber::MONO8; break;
-        case 6: color = vp1394CMUGrabber::MONO16; break;
-        case 7: color = vp1394CMUGrabber::MONO16; break;
+    } else if (_format == 2) {
+      switch (_mode) {
+      case 0:
+        color = vp1394CMUGrabber::YUV422;
+        break;
+      case 1:
+        color = vp1394CMUGrabber::RGB8;
+        break;
+      case 2:
+        color = vp1394CMUGrabber::MONO8;
+        break;
+      case 3:
+        color = vp1394CMUGrabber::YUV422;
+        break;
+      case 4:
+        color = vp1394CMUGrabber::RGB8;
+        break;
+      case 5:
+        color = vp1394CMUGrabber::MONO8;
+        break;
+      case 6:
+        color = vp1394CMUGrabber::MONO16;
+        break;
+      case 7:
+        color = vp1394CMUGrabber::MONO16;
+        break;
       }
     }
 
@@ -268,8 +303,8 @@ public:
   // Initialization of the grabber using a color image.
   void open(vpImage<vpRGBa> &I);
 
-  vp1394CMUGrabber & operator>>(vpImage<unsigned char> &I);
-  vp1394CMUGrabber & operator>>(vpImage<vpRGBa> &I);
+  vp1394CMUGrabber &operator>>(vpImage<unsigned char> &I);
+  vp1394CMUGrabber &operator>>(vpImage<vpRGBa> &I);
 
   // Select the camera on the bus. Call it before open the grabber.
   void selectCamera(int cam_id);
@@ -293,12 +328,10 @@ public:
   void setGain(unsigned short gain);
 
   // Set the video format and mode. Call it before open the grabber.
-  void setVideoMode(unsigned long format, unsigned long mode );
+  void setVideoMode(unsigned long format, unsigned long mode);
 
-private :
-
+private:
   void initCamera();
-
 };
 
 #endif

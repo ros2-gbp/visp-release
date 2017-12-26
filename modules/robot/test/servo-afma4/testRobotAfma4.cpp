@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -42,12 +43,11 @@
   degrees of freedom).
 */
 
-#include <visp3/robot/vpRobotAfma4.h>
-#include <visp3/core/vpDebug.h>
 #include <visp3/core/vpCameraParameters.h>
+#include <visp3/core/vpDebug.h>
+#include <visp3/robot/vpRobotAfma4.h>
 
 #include <iostream>
-
 
 #ifdef VISP_HAVE_AFMA4
 
@@ -60,8 +60,7 @@ int main()
     vpRobotAfma4 afma4;
 
     std::cout << afma4 << std::endl;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }
   return 0;
@@ -70,7 +69,7 @@ int main()
 int main()
 {
   std::cout << "The real Afma4 robot controller is not available." << std::endl;
-  return 0; 
+  return 0;
 }
 
 #endif

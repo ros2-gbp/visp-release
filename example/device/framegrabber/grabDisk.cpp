@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -36,38 +37,37 @@
  *
  *****************************************************************************/
 
-
-#include <visp3/core/vpDebug.h>
-#include <visp3/core/vpConfig.h>
 #include <stdlib.h>
-#if (defined (VISP_HAVE_X11) || defined(VISP_HAVE_GDI))
+#include <visp3/core/vpConfig.h>
+#include <visp3/core/vpDebug.h>
+#if (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI))
 
-#include <visp3/io/vpDiskGrabber.h>
 #include <visp3/core/vpDisplay.h>
-#include <visp3/gui/vpDisplayX.h>
-#include <visp3/gui/vpDisplayGDI.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpIoTools.h>
-#include <visp3/io/vpParseArgv.h>
 #include <visp3/core/vpTime.h>
+#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/io/vpDiskGrabber.h>
+#include <visp3/io/vpParseArgv.h>
 
 /*!
   \file grabDisk.cpp
 
-  \brief Example of image sequence reading from the disk using vpDiskGrabber class.
+  \brief Example of image sequence reading from the disk using vpDiskGrabber
+  class.
 
   The sequence is made of separate images. Each image corresponds to a PGM
   file.
 */
 
 // List of allowed command line options
-#define GETOPTARGS	"b:de:f:i:hn:s:z:"
+#define GETOPTARGS "b:de:f:i:hn:s:z:"
 
-void usage(const char *name, const char *badparam, std::string ipath, std::string basename,
-     std::string ext, int first, unsigned int nimages, int step, unsigned int nzero);
-bool getOptions(int argc, const char **argv, std::string &ipath, std::string &basename,
-                std::string &ext, int &first, unsigned int &nimages,
-                int &step, unsigned int &nzero, bool &display);
+void usage(const char *name, const char *badparam, std::string ipath, std::string basename, std::string ext, int first,
+           unsigned int nimages, int step, unsigned int nzero);
+bool getOptions(int argc, const char **argv, std::string &ipath, std::string &basename, std::string &ext, int &first,
+                unsigned int &nimages, int &step, unsigned int &nzero, bool &display);
 
 /*
 
@@ -84,8 +84,8 @@ bool getOptions(int argc, const char **argv, std::string &ipath, std::string &ba
   \param nzero : Number of zero for the image number coding.
 
  */
-void usage(const char *name, const char *badparam, std::string ipath, std::string basename,
-     std::string ext, int first, unsigned int nimages, int step, unsigned int nzero)
+void usage(const char *name, const char *badparam, std::string ipath, std::string basename, std::string ext, int first,
+           unsigned int nimages, int step, unsigned int nzero)
 {
   fprintf(stdout, "\n\
 Read an image sequence from the disk. Display it using X11 or GTK.\n\
@@ -101,7 +101,7 @@ SYNOPSIS\n\
 OPTIONS:                                               Default\n\
   -i <input image path>                                     %s\n\
      Set image input path.\n\
-     From this path read \"ViSP-images/cube/image.%%04d.pgm\"\n\
+     From this path read \"cube/image.%%04d.pgm\"\n\
      images.\n\
      Setting the VISP_INPUT_IMAGE_PATH environment\n\
      variable produces the same behaviour than using\n\
@@ -136,9 +136,7 @@ OPTIONS:                                               Default\n\
      Turn off the display.\n\
 \n\
   -h \n\
-     Print the help.\n\n",
-	  ipath.c_str(), basename.c_str(), ext.c_str(), first,
-	  nimages, step, nzero);
+     Print the help.\n\n", ipath.c_str(), basename.c_str(), ext.c_str(), first, nimages, step, nzero);
 
   if (badparam)
     fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
@@ -161,29 +159,47 @@ OPTIONS:                                               Default\n\
   \return false if the program has to be stopped, true otherwise.
 
 */
-bool getOptions(int argc, const char **argv, std::string &ipath, std::string &basename,
-                std::string &ext, int &first, unsigned int &nimages,
-                int &step, unsigned int &nzero, bool &display)
+bool getOptions(int argc, const char **argv, std::string &ipath, std::string &basename, std::string &ext, int &first,
+                unsigned int &nimages, int &step, unsigned int &nzero, bool &display)
 {
   const char *optarg_;
-  int	c;
+  int c;
   while ((c = vpParseArgv::parse(argc, argv, GETOPTARGS, &optarg_)) > 1) {
 
     switch (c) {
-    case 'b': basename = optarg_; break;
-    case 'd': display = false; break;
-    case 'e': ext = optarg_; break;
-    case 'f': first = atoi(optarg_); break;
-    case 'i': ipath = optarg_; break;
-    case 'n': nimages = (unsigned) atoi(optarg_); break;
-    case 's': step = atoi(optarg_); break;
-    case 'z': nzero = (unsigned) atoi(optarg_); break;
-    case 'h': usage(argv[0], NULL, ipath, basename, ext, first, nimages,
-                    step, nzero); return false; break;
+    case 'b':
+      basename = optarg_;
+      break;
+    case 'd':
+      display = false;
+      break;
+    case 'e':
+      ext = optarg_;
+      break;
+    case 'f':
+      first = atoi(optarg_);
+      break;
+    case 'i':
+      ipath = optarg_;
+      break;
+    case 'n':
+      nimages = (unsigned)atoi(optarg_);
+      break;
+    case 's':
+      step = atoi(optarg_);
+      break;
+    case 'z':
+      nzero = (unsigned)atoi(optarg_);
+      break;
+    case 'h':
+      usage(argv[0], NULL, ipath, basename, ext, first, nimages, step, nzero);
+      return false;
+      break;
 
     default:
       usage(argv[0], optarg_, ipath, basename, ext, first, nimages, step, nzero);
-      return false; break;
+      return false;
+      break;
     }
   }
 
@@ -198,7 +214,6 @@ bool getOptions(int argc, const char **argv, std::string &ipath, std::string &ba
   return true;
 }
 
-
 /*!
   \example grabDisk.cpp
 
@@ -208,13 +223,13 @@ bool getOptions(int argc, const char **argv, std::string &ipath, std::string &ba
   images. Each image corresponds to a PGM file. Display these images using X11
   or GTK.
 */
-int main(int argc, const char ** argv)
+int main(int argc, const char **argv)
 {
   try {
     std::string env_ipath;
     std::string opt_ipath;
     std::string ipath;
-    std::string opt_basename = "ViSP-images/cube/image.";
+    std::string opt_basename = "cube/image.";
     std::string opt_ext = "pgm";
     bool opt_display = true;
 
@@ -223,17 +238,18 @@ int main(int argc, const char ** argv)
     int opt_step = 1;
     unsigned int opt_nzero = 4;
 
-    // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH environment variable value
+    // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH
+    // environment variable value
     env_ipath = vpIoTools::getViSPImagesDataPath();
 
     // Set the default input path
-    if (! env_ipath.empty())
+    if (!env_ipath.empty())
       ipath = env_ipath;
 
     // Read the command line options
-    if (getOptions(argc, argv, opt_ipath, opt_basename, opt_ext, opt_first,
-                   opt_nimages, opt_step, opt_nzero, opt_display) == false) {
-      exit (-1);
+    if (getOptions(argc, argv, opt_ipath, opt_basename, opt_ext, opt_first, opt_nimages, opt_step, opt_nzero,
+                   opt_display) == false) {
+      exit(-1);
     }
 
     // Get the option values
@@ -244,8 +260,7 @@ int main(int argc, const char ** argv)
     // the input path comming from the command line option
     if (!opt_ipath.empty() && !env_ipath.empty()) {
       if (ipath != env_ipath) {
-        std::cout << std::endl
-                  << "WARNING: " << std::endl;
+        std::cout << std::endl << "WARNING: " << std::endl;
         std::cout << "  Since -i <visp image path=" << ipath << "> "
                   << "  is different from VISP_IMAGE_PATH=" << env_ipath << std::endl
                   << "  we skip the environment variable." << std::endl;
@@ -253,24 +268,20 @@ int main(int argc, const char ** argv)
     }
 
     // Test if an input path is set
-    if (opt_ipath.empty() && env_ipath.empty()){
-      usage(argv[0], NULL, ipath, opt_basename, opt_ext, opt_first,
-          opt_nimages, opt_step, opt_nzero);
-      std::cerr << std::endl
-                << "ERROR:" << std::endl;
-      std::cerr << "  Use -i <visp image path> option or set VISP_INPUT_IMAGE_PATH "
-                << std::endl
+    if (opt_ipath.empty() && env_ipath.empty()) {
+      usage(argv[0], NULL, ipath, opt_basename, opt_ext, opt_first, opt_nimages, opt_step, opt_nzero);
+      std::cerr << std::endl << "ERROR:" << std::endl;
+      std::cerr << "  Use -i <visp image path> option or set VISP_INPUT_IMAGE_PATH " << std::endl
                 << "  environment variable to specify the location of the " << std::endl
-                << "  image path where test images are located." << std::endl << std::endl;
+                << "  image path where test images are located." << std::endl
+                << std::endl;
       exit(-1);
     }
-
 
     // Declare an image, this is a gray level image (unsigned char)
     // it size is not defined yet, it will be defined when the image will
     // read on the disk
-    vpImage<unsigned char> I ;
-
+    vpImage<unsigned char> I;
 
     // Declare a framegrabber able to read a sequence of successive
     // images from the disk
@@ -291,13 +302,12 @@ int main(int argc, const char ** argv)
     g.setExtension(opt_ext.c_str());
 
     // Open the framegrabber by loading the first image of the sequence
-    g.open(I) ;
+    g.open(I);
 
-    std::cout << "Image size: width : " << I.getWidth() <<  " height: "
-              << I.getHeight() << std::endl;
+    std::cout << "Image size: width : " << I.getWidth() << " height: " << I.getHeight() << std::endl;
 
-    // We open a window using either X11 or GDI.
-    // Its size is automatically defined by the image (I) size
+// We open a window using either X11 or GDI.
+// Its size is automatically defined by the image (I) size
 #if defined(VISP_HAVE_X11)
     vpDisplayX display(I);
 #elif defined(VISP_HAVE_GDI)
@@ -307,49 +317,42 @@ int main(int argc, const char ** argv)
 #endif
 
     if (opt_display) {
-      display.init(I,100,100,"Disk Framegrabber");
+      display.init(I, 100, 100, "Disk Framegrabber");
 
       // display the image
       // The image class has a member that specify a pointer toward
       // the display that has been initialized in the display declaration
       // therefore is is no longuer necessary to make a reference to the
       // display variable.
-      vpDisplay::display(I) ;
-      vpDisplay::flush(I) ;
+      vpDisplay::display(I);
+      vpDisplay::flush(I);
     }
 
     unsigned cpt = 1;
     // this is the loop over the image sequence
 
-    while(cpt ++ < opt_nimages)
-    {
+    while (cpt++ < opt_nimages) {
       double tms = vpTime::measureTimeMs();
       // read the image and then increment the image counter so that the next
       // call to acquire(I) will get the next image
-      g.acquire(I) ;
+      g.acquire(I);
       if (opt_display) {
         // Display the image
-        vpDisplay::display(I) ;
+        vpDisplay::display(I);
         // Flush the display
-        vpDisplay::flush(I) ;
+        vpDisplay::flush(I);
       }
       // Synchronise the loop to 40 ms
-      vpTime::wait(tms, 40) ;
+      vpTime::wait(tms, 40);
     }
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }
 }
 
 #else
-int
-main()
-{
-  vpERROR_TRACE("You do not have X11 or GTK display functionalities...");
-}
+int main() { vpERROR_TRACE("You do not have X11 or GTK display functionalities..."); }
 
 #endif
-

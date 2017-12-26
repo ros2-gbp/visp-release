@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -51,31 +52,31 @@
 /*!
   \class vpTemplateTrackerZNCCInverseCompositional
   \ingroup group_tt_tracker
-  The algorithm implemented in this class is described in \cite Irani98a and \cite Marchand16a.
+  The algorithm implemented in this class is described in \cite Irani98a and
+  \cite Marchand16a.
  */
-class VISP_EXPORT vpTemplateTrackerZNCCInverseCompositional: public vpTemplateTrackerZNCC
+class VISP_EXPORT vpTemplateTrackerZNCCInverseCompositional : public vpTemplateTrackerZNCC
 {
-  protected:
-    bool        compoInitialised;
-    //pour eval evolRMS
-    double      evolRMS;
-    std::vector<double> x_pos;
-    std::vector<double> y_pos;
-    double      threshold_RMS;
-    vpColVector moydIrefdp;
+protected:
+  bool compoInitialised;
+  // pour eval evolRMS
+  double evolRMS;
+  std::vector<double> x_pos;
+  std::vector<double> y_pos;
+  double threshold_RMS;
+  vpColVector moydIrefdp;
 
-  protected:
-    void initCompInverse(const vpImage<unsigned char> &I);
-    void initHessienDesired(const vpImage<unsigned char> &I);
-    void trackNoPyr(const vpImage<unsigned char> &I);
-    void deletePosEvalRMS();
-    void computeEvalRMS(const vpColVector &p);
-    void initPosEvalRMS(const vpColVector &p);
+protected:
+  void initCompInverse(const vpImage<unsigned char> &I);
+  void initHessienDesired(const vpImage<unsigned char> &I);
+  void trackNoPyr(const vpImage<unsigned char> &I);
+  void deletePosEvalRMS();
+  void computeEvalRMS(const vpColVector &p);
+  void initPosEvalRMS(const vpColVector &p);
 
-  public:
-          vpTemplateTrackerZNCCInverseCompositional(vpTemplateTrackerWarp *warp);
+public:
+  explicit vpTemplateTrackerZNCCInverseCompositional(vpTemplateTrackerWarp *warp);
 
-    void  setThresholdRMS(double threshold){threshold_RMS=threshold;}
+  void setThresholdRMS(double threshold) { threshold_RMS = threshold; }
 };
 #endif
-

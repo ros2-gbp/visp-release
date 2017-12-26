@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -36,7 +37,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpFeatureThetaU_H
 #define vpFeatureThetaU_H
 
@@ -52,7 +52,6 @@
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpRGBa.h>
 
-
 /*!
   \class vpFeatureThetaU
   \ingroup group_visual_features
@@ -65,7 +64,7 @@
 
   It is convenient to consider two coordinate frames: the current
   camera frame \f$ {\cal{F}}_c \f$ and the desired camera frame \f$
-  {\cal{F}}_{c^*} \f$. 
+  {\cal{F}}_{c^*} \f$.
 
   Let \f$^{c^*}R_c \f$ be the rotation matrix that gives the
   orientation of the current camera frame relative to the desired camera
@@ -139,8 +138,8 @@
   while() loop while \f$s^*\f$ is considered as zero.
 
   \code
-#include <visp3/visual_features/vpFeatureThetaU.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
+#include <visp3/visual_features/vpFeatureThetaU.h>
 #include <visp3/vs/vpServo.h>
 
 int main()
@@ -156,11 +155,11 @@ int main()
   vpFeatureThetaU s(vpFeatureThetaU::cRcd);
   s.buildFrom(cMcd); // Initialization of the feature
 
-  // Set eye-in-hand control law. 
+  // Set eye-in-hand control law.
   // The computed velocities will be expressed in the camera frame
   task.setServo(vpServo::EYEINHAND_CAMERA);
   // Interaction matrix is computed with the current visual features s
-  task.setInteractionMatrixType(vpServo::CURRENT); 
+  task.setInteractionMatrixType(vpServo::CURRENT);
 
   // Add the 3D ThetaU feature to the task
   task.addFeature(s); // s* is here considered as zero
@@ -168,22 +167,22 @@ int main()
   // Control loop
   for ( ; ; ) {
     // ... cMcd need here to be initialized from for example a pose estimation.
-    
+
     // Update the current ThetaU visual feature
     s.buildFrom(cMcd);
-    
+
     // compute the control law
     vpColVector v = task.computeControlLaw(); // camera velocity
   }
 }
   \endcode
 
-  If you want to deal only with the \f$(\theta u_x,\theta u_y)\f$ subset 
-  feature from the 3D \f$\theta u\f$ , you have just to modify the 
-  addFeature() call in the previous example by the following line. In 
+  If you want to deal only with the \f$(\theta u_x,\theta u_y)\f$ subset
+  feature from the 3D \f$\theta u\f$ , you have just to modify the
+  addFeature() call in the previous example by the following line. In
   that case, the dimension of \f$s\f$ is two.
 
-  \code 
+  \code
   // Add the (ThetaU_x, ThetaU_y) subset features from the 3D ThetaU
   // rotation to the task
   task.addFeature(s, vpFeatureThetaU::selectTUx() | vpFeatureThetaU::selectTUy());
@@ -195,9 +194,9 @@ int main()
   vector \f$(s-s^*)\f$ and finally build the interaction matrix \f$L_s\f$.
 
   \code
-#include <visp3/visual_features/vpFeatureThetaU.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpMatrix.h>
+#include <visp3/visual_features/vpFeatureThetaU.h>
 
 int main()
 {
@@ -208,9 +207,9 @@ int main()
   vpFeatureThetaU s(vpFeatureThetaU::cdRc);
   s.buildFrom(cdMc); // Initialization of the feature
 
-  // Creation of the desired feature s*. By default this feature is 
+  // Creation of the desired feature s*. By default this feature is
   // initialized to zero
-  vpFeatureThetaU s_star(vpFeatureThetaU::cdRc); 
+  vpFeatureThetaU s_star(vpFeatureThetaU::cdRc);
 
   // Compute the interaction matrix L_s for the current ThetaU feature
   vpMatrix L = s.interaction();
@@ -219,32 +218,30 @@ int main()
   s.error(s_star);
 }
   \endcode
-  
+
 
 */
 class VISP_EXPORT vpFeatureThetaU : public vpBasicFeature
 {
 public:
-  typedef enum
-    {
-      TUx = 1, /*!< Select the subset \f$ \theta u_x \f$ visual feature
-	     from the \f$ \theta u\f$ angle/axis representation. */
-      TUy = 2, /*!< Select the subset \f$ \theta u_y \f$ visual feature
-	     from the \f$ \theta u\f$ angle/axis representation. */
-      TUz = 4  /*!< Select the subset \f$ \theta u_z \f$ visual feature
-	     from the \f$ \theta u\f$ angle/axis representation. */
-    } vpFeatureThetaUType;
-  typedef enum
-    {
-      cdRc, /*!< Selector used to manipulate the visual feature \f$ s
-	      = \theta u_{^{c^*}R_c} \f$. This visual feature
-	      represent the orientation of the current camera frame
-	      relative to the desired camera frame. */
-      cRcd /*!< Selector used to manipulate the visual feature \f$ s = \theta
-	     u_{^{c}R_{c^*}} \f$. This visual feature
-	      represent the orientation of the desired camera frame
-	      relative to the current camera frame. */
-    } vpFeatureThetaURotationRepresentationType;
+  typedef enum {
+    TUx = 1, /*!< Select the subset \f$ \theta u_x \f$ visual feature
+     from the \f$ \theta u\f$ angle/axis representation. */
+    TUy = 2, /*!< Select the subset \f$ \theta u_y \f$ visual feature
+     from the \f$ \theta u\f$ angle/axis representation. */
+    TUz = 4  /*!< Select the subset \f$ \theta u_z \f$ visual feature
+     from the \f$ \theta u\f$ angle/axis representation. */
+  } vpFeatureThetaUType;
+  typedef enum {
+    cdRc, /*!< Selector used to manipulate the visual feature \f$ s
+      = \theta u_{^{c^*}R_c} \f$. This visual feature
+      represent the orientation of the current camera frame
+      relative to the desired camera frame. */
+    cRcd  /*!< Selector used to manipulate the visual feature \f$ s = \theta
+      u_{^{c}R_{c^*}} \f$. This visual feature
+       represent the orientation of the desired camera frame
+       relative to the current camera frame. */
+  } vpFeatureThetaURotationRepresentationType;
   /*
     attributes and members directly related to the vpBasicFeature needs
     other functionalities are useful but not mandatory
@@ -252,39 +249,31 @@ public:
 
 public:
   // Basic constructor.
-  vpFeatureThetaU() ;
-  vpFeatureThetaU(vpFeatureThetaURotationRepresentationType r) ;
-  vpFeatureThetaU(vpThetaUVector &tu,
-                  vpFeatureThetaURotationRepresentationType r) ;
-  vpFeatureThetaU(vpRotationMatrix &R,
-                  vpFeatureThetaURotationRepresentationType r) ;
-  vpFeatureThetaU(vpHomogeneousMatrix &M,
-                  vpFeatureThetaURotationRepresentationType r) ;
+  vpFeatureThetaU();
+  explicit vpFeatureThetaU(vpFeatureThetaURotationRepresentationType r);
+  vpFeatureThetaU(vpThetaUVector &tu, vpFeatureThetaURotationRepresentationType r);
+  vpFeatureThetaU(vpRotationMatrix &R, vpFeatureThetaURotationRepresentationType r);
+  vpFeatureThetaU(vpHomogeneousMatrix &M, vpFeatureThetaURotationRepresentationType r);
   //! Destructor. Does nothing.
   virtual ~vpFeatureThetaU() {}
 
-  void buildFrom(vpThetaUVector &tu) ;
+  void buildFrom(vpThetaUVector &tu);
   // build from a rotation matrix
-  void buildFrom(const vpRotationMatrix &R) ;
+  void buildFrom(const vpRotationMatrix &R);
   // build from an homogeneous  matrix
-  void buildFrom(const vpHomogeneousMatrix &M) ;
+  void buildFrom(const vpHomogeneousMatrix &M);
 
-  void display(const vpCameraParameters &cam,
-               const vpImage<unsigned char> &I,
-               const vpColor &color=vpColor::green,
-               unsigned int thickness=1) const ;
-  void display(const vpCameraParameters &cam,
-               const vpImage<vpRGBa> &I,
-               const vpColor &color=vpColor::green,
-               unsigned int thickness=1) const ;
+  void display(const vpCameraParameters &cam, const vpImage<unsigned char> &I, const vpColor &color = vpColor::green,
+               unsigned int thickness = 1) const;
+  void display(const vpCameraParameters &cam, const vpImage<vpRGBa> &I, const vpColor &color = vpColor::green,
+               unsigned int thickness = 1) const;
 
   //! Feature duplication.
-  vpFeatureThetaU *duplicate() const ;
+  vpFeatureThetaU *duplicate() const;
 
   // compute the error between two visual features from a subset
   // a the possible features
-  vpColVector error(const vpBasicFeature &s_star,
-                    const unsigned int select = FEATURE_ALL)  ;
+  vpColVector error(const vpBasicFeature &s_star, const unsigned int select = FEATURE_ALL);
 
   vpFeatureThetaURotationRepresentationType getFeatureThetaURotationType() const;
 
@@ -293,15 +282,15 @@ public:
   double get_TUz() const;
 
   // Basic construction.
-  void init() ;
+  void init();
   // compute the interaction matrix from a subset a the possible features
-  vpMatrix  interaction(const unsigned int select = FEATURE_ALL);
+  vpMatrix interaction(const unsigned int select = FEATURE_ALL);
 
-  void print(const unsigned int select= FEATURE_ALL) const ;
+  void print(const unsigned int select = FEATURE_ALL) const;
 
-  void set_TUx(const double tu_x) ;
-  void set_TUy(const double tu_y) ;
-  void set_TUz(const double tu_z) ;
+  void set_TUx(const double tu_x);
+  void set_TUy(const double tu_y);
+  void set_TUz(const double tu_z);
 
   void setFeatureThetaURotationType(const vpFeatureThetaURotationRepresentationType r);
 
@@ -315,7 +304,6 @@ public:
 
 private:
   vpFeatureThetaURotationRepresentationType rotation;
-} ;
-
+};
 
 #endif

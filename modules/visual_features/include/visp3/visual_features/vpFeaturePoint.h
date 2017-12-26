@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,7 +36,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpFeaturePoint_H
 #define vpFeaturePoint_H
 
@@ -45,12 +45,11 @@
 */
 
 #include <visp3/core/vpMatrix.h>
-#include <visp3/visual_features/vpBasicFeature.h>
 #include <visp3/core/vpPoint.h>
+#include <visp3/visual_features/vpBasicFeature.h>
 
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpRGBa.h>
-
 
 /*!
   \class vpFeaturePoint
@@ -114,7 +113,7 @@ int main()
   //In this case the parameter Z is not necessary because the interaction matrix is computed
   //with the desired visual feature.
 
-  // Set eye-in-hand control law. 
+  // Set eye-in-hand control law.
   // The computed velocities will be expressed in the camera frame
   task.setServo(vpServo::EYEINHAND_CAMERA);
   // Interaction matrix is computed with the desired visual features sd
@@ -126,10 +125,10 @@ int main()
   // Control loop
   for ( ; ; ) {
     // The new parameters x and y must be computed here.
-    
+
     // Update the current point visual feature
     s.buildFrom(x, y, Z);
-    
+
     // compute the control law
     vpColVector v = task.computeControlLaw(); // camera velocity
   }
@@ -137,14 +136,14 @@ int main()
 }
   \endcode
 
-  If you want to build your own control law, this other example shows how 
-  to create a current (\f$s\f$) and desired (\f$s^*\f$) 2D point visual 
-  feature, compute the corresponding error vector \f$(s-s^*)\f$ and finally 
+  If you want to build your own control law, this other example shows how
+  to create a current (\f$s\f$) and desired (\f$s^*\f$) 2D point visual
+  feature, compute the corresponding error vector \f$(s-s^*)\f$ and finally
   build the interaction matrix \f$L_s\f$.
 
   \code
-#include <visp3/visual_features/vpFeaturePoint.h>
 #include <visp3/core/vpMatrix.h>
+#include <visp3/visual_features/vpFeaturePoint.h>
 
 int main()
 {
@@ -179,56 +178,49 @@ int main()
 
 */
 
-
 class VISP_EXPORT vpFeaturePoint : public vpBasicFeature
 {
 private:
   //! FeaturePoint depth (required to compute the interaction matrix)
   //! default Z = 1m
-  double Z ;
+  double Z;
 
 public:
-  vpFeaturePoint() ;
+  vpFeaturePoint();
   //! Destructor.
   virtual ~vpFeaturePoint() {}
 
-  void buildFrom(const double x, const double y, const double Z) ;
+  void buildFrom(const double x, const double y, const double Z);
 
-  void display(const vpCameraParameters &cam,
-               const vpImage<unsigned char> &I,
-               const vpColor &color=vpColor::green,
-               unsigned int thickness=1) const ;
-  void display(const vpCameraParameters &cam,
-               const vpImage<vpRGBa> &I,
-               const vpColor &color=vpColor::green,
-               unsigned int thickness=1) const ;
+  void display(const vpCameraParameters &cam, const vpImage<unsigned char> &I, const vpColor &color = vpColor::green,
+               unsigned int thickness = 1) const;
+  void display(const vpCameraParameters &cam, const vpImage<vpRGBa> &I, const vpColor &color = vpColor::green,
+               unsigned int thickness = 1) const;
 
-  vpFeaturePoint *duplicate() const ;
+  vpFeaturePoint *duplicate() const;
 
-  vpColVector error(const vpBasicFeature &s_star,
-                    const unsigned int select = FEATURE_ALL)  ;
+  vpColVector error(const vpBasicFeature &s_star, const unsigned int select = FEATURE_ALL);
   //! Compute the error between a visual features and zero
-  vpColVector error(const unsigned int select = FEATURE_ALL)  ;
+  vpColVector error(const unsigned int select = FEATURE_ALL);
 
-  double get_x()  const ;
+  double get_x() const;
 
-  double get_y()   const ;
+  double get_y() const;
 
-  double get_Z() const  ;
+  double get_Z() const;
 
-  void init() ;
-  vpMatrix  interaction(const unsigned int select = FEATURE_ALL);
+  void init();
+  vpMatrix interaction(const unsigned int select = FEATURE_ALL);
 
-  void print(const unsigned int select = FEATURE_ALL ) const ;
+  void print(const unsigned int select = FEATURE_ALL) const;
 
-  void set_x(const double x) ;
+  void set_x(const double x);
 
-  void set_y(const double y) ;
+  void set_y(const double y);
 
-  void set_Z(const double Z) ;
+  void set_Z(const double Z);
 
-  void set_xyZ(const double x, const double y, const double Z) ;
-
+  void set_xyZ(const double x, const double y, const double Z);
 
   // feature selection
   static unsigned int selectX();
@@ -237,12 +229,10 @@ public:
   /*!
     @name Deprecated functions
   */
-  typedef enum
-  {
-    X = 1,   // x coordinates
-    Y = 2    // y coordinates
+  typedef enum {
+    X = 1, // x coordinates
+    Y = 2  // y coordinates
   } vpFeaturePointType;
-
-} ;
+};
 
 #endif
