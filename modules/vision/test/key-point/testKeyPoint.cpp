@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -41,19 +42,19 @@
 
 #if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020301)
 
-#include <visp3/vision/vpKeyPoint.h>
 #include <visp3/core/vpImage.h>
-#include <visp3/io/vpImageIo.h>
-#include <visp3/gui/vpDisplayX.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/io/vpVideoReader.h>
 #include <visp3/core/vpIoTools.h>
+#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayGTK.h>
+#include <visp3/gui/vpDisplayOpenCV.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/io/vpImageIo.h>
 #include <visp3/io/vpParseArgv.h>
+#include <visp3/io/vpVideoReader.h>
+#include <visp3/vision/vpKeyPoint.h>
 
 // List of allowed command line options
-#define GETOPTARGS	"cdh"
+#define GETOPTARGS "cdh"
 
 void usage(const char *name, const char *badparam);
 bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display);
@@ -105,17 +106,25 @@ OPTIONS:                                               \n\
 bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
 {
   const char *optarg_;
-  int	c;
+  int c;
   while ((c = vpParseArgv::parse(argc, argv, GETOPTARGS, &optarg_)) > 1) {
 
     switch (c) {
-    case 'c': click_allowed = false; break;
-    case 'd': display = false; break;
-    case 'h': usage(argv[0], NULL); return false; break;
+    case 'c':
+      click_allowed = false;
+      break;
+    case 'd':
+      display = false;
+      break;
+    case 'h':
+      usage(argv[0], NULL);
+      return false;
+      break;
 
     default:
       usage(argv[0], optarg_);
-      return false; break;
+      return false;
+      break;
     }
   }
 
@@ -135,7 +144,8 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
 
   \brief   Test keypoint matching.
 */
-int main(int argc, const char ** argv) {
+int main(int argc, const char **argv)
+{
   try {
     std::string env_ipath;
     bool opt_click_allowed = true;
@@ -143,28 +153,31 @@ int main(int argc, const char ** argv) {
 
     // Read the command line options
     if (getOptions(argc, argv, opt_click_allowed, opt_display) == false) {
-      exit (-1);
+      exit(-1);
     }
 
-    // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH environment variable value
+    // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH
+    // environment variable value
     env_ipath = vpIoTools::getViSPImagesDataPath();
 
-    if(env_ipath.empty()) {
-      std::cerr << "Please set the VISP_INPUT_IMAGE_PATH environment variable value." << std::endl;
+    if (env_ipath.empty()) {
+      std::cerr << "Please set the VISP_INPUT_IMAGE_PATH environment "
+                   "variable value."
+                << std::endl;
       return -1;
     }
 
     vpImage<unsigned char> Iref, Icur, Imatch;
 
-    //Set the path location of the image sequence
-    std::string dirname = vpIoTools::createFilePath(env_ipath, "ViSP-images/mbt/cube");
+    // Set the path location of the image sequence
+    std::string dirname = vpIoTools::createFilePath(env_ipath, "mbt/cube");
 
-    //Build the name of the image files
+    // Build the name of the image files
     std::string filenameRef = vpIoTools::createFilePath(dirname, "image0000.pgm");
     vpImageIo::read(Iref, filenameRef);
     std::string filenameCur = vpIoTools::createFilePath(dirname, "image%04d.pgm");
 
-    //Init keypoints
+    // Init keypoints
     vpKeyPoint keypoints("ORB", "ORB", "BruteForce-Hamming");
     std::cout << "Build " << keypoints.buildReference(Iref) << " reference points." << std::endl;
 
@@ -173,8 +186,8 @@ int main(int argc, const char ** argv) {
     g.open(Icur);
     g.acquire(Icur);
 
-    Imatch.resize(Icur.getHeight(), 2*Icur.getWidth());
-    Imatch.insert(Iref, vpImagePoint(0,0));
+    Imatch.resize(Icur.getHeight(), 2 * Icur.getWidth());
+    Imatch.insert(Iref, vpImagePoint(0, 0));
 
 #if defined VISP_HAVE_X11
     vpDisplayX display;
@@ -193,37 +206,36 @@ int main(int argc, const char ** argv) {
 
     bool opt_click = false;
     vpMouseButton::vpMouseButtonType button;
-    while(!g.end()) {
+    while (!g.end()) {
       g.acquire(Icur);
       Imatch.insert(Icur, vpImagePoint(0, Icur.getWidth()));
 
-      if(opt_display) {
+      if (opt_display) {
         vpDisplay::display(Imatch);
       }
 
-      //Match keypoints
+      // Match keypoints
       keypoints.matchPoint(Icur);
-      //Display image with keypoints matched
+      // Display image with keypoints matched
       keypoints.displayMatching(Iref, Imatch);
 
-      if(opt_display) {
+      if (opt_display) {
         vpDisplay::flush(Imatch);
       }
 
-      //Click requested to process next image
+      // Click requested to process next image
       if (opt_click_allowed && opt_display) {
-        if(opt_click) {
+        if (opt_click) {
           vpDisplay::getClick(Imatch, button, true);
-          if(button == vpMouseButton::button3) {
+          if (button == vpMouseButton::button3) {
             opt_click = false;
           }
         } else {
-          //Use right click to enable/disable step by step tracking
-          if(vpDisplay::getClick(Imatch, button, false)) {
+          // Use right click to enable/disable step by step tracking
+          if (vpDisplay::getClick(Imatch, button, false)) {
             if (button == vpMouseButton::button3) {
               opt_click = true;
-            }
-            else if(button == vpMouseButton::button1) {
+            } else if (button == vpMouseButton::button1) {
               break;
             }
           }
@@ -231,7 +243,7 @@ int main(int argc, const char ** argv) {
       }
     }
 
-  } catch(vpException &e) {
+  } catch (vpException &e) {
     std::cerr << e.what() << std::endl;
     return -1;
   }
@@ -240,7 +252,8 @@ int main(int argc, const char ** argv) {
   return 0;
 }
 #else
-int main() {
+int main()
+{
   std::cerr << "You need OpenCV library." << std::endl;
 
   return 0;

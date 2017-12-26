@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -39,11 +40,11 @@
 
 #include <visp3/core/vpMath.h>
 
+#include <cmath>  // std::fabs
+#include <limits> // numeric_limits
+#include <math.h>
 #include <ostream>
 #include <sstream>
-#include <cmath>    // std::fabs
-#include <limits>   // numeric_limits
-#include <math.h>
 
 /*!
   \file vpScanPoint.h
@@ -69,144 +70,131 @@
     vertical angle that gives the orientation of the layer.
 
 */
-class /* VISP_EXPORT */ vpScanPoint // Note that here VISP_EXPORT should not be added since this class is complete inline
+class /* VISP_EXPORT */ vpScanPoint // Note that here VISP_EXPORT should not
+                                    // be added since this class is complete
+                                    // inline
 {
- public:
+public:
   /*! Default constructor. */
-    inline vpScanPoint() : rDist(0), hAngle(0), vAngle(0) {}
+  inline vpScanPoint() : rDist(0), hAngle(0), vAngle(0) {}
   /*! Copy constructor. */
-  inline vpScanPoint(const vpScanPoint &scanpoint) : rDist(0), hAngle(0), vAngle(0) {
+  inline vpScanPoint(const vpScanPoint &scanpoint) : rDist(0), hAngle(0), vAngle(0)
+  {
     this->rDist = scanpoint.rDist;
     this->hAngle = scanpoint.hAngle;
     this->vAngle = scanpoint.vAngle;
   }
-  /*! 
-    Set the polar point coordinates. 
+  /*!
+    Set the polar point coordinates.
     \param r_dist : Radial distance in meter.
     \param h_angle : Horizontal angle in radian.
     \param v_angle : Vertical angle in radian.
   */
-  inline vpScanPoint(double r_dist, double h_angle, double v_angle)
-    : rDist(r_dist), hAngle(h_angle), vAngle(v_angle)
+  inline vpScanPoint(double r_dist, double h_angle, double v_angle) : rDist(r_dist), hAngle(h_angle), vAngle(v_angle)
   {
     this->rDist = r_dist;
     this->hAngle = h_angle;
     this->vAngle = v_angle;
   }
   /*! Destructor that does nothing. */
-  inline virtual ~vpScanPoint() {};
-  /*! 
-    Set the polar point coordinates. 
+  inline virtual ~vpScanPoint(){};
+  /*!
+    Set the polar point coordinates.
     \param r_dist : Radial distance in meter.
     \param h_angle : Horizontal angle in radian.
     \param v_angle : Vertical angle in radian.
   */
-  inline void setPolar(double r_dist, double h_angle, double v_angle) {
+  inline void setPolar(double r_dist, double h_angle, double v_angle)
+  {
     this->rDist = r_dist;
     this->hAngle = h_angle;
     this->vAngle = v_angle;
   }
-  /*! 
+  /*!
     Return the radial distance in meter.
   */
-  inline double getRadialDist() const {
-    return ( this->rDist );
-  }
-  /*! 
+  inline double getRadialDist() const { return (this->rDist); }
+  /*!
     Returns the polar elevation (vertical) angle in radian.
   */
-  inline double getVAngle() const {
-    return ( this->vAngle );
-  }
-  /*! 
+  inline double getVAngle() const { return (this->vAngle); }
+  /*!
     Returns the polar elevation (vertical) angle in radian.
   */
-  inline double getHAngle() const {
-    return ( this->hAngle );
-  }
-  /*! 
+  inline double getHAngle() const { return (this->hAngle); }
+  /*!
     Returns the cartesian x coordinate.
 
     The x and y axis define an horizontal plane, where x is oriented
     positive in front of the laser while y on the left side.
-    
+
   */
-  inline double getX() const {
-    return ( rDist * cos(this->hAngle) * cos(this->vAngle)  );
-  }
-  /*! 
+  inline double getX() const { return (rDist * cos(this->hAngle) * cos(this->vAngle)); }
+  /*!
     Returns the cartesian y coordinate.
 
     The x and y axis define an horizontal plane, where x is oriented
     positive in front of the laser while y on the left side.
-    
+
   */
-  inline double getY() const {
-    return ( rDist * sin(this->hAngle) );
-  }
-  /*! 
+  inline double getY() const { return (rDist * sin(this->hAngle)); }
+  /*!
     Returns the cartesian z coordinate.
 
     The z axis is vertical and oriented in direction of the sky.
-    
+
   */
-  inline double getZ() const {
-    return ( rDist * cos(this->hAngle) * sin(this->vAngle) );
+  inline double getZ() const { return (rDist * cos(this->hAngle) * sin(this->vAngle)); }
+
+  friend inline std::ostream &operator<<(std::ostream &s, const vpScanPoint &p);
+
+  /*!
+
+    Returns true if sp1 and sp2 are equal; otherwire returns false.
+
+  */
+  friend inline bool operator==(const vpScanPoint &sp1, const vpScanPoint &sp2)
+  {
+    // return ( ( sp1.getRadialDist() == sp2.getRadialDist() )
+    //	      && ( sp1.getHAngle() == sp2.getHAngle() )
+    //	      && ( sp1.getVAngle() == sp2.getVAngle() ) );
+    double rd1 = sp1.getRadialDist();
+    double ha1 = sp1.getHAngle();
+    double va1 = sp1.getVAngle();
+    double rd2 = sp2.getRadialDist();
+    double ha2 = sp2.getHAngle();
+    double va2 = sp2.getVAngle();
+
+    return ((std::fabs(rd1 - rd2) <= std::fabs(vpMath::maximum(rd1, rd2)) * std::numeric_limits<double>::epsilon()) &&
+            (std::fabs(ha1 - ha2) <= std::fabs(vpMath::maximum(ha1, ha2)) * std::numeric_limits<double>::epsilon()) &&
+            (std::fabs(va1 - va2) <= std::fabs(vpMath::maximum(va1, va2)) * std::numeric_limits<double>::epsilon()));
   }
-   
-  friend inline std::ostream &operator << (std::ostream &s, const vpScanPoint &p);
 
-   /*!
-     
-     Returns true if sp1 and sp2 are equal; otherwire returns false.
+  /*!
 
-   */
-   friend inline bool operator==( const vpScanPoint &sp1, 
-					      const vpScanPoint &sp2 ) {
-     //return ( ( sp1.getRadialDist() == sp2.getRadialDist() ) 
-     //	      && ( sp1.getHAngle() == sp2.getHAngle() )
-     //	      && ( sp1.getVAngle() == sp2.getVAngle() ) );
-     double rd1 = sp1.getRadialDist();
-     double ha1 = sp1.getHAngle();
-     double va1 = sp1.getVAngle();
-     double rd2 = sp2.getRadialDist();
-     double ha2 = sp2.getHAngle();
-     double va2 = sp2.getVAngle();
+    Returns true if sp1 and sp2 are different; otherwire returns false.
 
-     return ( ( std::fabs(rd1 - rd2) <= std::fabs(vpMath::maximum(rd1,rd2)) * std::numeric_limits<double>::epsilon() ) 
-	      &&
-	      ( std::fabs(ha1 - ha2) <= std::fabs(vpMath::maximum(ha1,ha2)) * std::numeric_limits<double>::epsilon() )
-	      &&
-	      ( std::fabs(va1 - va2) <= std::fabs(vpMath::maximum(va1,va2)) * std::numeric_limits<double>::epsilon() ) );
-   }
-   
-   /*!
-     
-     Returns true if sp1 and sp2 are different; otherwire returns false.
+  */
+  friend inline bool operator!=(const vpScanPoint &sp1, const vpScanPoint &sp2)
+  {
+    // return ( ( sp1.getRadialDist() != sp2.getRadialDist() )
+    //     || ( sp1.getHAngle() != sp2.getHAngle() )
+    //     || ( sp1.getVAngle() != sp2.getVAngle() ) );
+    double rd1 = sp1.getRadialDist();
+    double ha1 = sp1.getHAngle();
+    double va1 = sp1.getVAngle();
+    double rd2 = sp2.getRadialDist();
+    double ha2 = sp2.getHAngle();
+    double va2 = sp2.getVAngle();
+    return ((std::fabs(rd1 - rd2) > std::fabs(vpMath::maximum(rd1, rd2)) * std::numeric_limits<double>::epsilon()) ||
+            (std::fabs(ha1 - ha2) <= std::fabs(vpMath::maximum(ha1, ha2)) * std::numeric_limits<double>::epsilon()) ||
+            (std::fabs(va1 - va2) <= std::fabs(vpMath::maximum(va1, va2)) * std::numeric_limits<double>::epsilon()));
+  }
 
-   */
-   friend inline bool operator!=( const vpScanPoint &sp1, 
-					      const vpScanPoint &sp2 ) {
-     //return ( ( sp1.getRadialDist() != sp2.getRadialDist() )
-     //     || ( sp1.getHAngle() != sp2.getHAngle() )  
-     //     || ( sp1.getVAngle() != sp2.getVAngle() ) );
-     double rd1 = sp1.getRadialDist();
-     double ha1 = sp1.getHAngle();
-     double va1 = sp1.getVAngle();
-     double rd2 = sp2.getRadialDist();
-     double ha2 = sp2.getHAngle();
-     double va2 = sp2.getVAngle();
-     return ( ( std::fabs(rd1 - rd2) > std::fabs(vpMath::maximum(rd1,rd2)) * std::numeric_limits<double>::epsilon() )
-	      || 
-	      ( std::fabs(ha1 - ha2) <= std::fabs(vpMath::maximum(ha1,ha2)) * std::numeric_limits<double>::epsilon() )  
-	      || 
-	      ( std::fabs(va1 - va2) <= std::fabs(vpMath::maximum(va1,va2)) * std::numeric_limits<double>::epsilon() ) );
- }
-
- private:
-   double rDist;
-   double hAngle;
-   double vAngle;
+private:
+  double rDist;
+  double hAngle;
+  double vAngle;
 };
 
 /*!
@@ -230,14 +218,14 @@ class /* VISP_EXPORT */ vpScanPoint // Note that here VISP_EXPORT should not be 
 
 int main()
 {
-vpScanPoint p;
-double radialDistance = 3; // 3 meters
-double horizontalAngle = 1.12; // 1.12 radian
-double verticalAngle = 0; // 0 radian for a horizontal layer
+  vpScanPoint p;
+  double radialDistance = 3; // 3 meters
+  double horizontalAngle = 1.12; // 1.12 radian
+  double verticalAngle = 0; // 0 radian for a horizontal layer
 
-p.setPolar(radialDistance, horizontalAngle, verticalAngle);
+  p.setPolar(radialDistance, horizontalAngle, verticalAngle);
 
-std::cout << p << std::endl;
+  std::cout << p << std::endl;
 }
   \endcode
   will produce the prints
@@ -246,15 +234,13 @@ std::cout << p << std::endl;
   \endcode
 
  */
-inline std::ostream &operator << (std::ostream &s, const vpScanPoint &p) {
+inline std::ostream &operator<<(std::ostream &s, const vpScanPoint &p)
+{
   std::ios_base::fmtflags original_flags = s.flags();
 
   s.precision(10);
-  s << p.getRadialDist() << " "
-    << p.getHAngle() << " "
-    << p.getVAngle() << " "
-    << p.getX() << " "
-    << p.getY() << " " << p.getZ();
+  s << p.getRadialDist() << " " << p.getHAngle() << " " << p.getVAngle() << " " << p.getX() << " " << p.getY() << " "
+    << p.getZ();
 
   s.setf(original_flags); // restore s to standard state
 

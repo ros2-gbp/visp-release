@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -52,9 +53,20 @@ if(USE_ZBAR)
   # Add specific build flag to turn off warnings coming from zbar 3rd party
   vp_set_source_file_compile_flag(src/barcode/vpDetectorQRCode.cpp -Wno-unused-parameter)
 endif()
+if(WITH_APRILTAG)
+  # April Tag is private
+  include_directories(${APRILTAG_INCLUDE_DIRS})
 
-vp_add_module(detection visp_core)
+  # Add specific build flag to turn off warnings coming from apriltag 3rd party
+  if(UNIX OR MINGW)
+    vp_set_source_file_compile_flag(src/tag/vpDetectorAprilTag.cpp -Wno-unused-parameter -Wno-strict-overflow)
+  else(WIN32)
+    vp_set_source_file_compile_flag(src/tag/vpDetectorAprilTag.cpp /wd"4200")
+  endif()
+endif()
+
+vp_add_module(detection visp_core visp_vision PRIVATE_OPTIONAL ${APRILTAG_LIBRARIES})
 vp_glob_module_sources()
 vp_module_include_directories(${opt_incs})
 vp_create_module(${opt_libs})
-
+vp_add_tests(DEPENDS_ON visp_detection visp_gui visp_io)
