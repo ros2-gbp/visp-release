@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -37,33 +38,31 @@
 /*!
   \file vpViewer.cpp
   Viewer used by the simulator. Under Windows, the viewer is
-  based either on SoWin or SoQt. Under Unix, the viewer is based on SoQt or SoXt.
+  based either on SoWin or SoQt. Under Unix, the viewer is based on SoQt or
+  SoXt.
 */
 
 #include <visp3/core/vpConfig.h>
 
 #ifdef VISP_HAVE_COIN3D_AND_GUI
-#include <visp3/ar/vpViewer.h>
 #include <visp3/ar/vpSimulator.h>
-
+#include <visp3/ar/vpViewer.h>
 
 #include <Inventor/events/SoKeyboardEvent.h>
 #include <Inventor/nodes/SoEventCallback.h>
 
-
 #if defined(VISP_HAVE_SOWIN)
-vpViewer::vpViewer(HWND parent,  vpSimulator *_simu, vpViewerType viewerType):
-  SoWinExaminerViewer(parent,(char *)NULL,false)
+vpViewer::vpViewer(HWND parent, vpSimulator *_simu, vpViewerType type)
+  : viewerType(type), SoWinExaminerViewer(parent, (char *)NULL, false)
 #elif defined(VISP_HAVE_SOQT)
-vpViewer::vpViewer(QWidget * parent,  vpSimulator *_simu, vpViewerType viewerType) :
-  SoQtExaminerViewer(parent,(char *)NULL,false)
+vpViewer::vpViewer(QWidget *parent, vpSimulator *_simu, vpViewerType type)
+  : viewerType(type), SoQtExaminerViewer(parent, (char *)NULL, false)
 #elif defined(VISP_HAVE_SOXT)
-vpViewer::vpViewer(Widget parent,  vpSimulator *_simu, vpViewerType viewerType):
-  SoXtExaminerViewer(parent,(char *)NULL,false)
+vpViewer::vpViewer(Widget parent, vpSimulator *_simu, vpViewerType type)
+  : viewerType(type), SoXtExaminerViewer(parent, (char *)NULL, false)
 #endif
 {
-  this->simu = _simu ;
-  this->viewerType = viewerType;
+  this->simu = _simu;
   // Coin should not clear the pixel-buffer, so the background image
   // is not removed.
 
@@ -72,46 +71,37 @@ vpViewer::vpViewer(Widget parent,  vpSimulator *_simu, vpViewerType viewerType):
   setAutoRedraw(false);
 }
 
-vpViewer::~vpViewer()
-{
+vpViewer::~vpViewer() {}
 
-}
-
-void
-vpViewer::actualRedraw(void)
+void vpViewer::actualRedraw(void)
 {
 
   {
-   const SbViewportRegion vp = this->getViewportRegion();
-   SbVec2s origin = vp.getViewportOriginPixels();
-   SbVec2s size = vp.getViewportSizePixels();
-   glViewport(origin[0], origin[1], size[0], size[1]);
+    const SbViewportRegion vp = this->getViewportRegion();
+    SbVec2s origin = vp.getViewportOriginPixels();
+    SbVec2s size = vp.getViewportSizePixels();
+    glViewport(origin[0], origin[1], size[0], size[1]);
 
-   const SbColor col = this->getBackgroundColor();
-   glClearColor(col[0], col[1], col[2], 0.0f);
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    const SbColor col = this->getBackgroundColor();
+    glClearColor(col[0], col[1], col[2], 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-   // this should be used only with the vpAR:vpSimulator
-   // to diplay an image background
-   if (simu->image_background != NULL)
-   {
-     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-     if (simu->typeImage == vpSimulator::grayImage)
-       glDrawPixels((GLsizei)simu->getInternalWidth(), (GLsizei)simu->getInternalHeight(),
-		    (GLenum)GL_LUMINANCE,
-		    GL_UNSIGNED_BYTE,
-		    simu->image_background );
-     else
-       glDrawPixels((GLsizei)simu->getInternalWidth(), (GLsizei)simu->getInternalHeight(),
-		    (GLenum)GL_RGB,
-		    GL_UNSIGNED_BYTE,
-		    simu->image_background );
+    // this should be used only with the vpAR:vpSimulator
+    // to diplay an image background
+    if (simu->image_background != NULL) {
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      if (simu->typeImage == vpSimulator::grayImage)
+        glDrawPixels((GLsizei)simu->getInternalWidth(), (GLsizei)simu->getInternalHeight(), (GLenum)GL_LUMINANCE,
+                     GL_UNSIGNED_BYTE, simu->image_background);
+      else
+        glDrawPixels((GLsizei)simu->getInternalWidth(), (GLsizei)simu->getInternalHeight(), (GLenum)GL_RGB,
+                     GL_UNSIGNED_BYTE, simu->image_background);
 
-     glEnable(GL_DEPTH_TEST);
-     glClear(GL_DEPTH_BUFFER_BIT);     // clear the z-buffer
-     glClearDepth(100.0);              // Profondeur du Z-Buf
-   }
-   // Render normal scenegraph.
+      glEnable(GL_DEPTH_TEST);
+      glClear(GL_DEPTH_BUFFER_BIT); // clear the z-buffer
+      glClearDepth(100.0);          // Profondeur du Z-Buf
+    }
+// Render normal scenegraph.
 #if defined(VISP_HAVE_SOWIN)
     SoWinExaminerViewer::actualRedraw();
 #elif defined(VISP_HAVE_SOQT)
@@ -119,17 +109,14 @@ vpViewer::actualRedraw(void)
 #elif defined(VISP_HAVE_SOXT)
     SoXtExaminerViewer::actualRedraw();
 #endif
-   glSwapBuffers() ;
-    if(viewerType == vpViewer::internalView){
-       simu->get = 0 ;
-       glReadPixels(0, 0, (GLsizei)simu->getInternalWidth(), (GLsizei)simu->getInternalHeight(),
-		      (GLenum)GL_RGB,
-		      GL_UNSIGNED_BYTE,
-		      simu->bufferView ) ;
-       simu->get =1 ;
+    glSwapBuffers();
+    if (viewerType == vpViewer::internalView) {
+      simu->get = 0;
+      glReadPixels(0, 0, (GLsizei)simu->getInternalWidth(), (GLsizei)simu->getInternalHeight(), (GLenum)GL_RGB,
+                   GL_UNSIGNED_BYTE, simu->bufferView);
+      simu->get = 1;
     }
- }
-
+  }
 }
 
 /*!
@@ -140,15 +127,15 @@ vpViewer::actualRedraw(void)
 
 */
 void
-#if defined(VISP_HAVE_SOWIN) || defined (VISP_HAVE_SOQT)
+#if defined(VISP_HAVE_SOWIN) || defined(VISP_HAVE_SOQT)
 vpViewer::resize(int x, int y, bool fixed)
 #else
 vpViewer::resize(int x, int y, bool /*fixed*/)
 #endif
 {
-  SbVec2s size(x,y) ;
+  SbVec2s size(x, y);
   setSize(size);
-  setGLSize(size) ;
+  setGLSize(size);
 
 #if defined(VISP_HAVE_SOWIN)
   HWND parent = getParentWidget();
@@ -159,19 +146,18 @@ vpViewer::resize(int x, int y, bool /*fixed*/)
   GetWindowRect(parent, &rcWindow);
   ptDiff.x = (rcWindow.right - rcWindow.left) - rcClient.right;
   ptDiff.y = (rcWindow.bottom - rcWindow.top) - rcClient.bottom;
-  MoveWindow(parent,rcWindow.left, rcWindow.top, 
-	     x + ptDiff.x, y + ptDiff.y, TRUE);
-  if(fixed){
+  MoveWindow(parent, rcWindow.left, rcWindow.top, x + ptDiff.x, y + ptDiff.y, TRUE);
+  if (fixed) {
     DWORD dwStyle = GetWindowLong(parent, GWL_STYLE);
     dwStyle &= ~(WS_SIZEBOX);
-    SetWindowLong(parent, GWL_STYLE,dwStyle);
+    SetWindowLong(parent, GWL_STYLE, dwStyle);
   }
 #elif defined(VISP_HAVE_SOQT)
-  if(fixed){
-    QWidget * parent = getParentWidget();
+  if (fixed) {
+    QWidget *parent = getParentWidget();
     parent->setFixedSize(x, y);
   }
-#endif 
+#endif
 }
 
 /*!
@@ -182,67 +168,59 @@ vpViewer::resize(int x, int y, bool /*fixed*/)
 
 */
 
-SbBool
-vpViewer::processSoEvent(const SoEvent * const event)
+SbBool vpViewer::processSoEvent(const SoEvent *const event)
 {
-  if ( this->isViewing() &&
-       event->getTypeId() == SoKeyboardEvent::getClassTypeId() )
-  {
-    SoKeyboardEvent * kbevent = (SoKeyboardEvent *) event;
-    switch ( kbevent->getKey() ) {
+  if (this->isViewing() && event->getTypeId() == SoKeyboardEvent::getClassTypeId()) {
+    SoKeyboardEvent *kbevent = (SoKeyboardEvent *)event;
+    switch (kbevent->getKey()) {
     case SoKeyboardEvent::H:
-      if ( kbevent->getState() == SoButtonEvent::DOWN )
-      {
-	      std::cout << "H : this help "<<std::endl ;
-	      std::cout << "M : get and save the external camera location (matrix)"<<std::endl;
-	      std::cout << "V : get and save the external camera location (vector)"<<std::endl;
-	      std::cout << "M : load camera location (vector)"<<std::endl;
-	      std::cout << "P : get external camera location and set the internal one"<<std::endl;
+      if (kbevent->getState() == SoButtonEvent::DOWN) {
+        std::cout << "H : this help " << std::endl;
+        std::cout << "M : get and save the external camera location (matrix)" << std::endl;
+        std::cout << "V : get and save the external camera location (vector)" << std::endl;
+        std::cout << "M : load camera location (vector)" << std::endl;
+        std::cout << "P : get external camera location and set the internal one" << std::endl;
       }
       return TRUE;
 
     case SoKeyboardEvent::M:
-      if ( kbevent->getState() == SoButtonEvent::DOWN )
-      {
-	      vpHomogeneousMatrix cMf ;
-	      simu->getExternalCameraPosition(cMf) ;
-	      std::ofstream f("cMf.dat") ;
-	      cMf.save(f) ;
-	      f.close() ;
+      if (kbevent->getState() == SoButtonEvent::DOWN) {
+        vpHomogeneousMatrix cMf;
+        simu->getExternalCameraPosition(cMf);
+        std::ofstream f("cMf.dat");
+        cMf.save(f);
+        f.close();
       }
       return TRUE;
     case SoKeyboardEvent::V:
-      if ( kbevent->getState() == SoButtonEvent::DOWN )
-      {
-	      vpHomogeneousMatrix cMf ;
-	      simu->getExternalCameraPosition(cMf) ;
-	      vpPoseVector vcMf(cMf) ;
-	      std::ofstream f("vcMf.dat") ;
-	      vcMf.save(f) ;
-	      f.close() ;
+      if (kbevent->getState() == SoButtonEvent::DOWN) {
+        vpHomogeneousMatrix cMf;
+        simu->getExternalCameraPosition(cMf);
+        vpPoseVector vcMf(cMf);
+        std::ofstream f("vcMf.dat");
+        vcMf.save(f);
+        f.close();
       }
       return TRUE;
     case SoKeyboardEvent::L:
-      if ( kbevent->getState() == SoButtonEvent::DOWN )
-      {
-	      vpPoseVector vcMf;
-	      std::ifstream f("vcMf.dat") ;
-	      vcMf.load(f) ;
-	      f.close() ;
-	      vpHomogeneousMatrix cMf(vcMf) ;
-	      simu->setCameraPosition(cMf) ;
-	      simu->moveInternalCamera(cMf) ;
+      if (kbevent->getState() == SoButtonEvent::DOWN) {
+        vpPoseVector vcMf;
+        std::ifstream f("vcMf.dat");
+        vcMf.load(f);
+        f.close();
+        vpHomogeneousMatrix cMf(vcMf);
+        simu->setCameraPosition(cMf);
+        simu->moveInternalCamera(cMf);
       }
       return TRUE;
     case SoKeyboardEvent::P:
-      if ( kbevent->getState() == SoButtonEvent::DOWN )
-      {
-	      vpHomogeneousMatrix cMf ;
-	      simu->getExternalCameraPosition(cMf) ;
-	      vpPoseVector vcMf(cMf) ;
-	      vcMf.print() ;
-	      simu->setCameraPosition(cMf) ;
-	      simu->moveInternalCamera(cMf) ;
+      if (kbevent->getState() == SoButtonEvent::DOWN) {
+        vpHomogeneousMatrix cMf;
+        simu->getExternalCameraPosition(cMf);
+        vpPoseVector vcMf(cMf);
+        vcMf.print();
+        simu->setCameraPosition(cMf);
+        simu->moveInternalCamera(cMf);
       }
       return TRUE;
     default:
@@ -250,16 +228,15 @@ vpViewer::processSoEvent(const SoEvent * const event)
     }
   }
 #if defined(VISP_HAVE_SOWIN)
-  return  SoWinExaminerViewer::processSoEvent(event);
+  return SoWinExaminerViewer::processSoEvent(event);
 #elif defined(VISP_HAVE_SOQT)
-  return  SoQtExaminerViewer::processSoEvent(event);
+  return SoQtExaminerViewer::processSoEvent(event);
 #elif defined(VISP_HAVE_SOXT)
-  return  SoXtExaminerViewer::processSoEvent(event);
+  return SoXtExaminerViewer::processSoEvent(event);
 #endif
-
 }
 
 #elif !defined(VISP_BUILD_SHARED_LIBS)
 // Work arround to avoid warning: libvisp_ar.a(vpViewer.cpp.o) has no symbols
-void dummy_vpViewer() {};
+void dummy_vpViewer(){};
 #endif

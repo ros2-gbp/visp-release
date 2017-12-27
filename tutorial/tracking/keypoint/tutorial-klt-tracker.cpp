@@ -1,19 +1,19 @@
 //! \example tutorial-klt-tracker.cpp
 //! [Include]
 #include <visp3/core/vpImageConvert.h>
-#include <visp3/klt/vpKltOpencv.h>
 #include <visp3/gui/vpDisplayOpenCV.h>
 #include <visp3/io/vpVideoReader.h>
+#include <visp3/klt/vpKltOpencv.h>
 //! [Include]
 
 int main(int argc, const char *argv[])
 {
-  //! [Check 3rd party]
+//! [Check 3rd party]
 #ifdef VISP_HAVE_OPENCV
   //! [Check 3rd party]
   try {
     bool opt_init_by_click = false;
-    for (int i=0; i<argc; i++) {
+    for (int i = 0; i < argc; i++) {
       if (std::string(argv[i]) == "--init-by-click")
         opt_init_by_click = true;
       else if (std::string(argv[i]) == "--help") {
@@ -30,11 +30,11 @@ int main(int argc, const char *argv[])
     //! [Acquire]
     vpImage<unsigned char> I;
     reader.acquire(I);
-    //! [Acquire]
+//! [Acquire]
 
-    //! [Convert to OpenCV image]
+//! [Convert to OpenCV image]
 #if (VISP_HAVE_OPENCV_VERSION < 0x020408)
-    IplImage * cvI = NULL;
+    IplImage *cvI = NULL;
 #else
     cv::Mat cvI;
 #endif
@@ -71,9 +71,7 @@ int main(int argc, const char *argv[])
 #endif
       vpImagePoint ip;
       do {
-        vpDisplay::displayText(I, 10, 10,
-                               "Left click to select a point, right to start tracking",
-                               vpColor::red);
+        vpDisplay::displayText(I, 10, 10, "Left click to select a point, right to start tracking", vpColor::red);
         if (vpDisplay::getClick(I, ip, button, false)) {
           if (button == vpMouseButton::button1) {
             feature.push_back(cv::Point2f((float)ip.get_u(), (float)ip.get_v()));
@@ -82,14 +80,13 @@ int main(int argc, const char *argv[])
         }
         vpDisplay::flush(I);
         vpTime::wait(20);
-      } while(button != vpMouseButton::button3);
+      } while (button != vpMouseButton::button3);
 #if (VISP_HAVE_OPENCV_VERSION < 0x020408)
       tracker.initTracking(cvI, &feature[0], feature.size());
 #else
       tracker.initTracking(cvI, feature);
 #endif
-    }
-    else {
+    } else {
       //! [Init tracker]
       tracker.initTracking(cvI);
       //! [Init tracker]
@@ -100,8 +97,7 @@ int main(int argc, const char *argv[])
     //! [How many features]
 
     //! [While loop]
-    while ( ! reader.end() )
-    {
+    while (!reader.end()) {
       reader.acquire(I);
       vpDisplay::display(I);
 
@@ -116,9 +112,7 @@ int main(int argc, const char *argv[])
 #endif
         vpImagePoint ip;
         do {
-          vpDisplay::displayText(I, 10, 10,
-                                 "Left click to select a point, right to start tracking",
-                                 vpColor::red);
+          vpDisplay::displayText(I, 10, 10, "Left click to select a point, right to start tracking", vpColor::red);
           if (vpDisplay::getClick(I, ip, button, false)) {
             if (button == vpMouseButton::button1) {
               feature.push_back(cv::Point2f((float)ip.get_u(), (float)ip.get_v()));
@@ -127,7 +121,7 @@ int main(int argc, const char *argv[])
           }
           vpDisplay::flush(I);
           vpTime::wait(20);
-        } while(button != vpMouseButton::button3);
+        } while (button != vpMouseButton::button3);
 #if (VISP_HAVE_OPENCV_VERSION < 0x020408)
         tracker.initTracking(cvI, &feature[0], feature.size());
 #else
@@ -144,17 +138,16 @@ int main(int argc, const char *argv[])
 
     //! [Wait click]
     vpDisplay::getClick(I);
-    //! [Wait click]
+//! [Wait click]
 
-    //! [Release IplImage]
+//! [Release IplImage]
 #if (VISP_HAVE_OPENCV_VERSION < 0x020408)
     cvReleaseImage(&cvI);
 #endif
     //! [Release IplImage]
 
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }
 #else

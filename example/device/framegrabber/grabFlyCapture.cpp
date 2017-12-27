@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -50,16 +51,16 @@
 
 #if defined(VISP_HAVE_FLYCAPTURE)
 
-#include <visp3/gui/vpDisplayX.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpImageConvert.h>
-#include <visp3/io/vpParseArgv.h>
+#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayOpenCV.h>
+#include <visp3/gui/vpDisplayX.h>
 #include <visp3/io/vpImageIo.h>
+#include <visp3/io/vpParseArgv.h>
 #include <visp3/sensor/vpFlyCaptureGrabber.h>
 
-#define GETOPTARGS	"cdhi:n:o:"
+#define GETOPTARGS "cdhi:n:o:"
 
 /*!
 
@@ -71,9 +72,7 @@
   \param opath : Image filename when saving.
 
 */
-void usage(const char *name, const char *badparam,
-           unsigned int icamera,
-           std::string &opath)
+void usage(const char *name, const char *badparam, unsigned int icamera, std::string &opath)
 {
   fprintf(stdout, "\n\
 Acquire and display images using PointGrey FlyCapture SDK.\n\
@@ -102,7 +101,7 @@ OPTIONS:                                               Default\n\
 \n", icamera, opath.c_str());
 
   if (badparam) {
-    fprintf(stderr, "ERROR: \n" );
+    fprintf(stderr, "ERROR: \n");
     fprintf(stderr, "\nBad parameter [%s]\n", badparam);
   }
 }
@@ -123,25 +122,36 @@ OPTIONS:                                               Default\n\
   \return false if the program has to be stopped, true otherwise.
 
 */
-bool getOptions(int argc, const char **argv, bool &display, bool &click,
-                bool &save, std::string &opath, unsigned int &icamera)
+bool getOptions(int argc, const char **argv, bool &display, bool &click, bool &save, std::string &opath,
+                unsigned int &icamera)
 {
   const char *optarg_;
-  int	c;
+  int c;
   while ((c = vpParseArgv::parse(argc, argv, GETOPTARGS, &optarg_)) > 1) {
 
     switch (c) {
-    case 'c': click = false; break;
-    case 'd': display = false; break;
-    case 'i': icamera = (unsigned int)atoi(optarg_); break;
+    case 'c':
+      click = false;
+      break;
+    case 'd':
+      display = false;
+      break;
+    case 'i':
+      icamera = (unsigned int)atoi(optarg_);
+      break;
     case 'o':
       save = true;
-      opath = optarg_; break;
-    case 'h': usage(argv[0], NULL, icamera, opath); return false; break;
+      opath = optarg_;
+      break;
+    case 'h':
+      usage(argv[0], NULL, icamera, opath);
+      return false;
+      break;
 
     default:
       usage(argv[0], optarg_, icamera, opath);
-      return false; break;
+      return false;
+      break;
     }
   }
 
@@ -157,9 +167,9 @@ bool getOptions(int argc, const char **argv, bool &display, bool &click,
 }
 
 // usage: binary <device name>
-// device name: 0 is the default to dial with the first camera, 
+// device name: 0 is the default to dial with the first camera,
 //              1 to dial with a second camera attached to the computer
-int main(int argc, const char** argv)
+int main(int argc, const char **argv)
 {
   try {
     bool opt_display = true;
@@ -167,12 +177,11 @@ int main(int argc, const char** argv)
     bool opt_save = false;
     unsigned int opt_icamera = 0;
     std::string opt_opath = "I%04d.pgm";
-    //vpImage<vpRGBa> I; // for color images
+    // vpImage<vpRGBa> I; // for color images
     vpImage<unsigned char> I; // for gray images
 
     // Read the command line options
-    if (getOptions(argc, argv, opt_display, opt_click, opt_save,
-                   opt_opath, opt_icamera) == false) {
+    if (getOptions(argc, argv, opt_display, opt_click, opt_save, opt_opath, opt_icamera) == false) {
       return 0;
     }
 
@@ -180,7 +189,7 @@ int main(int argc, const char** argv)
     vpFlyCaptureGrabber g;
     g.setCameraIndex(opt_icamera); // open the default camera
     g.open(I);
-    std::cout << "Camera serial: " << g.getCameraSerial( g.getCameraIndex() ) << std::endl;
+    std::cout << "Camera serial: " << g.getCameraSerial(g.getCameraIndex()) << std::endl;
     std::cout << "Image size   : " << I.getWidth() << " " << I.getHeight() << std::endl;
 
     vpDisplay *display = NULL;
@@ -196,7 +205,7 @@ int main(int argc, const char** argv)
 #endif
     }
 
-    for(;;) {
+    for (;;) {
       g.acquire(I); // get a new frame from camera
 
       if (opt_save) {
@@ -214,29 +223,25 @@ int main(int argc, const char** argv)
       if (opt_click && opt_display) {
         if (vpDisplay::getClick(I, false) == true)
           break;
-      }
-      else {
+      } else {
         static unsigned int cpt = 0;
-        if (cpt ++ == 10)
+        if (cpt++ == 10)
           break;
       }
     }
     if (display)
       delete display;
 
-    // The camera connection will be closed automatically in vpFlyCapture destructor
+    // The camera connection will be closed automatically in vpFlyCapture
+    // destructor
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e.getStringMessage() << std::endl;
     return 0;
   }
 }
 
 #else
-int main()
-{
-  std::cout << "PointGrey FlyCapture SDK is not available..." << std::endl;
-}
+int main() { std::cout << "PointGrey FlyCapture SDK is not available..." << std::endl; }
 
 #endif

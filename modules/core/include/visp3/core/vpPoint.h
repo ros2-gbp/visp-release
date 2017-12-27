@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,7 +36,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpPoint_H
 #define vpPoint_H
 
@@ -46,10 +46,9 @@
 
 class vpHomogeneousMatrix;
 
-#include <visp3/core/vpMatrix.h>
-#include <visp3/core/vpForwardProjection.h>
 #include <visp3/core/vpColor.h>
-
+#include <visp3/core/vpForwardProjection.h>
+#include <visp3/core/vpMatrix.h>
 
 /*!
   \class vpPoint
@@ -63,32 +62,23 @@ public:
   //! Basic constructor.
   vpPoint();
   vpPoint(double oX, double oY, double oZ);
-  vpPoint(const vpColVector &P);
-  vpPoint(const std::vector<double> &P);
+  explicit vpPoint(const vpColVector &P);
+  explicit vpPoint(const std::vector<double> &P);
   //! Destructor.
   virtual ~vpPoint() {}
 
 public:
-
   // Compute the 3D coordinates _cP  (camera frame)
-  void changeFrame(const vpHomogeneousMatrix &cMo, vpColVector &_cP) ;
+  void changeFrame(const vpHomogeneousMatrix &cMo, vpColVector &_cP);
   void changeFrame(const vpHomogeneousMatrix &cMo);
 
-  void display(const vpImage<unsigned char> &I,
-               const vpCameraParameters &cam,
-               const vpColor &color=vpColor::green,
-               const unsigned int thickness=1) ;
-  void display(const vpImage<unsigned char> &I,
-               const vpHomogeneousMatrix &cMo,
-               const vpCameraParameters &cam,
-               const vpColor &color=vpColor::green,
-               const unsigned int thickness=1) ;
-  void display(const vpImage<vpRGBa> &I,
-               const vpHomogeneousMatrix &cMo,
-               const vpCameraParameters &cam,
-               const vpColor &color=vpColor::green,
-               const unsigned int thickness=1) ;
-  vpPoint *duplicate() const ;
+  void display(const vpImage<unsigned char> &I, const vpCameraParameters &cam, const vpColor &color = vpColor::green,
+               const unsigned int thickness = 1);
+  void display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
+               const vpColor &color = vpColor::green, const unsigned int thickness = 1);
+  void display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
+               const vpColor &color = vpColor::green, const unsigned int thickness = 1);
+  vpPoint *duplicate() const;
 
   // Get coordinates
   double get_X() const;
@@ -103,18 +93,19 @@ public:
   double get_y() const;
   double get_w() const;
 
-  void getWorldCoordinates(double& oX, double& oY, double& oZ);
+  void getWorldCoordinates(double &oX, double &oY, double &oZ);
   void getWorldCoordinates(vpColVector &P);
   vpColVector getWorldCoordinates(void);
   void getWorldCoordinates(std::vector<double> &P);
 
   //! Basic construction.
-  void init() ;
+  void init();
 
-  friend VISP_EXPORT std::ostream& operator<<(std::ostream& os, const vpPoint& vpp);
-  vpPoint& operator=(const vpPoint& vpp);
+  friend VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpPoint &vpp);
+  vpPoint &operator=(const vpPoint &vpp);
 
-  //! Projection onto the image plane of a point. Input: the 3D coordinates in the camera frame _cP, output : the 2D coordinates _p.
+  //! Projection onto the image plane of a point. Input: the 3D coordinates in
+  //! the camera frame _cP, output : the 2D coordinates _p.
   void projection(const vpColVector &_cP, vpColVector &_p);
 
   void projection();

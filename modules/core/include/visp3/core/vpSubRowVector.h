@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -40,7 +41,6 @@
 
 #include <visp3/core/vpRowVector.h>
 
-
 /*!
   \file vpSubRowVector.h
 
@@ -63,31 +63,29 @@
 class VISP_EXPORT vpSubRowVector : public vpRowVector
 {
 
-private :
+private:
   //! Copy constructor unavaible
-  vpSubRowVector(const vpSubRowVector& /* m */);
+  vpSubRowVector(const vpSubRowVector & /* m */);
 
-protected :
-
+protected:
   //! Number of row of parent vpColvector at initialization
   unsigned int pColNum;
   //! Parent vpColvector
   vpRowVector *parent;
 
 public:
-
   vpSubRowVector();
-  vpSubRowVector(vpRowVector &v, const unsigned int & offset,const unsigned int & ncols);
+  vpSubRowVector(vpRowVector &v, const unsigned int &offset, const unsigned int &ncols);
   virtual ~vpSubRowVector();
 
   void checkParentStatus() const;
 
-  void init(vpRowVector &v, const unsigned int & offset,const unsigned int & ncols);
+  void init(vpRowVector &v, const unsigned int &offset, const unsigned int &ncols);
 
-  vpSubRowVector & operator=(const vpSubRowVector &B);
-  vpSubRowVector & operator=(const vpRowVector &B);
-  vpSubRowVector & operator=(const vpMatrix &B);
-  vpSubRowVector & operator=(const double &x);
+  vpSubRowVector &operator=(const vpSubRowVector &B);
+  vpSubRowVector &operator=(const vpRowVector &B);
+  vpSubRowVector &operator=(const vpMatrix &B);
+  vpSubRowVector &operator=(const double &x);
 };
 
 #endif

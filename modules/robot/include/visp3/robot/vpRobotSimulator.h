@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -44,20 +45,19 @@
 */
 
 #include <visp3/core/vpConfig.h>
-#include <visp3/robot/vpRobot.h>
 #include <visp3/core/vpTime.h>
 #include <visp3/core/vpVelocityTwistMatrix.h>
-
+#include <visp3/robot/vpRobot.h>
 
 /*!
   \class vpRobotSimulator
 
-  \ingroup group_robot_simu_gantry group_robot_simu_arm group_robot_simu_unicycle
-  \ingroup group_robot_simu_camera
+  \ingroup group_robot_simu_gantry group_robot_simu_arm
+  group_robot_simu_unicycle \ingroup group_robot_simu_camera
 
   \brief This class aims to be a basis used to create all the
   robot simulators.
-  
+
 */
 class VISP_EXPORT vpRobotSimulator : public vpRobot
 {
@@ -69,32 +69,26 @@ public:
   /*!
     Basic destructor
   */
-  virtual ~vpRobotSimulator() {};
+  virtual ~vpRobotSimulator(){};
 
   /** @name Inherited functionalities from vpRobotSimulator */
   //@{
   /*!
     Return the sampling time.
 
-    \return Sampling time in second used to compute the robot displacement from
-    the velocity applied to the robot during this time.
+    \return Sampling time in second used to compute the robot displacement
+    from the velocity applied to the robot during this time.
   */
-  inline double getSamplingTime() const
-  {
-    return(this->delta_t_);
-  }
+  inline double getSamplingTime() const { return (this->delta_t_); }
 
   /*!
     Set the sampling time.
 
-    \param delta_t : Sampling time in second used to compute the robot displacement from
-    the velocity applied to the robot during this time.
+    \param delta_t : Sampling time in second used to compute the robot
+    displacement from the velocity applied to the robot during this time.
 
   */
-  virtual inline void setSamplingTime(const double &delta_t)
-  {
-    this->delta_t_ = delta_t;
-  }
+  virtual inline void setSamplingTime(const double &delta_t) { this->delta_t_ = delta_t; }
   //@}
 };
 

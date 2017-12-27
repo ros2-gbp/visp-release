@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,8 +36,6 @@
  *
  *****************************************************************************/
 
-
-
 #ifndef vpTracker_H
 #define vpTracker_H
 
@@ -45,10 +44,9 @@
   \brief Class that defines what is a generic tracker.
 */
 
-#include <visp3/core/vpImage.h>
 #include <visp3/core/vpCameraParameters.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
-
+#include <visp3/core/vpImage.h>
 
 /*!
   \class vpTracker
@@ -59,7 +57,7 @@
   - in the camera frame \e cP. These parameters are located in the public
     attribute vpTracker::cP.
   - in the image plane \e p. These parameters are located in the public
-    attribute vpTracker::p. They correspond to normalized coordinates 
+    attribute vpTracker::p. They correspond to normalized coordinates
     of the feature expressed in meters.
 
 */
@@ -70,32 +68,31 @@ public:
     Feature coordinates expressed in the image plane \e p. They correspond
     to 2D normalized coordinates expressed in meters.
   */
-  vpColVector p ;
+  vpColVector p;
   /*!
-    Feature coordinates expressed in the camera frame \e cP. 
+    Feature coordinates expressed in the camera frame \e cP.
   */
-  vpColVector cP ;
+  vpColVector cP;
 
   /*!
     Flag used to indicate if the feature parameters \e cP expressed
     in the camera frame are available.
   */
-  bool cPAvailable ;
+  bool cPAvailable;
 
 public:
   //! Default initialization.
-  void init() ;
+  void init();
   //! Default constructor.
-  vpTracker() ;
+  vpTracker();
   //! Copy constructor.
-  vpTracker(const vpTracker &tracker) ;
+  vpTracker(const vpTracker &tracker);
   //! Copy operator.
   vpTracker &operator=(const vpTracker &tracker);
 
   //! Destructor.
   virtual ~vpTracker() { ; }
-} ;
-
+};
 
 #endif
 

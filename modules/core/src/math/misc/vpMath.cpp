@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -41,41 +42,39 @@
   the C mathematics library (math.h)
 */
 
-#include <stdint.h>
-#include <numeric>
-#include <functional>
 #include <cmath>
+#include <functional>
+#include <numeric>
+#include <stdint.h>
 
-#include <visp3/core/vpMath.h>
 #include <visp3/core/vpException.h>
+#include <visp3/core/vpMath.h>
 
 #if defined(VISP_HAVE_FUNC__ISNAN)
-#  include <float.h>
+#include <float.h>
 #endif
 
-#if !(defined(VISP_HAVE_FUNC_ISNAN) || defined(VISP_HAVE_FUNC_STD_ISNAN)) || !(defined(VISP_HAVE_FUNC_ISINF) || defined(VISP_HAVE_FUNC_STD_ISINF))
-#  if defined _MSC_VER || defined __BORLANDC__
+#if !(defined(VISP_HAVE_FUNC_ISNAN) || defined(VISP_HAVE_FUNC_STD_ISNAN)) ||                                           \
+    !(defined(VISP_HAVE_FUNC_ISINF) || defined(VISP_HAVE_FUNC_STD_ISINF))
+#if defined _MSC_VER || defined __BORLANDC__
 typedef __int64 int64;
 typedef unsigned __int64 uint64;
-#  else
+#else
 typedef int64_t int64;
 typedef uint64_t uint64;
-#  endif
+#endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-typedef union Cv64suf
-{
-//  int64 i; //Unused variable, should be harmless to comment it
+typedef union Cv64suf {
+  //  int64 i; //Unused variable, should be harmless to comment it
   uint64 u;
   double f;
-}
-Cv64suf;
+} Cv64suf;
 #endif
 #endif
 
 const double vpMath::ang_min_sinc = 1.0e-8;
 const double vpMath::ang_min_mc = 2.5e-4;
-
 
 /*!
    Check whether a double number is not a number (NaN) or not.
@@ -91,23 +90,22 @@ bool vpMath::isNaN(const double value)
 #elif defined(VISP_HAVE_FUNC__ISNAN)
   return (_isnan(value) != 0);
 #else
-  #if 0
+#if 0
     //This trick should work for any compiler which claims to use IEEE floating point.
     //Do not work with g++ and -ffast-math option.
     return (value != value);
-  #else
-    //Taken from OpenCV source code CvIsNan()
-    Cv64suf ieee754;
-    ieee754.f = value;
-    return (((unsigned)(ieee754.u >> 32) & 0x7fffffff) +
-           ((unsigned)ieee754.u != 0) > 0x7ff00000) != 0;
-  #endif
+#else
+  // Taken from OpenCV source code CvIsNan()
+  Cv64suf ieee754;
+  ieee754.f = value;
+  return (((unsigned)(ieee754.u >> 32) & 0x7fffffff) + ((unsigned)ieee754.u != 0) > 0x7ff00000) != 0;
+#endif
 #endif
 }
 /*!
-   Returns whether a double is an infinity value (either positive infinity or negative infinity).
-   \param value : Double number to check.
-   \return Return true if value is infinity.
+   Returns whether a double is an infinity value (either positive infinity or
+   negative infinity). \param value : Double number to check. \return Return
+   true if value is infinity.
  */
 bool vpMath::isInf(const double value)
 {
@@ -118,11 +116,10 @@ bool vpMath::isInf(const double value)
 #elif defined(VISP_HAVE_FUNC__FINITE)
   return !_finite(value);
 #else
-  //Taken from OpenCV source code CvIsInf()
+  // Taken from OpenCV source code CvIsInf()
   Cv64suf ieee754;
   ieee754.f = value;
-  return ((unsigned)(ieee754.u >> 32) & 0x7fffffff) == 0x7ff00000 &&
-         (unsigned)ieee754.u == 0;
+  return ((unsigned)(ieee754.u >> 32) & 0x7fffffff) == 0x7ff00000 && (unsigned)ieee754.u == 0;
 #endif
 }
 
@@ -137,8 +134,10 @@ bool vpMath::isInf(const double value)
 */
 double vpMath::mcosc(double cosx, double x)
 {
-  if (fabs(x) < ang_min_mc) return 0.5 ;
-  else  return ((1.0-cosx)/x/x) ;
+  if (fabs(x) < ang_min_mc)
+    return 0.5;
+  else
+    return ((1.0 - cosx) / x / x);
 }
 
 /*!
@@ -153,8 +152,10 @@ double vpMath::mcosc(double cosx, double x)
 */
 double vpMath::msinc(double sinx, double x)
 {
-  if (fabs(x) < ang_min_mc) return (1./6.0) ;
-  else  return ((1.0-sinx/x)/x/x) ;
+  if (fabs(x) < ang_min_mc)
+    return (1. / 6.0);
+  else
+    return ((1.0 - sinx / x) / x / x);
 }
 
 /*!
@@ -168,8 +169,10 @@ double vpMath::msinc(double sinx, double x)
 */
 double vpMath::sinc(double x)
 {
-  if (fabs(x) < ang_min_sinc) return 1.0 ;
-  else  return sin(x)/x ;
+  if (fabs(x) < ang_min_sinc)
+    return 1.0;
+  else
+    return sin(x) / x;
 }
 /*!
 
@@ -183,8 +186,10 @@ double vpMath::sinc(double x)
 */
 double vpMath::sinc(double sinx, double x)
 {
-  if (fabs(x) < ang_min_sinc) return 1.0 ;
-  else  return (sinx/x) ;
+  if (fabs(x) < ang_min_sinc)
+    return 1.0;
+  else
+    return (sinx / x);
 }
 
 /*!
@@ -196,7 +201,7 @@ double vpMath::sinc(double sinx, double x)
 */
 double vpMath::getMean(const std::vector<double> &v)
 {
-  if(v.empty()) {
+  if (v.empty()) {
     throw vpException(vpException::notInitialized, "Empty vector !");
   }
 
@@ -204,7 +209,7 @@ double vpMath::getMean(const std::vector<double> &v)
 
   double sum = std::accumulate(v.begin(), v.end(), 0.0);
 
-  return sum / (double) size;
+  return sum / (double)size;
 }
 
 /*!
@@ -214,48 +219,50 @@ double vpMath::getMean(const std::vector<double> &v)
 
   \return The median value.
 */
-double vpMath::getMedian(const std::vector<double> &v) {
-  if(v.empty()) {
+double vpMath::getMedian(const std::vector<double> &v)
+{
+  if (v.empty()) {
     throw vpException(vpException::notInitialized, "Empty vector !");
   }
 
-  double median = 0.0;
   std::vector<double> v_copy = v;
   size_t size = v_copy.size();
 
-  if(size % 2 == 0) {
-    sort(v_copy.begin(), v_copy.end());
-    median = (v_copy[size / 2 - 1] + v_copy[size / 2]) / 2.0;
-  } else {
-    std::nth_element(v_copy.begin(), v_copy.begin() + (int) (size/2), v_copy.end());
-    median = v_copy[size/2];
-  }
+  size_t n = size / 2;
+  std::nth_element(v_copy.begin(), v_copy.begin() + n, v_copy.end());
+  double val_n = v_copy[n];
 
-  return median;
+  if (size % 2 == 1) {
+    return val_n;
+  } else {
+    std::nth_element(v_copy.begin(), v_copy.begin() + n - 1, v_copy.end());
+    return 0.5 * (val_n + v_copy[n - 1]);
+  }
 }
 
 /*!
   Compute the standard deviation value for a vector of double.
 
   \param v : Vector of double values.
-  \param useBesselCorrection : If true, the Bessel correction is used (normalize by N-1).
+  \param useBesselCorrection : If true, the Bessel correction is used
+  (normalize by N-1).
 
   \return The standard deviation value.
 */
-double vpMath::getStdev(const std::vector<double> &v, const bool useBesselCorrection) {
-  if(v.empty()) {
+double vpMath::getStdev(const std::vector<double> &v, const bool useBesselCorrection)
+{
+  if (v.empty()) {
     throw vpException(vpException::notInitialized, "Empty vector !");
   }
 
   double mean = getMean(v);
 
   std::vector<double> diff(v.size());
-  std::transform(v.begin(), v.end(), diff.begin(),
-     std::bind2nd(std::minus<double>(), mean));
+  std::transform(v.begin(), v.end(), diff.begin(), std::bind2nd(std::minus<double>(), mean));
   double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-  double divisor = (double) v.size();
-  if(useBesselCorrection && v.size() > 1) {
-    divisor = divisor-1;
+  double divisor = (double)v.size();
+  if (useBesselCorrection && v.size() > 1) {
+    divisor = divisor - 1;
   }
 
   return std::sqrt(sq_sum / divisor);
@@ -271,6 +278,4 @@ double vpMath::getStdev(const std::vector<double> &v, const bool useBesselCorrec
 
   \return The modified modulo of a mod n.
 */
-int vpMath::modulo(const int a, const int n) {
-  return ((a % n) + n) % n;
-}
+int vpMath::modulo(const int a, const int n) { return ((a % n) + n) % n; }

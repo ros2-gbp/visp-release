@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -53,40 +54,34 @@
 
 #if defined(VISP_HAVE_DISPLAY)
 
-//! Different styles to plot the curve.
-typedef enum 
-{
-  point,
-  line,
-  dashed_line,
-  marker
-} vpCurveStyle;
-
 class vpPlotCurve
 {
-  public:
-    vpColor color;
-    vpCurveStyle curveStyle; 
-    unsigned int thickness ;
-    //vpMarkerStyle markerStyle;
-    //char lineStyle[20];
-    //vpList<vpImagePoint> pointList;
-    unsigned int nbPoint;
-    vpImagePoint lastPoint;
-    std::list<double> pointListx;
-    std::list<double> pointListy;
-    std::list<double> pointListz;
-    std::string legend;
-    double xmin;
-    double xmax;
-    double ymin;
-    double ymax;
-    
-  public:
-    vpPlotCurve();
-    ~vpPlotCurve();
-    void plotPoint(const vpImage<unsigned char> &I, const vpImagePoint &iP, const double x, const double y);
-    void plotList(const vpImage<unsigned char> &I, const double xorg, const double yorg, const double zoomx, const double zoomy);
+public:
+  //! Different styles to plot the curve.
+  typedef enum { point, line, dashed_line, marker } vpCurveStyle;
+  vpColor color;
+  vpCurveStyle curveStyle;
+  unsigned int thickness;
+  // vpMarkerStyle markerStyle;
+  // char lineStyle[20];
+  // vpList<vpImagePoint> pointList;
+  unsigned int nbPoint;
+  vpImagePoint lastPoint;
+  std::list<double> pointListx;
+  std::list<double> pointListy;
+  std::list<double> pointListz;
+  std::string legend;
+  double xmin;
+  double xmax;
+  double ymin;
+  double ymax;
+
+public:
+  vpPlotCurve();
+  ~vpPlotCurve();
+  void plotPoint(const vpImage<unsigned char> &I, const vpImagePoint &iP, const double x, const double y);
+  void plotList(const vpImage<unsigned char> &I, const double xorg, const double yorg, const double zoomx,
+                const double zoomy);
 };
 
 #endif

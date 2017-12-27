@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -40,7 +41,7 @@
 #include <visp3/core/vpMoment.h>
 
 class vpMomentObject;
-class vpMomentCentered;		// Required for discrete case of vpMomentObject
+class vpMomentCentered; // Required for discrete case of vpMomentObject
 
 /*!
   \class vpMomentArea
@@ -50,19 +51,20 @@ class vpMomentCentered;		// Required for discrete case of vpMomentObject
   \brief Class handling the surface moment.
 
 */
-class VISP_EXPORT vpMomentArea : public vpMoment {
+class VISP_EXPORT vpMomentArea : public vpMoment
+{
 public:
   vpMomentArea();
-  virtual ~vpMomentArea() {};
+  virtual ~vpMomentArea(){};
 
   /** @name Inherited functionalities from vpMomentArea */
   //@{
   void compute();
   //! Moment name.
-  const char* name() const {return "vpMomentArea";}
-  void printDependencies(std::ostream& os) const;
+  const char *name() const { return "vpMomentArea"; }
+  void printDependencies(std::ostream &os) const;
   //@}
-  friend VISP_EXPORT std::ostream & operator<<(std::ostream & os, const vpMomentArea& m);
+  friend VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpMomentArea &m);
 };
 
 #endif
