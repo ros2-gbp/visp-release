@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -51,8 +52,14 @@ endif()
 #   Doxygen documentation target, for "make visp_doc" and "make html-doc" (to keep compat with previous versions)
 # ----------------------------------------------------------------------------
 if(DOXYGEN_FOUND)
-  add_custom_target(html-doc ${DOXYGEN_EXECUTABLE} ${VISP_DOC_DIR}/config-doxygen) # for compat with previous versions
-  add_custom_target(visp_doc ${DOXYGEN_EXECUTABLE} ${VISP_DOC_DIR}/config-doxygen)
+  add_custom_target(html-doc
+    COMMAND "${DOXYGEN_EXECUTABLE}" "${VISP_DOC_DIR}/config-doxygen"
+    DEPENDS "${VISP_DOC_DIR}/config-doxygen"
+  ) # for compat with previous versions
+  add_custom_target(visp_doc
+    COMMAND "${DOXYGEN_EXECUTABLE}" "${VISP_DOC_DIR}/config-doxygen"
+    DEPENDS "${VISP_DOC_DIR}/config-doxygen"
+  )
   if(ENABLE_SOLUTION_FOLDERS)
     set_target_properties(visp_doc PROPERTIES FOLDER "extra")
     set_target_properties(html-doc PROPERTIES FOLDER "extra")

@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -36,7 +37,6 @@
  *
  *****************************************************************************/
 
-
 #ifndef vpTime_h
 #define vpTime_h
 
@@ -45,8 +45,8 @@
   \brief Time management and measurement
 
 */
-#include <string>
 #include <iostream>
+#include <string>
 
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpException.h>
@@ -75,14 +75,14 @@ int main()
 
 namespace vpTime
 {
-  VISP_EXPORT std::string getDateTime(const std::string &format="%Y/%m/%d %H:%M:%S");
-  VISP_EXPORT double getMinTimeForUsleepCall();
-  VISP_EXPORT double measureTimeSecond() ;
-  VISP_EXPORT double measureTimeMs() ;
-  VISP_EXPORT double measureTimeMicros() ;
-  VISP_EXPORT void sleepMs(double t);
-  VISP_EXPORT int  wait(double t0, double t) ;
-  VISP_EXPORT void wait(double t) ;
+VISP_EXPORT std::string getDateTime(const std::string &format = "%Y/%m/%d %H:%M:%S");
+VISP_EXPORT double getMinTimeForUsleepCall();
+VISP_EXPORT double measureTimeSecond();
+VISP_EXPORT double measureTimeMs();
+VISP_EXPORT double measureTimeMicros();
+VISP_EXPORT void sleepMs(double t);
+VISP_EXPORT int wait(double t0, double t);
+VISP_EXPORT void wait(double t);
 };
 
 #endif

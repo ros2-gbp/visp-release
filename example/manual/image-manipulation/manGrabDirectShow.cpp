@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -59,8 +60,8 @@ int main()
     vpImage<unsigned char> I; // Grey level image
 
 #ifdef VISP_HAVE_DIRECTSHOW
-    vpDirectShowGrabber g; // Create the grabber
-    if(g.getDeviceNumber() == 0) //test if a camera is connected
+    vpDirectShowGrabber g;        // Create the grabber
+    if (g.getDeviceNumber() == 0) // test if a camera is connected
     {
       g.close();
       return -1;
@@ -68,18 +69,16 @@ int main()
 
     g.open(); // Initialize the grabber
 
-    g.setImageSize(640,480); // If the camera supports 640x480 image size
-    g.setFramerate(30); // If the camera supports 30fps framerate
+    g.setImageSize(640, 480); // If the camera supports 640x480 image size
+    g.setFramerate(30);       // If the camera supports 30fps framerate
 
-    for ( ; ; )
+    for (;;)
       g.acquire(I); // Acquire an image
 #endif
 
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }
-
 }

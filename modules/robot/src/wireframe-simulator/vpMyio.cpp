@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -39,12 +40,9 @@
  *
  *****************************************************************************/
 
-
-
-
 #include "vpMyio.h"
-#include "vpToken.h"
 #include "vpLex.h"
+#include "vpToken.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,21 +50,20 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-extern	char	*mytext;	/* chaine du symbole courant	*/
-
+extern char *mytext; /* chaine du symbole courant	*/
 
 /*
  * La procedure "fscanf_float" lit en ascii un nombre flottant.
  * Entree :
  * fp		Nombre flottant a lire.
  */
-void fscanf_float (float *fp)
+void fscanf_float(float *fp)
 {
-	int	t;
+  int t;
 
-	if ((t = lex ()) != T_FLOAT && t != T_INT)
-	  lexerr ("start", "float expected", NULL);
-	*fp = (t == T_INT) ? (float) myint : myfloat;
+  if ((t = lex()) != T_FLOAT && t != T_INT)
+    lexerr("start", "float expected", NULL);
+  *fp = (t == T_INT) ? (float)myint : myfloat;
 }
 
 /*
@@ -74,11 +71,11 @@ void fscanf_float (float *fp)
  * Entree :
  * ip		Indice a lire.
  */
-void fscanf_Index (Index *ip)
+void fscanf_Index(Index *ip)
 {
-	if (lex () != T_INT)
-		lexerr ("start", "integer expected", NULL);
-	*ip = (Index) myint;
+  if (lex() != T_INT)
+    lexerr("start", "integer expected", NULL);
+  *ip = (Index)myint;
 }
 
 /*
@@ -86,11 +83,11 @@ void fscanf_Index (Index *ip)
  * Entree :
  * ip		Nombre entier a lire.
  */
-void fscanf_int (int *ip)
+void fscanf_int(int *ip)
 {
-	if (lex () != T_INT)
-		lexerr ("start", "integer expected", NULL);
-	*ip = myint;
+  if (lex() != T_INT)
+    lexerr("start", "integer expected", NULL);
+  *ip = myint;
 }
 
 /*
@@ -98,21 +95,21 @@ void fscanf_int (int *ip)
  * Entree :
  * str		Chaine a lire.
  */
-void fscanf_string (char **str)
+void fscanf_string(char **str)
 {
-	if (lex () != T_STRING)
-		lexerr ("start", "string expected", NULL);
-	if (*str == NULL)
-    *str = (char *) malloc ((size_t)(mylength + 1) * sizeof (char));
+  if (lex() != T_STRING)
+    lexerr("start", "string expected", NULL);
+  if (*str == NULL)
+    *str = (char *)malloc((size_t)(mylength + 1) * sizeof(char));
   else
-    *str = (char *) realloc (*str, (size_t)(mylength + 1) * sizeof (char));
+    *str = (char *)realloc(*str, (size_t)(mylength + 1) * sizeof(char));
 
   if (*str == NULL) {
     printf("Unable to read the string: bad memory allocation");
     return;
   }
 
-  strncpy (*str, mytext, (size_t)mylength);
+  strncpy(*str, mytext, (size_t)mylength);
 }
 
 /*
@@ -120,11 +117,11 @@ void fscanf_string (char **str)
  * Entree :
  * ip		Type a lire.
  */
-void fscanf_Type (Type *ip)
+void fscanf_Type(Type *ip)
 {
-	if (lex () != T_INT)
-		lexerr ("start", "integer expected", NULL);
-	*ip = (Type ) myint;
+  if (lex() != T_INT)
+    lexerr("start", "integer expected", NULL);
+  *ip = (Type)myint;
 }
 
 #endif

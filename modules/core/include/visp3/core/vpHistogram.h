@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,8 +36,6 @@
  *
  *****************************************************************************/
 
-
-
 /*!
   \file vpHistogram.h
   \brief Declaration of the vpHistogram class.
@@ -49,13 +48,13 @@
 
 #include <sstream>
 
-#include <visp3/core/vpImage.h>
+#include <visp3/core/vpColor.h>
 #include <visp3/core/vpHistogramPeak.h>
 #include <visp3/core/vpHistogramValey.h>
-#include <visp3/core/vpColor.h>
+#include <visp3/core/vpImage.h>
 
 #ifdef VISP_BUILD_DEPRECATED_FUNCTIONS
-#  include <visp3/core/vpList.h>
+#include <visp3/core/vpList.h>
 #endif
 
 #include <list>
@@ -77,7 +76,7 @@
   vpHistogramValey valey;
   vpHistogram h(I);
   h.smooth();                   // Filter the histogram values
-  vpHistogramPeak peakl, peakr; // Two highest peaks in the histogram 
+  vpHistogramPeak peakl, peakr; // Two highest peaks in the histogram
                                 // - peakl: Peak on the left
                                 // - peakr: Peak on the right
 
@@ -86,7 +85,7 @@
   threshold = valey.getLevel();
   \endcode
 
-  has the same behaviour than this one: 
+  has the same behaviour than this one:
 
   \code
   vpImage<unsigned char> I;
@@ -94,13 +93,13 @@
   unsigned char dist = 60;
   vpHistogram h(I);
   h.smooth();                   // Filter the histogram values
-  vpHistogramPeak peak1, peak2; // Two highest peaks in the histogram 
+  vpHistogramPeak peak1, peak2; // Two highest peaks in the histogram
                                 // - peak1: Highest peak
                                 // - peakr: Second highest peak
 
   // Get the two highest peaks
   h.getPeaks(dist, peak1, peak2);
-  
+
   // Get the valey between the two highest peaks
   vpHistogramValey valey;
   h.getValey(peak1, peak2, valey);
@@ -115,10 +114,10 @@ class VISP_EXPORT vpHistogram
 public:
   vpHistogram();
   vpHistogram(const vpHistogram &h);
-  vpHistogram(const vpImage<unsigned char> &I);
+  explicit vpHistogram(const vpImage<unsigned char> &I);
   virtual ~vpHistogram();
 
-  vpHistogram & operator=(const vpHistogram &h);
+  vpHistogram &operator=(const vpHistogram &h);
 
   /*!
 
@@ -130,8 +129,8 @@ public:
 
     \code
     vpImage<unsigned char> I; // A gray level image
-    
-    vpHistogram h; 
+
+    vpHistogram h;
     h.calculate(I); // Histogram of the gray level image
 
     // Print the histogram values
@@ -160,8 +159,8 @@ public:
 
     \code
     vpImage<unsigned char> I; // A gray level image
-    
-    vpHistogram h; 
+
+    vpHistogram h;
     h.calculate(I); // Histogram of the gray level image
 
     // Print the histogram values
@@ -172,7 +171,7 @@ public:
   */
   inline unsigned operator()(const unsigned char level) const
   {
-    if(level < size) {
+    if (level < size) {
       return histogram[level];
     }
 
@@ -190,8 +189,8 @@ public:
 
     \code
     vpImage<unsigned char> I; // A gray level image
-    
-    vpHistogram h; 
+
+    vpHistogram h;
     h.calculate(I); // Histogram of the gray level image
 
     // Print the histogram values
@@ -202,7 +201,7 @@ public:
   */
   inline unsigned get(const unsigned char level) const
   {
-    if(level < size) {
+    if (level < size) {
       return histogram[level];
     }
 
@@ -220,7 +219,7 @@ public:
     \param value : Number of pixels having the gray level.
 
     \code
-    vpHistogram h; 
+    vpHistogram h;
 
     // Set histogram values
     for (int i=0; i < h.getSize(); i ++)
@@ -230,7 +229,7 @@ public:
   */
   inline void set(const unsigned char level, unsigned int value)
   {
-    if(level < size) {
+    if (level < size) {
       histogram[level] = value;
     } else {
       std::stringstream ss;
@@ -239,32 +238,23 @@ public:
     }
   };
 
-  void     calculate(const vpImage<unsigned char> &I, const unsigned int nbins=256, const unsigned int nbThreads=1);
+  void calculate(const vpImage<unsigned char> &I, const unsigned int nbins = 256, const unsigned int nbThreads = 1);
 
-  void     display(const vpImage<unsigned char> &I, const vpColor &color=vpColor::white, const unsigned int thickness=2,
-                   const unsigned int maxValue_=0);
+  void display(const vpImage<unsigned char> &I, const vpColor &color = vpColor::white, const unsigned int thickness = 2,
+               const unsigned int maxValue_ = 0);
 
-  void     smooth(const unsigned int fsize = 3);
-  unsigned getPeaks(std::list<vpHistogramPeak> & peaks);
-  unsigned getPeaks(unsigned char dist, 
-                    vpHistogramPeak & peak1,
-                    vpHistogramPeak & peak2);
-  bool     getPeaks(unsigned char dist, 
-                    vpHistogramPeak & peakl,
-                    vpHistogramPeak & peakr,
-                    vpHistogramValey & valey);
-  unsigned getValey(std::list<vpHistogramValey> & valey);
-  bool     getValey(const vpHistogramPeak & peak1, 
-                    const vpHistogramPeak & peak2,
-                    vpHistogramValey & valey);
-  unsigned getValey(unsigned char dist,
-                    const vpHistogramPeak & peak,
-                    vpHistogramValey & valeyl,
-                    vpHistogramValey & valeyr);
-  unsigned sort(std::list<vpHistogramPeak> & peaks);
+  void smooth(const unsigned int fsize = 3);
+  unsigned getPeaks(std::list<vpHistogramPeak> &peaks);
+  unsigned getPeaks(unsigned char dist, vpHistogramPeak &peak1, vpHistogramPeak &peak2);
+  bool getPeaks(unsigned char dist, vpHistogramPeak &peakl, vpHistogramPeak &peakr, vpHistogramValey &valey);
+  unsigned getValey(std::list<vpHistogramValey> &valey);
+  bool getValey(const vpHistogramPeak &peak1, const vpHistogramPeak &peak2, vpHistogramValey &valey);
+  unsigned getValey(unsigned char dist, const vpHistogramPeak &peak, vpHistogramValey &valeyl,
+                    vpHistogramValey &valeyr);
+  unsigned sort(std::list<vpHistogramPeak> &peaks);
 
-  bool     write(const std::string &filename);
-  bool     write(const char *filename);
+  bool write(const std::string &filename);
+  bool write(const char *filename);
 
   /*!
     Get the histogram size.
@@ -274,10 +264,7 @@ public:
 
     \sa getValues()
   */
-  inline unsigned getSize() const
-    { 
-      return size; 
-    };
+  inline unsigned getSize() const { return size; };
 
   /*!
 
@@ -288,8 +275,8 @@ public:
 
     \code
     vpImage<unsigned char> I; // A gray level image
-    
-    vpHistogram h; 
+
+    vpHistogram h;
     h.calculate(I); // Histogram of the gray level image
 
     // Print the histogram values
@@ -300,10 +287,7 @@ public:
 
     \sa getSize()
   */
-  inline unsigned * getValues() 
-    {
-      return histogram;
-    };
+  inline unsigned *getValues() { return histogram; };
 
 private:
   void init(unsigned size = 256);
@@ -311,8 +295,6 @@ private:
   unsigned int *histogram;
   unsigned size; // Histogram size (max allowed 256)
 };
-
-
 
 #endif
 

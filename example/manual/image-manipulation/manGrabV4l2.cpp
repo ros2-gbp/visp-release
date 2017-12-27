@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -63,13 +64,12 @@ int main()
     g.setHeight(576); // Acquired images are 576 height
     g.setNBuffers(3); // 3 ring buffers to ensure real-time acquisition
     g.open(I);        // Open the grabber
-    for ( ; ; )
-      g.acquire(I);     // Acquire a 768x576 grey image
+    for (;;)
+      g.acquire(I); // Acquire a 768x576 grey image
 #endif
 
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }

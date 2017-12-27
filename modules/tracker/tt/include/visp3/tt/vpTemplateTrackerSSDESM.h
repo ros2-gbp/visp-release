@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -50,23 +51,23 @@
   \class vpTemplateTrackerSSDESM
   \ingroup group_tt_tracker
 */
-class VISP_EXPORT vpTemplateTrackerSSDESM: public vpTemplateTrackerSSD
+class VISP_EXPORT vpTemplateTrackerSSDESM : public vpTemplateTrackerSSD
 {
-  protected:
-    bool        compoInitialised;
-    vpMatrix    HDir;
-    vpMatrix    HInv;
-    vpMatrix    HLMDir;
-    vpMatrix    HLMInv;
-    vpColVector GDir;
-    vpColVector GInv;
-    
-  protected:
-    void initHessienDesired(const vpImage<unsigned char> &I);
-    void initCompInverse(const vpImage<unsigned char> &I);
-    void trackNoPyr(const vpImage<unsigned char> &I);
+protected:
+  bool compoInitialised;
+  vpMatrix HDir;
+  vpMatrix HInv;
+  vpMatrix HLMDir;
+  vpMatrix HLMInv;
+  vpColVector GDir;
+  vpColVector GInv;
 
-  public:
-    vpTemplateTrackerSSDESM(vpTemplateTrackerWarp *warp);
+protected:
+  void initHessienDesired(const vpImage<unsigned char> &I);
+  void initCompInverse(const vpImage<unsigned char> &I);
+  void trackNoPyr(const vpImage<unsigned char> &I);
+
+public:
+  explicit vpTemplateTrackerSSDESM(vpTemplateTrackerWarp *warp);
 };
 #endif

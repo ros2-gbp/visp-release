@@ -1,7 +1,7 @@
 //! \example tutorial-undistort.cpp
-#include <visp3/io/vpImageIo.h>
 #include <visp3/core/vpImageTools.h>
 #include <visp3/core/vpXmlParserCamera.h>
+#include <visp3/io/vpImageIo.h>
 
 int main()
 {
@@ -17,11 +17,12 @@ int main()
     vpXmlParserCamera p;
     vpCameraParameters::vpCameraParametersProjType projModel;
     projModel = vpCameraParameters::perspectiveProjWithDistortion;
-    if (p.parse(cam, "camera.xml", "Camera", projModel, I.getWidth(), I.getHeight()) != vpXmlParserCamera::SEQUENCE_OK) {
+    if (p.parse(cam, "camera.xml", "Camera", projModel, I.getWidth(), I.getHeight()) !=
+        vpXmlParserCamera::SEQUENCE_OK) {
       std::cout << "Cannot found parameters for camera named \"Camera\"" << std::endl;
     }
-    //! [Load camera parameters from xml]
-    //! [Set camera parameters]
+//! [Load camera parameters from xml]
+//! [Set camera parameters]
 #else
     cam.initPersProjWithDistortion(582.7, 580.6, 326.6, 215.0, -0.3372, 0.4021);
 #endif
@@ -34,8 +35,7 @@ int main()
     vpImageTools::undistort(I, cam, Iud);
     vpImageIo::write(Iud, "chessboard-undistort.pgm");
     //! [Create image without distorsion]
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }
 

@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,7 +36,6 @@
  *
  *****************************************************************************/
 
-
 /*!
   \file vpRobotCamera.cpp
   \brief class that defines the simplest robot : a free flying camera
@@ -45,10 +45,10 @@
 
 #if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
 
-#include <visp3/core/vpHomogeneousMatrix.h>
-#include <visp3/robot/vpRobotException.h>
 #include <visp3/core/vpDebug.h>
 #include <visp3/core/vpExponentialMap.h>
+#include <visp3/core/vpHomogeneousMatrix.h>
+#include <visp3/robot/vpRobotException.h>
 
 /*!
   Constructor.
@@ -69,11 +69,7 @@
   \endcode
 
 */
-vpRobotCamera::vpRobotCamera()
-  : cMw_()
-{
-  init() ;
-}
+vpRobotCamera::vpRobotCamera() : cMw_() { init(); }
 
 /*!
   Robot initialisation.
@@ -85,25 +81,22 @@ vpRobotCamera::vpRobotCamera()
 void vpRobotCamera::init()
 {
   nDof = 6;
-  eJe.eye(6,6) ;
+  eJe.eye(6, 6);
   eJeAvailable = true;
   fJeAvailable = false;
   areJointLimitsAvailable = false;
   qmin = NULL;
   qmax = NULL;
 
-  setMaxTranslationVelocity(1.); // vx, vy and vz max set to 1 m/s
+  setMaxTranslationVelocity(1.);           // vx, vy and vz max set to 1 m/s
   setMaxRotationVelocity(vpMath::rad(90)); // wx, wy and wz max set to 90 deg/s
 }
-
 
 /*!
   Destructor.
 
 */
-vpRobotCamera::~vpRobotCamera()
-{
-}
+vpRobotCamera::~vpRobotCamera() {}
 
 /*!
 
@@ -111,12 +104,11 @@ vpRobotCamera::~vpRobotCamera()
   frame.  This transformation allows to compute a velocity expressed
   in the end-effector frame into the camera frame.
 
-  \param cVe : Twist transformation. Here this transformation is equal to identity
-  since camera frame and end-effector frame are at the same location.
+  \param cVe : Twist transformation. Here this transformation is equal to
+  identity since camera frame and end-effector frame are at the same location.
 
 */
-void
-vpRobotCamera::get_cVe(vpVelocityTwistMatrix &cVe) const
+void vpRobotCamera::get_cVe(vpVelocityTwistMatrix &cVe) const
 {
   vpVelocityTwistMatrix cVe_;
   cVe = cVe_;
@@ -129,11 +121,7 @@ vpRobotCamera::get_cVe(vpVelocityTwistMatrix &cVe) const
   \param eJe_ : A 6 by 6 matrix representing the robot jacobian \f$ {^e}{\bf
   J}_e\f$ expressed in the end-effector frame.
 */
-void
-vpRobotCamera::get_eJe(vpMatrix &eJe_)
-{
-  eJe_ = this->eJe ;
-}
+void vpRobotCamera::get_eJe(vpMatrix &eJe_) { eJe_ = this->eJe; }
 
 /*!
   Send to the controller a velocity.
@@ -141,79 +129,64 @@ vpRobotCamera::get_eJe(vpMatrix &eJe_)
   \param frame : Control frame type. Only articular (vpRobot::ARTICULAR_FRAME)
   and camera frame (vpRobot::CAMERA_FRAME) are implemented.
 
-  \param v : Velocity to apply to the robot.
+  \param v : Velocity twist to apply to the robot.
 
-  - In the camera frame, this velocity is represented by a vector of dimension 6
-  \f$ {\bf v} = [{\bf t}, {\bf \theta u }]^t \f$ where \f$ \bf t \f$ is a
-  translation vector and \f$ {\bf \theta u} \f$ is a rotation vector (see
-  vpThetaUVector): \f$ {\bf v} = [t_x, t_y, t_z, {\theta u}_x, {\theta u}_y,
-  {\theta u}_z] \f$ (see vpTranslationVector and vpThetaUVector).
+  - In the camera frame, this velocity is represented by a twist vector of
+  dimension 6 \f$ {\bf v} = [v_x v_y v_z w_x w_y w_z]^t \f$ where \f$ v_x,
+  v_y, v_z  \f$ are the translation velocities in m/s and \f$ w_x, w_y, w_z
+  \f$ the rotation velocities in rad/s applied in the camera frame.
 
-  - In articular, this velocity is represented by a 6 dimension vector \f$
-  \dot{{\bf q}} = [{\bf t}, {\bf \theta u}]^t \f$ where \f$ \bf t \f$ is a
-  translation vector and \f$ {\bf \theta u} \f$ is a rotation vector (see
-  vpThetaUVector): \f$ \dot{{\bf q}} = [t_x, t_y, t_z, {\theta u}_x, {\theta
-  u}_y, {\theta u}_z] \f$ (see vpTranslationVector and vpThetaUVector). The
-  robot jacobian \f$ {^e}{\bf J}_e\f$ expressed in the end-effector frame is
-  here set to identity.
+  - In articular, the behavior is the same as in camera frame.
 
-  We use the exponential map (vpExponentialMap) to update the camera location.
-  Sampling time can be set using setSamplingTime().
+  Internally, the exponential map (vpExponentialMap) is used to update the
+  camera position from its velocity after applying the velocity during a
+  sampling time. This sampling time can be set using setSamplingTime().
 
   \sa setSamplingTime()
 
 */
-void
-vpRobotCamera::setVelocity(const vpRobot::vpControlFrameType frame,
-                           const vpColVector &v)
+void vpRobotCamera::setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &v)
 {
-  switch (frame)
-  {
+  switch (frame) {
   case vpRobot::ARTICULAR_FRAME:
   case vpRobot::CAMERA_FRAME: {
-      if (vpRobot::STATE_VELOCITY_CONTROL != getRobotState ()) {
-        setRobotState(vpRobot::STATE_VELOCITY_CONTROL);
-      }
-
-      vpColVector v_max(6);
-
-      for (unsigned int i=0; i<3; i++)
-        v_max[i] = getMaxTranslationVelocity();
-      for (unsigned int i=3; i<6; i++)
-        v_max[i] = getMaxRotationVelocity();
-
-      vpColVector v_sat = vpRobot::saturateVelocities(v, v_max, true);
-
-      this->cMw_ = vpExponentialMap::direct(v_sat, delta_t_).inverse()*this->cMw_ ;
-      break ;
+    if (vpRobot::STATE_VELOCITY_CONTROL != getRobotState()) {
+      setRobotState(vpRobot::STATE_VELOCITY_CONTROL);
     }
-  case vpRobot::REFERENCE_FRAME:
-    vpERROR_TRACE ("Cannot set a velocity in the reference frame: "
-                   "functionality not implemented");
-    throw vpRobotException (vpRobotException::wrongStateError,
-                            "Cannot set a velocity in the reference frame:"
-                            "functionality not implemented");
-    break ;
-  case vpRobot::MIXT_FRAME:
-    vpERROR_TRACE ("Cannot set a velocity in the mixt frame: "
-                   "functionality not implemented");
-    throw vpRobotException (vpRobotException::wrongStateError,
-                            "Cannot set a velocity in the mixt frame:"
-                            "functionality not implemented");
 
-    break ;
+    vpColVector v_max(6);
+
+    for (unsigned int i = 0; i < 3; i++)
+      v_max[i] = getMaxTranslationVelocity();
+    for (unsigned int i = 3; i < 6; i++)
+      v_max[i] = getMaxRotationVelocity();
+
+    vpColVector v_sat = vpRobot::saturateVelocities(v, v_max, true);
+
+    this->cMw_ = vpExponentialMap::direct(v_sat, delta_t_).inverse() * this->cMw_;
+    break;
+  }
+  case vpRobot::REFERENCE_FRAME:
+    vpERROR_TRACE("Cannot set a velocity in the reference frame: "
+                  "functionality not implemented");
+    throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the reference frame:"
+                                                              "functionality not implemented");
+    break;
+  case vpRobot::MIXT_FRAME:
+    vpERROR_TRACE("Cannot set a velocity in the mixt frame: "
+                  "functionality not implemented");
+    throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the mixt frame:"
+                                                              "functionality not implemented");
+
+    break;
   }
 }
 
-
 /*!
-  Get the robot position as the transformation from camera frame to world frame.
+  Get the robot position as the transformation from camera frame to world
+  frame.
 */
-void
-vpRobotCamera::getPosition(vpHomogeneousMatrix &cMw) const
-{
-  cMw = this->cMw_ ;
-}
+void vpRobotCamera::getPosition(vpHomogeneousMatrix &cMw) const { cMw = this->cMw_; }
 
 /*
   Get the current position of the robot.
@@ -222,7 +195,8 @@ vpRobotCamera::getPosition(vpHomogeneousMatrix &cMw) const
   - in the camera cartesien frame,
   - joint (articular) coordinates of each axes
   - in a reference or fixed cartesien frame attached to the robot base
-  - in a mixt cartesien frame (translation in reference frame, and rotation in camera frame)
+  - in a mixt cartesien frame (translation in reference frame, and rotation in
+  camera frame)
 
   \param position : Measured position of the robot:
   - in camera cartesien frame, a 6 dimension vector, set to 0.
@@ -237,15 +211,15 @@ vpRobotCamera::getPosition(vpHomogeneousMatrix &cMw) const
 */
 void vpRobotCamera::getPosition(const vpRobot::vpControlFrameType frame, vpColVector &q)
 {
-  q.resize (6);
+  q.resize(6);
 
   switch (frame) {
-  case vpRobot::CAMERA_FRAME :
+  case vpRobot::CAMERA_FRAME:
     q = 0;
     break;
 
-  case vpRobot::ARTICULAR_FRAME :
-  case vpRobot::REFERENCE_FRAME : {
+  case vpRobot::ARTICULAR_FRAME:
+  case vpRobot::REFERENCE_FRAME: {
     // Convert wMc_ to a position
     // From fMc extract the pose
     vpRotationMatrix cRw;
@@ -253,32 +227,33 @@ void vpRobotCamera::getPosition(const vpRobot::vpControlFrameType frame, vpColVe
     vpRxyzVector rxyz;
     rxyz.buildFrom(cRw);
 
-    for (unsigned int i=0; i < 3; i++) {
+    for (unsigned int i = 0; i < 3; i++) {
       q[i] = this->cMw_[i][3]; // translation x,y,z
-      q[i+3] = rxyz[i]; // Euler rotation x,y,z
+      q[i + 3] = rxyz[i];      // Euler rotation x,y,z
     }
 
     break;
-    }
-  case vpRobot::MIXT_FRAME :
+  }
+  case vpRobot::MIXT_FRAME:
     std::cout << "MIXT_FRAME is not implemented in vpSimulatorCamera::getPosition()" << std::endl;
   }
 }
 
 /*!
-  Set the robot position as the transformation from camera frame to world frame.
+  Set the robot position as the transformation from camera frame to world
+  frame.
 */
-void
-vpRobotCamera::setPosition(const vpHomogeneousMatrix &cMw)
+void vpRobotCamera::setPosition(const vpHomogeneousMatrix &cMw)
 {
-  if (vpRobot::STATE_POSITION_CONTROL != getRobotState ()) {
+  if (vpRobot::STATE_POSITION_CONTROL != getRobotState()) {
     setRobotState(vpRobot::STATE_POSITION_CONTROL);
   }
 
-  this->cMw_ = cMw ;
+  this->cMw_ = cMw;
 }
 
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_robot.a(vpRobotCamera.cpp.o) has no symbols
-void dummy_vpRobotCamera() {};
+// Work arround to avoid warning: libvisp_robot.a(vpRobotCamera.cpp.o) has no
+// symbols
+void dummy_vpRobotCamera(){};
 #endif

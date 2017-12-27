@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -38,12 +39,12 @@
  *****************************************************************************/
 
 #include "vpParser.h"
-#include "vpLex.h"
-#include "vpToken.h"
-#include "vpSkipio.h"
 #include "vpBoundio.h"
+#include "vpLex.h"
+#include "vpSkipio.h"
+#include "vpToken.h"
 
-#include	<stdio.h>
+#include <stdio.h>
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 /*
@@ -51,47 +52,46 @@
  * Entree/Sortie :
  * bsp		Scene surfacique polygonale a lire.
  */
-void parser (Bound_scene *bsp)
+void parser(Bound_scene *bsp)
 {
-	int	token;
+  int token;
 
-	while ((token = lex ()) != T_EOF) 
-	switch (token) {
-	case '$' :
-		switch (lex ()) {
-		case T_IDENT	:	/* saute la commande inconnue	*/
-			skip_cmd (/* stderr */);
-			unlex ();
-			break;
-		case T_EXIT	:
-			return;
-			break;
-		case T_BOUND	:
-			if (bsp->bound.nbr == BOUND_NBR) {
-				fprintf (stderr, "mire: too much bound\n");
-				return;
-			}
-			fscanf_Bound (
-			&(bsp->bound.ptr[bsp->bound.nbr++]));
-			break;
-#ifdef	used
-		case T_REMOVE	:
-			fscanf_Remove (get_remove ());
-			break;
-		case T_VIEW	:
-			fscanf_View_parameters (get_view_parameters ());
-			set_projection (void);
-			break;
-#endif	/* used	*/
-		default		:
-		  lexerr ("start", "keyword expected", NULL); 
-			break;
-		}
-		break;
-	default	:
-	  lexerr ("start", "symbol '$' expected", NULL);
-		break;
-	}
+  while ((token = lex()) != T_EOF)
+    switch (token) {
+    case '$':
+      switch (lex()) {
+      case T_IDENT: /* saute la commande inconnue	*/
+        skip_cmd(/* stderr */);
+        unlex();
+        break;
+      case T_EXIT:
+        return;
+        break;
+      case T_BOUND:
+        if (bsp->bound.nbr == BOUND_NBR) {
+          fprintf(stderr, "mire: too much bound\n");
+          return;
+        }
+        fscanf_Bound(&(bsp->bound.ptr[bsp->bound.nbr++]));
+        break;
+#ifdef used
+      case T_REMOVE:
+        fscanf_Remove(get_remove());
+        break;
+      case T_VIEW:
+        fscanf_View_parameters(get_view_parameters());
+        set_projection(void);
+        break;
+#endif /* used	*/
+      default:
+        lexerr("start", "keyword expected", NULL);
+        break;
+      }
+      break;
+    default:
+      lexerr("start", "symbol '$' expected", NULL);
+      break;
+    }
 }
 
 #endif
