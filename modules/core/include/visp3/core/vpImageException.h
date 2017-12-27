@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -38,11 +39,12 @@
 #ifndef __vpImageException_H
 #define __vpImageException_H
 
-
-/* ------------------------------------------------------------------------- */
-/* --- INCLUDE ------------------------------------------------------------- */
-/* ------------------------------------------------------------------------- */
-
+/* -------------------------------------------------------------------------
+ */
+/* --- INCLUDE -------------------------------------------------------------
+ */
+/* -------------------------------------------------------------------------
+ */
 
 /* \file vpImageException.h
    \brief error that can be emited by the vpImage class and its derivates
@@ -52,12 +54,15 @@
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpException.h>
 
-#include <iostream>                /* Classe std::ostream.    */
-#include <string>                  /* Classe string.     */
+#include <iostream> /* Classe std::ostream.    */
+#include <string>   /* Classe string.     */
 
-/* ------------------------------------------------------------------------- */
-/* --- CLASS --------------------------------------------------------------- */
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------
+ */
+/* --- CLASS ---------------------------------------------------------------
+ */
+/* -------------------------------------------------------------------------
+ */
 
 /*!
 
@@ -67,33 +72,30 @@
  */
 class VISP_EXPORT vpImageException : public vpException
 {
-  public:
-    /*!
-    \brief Lists the possible error than can be emmited while calling
-    vpImage member
-   */
-    enum errorImageCodeEnum
-    {
-      ioError,
-      noFileNameError,
-      notInitializedError,
-      incorrectInitializationError,
-      notInTheImage
-    } ;
+public:
+  /*!
+  \brief Lists the possible error than can be emmited while calling
+  vpImage member
+ */
+  enum errorImageCodeEnum {
+    ioError,
+    noFileNameError,
+    notInitializedError,
+    incorrectInitializationError,
+    notInTheImage
+  };
 
-  public:
-    vpImageException (const int id, const char* format, ...)
-    {
-      this->code = id;
-      va_list args;
-      va_start(args, format);
-      setMessage(format, args);
-      va_end (args);
-    }
-    vpImageException (const int id, const std::string & msg)
-      : vpException(id, msg){ ; }
-    vpImageException (const int id)
-      : vpException(id){ ; }
+public:
+  vpImageException(const int id, const char *format, ...)
+  {
+    this->code = id;
+    va_list args;
+    va_start(args, format);
+    setMessage(format, args);
+    va_end(args);
+  }
+  vpImageException(const int id, const std::string &msg) : vpException(id, msg) { ; }
+  explicit vpImageException(const int id) : vpException(id) { ; }
 };
 
 #endif

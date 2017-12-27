@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -38,9 +39,9 @@
 #ifndef __vpDetectorQRCode_h__
 #define __vpDetectorQRCode_h__
 
-#include <vector>
-#include <utility>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <visp3/core/vpConfig.h>
 
@@ -48,23 +49,24 @@
 
 #include <zbar.h>
 
-#include <visp3/detection/vpDetectorBase.h>
 #include <visp3/core/vpImage.h>
+#include <visp3/detection/vpDetectorBase.h>
 
 /*!
   \class vpDetectorQRCode
   \ingroup group_detection_barcode
   Base class for bar code detector. This class is a wrapper over libzbar
-  available from http://zbar.sourceforge.net. Installation instructions are provided
-  here https://visp.inria.fr/3rd_zbar.
+  available from http://zbar.sourceforge.net. Installation instructions are
+provided here https://visp.inria.fr/3rd_zbar.
 
-  The detect() function allows to detect multiple QR codes in an image. Once detected,
-  for each QR code it is possible to retrieve the location of the corners using getPolygon(),
-  the encoded message using getMessage(), the bounding box using getBBox() and the center
-  of gravity using getCog().
+  The detect() function allows to detect multiple QR codes in an image. Once
+detected, for each QR code it is possible to retrieve the location of the
+corners using getPolygon(), the encoded message using getMessage(), the
+bounding box using getBBox() and the center of gravity using getCog().
 
-  The following sample code shows how to use this class to detect QR codes in an image.
-  \code
+  The following sample code shows how to use this class to detect QR codes in
+an image.
+\code
 #include <visp3/detection/vpDetectorQRCode.h>
 #include <visp3/io/vpImageIo.h>
 
@@ -116,7 +118,7 @@ protected:
 
 public:
   vpDetectorQRCode();
-  virtual ~vpDetectorQRCode() {};
+  virtual ~vpDetectorQRCode(){};
   bool detect(const vpImage<unsigned char> &I);
 };
 

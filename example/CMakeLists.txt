@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -87,6 +88,7 @@ visp_add_subdirectory(robot-simulator/viper850 REQUIRED_DEPS visp_core visp_vs v
 visp_add_subdirectory(servo-afma4              REQUIRED_DEPS visp_core visp_blob visp_vs visp_robot visp_sensor visp_gui)
 visp_add_subdirectory(servo-afma6              REQUIRED_DEPS visp_core visp_blob visp_vs visp_robot visp_sensor visp_vision visp_gui)
 visp_add_subdirectory(servo-biclops            REQUIRED_DEPS visp_core visp_blob visp_vs visp_robot visp_sensor visp_gui)
+visp_add_subdirectory(servo-franka             REQUIRED_DEPS visp_core visp_robot)
 visp_add_subdirectory(servo-pioneer            REQUIRED_DEPS visp_core visp_blob visp_vs visp_robot visp_sensor visp_gui)
 visp_add_subdirectory(servo-ptu46              REQUIRED_DEPS visp_core visp_blob visp_vs visp_robot visp_sensor visp_gui)
 visp_add_subdirectory(servo-viper650           REQUIRED_DEPS visp_core visp_blob visp_vs visp_robot visp_sensor visp_vision visp_gui)

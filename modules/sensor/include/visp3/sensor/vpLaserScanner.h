@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -37,7 +38,6 @@
 #ifndef vpLaserScanner_h
 #define vpLaserScanner_h
 
-
 #include "visp3/core/vpConfig.h"
 
 /*!
@@ -56,30 +56,22 @@
  */
 class VISP_EXPORT vpLaserScanner
 {
- public:
-  /*! Default constructor that initialize all the internal variable to zero. */
-    vpLaserScanner() : ip("null"), port(0) {};
+public:
+  /*! Default constructor that initialize all the internal variable to zero.
+   */
+  vpLaserScanner() : ip("null"), port(0){};
   /*! Copy constructor. */
-  vpLaserScanner(const vpLaserScanner &scanner)
-    : ip("null"), port(0)
-  {
-    ip = scanner.ip;
-    port = scanner.port;
-  };
+  vpLaserScanner(const vpLaserScanner &scanner) : ip(scanner.ip), port(scanner.port){};
   /*! Default destructor that does nothing. */
-  virtual ~vpLaserScanner() {};
+  virtual ~vpLaserScanner(){};
 
   /*! Set the Ethernet address of the laser. */
-  void setIpAddress(std::string ip_address) {
-    this->ip = ip_address;
-  };
+  void setIpAddress(std::string ip_address) { this->ip = ip_address; };
 
   /*! Set the communication port. */
-  void setPort(int com_port) {
-    this->port = com_port;
-  };
+  void setPort(int com_port) { this->port = com_port; };
 
- protected:
+protected:
   std::string ip;
   int port;
 };

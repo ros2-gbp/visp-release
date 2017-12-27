@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -42,12 +43,11 @@
   with constant acceleration state model.
 */
 
-#include <visp3/core/vpLinearKalmanFilterInstantiation.h>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <visp3/core/vpLinearKalmanFilterInstantiation.h>
 
-int
-main()
+int main()
 {
   try {
     unsigned int nsignal = 1; // Number of signal to filter
@@ -62,36 +62,34 @@ main()
     model = vpLinearKalmanFilterInstantiation::stateConstAccWithColoredNoise_MeasureVel;
     kalman.setStateModel(model);
 
-    unsigned int size_state_vector = kalman.getStateSize()*nsignal;
-    unsigned int size_measure_vector = kalman.getMeasureSize()*nsignal;
+    unsigned int size_state_vector = kalman.getStateSize() * nsignal;
+    unsigned int size_measure_vector = kalman.getMeasureSize() * nsignal;
 
     vpColVector sigma_measure(size_measure_vector);
-    for (unsigned int signal=0; signal < nsignal; signal ++)
+    for (unsigned int signal = 0; signal < nsignal; signal++)
       sigma_measure = 0.0001;
     vpColVector sigma_state(size_state_vector);
-    for (unsigned int signal=0; signal < nsignal; signal ++) {
-      sigma_state[3*signal] = 0.; // not used
-      sigma_state[3*signal+1] = 0.000001;
-      sigma_state[3*signal+2] = 0.000001;
+    for (unsigned int signal = 0; signal < nsignal; signal++) {
+      sigma_state[3 * signal] = 0.; // not used
+      sigma_state[3 * signal + 1] = 0.000001;
+      sigma_state[3 * signal + 2] = 0.000001;
     }
 
     vpColVector velocity_measure(size_measure_vector);
 
     double rho = 0.9; // correlation
-    double dt = 0.2; // sampling period
+    double dt = 0.2;  // sampling period
 
-    for (unsigned int signal=0; signal < nsignal; signal ++)
-      velocity_measure[signal] = 3+2*signal;
+    for (unsigned int signal = 0; signal < nsignal; signal++)
+      velocity_measure[signal] = 3 + 2 * signal;
 
     kalman.verbose(false);
     kalman.initFilter(nsignal, sigma_state, sigma_measure, rho, dt);
 
-
-    for (unsigned int iter=0; iter <= niter; iter++) {
+    for (unsigned int iter = 0; iter <= niter; iter++) {
       std::cout << "-------- iter " << iter << " ------------" << std::endl;
-      for (unsigned int signal=0; signal < nsignal; signal ++) {
-        velocity_measure[signal] = 3+2*signal
-            + 0.3*sin(vpMath::rad(360./niter*iter));
+      for (unsigned int signal = 0; signal < nsignal; signal++) {
+        velocity_measure[signal] = 3 + 2 * signal + 0.3 * sin(vpMath::rad(360. / niter * iter));
       }
       std::cout << "measure : " << velocity_measure.t() << std::endl;
 
@@ -105,13 +103,12 @@ main()
       std::cout << "Xest: " << kalman.Xest.t() << std::endl;
       std::cout << "Xpre: " << kalman.Xpre.t() << std::endl;
 
-      flog <<  std::endl;
+      flog << std::endl;
     }
 
     flog.close();
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 0;
   }
