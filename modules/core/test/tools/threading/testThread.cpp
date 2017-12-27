@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -69,18 +70,19 @@ vpThread::Return myBarFunction(vpThread::Args args)
 
 vpThread::Return myQuxFunction(vpThread::Args args)
 {
-  unsigned int args_ = *((unsigned int *) args);
+  unsigned int args_ = *((unsigned int *)args);
   std::cout << "qux arg: " << args_ << std::endl;
   // do stuff...
   return 0;
 }
 
-int main() 
+int main()
 {
   unsigned int qux_arg = 12;
   vpThread foo;
   vpThread bar((vpThread::Fn)myBarFunction);
-  vpThread qux((vpThread::Fn)myQuxFunction, (vpThread::Args)&qux_arg); // Pass qux_arg to myQuxFunction() function
+  vpThread qux((vpThread::Fn)myQuxFunction,
+               (vpThread::Args)&qux_arg); // Pass qux_arg to myQuxFunction() function
 
   vpTime::wait(1000); // Sleep 1s to ensure myQuxFunction() internal printings
   std::cout << "Joinable after construction:" << std::endl;
@@ -95,9 +97,12 @@ int main()
   std::cout << "bar: " << bar.joinable() << std::endl;
   std::cout << "qux: " << qux.joinable() << std::endl;
 
-  if (foo.joinable()) foo.join();
-  if (bar.joinable()) bar.join();
-  if (qux.joinable()) qux.join();
+  if (foo.joinable())
+    foo.join();
+  if (bar.joinable())
+    bar.join();
+  if (qux.joinable())
+    qux.join();
 
   std::cout << "Joinable after joining:" << std::endl;
   std::cout << "foo: " << foo.joinable() << std::endl;
@@ -114,10 +119,10 @@ int main()
 
 int main()
 {
-#  if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
   std::cout << "You should enable pthread usage and rebuild ViSP..." << std::endl;
-#  else
+#else
   std::cout << "Multi-threading seems not supported on this platform" << std::endl;
-#  endif
+#endif
 }
 #endif

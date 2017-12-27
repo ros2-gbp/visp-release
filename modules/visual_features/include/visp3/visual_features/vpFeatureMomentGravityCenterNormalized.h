@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -36,7 +37,8 @@
  *****************************************************************************/
 /*!
   \file vpFeatureMomentGravityCenterNormalized.h
-  \brief Implementation of the interaction matrix computation for vpMomentGravityCenterNormalized.
+  \brief Implementation of the interaction matrix computation for
+  vpMomentGravityCenterNormalized.
 */
 #ifndef __FEATUREMOMENTGRAVITYCENTERNORMALIZED_H__
 #define __FEATUREMOMENTGRAVITYCENTERNORMALIZED_H__
@@ -48,25 +50,35 @@ class vpMomentDatabase;
 
   \ingroup group_visual_features
 
-  \brief Functionality computation for centered and normalized moment feature. Computes the interaction matrix associated with vpMomentGravityCenterNormalized.
+  \brief Functionality computation for centered and normalized moment feature.
+  Computes the interaction matrix associated with
+  vpMomentGravityCenterNormalized.
 
-  The interaction matrix for the moment feature can be deduced from \cite Tahri05z, equation (19).
-  To do so, one must derive it and obtain a combination of interaction matrices by using (1).
-  It allows to compute the interaction matrices for \f$ (x_n,y_n) \f$.
+  The interaction matrix for the moment feature can be deduced from \cite
+  Tahri05z, equation (19). To do so, one must derive it and obtain a
+  combination of interaction matrices by using (1). It allows to compute the
+  interaction matrices for \f$ (x_n,y_n) \f$.
 
-  These interaction matrices may be selected afterwards by calling vpFeatureMomentGravityCenterNormalized::interaction.
-  The selection is done by the following methods: vpFeatureMomentGravityCenterNormalized::selectXn for \f$ L_{x_{n}} \f$ and vpFeatureMomentGravityCenterNormalized::selectYn for \f$ L_{y_{n}} \f$.
-  You can use these shortcut selectors as follows:
+  These interaction matrices may be selected afterwards by calling
+  vpFeatureMomentGravityCenterNormalized::interaction. The selection is done
+  by the following methods: vpFeatureMomentGravityCenterNormalized::selectXn
+  for \f$ L_{x_{n}} \f$ and vpFeatureMomentGravityCenterNormalized::selectYn
+  for \f$ L_{y_{n}} \f$. You can use these shortcut selectors as follows:
 
   \code
-  task.addFeature(db_src.getFeatureGravityNormalized(),db_dst.getFeatureGravityNormalized(),vpFeatureMomentGravityCenterNormalized::selectXn() | vpFeatureMomentGravityCenterNormalized::selectYn());
+  task.addFeature(db_src.getFeatureGravityNormalized(), db_dst.getFeatureGravityNormalized(),
+                  vpFeatureMomentGravityCenterNormalized::selectXn() | vpFeatureMomentGravityCenterNormalized::selectYn());
   \endcode
 
-  The behaviour of this feature is very similar to vpFeatureMomentGravityCenter which also contains a sample code demonstrating a selection.
+  The behaviour of this feature is very similar to
+  vpFeatureMomentGravityCenter which also contains a sample code demonstrating
+  a selection.
 
-  This feature is often used in moment-based visual servoing to control the planar translation parameters.
+  This feature is often used in moment-based visual servoing to control the
+  planar translation parameters.
 
-  Minimum vpMomentObject order needed to compute this feature: 2 in dense mode and 3 in discrete mode.
+  Minimum vpMomentObject order needed to compute this feature: 2 in dense mode
+  and 3 in discrete mode.
 
   This feature depends on:
     - vpFeatureMomentGravityCenter
@@ -75,40 +87,45 @@ class vpMomentDatabase;
     - vpFeatureMomentAreaNormalized
 
 */
-class VISP_EXPORT vpFeatureMomentGravityCenterNormalized : public vpFeatureMoment{
- public:
-        /*!
-        Initializes the feature with information about the database of moment primitives, the object plane and feature database.
-        \param database : Moment database. The database of moment primitives (first parameter) is mandatory. It is used to access different moment values later used to compute the final matrix.
-        \param A_ : Plane coefficient in a \f$ A \times x+B \times y + C = \frac{1}{Z} \f$ plane.
-        \param B_ : Plane coefficient in a \f$ A \times x+B \times y + C = \frac{1}{Z} \f$ plane.
-        \param C_ : Plane coefficient in a \f$ A \times x+B \times y + C = \frac{1}{Z} \f$ plane.
-        \param featureMoments : Feature database.
+class VISP_EXPORT vpFeatureMomentGravityCenterNormalized : public vpFeatureMoment
+{
+public:
+  /*!
+  Initializes the feature with information about the database of moment
+  primitives, the object plane and feature database. \param database : Moment
+  database. The database of moment primitives (first parameter) is mandatory.
+  It is used to access different moment values later used to compute the final
+  matrix. \param A_ : Plane coefficient in a \f$ A \times x+B \times y + C =
+  \frac{1}{Z} \f$ plane. \param B_ : Plane coefficient in a \f$ A \times x+B
+  \times y + C = \frac{1}{Z} \f$ plane. \param C_ : Plane coefficient in a \f$
+  A \times x+B \times y + C = \frac{1}{Z} \f$ plane. \param featureMoments :
+  Feature database.
 
-        */
-        vpFeatureMomentGravityCenterNormalized(vpMomentDatabase& database,double A_, double B_, double C_,vpFeatureMomentDatabase* featureMoments=NULL)
-          : vpFeatureMoment(database,A_,B_,C_,featureMoments,2)
-        {}
-        void compute_interaction();
-        /*!
-          associated moment name
-          */
-        const char* momentName() const { return "vpMomentGravityCenterNormalized";}
-        /*!
-            feature name
-          */
-        const char* name() const { return "vpFeatureMomentGravityCenterNormalized";}
+  */
+  vpFeatureMomentGravityCenterNormalized(vpMomentDatabase &database, double A_, double B_, double C_,
+                                         vpFeatureMomentDatabase *featureMoments = NULL)
+    : vpFeatureMoment(database, A_, B_, C_, featureMoments, 2)
+  {
+  }
+  void compute_interaction();
+  /*!
+    associated moment name
+    */
+  const char *momentName() const { return "vpMomentGravityCenterNormalized"; }
+  /*!
+      feature name
+    */
+  const char *name() const { return "vpFeatureMomentGravityCenterNormalized"; }
 
-        /*!
-          Shortcut selector for \f$x_n\f$.
-          */
-        static unsigned int selectXn(){ return 1 << 0; }
+  /*!
+    Shortcut selector for \f$x_n\f$.
+    */
+  static unsigned int selectXn() { return 1 << 0; }
 
-        /*!
-          Shortcut selector for \f$y_n\f$.
-          */
-        static unsigned int selectYn(){ return 1 << 1; }
-
+  /*!
+    Shortcut selector for \f$y_n\f$.
+    */
+  static unsigned int selectYn() { return 1 << 1; }
 };
 
 #else
@@ -118,7 +135,9 @@ class vpMomentDatabase;
 
   \ingroup group_visual_features
 
-  \brief Functionality computation for centered and normalized moment feature. Computes the interaction matrix associated with vpMomentGravityCenterNormalized.
+  \brief Functionality computation for centered and normalized moment feature.
+Computes the interaction matrix associated with
+vpMomentGravityCenterNormalized.
 
   It computes the interaction matrices for \f$ (x_n,y_n) \f$.
   The interaction matrix for the moment feature has the following expression:
@@ -190,19 +209,27 @@ with:
     - \f$\theta=\frac{\eta_{0,2}}{NA}\f$
     - \f$\eta\f$ is the centered and normalized moment.
 
-  These interaction matrices may be selected afterwards by calling vpFeatureMomentGravityCenterNormalized::interaction.
-  The selection is done by the following methods: vpFeatureMomentGravityCenterNormalized::selectXn for \f$ L_{x_{n}} \f$ and vpFeatureMomentGravityCenterNormalized::selectYn for \f$ L_{y_{n}} \f$.
-  You can use these shortcut selectors as follows:
+  These interaction matrices may be selected afterwards by calling
+vpFeatureMomentGravityCenterNormalized::interaction. The selection is done by
+the following methods: vpFeatureMomentGravityCenterNormalized::selectXn for
+\f$ L_{x_{n}} \f$ and vpFeatureMomentGravityCenterNormalized::selectYn for \f$
+L_{y_{n}} \f$. You can use these shortcut selectors as follows:
 
   \code
-  task.addFeature(db_src.getFeatureGravityNormalized(),db_dst.getFeatureGravityNormalized(),vpFeatureMomentGravityCenterNormalized::selectXn() | vpFeatureMomentGravityCenterNormalized::selectYn());
+  task.addFeature(db_src.getFeatureGravityNormalized(),db_dst.getFeatureGravityNormalized(),
+                  vpFeatureMomentGravityCenterNormalized::selectXn() |
+                  vpFeatureMomentGravityCenterNormalized::selectYn());
   \endcode
 
-  The behaviour of this feature is very similar to vpFeatureMomentGravityCenter which also contains a sample code demonstrating a selection.
+  The behaviour of this feature is very similar to
+vpFeatureMomentGravityCenter which also contains a sample code demonstrating a
+selection.
 
-  This feature is often used in moment-based visual servoing to control the planar translation parameters.
+  This feature is often used in moment-based visual servoing to control the
+planar translation parameters.
 
-  Minimum vpMomentObject order needed to compute this feature: 2 in dense mode and 3 in discrete mode.
+  Minimum vpMomentObject order needed to compute this feature: 2 in dense mode
+and 3 in discrete mode.
 
   This feature depends on:
     - vpFeatureMomentGravityCenter
@@ -211,41 +238,45 @@ with:
     - vpFeatureMomentAreaNormalized
 
 */
-class VISP_EXPORT vpFeatureMomentGravityCenterNormalized : public vpFeatureMoment{
- public:
-        /*!
-        Initializes the feature with information about the database of moment primitives, the object plane and feature database.
-        \param data_base : Moment database. The database of moment primitives (first parameter) is mandatory. It is used to access different moment values later used to compute the final matrix.
-        \param A_ : Plane coefficient in a \f$ A \times x+B \times y + C = \frac{1}{Z} \f$ plane.
-        \param B_ : Plane coefficient in a \f$ A \times x+B \times y + C = \frac{1}{Z} \f$ plane.
-        \param C_ : Plane coefficient in a \f$ A \times x+B \times y + C = \frac{1}{Z} \f$ plane.
-        \param featureMoments : Feature database.
+class VISP_EXPORT vpFeatureMomentGravityCenterNormalized : public vpFeatureMoment
+{
+public:
+  /*!
+  Initializes the feature with information about the database of moment
+  primitives, the object plane and feature database. \param data_base : Moment
+  database. The database of moment primitives (first parameter) is mandatory.
+  It is used to access different moment values later used to compute the final
+  matrix. \param A_ : Plane coefficient in a \f$ A \times x+B \times y + C =
+  \frac{1}{Z} \f$ plane. \param B_ : Plane coefficient in a \f$ A \times x+B
+  \times y + C = \frac{1}{Z} \f$ plane. \param C_ : Plane coefficient in a \f$
+  A \times x+B \times y + C = \frac{1}{Z} \f$ plane. \param featureMoments :
+  Feature database.
 
-        */
-        vpFeatureMomentGravityCenterNormalized(vpMomentDatabase& data_base,double A_, double B_, double C_,
-                                               vpFeatureMomentDatabase* featureMoments=NULL)
-          : vpFeatureMoment(data_base,A_,B_,C_,featureMoments,2)
-        {}
-        void compute_interaction();
-        /*!
-          associated moment name
-          */
-        const char* momentName() const { return "vpMomentGravityCenterNormalized";}
-        /*!
-            feature name
-          */
-        const char* name() const { return "vpFeatureMomentGravityCenterNormalized";}
+  */
+  vpFeatureMomentGravityCenterNormalized(vpMomentDatabase &data_base, double A_, double B_, double C_,
+                                         vpFeatureMomentDatabase *featureMoments = NULL)
+    : vpFeatureMoment(data_base, A_, B_, C_, featureMoments, 2)
+  {
+  }
+  void compute_interaction();
+  /*!
+    associated moment name
+    */
+  const char *momentName() const { return "vpMomentGravityCenterNormalized"; }
+  /*!
+      feature name
+    */
+  const char *name() const { return "vpFeatureMomentGravityCenterNormalized"; }
 
-        /*!
-          Shortcut selector for \f$x_n\f$.
-          */
-        static unsigned int selectXn(){ return 1 << 0; }
+  /*!
+    Shortcut selector for \f$x_n\f$.
+    */
+  static unsigned int selectXn() { return 1 << 0; }
 
-        /*!
-          Shortcut selector for \f$y_n\f$.
-          */
-        static unsigned int selectYn(){ return 1 << 1; }
-
+  /*!
+    Shortcut selector for \f$y_n\f$.
+    */
+  static unsigned int selectYn() { return 1 << 1; }
 };
 #endif
 #endif

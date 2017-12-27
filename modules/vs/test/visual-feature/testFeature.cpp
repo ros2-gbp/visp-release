@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -35,18 +36,17 @@
  *
  *****************************************************************************/
 
-
-#include <visp3/core/vpColVector.h>
-#include <visp3/core/vpTranslationVector.h>
-#include <visp3/core/vpRotationMatrix.h>
-#include <visp3/core/vpHomogeneousMatrix.h>
-#include <visp3/vs/vpServo.h>
-#include <visp3/visual_features/vpFeaturePoint.h>
-#include <visp3/visual_features/vpGenericFeature.h>
-#include <visp3/visual_features/vpFeatureBuilder.h>
-#include <visp3/visual_features/vpFeatureThetaU.h>
 #include <visp3/blob/vpDot2.h>
 #include <visp3/core/vpCameraParameters.h>
+#include <visp3/core/vpColVector.h>
+#include <visp3/core/vpHomogeneousMatrix.h>
+#include <visp3/core/vpRotationMatrix.h>
+#include <visp3/core/vpTranslationVector.h>
+#include <visp3/visual_features/vpFeatureBuilder.h>
+#include <visp3/visual_features/vpFeaturePoint.h>
+#include <visp3/visual_features/vpFeatureThetaU.h>
+#include <visp3/visual_features/vpGenericFeature.h>
+#include <visp3/vs/vpServo.h>
 
 #include <iostream>
 
@@ -60,15 +60,15 @@
 int main()
 {
   try {
-    for (int i=0; i < 3; i++) {
-      vpServo task ;
+    for (int i = 0; i < 3; i++) {
+      vpServo task;
 
       // Creation od a Theta U vector that represent the rotation
       // between the desired camera frame and the current one.
       vpThetaUVector tu_cdRc; // Current visual feature s
-      tu_cdRc[0] =0.1;
-      tu_cdRc[1] =0.2;
-      tu_cdRc[2] =0.3;
+      tu_cdRc[0] = 0.1;
+      tu_cdRc[1] = 0.2;
+      tu_cdRc[2] = 0.3;
 
       // Creation of the current feature s
       vpFeatureThetaU s(vpFeatureThetaU::cdRc);
@@ -80,10 +80,10 @@ int main()
       vpFeatureThetaU s_star(vpFeatureThetaU::cdRc); // init to zero
 
       // Compute the interaction matrix for the ThetaU_z feature
-      vpMatrix L_z =  s.interaction( vpFeatureThetaU::selectTUz() );
+      vpMatrix L_z = s.interaction(vpFeatureThetaU::selectTUz());
       // Compute the error vector (s-s^*) for the ThetaU_z feature
       s.error(s_star, vpFeatureThetaU::selectTUz());
-      
+
       // A call to kill() is requested here to destroy properly the current
       // and desired feature lists.
       task.kill();
@@ -91,8 +91,7 @@ int main()
       std::cout << "End, call vpServo destructors..." << std::endl;
     }
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }

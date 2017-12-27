@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -75,6 +76,9 @@ set(example_cpp
 if(NOT DEFINED WINRT_8_1)
   list(APPEND example_cpp servoViper650FourPoints2DArtVelocityInteractionCurrent.cpp)
   list(APPEND example_cpp servoViper650FourPoints2DCamVelocityInteractionCurrent.cpp)
+  list(APPEND example_cpp servoViper650FourPoints2DCamVelocityInteractionCurrent-SR300.cpp)
+
+  list(APPEND example_data "${CMAKE_CURRENT_SOURCE_DIR}/SR300-eMc.cnf")
 endif()
 
 foreach(cpp ${example_cpp})
@@ -83,3 +87,10 @@ foreach(cpp ${example_cpp})
     visp_add_dependency(${cpp} "examples")
   endif()
 endforeach()
+
+if(NOT DEFINED WINRT_8_1)
+  # Copy the data files to the same location than the target
+  foreach(data ${example_data})
+    visp_copy_data(servoViper650FourPoints2DCamVelocityInteractionCurrent-SR300.cpp ${data})
+  endforeach()
+endif()

@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -41,7 +42,6 @@
 
 #include <visp3/detection/vpDetectorQRCode.h>
 
-
 /*!
    Default constructor.
  */
@@ -52,7 +52,8 @@ vpDetectorQRCode::vpDetectorQRCode() : m_scanner()
 }
 
 /*!
-  Detect QR codes in the image. Return true if a code is detected, false otherwise.
+  Detect QR codes in the image. Return true if a code is detected, false
+  otherwise.
 
   \param I : Input image.
  */
@@ -71,17 +72,15 @@ bool vpDetectorQRCode::detect(const vpImage<unsigned char> &I)
   zbar::Image img(width, height, "Y800", I.bitmap, (unsigned long)(width * height));
 
   // scan the image for barcodes
-  m_nb_objects =  (size_t) m_scanner.scan(img);
+  m_nb_objects = (size_t)m_scanner.scan(img);
 
   // extract results
-  for(zbar::Image::SymbolIterator symbol = img.symbol_begin();
-      symbol != img.symbol_end();
-      ++symbol) {
-    m_message.push_back( symbol->get_data() );
+  for (zbar::Image::SymbolIterator symbol = img.symbol_begin(); symbol != img.symbol_end(); ++symbol) {
+    m_message.push_back(symbol->get_data());
     detected = true;
 
     std::vector<vpImagePoint> polygon;
-    for(unsigned int i=0; i < (unsigned int)symbol->get_location_size(); i++){
+    for (unsigned int i = 0; i < (unsigned int)symbol->get_location_size(); i++) {
       polygon.push_back(vpImagePoint(symbol->get_location_y(i), symbol->get_location_x(i)));
     }
     m_polygon.push_back(polygon);
@@ -93,6 +92,7 @@ bool vpDetectorQRCode::detect(const vpImage<unsigned char> &I)
   return detected;
 }
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_core.a(vpDetectorQRCode.cpp.o) has no symbols
-void dummy_vpDetectorQRCode() {};
+// Work arround to avoid warning: libvisp_core.a(vpDetectorQRCode.cpp.o) has
+// no symbols
+void dummy_vpDetectorQRCode(){};
 #endif

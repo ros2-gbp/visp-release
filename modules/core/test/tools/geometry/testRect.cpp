@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -36,7 +37,8 @@
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpRect.h>
 
-int main() {
+int main()
+{
   vpRect c(10.1, 15.05, 19.63, 7.84);
   vpRect a(c.getLeft() - 12.456, c.getTop() - 7.75, c.getWidth() + 12.456, c.getHeight() + 7.75);
   vpRect b(c.getLeft(), c.getTop(), c.getWidth() + 8.81, c.getHeight() + 14.57);

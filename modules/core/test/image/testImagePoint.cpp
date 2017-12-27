@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -41,8 +42,8 @@
 
 */
 
-#include <visp3/core/vpImagePoint.h>
 #include <iostream>
+#include <visp3/core/vpImagePoint.h>
 
 int main()
 {
@@ -57,20 +58,15 @@ int main()
   ip3.set_j(11.10001);
   ip3.set_i(10.1);
 
-  std::cout << "We define ip1 with coordinates: " 
-            << ip1 << std::endl;
+  std::cout << "We define ip1 with coordinates: " << ip1 << std::endl;
 
-  
-  std::cout << "We define ip2 with coordinates: " 
-            << ip2 << std::endl;
+  std::cout << "We define ip2 with coordinates: " << ip2 << std::endl;
 
-  std::cout << "We define ip3 with coordinates: " 
-            << ip3 << std::endl;
+  std::cout << "We define ip3 with coordinates: " << ip3 << std::endl;
 
   if (ip1 == ip2) {
     std::cout << "ip1 == ip2" << std::endl;
-  }
-  else {
+  } else {
     std::cout << "ip1 != ip2 (bad result)" << std::endl;
     return -1;
   }
@@ -78,27 +74,23 @@ int main()
   if (ip1 != ip2) {
     std::cout << "ip1 != ip2 (bad result)" << std::endl;
     return -1;
-  } 
-  else {
+  } else {
     std::cout << "ip1 == ip2" << std::endl;
   }
 
   if (ip1 == ip3) {
     std::cout << "ip1 == ip3 (bad result)" << std::endl;
     return -1;
-  }
-  else {
+  } else {
     std::cout << "ip1 != ip3" << std::endl;
   }
 
   if (ip1 != ip3) {
     std::cout << "ip1 != ip3" << std::endl;
-  }
-  else {
+  } else {
     std::cout << "ip1 == ip3 (bad result)" << std::endl;
     return -1;
   }
-
 
   return 0;
 }
