@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -39,13 +40,12 @@
 
 #include <visp3/tt/vpTemplateTrackerSSD.h>
 
-vpTemplateTrackerSSD::vpTemplateTrackerSSD(vpTemplateTrackerWarp *warp)
-  : vpTemplateTracker(warp), DI(), temp()
+vpTemplateTrackerSSD::vpTemplateTrackerSSD(vpTemplateTrackerWarp *warp) : vpTemplateTracker(warp), DI(), temp()
 {
-  dW.resize(2,nbParam);
+  dW.resize(2, nbParam);
   G.resize(nbParam);
-  H.resize(nbParam,nbParam);
-  HLM.resize(nbParam,nbParam);
+  H.resize(nbParam, nbParam);
+  HLM.resize(nbParam, nbParam);
 
   temp.resize(nbParam);
 
@@ -56,72 +56,70 @@ vpTemplateTrackerSSD::vpTemplateTrackerSSD(vpTemplateTrackerWarp *warp)
 
 double vpTemplateTrackerSSD::getCost(const vpImage<unsigned char> &I, const vpColVector &tp)
 {
-  double erreur=0;
+  double erreur = 0;
   double IW;
-  int Nbpoint=0;
+  int Nbpoint = 0;
 
   Warp->computeCoeff(tp);
-  for(unsigned int point=0;point<templateSize;point++)
-  {
-    int i=ptTemplate[point].y;
-    int j=ptTemplate[point].x;
-    X1[0]=j;X1[1]=i;
-    Warp->computeDenom(X1,tp);
-    Warp->warpX(X1,X2,tp);
+  for (unsigned int point = 0; point < templateSize; point++) {
+    int i = ptTemplate[point].y;
+    int j = ptTemplate[point].x;
+    X1[0] = j;
+    X1[1] = i;
+    Warp->computeDenom(X1, tp);
+    Warp->warpX(X1, X2, tp);
 
-    double j2=X2[0];
-    double i2=X2[1];
-    if((i2>=0)&&(j2>=0)&&(i2<I.getHeight()-1)&&(j2<I.getWidth()-1))
-    {
-      double Tij=ptTemplate[point].val;
-      if(!blur)
-        IW=I.getValue(i2,j2);
+    double j2 = X2[0];
+    double i2 = X2[1];
+    if ((i2 >= 0) && (j2 >= 0) && (i2 < I.getHeight() - 1) && (j2 < I.getWidth() - 1)) {
+      double Tij = ptTemplate[point].val;
+      if (!blur)
+        IW = I.getValue(i2, j2);
       else
-        IW=BI.getValue(i2,j2);
-      //IW=getSubPixBspline4(I,i2,j2);
-      erreur+=((double)Tij-IW)*((double)Tij-IW);
+        IW = BI.getValue(i2, j2);
+      // IW=getSubPixBspline4(I,i2,j2);
+      erreur += ((double)Tij - IW) * ((double)Tij - IW);
       Nbpoint++;
     }
   }
-  ratioPixelIn=(double)Nbpoint/(double)templateSize;
+  ratioPixelIn = (double)Nbpoint / (double)templateSize;
 
-  if(Nbpoint==0)return 10e10;
-  return erreur/Nbpoint;
+  if (Nbpoint == 0)
+    return 10e10;
+  return erreur / Nbpoint;
 }
-
 
 double vpTemplateTrackerSSD::getSSD(const vpImage<unsigned char> &I, const vpColVector &tp)
 {
-  double erreur=0;
+  double erreur = 0;
   double IW;
-  unsigned int Nbpoint=0;
+  unsigned int Nbpoint = 0;
 
-  if(pyrInitialised)
-  {
-    templateSize=templateSizePyr[0];
-    ptTemplate=ptTemplatePyr[0];
+  if (pyrInitialised) {
+    templateSize = templateSizePyr[0];
+    ptTemplate = ptTemplatePyr[0];
   }
 
   Warp->computeCoeff(tp);
-  for(unsigned int point=0;point<templateSize;point++)
-  {
-    int i=ptTemplate[point].y;
-    int j=ptTemplate[point].x;
-    X1[0]=j;X1[1]=i;
-    Warp->computeDenom(X1,tp);
-    Warp->warpX(X1,X2,tp);
+  for (unsigned int point = 0; point < templateSize; point++) {
+    int i = ptTemplate[point].y;
+    int j = ptTemplate[point].x;
+    X1[0] = j;
+    X1[1] = i;
+    Warp->computeDenom(X1, tp);
+    Warp->warpX(X1, X2, tp);
 
-    double j2=X2[0];
-    double i2=X2[1];
-    if((j2<I.getWidth()-1)&&(i2<I.getHeight()-1)&&(i2>0)&&(j2>0))
-    {
-      double Tij=ptTemplate[point].val;
-      IW=I.getValue(i2,j2);
-      //IW=getSubPixBspline4(I,i2,j2);
-      erreur+=((double)Tij-IW)*((double)Tij-IW);
+    double j2 = X2[0];
+    double i2 = X2[1];
+    if ((j2 < I.getWidth() - 1) && (i2 < I.getHeight() - 1) && (i2 > 0) && (j2 > 0)) {
+      double Tij = ptTemplate[point].val;
+      IW = I.getValue(i2, j2);
+      // IW=getSubPixBspline4(I,i2,j2);
+      erreur += ((double)Tij - IW) * ((double)Tij - IW);
       Nbpoint++;
     }
   }
-  if(Nbpoint==0)return 10e10;
-  return erreur/Nbpoint;
+  if (Nbpoint == 0)
+    return 10e10;
+  return erreur / Nbpoint;
 }
