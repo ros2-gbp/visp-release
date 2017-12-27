@@ -3,9 +3,10 @@
 # This file is part of the ViSP software.
 # Copyright (C) 2005 - 2017 by Inria. All rights reserved.
 #
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# ("GPL") version 2 as published by the Free Software Foundation.
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 # See the file LICENSE.txt at the root directory of this source
 # distribution for additional information about the GNU GPL.
 #
@@ -48,13 +49,19 @@ if(MSVC)
   list(APPEND REALSENSE_INC_SEARCH_PATH "C:/librealsense/include")
 
   list(APPEND REALSENSE_INC_SEARCH_PATH $ENV{REALSENSE_HOME}/include)
+  list(APPEND REALSENSE_INC_SEARCH_PATH $ENV{REALSENSE_DIR}/include)
+
+  list(APPEND REALSENSE_LIB_SEARCH_PATH $ENV{REALSENSE_HOME}/lib)
+  list(APPEND REALSENSE_LIB_SEARCH_PATH $ENV{REALSENSE_DIR}/lib)
 
   if(CMAKE_CL_64)
     list(APPEND REALSENSE_LIB_SEARCH_PATH "C:/librealsense/bin/x64")
     list(APPEND REALSENSE_LIB_SEARCH_PATH $ENV{REALSENSE_HOME}/bin/x64)
+    list(APPEND REALSENSE_LIB_SEARCH_PATH $ENV{REALSENSE_DIR}/bin/x64)
   else()
     list(APPEND REALSENSE_LIB_SEARCH_PATH "C:/librealsense/bin/Win32")
     list(APPEND REALSENSE_LIB_SEARCH_PATH $ENV{REALSENSE_HOME}/bin/Win32)
+    list(APPEND REALSENSE_LIB_SEARCH_PATH $ENV{REALSENSE_DIR}/bin/Win32)
   endif()
 
 else()
@@ -81,11 +88,13 @@ if(MSVC)
     PATHS
       ${REALSENSE_LIB_SEARCH_PATH}
   )
-  if(REALSENSE_LIBRARIES_OPT)
+  if(REALSENSE_LIBRARIES_DBG AND REALSENSE_LIBRARIES_OPT)
     set(REALSENSE_LIBRARIES optimized ${REALSENSE_LIBRARIES_OPT})
-  endif()
-  if(REALSENSE_LIBRARIES_DBG)
     list(APPEND REALSENSE_LIBRARIES debug ${REALSENSE_LIBRARIES_DBG})
+  elseif(REALSENSE_LIBRARIES_OPT)
+    set(REALSENSE_LIBRARIES ${REALSENSE_LIBRARIES_OPT})
+  elseif(REALSENSE_LIBRARIES_DBG)
+    set(REALSENSE_LIBRARIES ${REALSENSE_LIBRARIES_DBG})
   endif()
 
   mark_as_advanced(REALSENSE_LIBRARIES_OPT REALSENSE_LIBRARIES_DBG)

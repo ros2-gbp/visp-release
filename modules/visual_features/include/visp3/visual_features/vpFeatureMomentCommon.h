@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -28,7 +29,8 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Description:
- * Pre-filled pseudo-database used to handle dependencies between common moment features.
+ * Pre-filled pseudo-database used to handle dependencies between common
+ *moment features.
  *
  * Authors:
  * Filip Novotny
@@ -37,21 +39,22 @@
 
 /*!
   \file vpFeatureMomentCommon.h
-  \brief Pre-filled pseudo-database used to handle dependencies between common moment features.
+  \brief Pre-filled pseudo-database used to handle dependencies between common
+  moment features.
 */
 
 #ifndef __FEATUREMOMENTCOMMON_H__
 #define __FEATUREMOMENTCOMMON_H__
 #include <visp3/visual_features/vpFeatureMomentAlpha.h>
-#include <visp3/visual_features/vpFeatureMomentGravityCenter.h>
-#include <visp3/visual_features/vpFeatureMomentBasic.h>
-#include <visp3/visual_features/vpFeatureMomentGravityCenterNormalized.h>
-#include <visp3/visual_features/vpFeatureMomentCentered.h>
-#include <visp3/visual_features/vpFeatureMomentCInvariant.h>
-#include <visp3/visual_features/vpFeatureMomentCommon.h>
-#include <visp3/visual_features/vpFeatureMomentAreaNormalized.h>
-#include <visp3/visual_features/vpFeatureMomentDatabase.h>
 #include <visp3/visual_features/vpFeatureMomentArea.h>
+#include <visp3/visual_features/vpFeatureMomentAreaNormalized.h>
+#include <visp3/visual_features/vpFeatureMomentBasic.h>
+#include <visp3/visual_features/vpFeatureMomentCInvariant.h>
+#include <visp3/visual_features/vpFeatureMomentCentered.h>
+#include <visp3/visual_features/vpFeatureMomentCommon.h>
+#include <visp3/visual_features/vpFeatureMomentDatabase.h>
+#include <visp3/visual_features/vpFeatureMomentGravityCenter.h>
+#include <visp3/visual_features/vpFeatureMomentGravityCenterNormalized.h>
 
 class vpMomentDatabase;
 class vpServo;
@@ -60,7 +63,8 @@ class vpServo;
 
   \ingroup group_visual_features
 
-  \brief This class allows to access common vpFeatureMoments in a pre-filled database.
+  \brief This class allows to access common vpFeatureMoments in a pre-filled
+database.
 
   It is a vpMomentDatabase filled with the following moments:
   - vpFeatureMomentGravityCenter
@@ -72,23 +76,28 @@ class vpServo;
   - vpFeatureMomentBasic
 
 
-  There is no need to do the linkTo operations manually nor is it necessary to care about the order of feature computation.
+  There is no need to do the linkTo operations manually nor is it necessary to
+care about the order of feature computation.
 
-  This class has an vpMomentCommon::updateAll method capable of updating the plane parameters AND computing interaction matrices inside the features.
+  This class has an vpMomentCommon::updateAll method capable of updating the
+plane parameters AND computing interaction matrices inside the features.
 
   The moment features computed by this class are classical moments
   features used in moment-based visual servoing.  For more
   information see \cite Tahri05z.
 
-  To initialize this feature set, the user needs to supply a vpMomentDatabase containing at least the contents of vpMomentCommon.
+  To initialize this feature set, the user needs to supply a vpMomentDatabase
+containing at least the contents of vpMomentCommon.
 
-  The features can be retrieved like from a normal vpFeatureMomentDatabase. However, some shortcuts to retrieve the features are provided.
+  The features can be retrieved like from a normal vpFeatureMomentDatabase.
+However, some shortcuts to retrieve the features are provided.
 
-  \attention Make sure your object is at least of order 6 when using this pre-filled database.
+  \attention Make sure your object is at least of order 6 when using this
+pre-filled database.
 
-  The following code demonstrates the construction of a 6x6 interaction matrix as described in [1].
-  \code
-
+  The following code demonstrates the construction of a 6x6 interaction matrix
+as described in [1].
+\code
 #include <visp3/core/vpMomentObject.h>
 #include <visp3/core/vpMomentCommon.h>
 #include <visp3/core/vpPoint.h>
@@ -214,54 +223,55 @@ Gain : Zero= 1	Inf= 1	Deriv= 0
 
 \endcode
 */
-class VISP_EXPORT vpFeatureMomentCommon : public vpFeatureMomentDatabase{
+class VISP_EXPORT vpFeatureMomentCommon : public vpFeatureMomentDatabase
+{
 private:
-    vpFeatureMomentGravityCenter featureGravity;
-    vpFeatureMomentGravityCenterNormalized featureGravityNormalized;
-    vpFeatureMomentAreaNormalized featureAn;
-    vpFeatureMomentCInvariant featureCInvariant;
-    vpFeatureMomentAlpha featureAlpha;
-    vpFeatureMomentCentered featureCentered;
-    vpFeatureMomentBasic featureMomentBasic;
-    vpFeatureMomentArea feature_moment_area;
+  vpFeatureMomentGravityCenter featureGravity;
+  vpFeatureMomentGravityCenterNormalized featureGravityNormalized;
+  vpFeatureMomentAreaNormalized featureAn;
+  vpFeatureMomentCInvariant featureCInvariant;
+  vpFeatureMomentAlpha featureAlpha;
+  vpFeatureMomentCentered featureCentered;
+  vpFeatureMomentBasic featureMomentBasic;
+  vpFeatureMomentArea feature_moment_area;
 
 public:
-    vpFeatureMomentCommon(vpMomentDatabase& moments,double A=0.0,double B=0.0,double C=1.0);
-    void updateAll(double A,double B,double C);
-    /*!
-    Returns alpha.
-    */
-    vpFeatureMomentAlpha& getFeatureAlpha(){ return featureAlpha;}
+  vpFeatureMomentCommon(vpMomentDatabase &moments, double A = 0.0, double B = 0.0, double C = 1.0);
+  void updateAll(double A, double B, double C);
+  /*!
+  Returns alpha.
+  */
+  vpFeatureMomentAlpha &getFeatureAlpha() { return featureAlpha; }
 
-    /*!
-    Returns normalized surface.
-    */
-    vpFeatureMomentAreaNormalized& getFeatureAn(){ return featureAn;}
-    /*!
-    Returns basic moment.
-    */
-    vpFeatureMomentBasic& getFeatureMomentBasic(){ return featureMomentBasic;}
-    /*!
-    Returns centered moments.
-    */
-    vpFeatureMomentCentered& getFeatureCentered(){ return featureCentered;}
+  /*!
+  Returns normalized surface.
+  */
+  vpFeatureMomentAreaNormalized &getFeatureAn() { return featureAn; }
+  /*!
+  Returns basic moment.
+  */
+  vpFeatureMomentBasic &getFeatureMomentBasic() { return featureMomentBasic; }
+  /*!
+  Returns centered moments.
+  */
+  vpFeatureMomentCentered &getFeatureCentered() { return featureCentered; }
 
-    /*!
-    Returns non-symmetric invariants.
-     */
-    vpFeatureMomentCInvariant& getFeatureCInvariant(){ return featureCInvariant;}
-    /*!
-        Returns normalized gravity center.
-    */
-    vpFeatureMomentGravityCenterNormalized& getFeatureGravityNormalized(){ return featureGravityNormalized;}
-    /*!
-	Returns the area
-	*/
-	vpFeatureMomentArea& getFeatureArea(){ return feature_moment_area;}
-	/*!
-		Returns gravity center
-	*/
-	vpFeatureMomentGravityCenter& getFeatureGravityCenter(){ return featureGravity;}
+  /*!
+  Returns non-symmetric invariants.
+   */
+  vpFeatureMomentCInvariant &getFeatureCInvariant() { return featureCInvariant; }
+  /*!
+      Returns normalized gravity center.
+  */
+  vpFeatureMomentGravityCenterNormalized &getFeatureGravityNormalized() { return featureGravityNormalized; }
+  /*!
+      Returns the area
+      */
+  vpFeatureMomentArea &getFeatureArea() { return feature_moment_area; }
+  /*!
+          Returns gravity center
+  */
+  vpFeatureMomentGravityCenter &getFeatureGravityCenter() { return featureGravity; }
 };
 
 #endif

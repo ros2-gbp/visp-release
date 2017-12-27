@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -77,19 +78,17 @@ int main()
     g.setExtension("pgm");
 
     // Open the framegrabber by loading the first image of the sequence
-    g.open(I) ;
+    g.open(I);
 
     // this is the loop over the image sequence
-    for(int cpt = 0; cpt < 100; cpt++)
-    {
+    for (int cpt = 0; cpt < 100; cpt++) {
       // read the image and then increment the image counter so that the next
       // call to acquire(I) will get the next image
-      g.acquire(I) ;
+      g.acquire(I);
     }
 
     return 0;
-  }
-  catch(vpException &e) {
+  } catch (vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }

@@ -3,9 +3,10 @@
  * This file is part of the ViSP software.
  * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
  *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * ("GPL") version 2 as published by the Free Software Foundation.
+ * This software is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * See the file LICENSE.txt at the root directory of this source
  * distribution for additional information about the GNU GPL.
  *
@@ -63,31 +64,32 @@ int main()
  */
 class VISP_EXPORT vpUniRand
 {
-  long    a;
-  long    m; //2^31-1
-  long    q; //integer part of m/a
-  long    r;//r=m mod a
-  double normalizer; //we use a normalizer > m to ensure ans will never be 1 (it is the case if x = 739806647)
+  long a;
+  long m;            // 2^31-1
+  long q;            // integer part of m/a
+  long r;            // r=m mod a
+  double normalizer; // we use a normalizer > m to ensure ans will never be 1
+                     // (it is the case if x = 739806647)
 
 private:
   void draw0();
+
 protected:
   long x;
   double draw1();
 
 public:
   //! Default constructor.
-  vpUniRand(const long seed = 0)
-    : a(16807), m(2147483647), q(127773), r(2836), normalizer(2147484721.0), x((seed)? seed : 739806647)
-  {}
+  explicit vpUniRand(const long seed = 0)
+    : a(16807), m(2147483647), q(127773), r(2836), normalizer(2147484721.0), x((seed) ? seed : 739806647)
+  {
+  }
 
   //! Default destructor.
-  virtual ~vpUniRand() {};
+  virtual ~vpUniRand(){};
 
   //! Operator that allows to get a random value.
-  double operator()() {
-    return draw1();
-  }
+  double operator()() { return draw1(); }
 };
 
 #endif
