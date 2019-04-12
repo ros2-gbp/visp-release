@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -138,7 +138,7 @@ public:
 
 public:
   vpMbtDistanceCylinder();
-  ~vpMbtDistanceCylinder();
+  virtual ~vpMbtDistanceCylinder();
 
   void buildFrom(const vpPoint &_p1, const vpPoint &_p2, const double r);
 
@@ -191,7 +191,8 @@ public:
 
   void initInteractionMatrixError();
 
-  bool initMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo);
+  bool initMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const bool doNotTrack,
+                      const vpImage<bool> *mask = NULL);
 
   /*!
    Return if the cylinder is used for tracking.
@@ -207,7 +208,8 @@ public:
   */
   inline bool isVisible() const { return isvisible; }
 
-  void reinitMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo);
+  void reinitMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo,
+                        const vpImage<bool> *mask = NULL);
 
   /*!
    Set the camera paramters.

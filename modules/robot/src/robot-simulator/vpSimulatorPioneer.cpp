@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -144,20 +144,19 @@ void vpSimulatorPioneer::setVelocity(const vpRobot::vpControlFrameType frame, co
     break;
   } break;
   case vpRobot::CAMERA_FRAME:
-    vpERROR_TRACE("Cannot set a velocity in the camera frame: "
-                  "functionality not implemented");
     throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the camera frame:"
                                                               "functionality not implemented");
     break;
   case vpRobot::REFERENCE_FRAME:
-    vpERROR_TRACE("Cannot set a velocity in the reference frame: "
-                  "functionality not implemented");
     throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the articular frame:"
                                                               "functionality not implemented");
   case vpRobot::MIXT_FRAME:
-    vpERROR_TRACE("Cannot set a velocity in the mixt frame: "
-                  "functionality not implemented");
     throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the mixt frame:"
+                                                              "functionality not implemented");
+
+    break;
+  case vpRobot::END_EFFECTOR_FRAME:
+    throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the end-effector frame:"
                                                               "functionality not implemented");
 
     break;
@@ -220,5 +219,9 @@ void vpSimulatorPioneer::getPosition(const vpRobot::vpControlFrameType frame, vp
   }
   case vpRobot::MIXT_FRAME:
     std::cout << "MIXT_FRAME is not implemented in vpSimulatorCamera::getPosition()" << std::endl;
+    break;
+  case vpRobot::END_EFFECTOR_FRAME:
+    std::cout << "END_EFFECTOR_FRAME is not implemented in vpSimulatorCamera::getPosition()" << std::endl;
+    break;
   }
 }

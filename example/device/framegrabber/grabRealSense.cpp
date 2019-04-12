@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -251,10 +251,13 @@ int main()
 
 #elif !defined(VISP_HAVE_REALSENSE)
   std::cout << "Install RealSense SDK to make this test working" << std::endl;
+  std::cout << "Tip:" << std::endl;
+  std::cout << "- After installation, configure again ViSP using cmake and build again this example" << std::endl;
 #elif !defined(VISP_HAVE_CPP11_COMPATIBILITY)
-  std::cout << "Build ViSP with c++11 compiler flag (cmake -DUSE_CPP11=ON) "
-               "to make this test working"
+  std::cout << "You do not build ViSP with C++11 compiler flag" << std::endl;
+  std::cout << "Tip:" << std::endl;
+  std::cout << "- Configure ViSP again using cmake -DUSE_CPP11=ON, and build again this example" << std::endl;
             << std::endl;
 #endif
-  return 0;
+  return EXIT_SUCCESS;
 }

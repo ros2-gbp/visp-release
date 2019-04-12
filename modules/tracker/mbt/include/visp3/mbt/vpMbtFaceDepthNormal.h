@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,8 +33,8 @@
  *
  *****************************************************************************/
 
-#ifndef __vpMbtFaceDepthNormal_h_
-#define __vpMbtFaceDepthNormal_h_
+#ifndef _vpMbtFaceDepthNormal_h_
+#define _vpMbtFaceDepthNormal_h_
 
 #include <iostream>
 
@@ -97,6 +97,7 @@ public:
                               ,
                               vpImage<unsigned char> &debugImage, std::vector<std::vector<vpImagePoint> > &roiPts_vec
 #endif
+                              , const vpImage<bool> *mask = NULL
   );
 #endif
   bool computeDesiredFeatures(const vpHomogeneousMatrix &cMo, const unsigned int width, const unsigned int height,
@@ -106,6 +107,7 @@ public:
                               ,
                               vpImage<unsigned char> &debugImage, std::vector<std::vector<vpImagePoint> > &roiPts_vec
 #endif
+                              , const vpImage<bool> *mask = NULL
   );
 
   void computeInteractionMatrix(const vpHomogeneousMatrix &cMo, vpMatrix &L, vpColVector &features);
@@ -132,6 +134,8 @@ public:
   void displayFeature(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
                       const double scale = 0.05, const unsigned int thickness = 1);
 
+  inline bool isTracked() const { return m_isTrackedDepthNormalFace; }
+
   inline bool isVisible() const { return m_polygon->isvisible; }
 
   void setCameraParameters(const vpCameraParameters &camera);
@@ -150,6 +154,8 @@ public:
   }
 
   void setScanLineVisibilityTest(const bool v);
+
+  inline void setTracked(const bool tracked) { m_isTrackedDepthNormalFace = tracked; }
 
 private:
   class PolygonLine
@@ -238,7 +244,7 @@ protected:
   //! Method to estimate the desired features
   vpFeatureEstimationType m_featureEstimationMethod;
   //!
-  bool m_isTracked;
+  bool m_isTrackedDepthNormalFace;
   //!
   bool m_isVisible;
   //!

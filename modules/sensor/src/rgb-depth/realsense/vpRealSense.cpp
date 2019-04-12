@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -134,8 +134,9 @@ void vpRealSense::open()
   // specified and only one camera is connected. This is a valid use case and
   // the code will proceed.
   m_device = m_context.get_device(0);
+  m_serial_no = m_device->get_serial();
 
-  std::cout << "RealSense Camera - Connecting to camera with Serial No: " << m_device->get_serial() << std::endl;
+  std::cout << "RealSense Camera - Connecting to camera with Serial No: " << m_serial_no << std::endl;
 
   // Enable only infrared2 stream if supported
   m_enableStreams[rs::stream::infrared2] = m_enableStreams[rs::stream::infrared2]
@@ -314,19 +315,8 @@ rs::intrinsics vpRealSense::getIntrinsics(const rs::stream &stream) const
     throw vpException(vpException::fatalError, "RealSense Camera - device handler is null. Cannot "
                                                "retrieve intrinsics. Exiting!");
   }
-  if (!m_device->is_stream_enabled(stream)) {
-    throw vpException(vpException::fatalError,
-                      "RealSense Camera - stream (%d) is not enabled to "
-                      "retrieve intrinsics. Exiting!",
-                      (int)stream);
-  }
 
-  std::map<rs::stream, rs::intrinsics>::const_iterator it_intrin = m_intrinsics.find(stream);
-  if (it_intrin != m_intrinsics.end()) {
-    return it_intrin->second;
-  }
-
-  return rs::intrinsics();
+  return m_device->get_stream_intrinsics(stream);
 }
 
 /*!
@@ -372,7 +362,7 @@ vpHomogeneousMatrix vpRealSense::getTransformation(const rs::stream &from, const
   for (unsigned int i = 0; i < 3; i++) {
     t[i] = extrinsics.translation[i];
     for (unsigned int j = 0; j < 3; j++)
-      R[i][j] = extrinsics.rotation[i * 3 + j];
+      R[i][j] = extrinsics.rotation[j * 3 + i]; //rotation is column-major order
   }
   vpHomogeneousMatrix fMt(t, R);
   return fMt;

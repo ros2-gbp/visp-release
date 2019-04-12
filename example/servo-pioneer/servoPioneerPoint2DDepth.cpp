@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 
 #include <visp3/core/vpConfig.h>
 
+#include <visp3/robot/vpRobotPioneer.h> // Include first to avoid build issues with Status, None, isfinite
 #include <visp3/blob/vpDot2.h>
 #include <visp3/core/vpCameraParameters.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
@@ -47,7 +48,6 @@
 #include <visp3/core/vpVelocityTwistMatrix.h>
 #include <visp3/gui/vpDisplayGDI.h>
 #include <visp3/gui/vpDisplayX.h>
-#include <visp3/robot/vpRobotPioneer.h>
 #include <visp3/sensor/vp1394CMUGrabber.h>
 #include <visp3/sensor/vp1394TwoGrabber.h>
 #include <visp3/sensor/vpOpenCVGrabber.h>
@@ -313,11 +313,16 @@ int main(int argc, char **argv)
     // Kill the servo task
     task.print();
     task.kill();
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }
 #else
-int main() { std::cout << "You don't have the right 3rd party libraries to run this example..." << std::endl; }
+int main()
+{
+  std::cout << "You don't have the right 3rd party libraries to run this example..." << std::endl;
+  return EXIT_SUCCESS;
+}
 #endif

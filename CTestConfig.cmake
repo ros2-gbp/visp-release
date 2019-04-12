@@ -1,7 +1,7 @@
 #############################################################################
 #
-# This file is part of the ViSP software.
-# Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+# ViSP, open source Visual Servoing Platform software.
+# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -307,7 +307,7 @@ endif()
 if(ACTIVATE_WARNING_FLOAT_EQUAL)
   set(BUILDNAME "${BUILDNAME}-Weq")
 endif()
-if(USE_CPP11)
+if(USE_CXX11)
   set(BUILDNAME "${BUILDNAME}-c11")
 endif()
 if(ENABLE_MOMENTS_COMBINE_MATRICES)

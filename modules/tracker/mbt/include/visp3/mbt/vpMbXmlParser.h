@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -187,8 +187,6 @@ public:
     \return True if yes, False otherwise.
   */
   inline bool hasNearClippingDistance() const { return hasNearClipping; }
-
-  void parse(const char *filename);
 
   virtual void readMainClass(xmlDocPtr doc, xmlNodePtr node);
   void read_camera(xmlDocPtr doc, xmlNodePtr node);

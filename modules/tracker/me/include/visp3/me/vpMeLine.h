@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -184,7 +184,7 @@ public:
 
   void track(const vpImage<unsigned char> &Im);
 
-  void sample(const vpImage<unsigned char> &image);
+  virtual void sample(const vpImage<unsigned char> &image, const bool doNotTrack=false);
   void reSample(const vpImage<unsigned char> &I);
   void leastSquare();
   void updateDelta();
