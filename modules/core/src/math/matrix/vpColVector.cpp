@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -636,6 +636,19 @@ vpColVector &vpColVector::operator=(double x)
   return *this;
 }
 
+/*!
+ * Converts the vpColVector to a std::vector.
+ * \return The corresponding std::vector<double>.
+ */
+std::vector<double> vpColVector::toStdVector()
+{
+  std::vector<double> v(this->size());
+
+  for (unsigned int i = 0; i < this->size(); i++)
+    v[i] = data[i];
+  return v;
+}
+
 #ifdef VISP_HAVE_CPP11_COMPATIBILITY
 vpColVector &vpColVector::operator=(vpColVector &&other)
 {
@@ -659,6 +672,23 @@ vpColVector &vpColVector::operator=(vpColVector &&other)
   return *this;
 }
 #endif
+
+bool vpColVector::operator==(const vpColVector &v) const {
+  if (rowNum != v.rowNum ||
+      colNum != v.colNum /* should not happen */)
+    return false;
+
+  for (unsigned int i = 0; i < rowNum; i++) {
+    if (!vpMath::equal(data[i], v.data[i], std::numeric_limits<double>::epsilon()))
+      return false;
+  }
+
+  return true;
+}
+
+bool vpColVector::operator!=(const vpColVector &v) const {
+  return !(*this == v);
+}
 
 /*!
   Transpose the column vector. The resulting vector becomes a row vector.
@@ -761,7 +791,31 @@ vpColVector &vpColVector::normalize()
 }
 
 /*!
-   Return a column vector with elements of \e v that are reverse sorted.
+   Return a column vector with elements of \e v that are reverse sorted with
+   values going from greatest to lowest.
+
+   Example:
+   \code
+#include <visp/vpColVector.h>
+
+int main()
+{
+  vpColVector v(10);
+  v[0] = 5; v[1] = 7; v[2] = 4; v[3] = 2; v[4] = 8;
+  v[5] = 6; v[6] = 1; v[7] = 9; v[8] = 0; v[9] = 3;
+
+  std::cout << "v: " << v.t() << std::endl;
+
+  vpColVector s = vpColVector::invSort(v);
+  std::cout << "s: " << s.t() << std::endl;
+}
+   \endcode
+   Output:
+   \code
+v: 5  7  4  2  8  6  1  9  0  3
+s: 9  8  7  6  5  4  3  2  1  0
+   \endcode
+
    \sa sort()
  */
 vpColVector vpColVector::invSort(const vpColVector &v)
@@ -790,7 +844,30 @@ vpColVector vpColVector::invSort(const vpColVector &v)
 }
 
 /*!
-   Return a column vector with elements of \e v that are sorted.
+   Return a column vector with elements of \e v that are sorted with values
+   going from lowest to geatest.
+
+   Example:
+   \code
+#include <visp/vpColVector.h>
+
+int main()
+{
+  vpColVector v(10);
+  v[0] = 5; v[1] = 7; v[2] = 4; v[3] = 2; v[4] = 8;
+  v[5] = 6; v[6] = 1; v[7] = 9; v[8] = 0; v[9] = 3;
+
+  std::cout << "v: " << v.t() << std::endl;
+
+  vpColVector s = vpColVector::sort(v);
+  std::cout << "s: " << s.t() << std::endl;
+}
+   \endcode
+   Output:
+   \code
+v: 5  7  4  2  8  6  1  9  0  3
+s: 0  1  2  3  4  5  6  7  8  9
+   \endcode
    \sa invSort()
  */
 vpColVector vpColVector::sort(const vpColVector &v)
@@ -834,7 +911,7 @@ vpColVector vpColVector::sort(const vpColVector &v)
   \sa stack(const vpColVector &, const vpColVector &, vpColVector &)
 
 */
-void vpColVector::stack(const double &d)
+void vpColVector::stack(double d)
 {
   this->resize(rowNum + 1, false);
   (*this)[rowNum - 1] = d;

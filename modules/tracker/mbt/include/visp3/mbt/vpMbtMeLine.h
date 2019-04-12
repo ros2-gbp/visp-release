@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,9 +74,11 @@ public:
 
 public:
   vpMbtMeLine();
-  ~vpMbtMeLine();
+  virtual ~vpMbtMeLine();
 
-  void computeProjectionError(const vpImage<unsigned char> &_I, double &_sumErrorRad, unsigned int &_nbFeatures);
+  void computeProjectionError(const vpImage<unsigned char> &_I, double &_sumErrorRad, unsigned int &_nbFeatures,
+                              const vpMatrix &SobelX, const vpMatrix &SobelY, const bool display,
+                              const unsigned int length, const unsigned int thickness);
 
   void display(const vpImage<unsigned char> & /*I*/, vpColor /*col*/) { ; }
   void display(const vpImage<unsigned char> &I)
@@ -109,7 +111,7 @@ public:
   inline double get_c() const { return this->c; }
 
   void initTracking(const vpImage<unsigned char> &I, const vpImagePoint &ip1, const vpImagePoint &ip2, double rho,
-                    double theta);
+                    double theta, const bool doNoTrack);
 
   void track(const vpImage<unsigned char> &I);
 
@@ -120,7 +122,7 @@ public:
 private:
   void bubbleSortI();
   void bubbleSortJ();
-  void sample(const vpImage<unsigned char> &image);
+  virtual void sample(const vpImage<unsigned char> &image, const bool doNotTrack = false);
   void seekExtremities(const vpImage<unsigned char> &I);
   void setExtremities();
   void suppressPoints(const vpImage<unsigned char> &I);

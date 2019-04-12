@@ -1,7 +1,7 @@
 #############################################################################
 #
-# This file is part of the ViSP software.
-# Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+# ViSP, open source Visual Servoing Platform software.
+# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -63,13 +63,18 @@ if(USE_VIRTUOSE)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4099")
     # Disable Visual C++ C4312 warning occuring on 3rd party VirtuoseAPI.h file
     # VirtuoseAPI.h(280): warning C4312: 'type cast': conversion from 'int' to 'char *' of greater size
-  # VirtuoseAPI.h(302): warning C4312: 'type cast': conversion from 'int' to 'VirtContext' of greater size
-    vp_set_source_file_compile_flag(src/haptic-device/virtuose/vpVirtuose.cpp /wd"4312")
-    vp_set_source_file_compile_flag(test/virtuose/testVirtuose.cpp /wd"4312")
-    vp_set_source_file_compile_flag(test/virtuose/testVirtuoseAfma6.cpp /wd"4312")
-    vp_set_source_file_compile_flag(test/virtuose/testVirtuoseHapticBox.cpp /wd"4312")
-    vp_set_source_file_compile_flag(test/virtuose/testVirtuoseJointLimits.cpp /wd"4312")
-    vp_set_source_file_compile_flag(test/virtuose/testVirtuosePeriodicFunction.cpp /wd"4312")
+    # VirtuoseAPI.h(302): warning C4312: 'type cast': conversion from 'int' to 'VirtContext' of greater size
+  if(BUILD_SHARED_LIBS)
+      vp_set_source_file_compile_flag(src/haptic-device/virtuose/vpVirtuose.cpp /wd4312)
+      vp_set_source_file_compile_flag(test/virtuose/testVirtuose.cpp /wd4312)
+      vp_set_source_file_compile_flag(test/virtuose/testVirtuoseAfma6.cpp /wd4312)
+      vp_set_source_file_compile_flag(test/virtuose/testVirtuoseHapticBox.cpp /wd4312)
+      vp_set_source_file_compile_flag(test/virtuose/testVirtuoseJointLimits.cpp /wd4312)
+      vp_set_source_file_compile_flag(test/virtuose/testVirtuosePeriodicFunction.cpp /wd4312)
+      vp_set_source_file_compile_flag(test/virtuose/testVirtuoseWithGlove.cpp /wd4312)
+  else()
+    vp_warnings_disable(CMAKE_CXX_FLAGS /wd4312)
+  endif()
   endif()
 endif()
 
@@ -109,11 +114,13 @@ endif()
 if(USE_FRANKA)
   get_target_property(Franka_inc_dirs_ ${Franka_LIBRARIES} INTERFACE_INCLUDE_DIRECTORIES)
   list(APPEND opt_incs ${Franka_inc_dirs_})
+  message("Franka_inc_dirs_: ${Franka_inc_dirs_}")
 
-  set(config_ "release" "debug" "releasewithdebinfo" "relwithdebinfo" "none")
+  set(config_ "release" "debug" "releasewithdebinfo" "relwithdebinfo" "none" "noconfig")
   foreach(imp_config_ ${config_})
     string(TOUPPER "${imp_config_}" imp_config_up_)
     get_target_property(Franka_lib ${Franka_LIBRARIES} IMPORTED_LOCATION_${imp_config_up_})
+    message("Franka_lib: ${Franka_lib}")
     if(Franka_lib)
        list(APPEND opt_libs ${Franka_lib})
        break()
@@ -167,7 +174,17 @@ if(USE_COIN3D)
   if(USE_VIPER850)
     vp_set_source_file_compile_flag(src/real-robot/viper/vpRobotViper850.cpp -Wno-unused-parameter)
   endif()
+else()
+  vp_set_source_file_compile_flag(src/wireframe-simulator/vpWireFrameSimulator.cpp -Wno-strict-overflow)
 endif()
+
+vp_set_source_file_compile_flag(src/light/vpRingLight.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/wireframe-simulator/vpClipping.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/wireframe-simulator/vpBoundio.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/wireframe-simulator/vpCoreDisplay.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/wireframe-simulator/vpLex.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/wireframe-simulator/vpBound.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/wireframe-simulator/vpArit.cpp -Wno-strict-overflow)
 
 # copy robot and wireframe simulator data
 vp_glob_module_copy_data("src/robot-simulator/arms/*.bnd"      data/robot-simulator)
@@ -178,13 +195,14 @@ vp_module_include_directories(${opt_incs})
 vp_create_module(${opt_libs})
 vp_add_tests(
   DEPENDS_ON visp_sensor visp_vision visp_blob visp_gui
-  CTEST_EXCLUDE_PATH virtuose
+  CTEST_EXCLUDE_PATH virtuose servo-franka
   CTEST_EXCLUDE_FILE servo-afma6/testRobotAfma6Pose.cpp servo-viper/testRobotViper850Pose.cpp )
 
 if(USE_VIRTUOSE)
   # Add specific build flag to turn off warnings coming from VirtuoseAPI 3rd party
   vp_set_source_file_compile_flag(test/virtuose/testVirtuose.cpp -Wno-int-to-pointer-cast)
-  vp_set_source_file_compile_flag(test/virtuose/testVirtuoseAfma6.cpp -Wno-int-to-pointer-cast)
+  vp_set_source_file_compile_flag(test/virtuose/testVirtuoseWithGlove.cpp -Wno-int-to-pointer-cast)
+  vp_set_source_file_compile_flag(test/virtuose/testVirtuose.cpp -Wno-int-to-pointer-cast)
   vp_set_source_file_compile_flag(test/virtuose/testVirtuoseHapticBox.cpp -Wno-int-to-pointer-cast)
   vp_set_source_file_compile_flag(test/virtuose/testVirtuoseJointLimits.cpp -Wno-int-to-pointer-cast)
   vp_set_source_file_compile_flag(test/virtuose/testVirtuosePeriodicFunction.cpp -Wno-int-to-pointer-cast)

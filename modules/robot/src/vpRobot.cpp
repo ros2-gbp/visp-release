@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -246,17 +246,17 @@ void vpRobot::setMaxTranslationVelocity(const double v_max)
   Get the maximal translation velocity that can be sent to the robot during a
   velocity control.
 
-  \return Maximum translation velocity expressed in m/s.
+  \return Maximum translational velocity expressed in m/s.
 */
 double vpRobot::getMaxTranslationVelocity(void) const { return this->maxTranslationVelocity; }
+
 /*!
 
-  Set the maximal rotation velocity that can be sent to the robot  during a
+  Set the maximal rotation velocity that can be sent to the robot during a
   velocity control.
 
-  \param w_max : Maximum rotation velocity expressed in rad/s.
+  \param w_max : Maximum rotational velocity expressed in rad/s.
 */
-
 void vpRobot::setMaxRotationVelocity(const double w_max)
 {
   this->maxRotationVelocity = w_max;

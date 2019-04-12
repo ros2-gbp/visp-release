@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -209,17 +209,18 @@ int main()
     vpTRACE("Display task information ");
     task.print();
     task.kill();
-  } catch (...) {
-    vpERROR_TRACE(" Test failed");
-    return 0;
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
+    std::cout << "Test failed with exception: " << e << std::endl;
+    return EXIT_FAILURE;
   }
 }
 
 #else
 int main()
 {
-  vpERROR_TRACE("You do not have an afma6 robot or a firewire framegrabber "
-                "connected to your computer...");
+  std::cout << "You do not have an afma6 robot connected to your computer..." << std::endl;
+  return EXIT_SUCCESS;
 }
 
 #endif
