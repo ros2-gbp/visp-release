@@ -1,7 +1,7 @@
 #############################################################################
 #
-# This file is part of the ViSP software.
-# Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+# ViSP, open source Visual Servoing Platform software.
+# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ set(example_cpp
   mbtGenericTracking.cpp
   mbtGenericTracking2.cpp
   mbtGenericTrackingDepth.cpp
+  mbtGenericTrackingDepthOnly.cpp
   mbtKltTracking.cpp
   mbtKltMultiTracking.cpp
   templateTracker.cpp
@@ -63,16 +64,47 @@ set(example_cpp
   trackKltOpencv.cpp
 )
 
-if(VISP_HAVE_OGRE)
-  visp_set_source_file_compile_flag(mbtEdgeKltTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
-  visp_set_source_file_compile_flag(mbtEdgeKltMultiTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
-  visp_set_source_file_compile_flag(mbtEdgeMultiTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
-  visp_set_source_file_compile_flag(mbtEdgeTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
-  visp_set_source_file_compile_flag(mbtKltTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
-  visp_set_source_file_compile_flag(mbtKltMultiTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
-  visp_set_source_file_compile_flag(mbtGenericTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
-  visp_set_source_file_compile_flag(mbtGenericTracking2.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
-  visp_set_source_file_compile_flag(mbtGenericTrackingDepth.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+if(BUILD_DEPRECATED_FUNCTIONS)
+  if(MSVC)
+    # Disable Visual C++ C4996 warning for MBT multi deprecation
+    if(BUILD_SHARED_LIBS)
+      vp_set_source_file_compile_flag(mbtEdgeMultiTracking.cpp /wd"4996")
+      vp_set_source_file_compile_flag(mbtEdgeKltMultiTracking.cpp /wd"4996")
+      vp_set_source_file_compile_flag(mbtKltMultiTracking.cpp /wd"4996")
+    else()
+      vp_warnings_disable(CMAKE_CXX_FLAGS /wd4996)
+    endif()
+  endif()
+
+  if(VISP_HAVE_OGRE)
+    visp_set_source_file_compile_flag(mbtEdgeKltTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtEdgeTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtKltTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtGenericTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtGenericTracking2.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtGenericTrackingDepth.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtGenericTrackingDepthOnly.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtEdgeMultiTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-deprecated-declarations)
+    visp_set_source_file_compile_flag(mbtEdgeKltMultiTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-deprecated-declarations)
+    visp_set_source_file_compile_flag(mbtKltMultiTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-deprecated-declarations)
+  else()
+    visp_set_source_file_compile_flag(mbtEdgeMultiTracking.cpp -Wno-deprecated-declarations)
+    visp_set_source_file_compile_flag(mbtEdgeKltMultiTracking.cpp -Wno-deprecated-declarations)
+    visp_set_source_file_compile_flag(mbtKltMultiTracking.cpp -Wno-deprecated-declarations)
+  endif()
+else()
+  if(VISP_HAVE_OGRE)
+    visp_set_source_file_compile_flag(mbtEdgeKltTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtEdgeKltMultiTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtEdgeMultiTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtEdgeTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtKltTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtKltMultiTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtGenericTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtGenericTracking2.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtGenericTrackingDepth.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(mbtGenericTrackingDepthOnly.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual)
+  endif()
 endif()
 
 foreach(cpp ${example_cpp})
@@ -129,6 +161,14 @@ add_test(mbtGenericTrackingDepth-klt-normal             mbtGenericTrackingDepth 
 add_test(mbtGenericTrackingDepth-klt-normal-scanline    mbtGenericTrackingDepth -c -l ${OPTION_TO_DESACTIVE_DISPLAY} -T 4 -t 2 -e 14)
 add_test(mbtGenericTrackingDepth-hybrid-normal          mbtGenericTrackingDepth -c ${OPTION_TO_DESACTIVE_DISPLAY} -T 4 -t 3)
 add_test(mbtGenericTrackingDepth-hybrid-normal-scanline mbtGenericTrackingDepth -c -l ${OPTION_TO_DESACTIVE_DISPLAY} -T 4 -t 3 -e 14)
+
+add_test(mbtGenericTrackingDepth-dense                          mbtGenericTrackingDepthOnly -c ${OPTION_TO_DESACTIVE_DISPLAY})
+add_test(mbtGenericTrackingDepth-dense-scanline                 mbtGenericTrackingDepthOnly -c ${OPTION_TO_DESACTIVE_DISPLAY} -l -e 14)
+add_test(mbtGenericTrackingDepth-dense-disable                  mbtGenericTrackingDepthOnly -c ${OPTION_TO_DESACTIVE_DISPLAY} -u 117)
+add_test(mbtGenericTrackingDepth-normal                         mbtGenericTrackingDepthOnly -c ${OPTION_TO_DESACTIVE_DISPLAY} -T 4)
+add_test(mbtGenericTrackingDepth-normal-scanline                mbtGenericTrackingDepthOnly -c ${OPTION_TO_DESACTIVE_DISPLAY} -l -T 4 -e 14)
+add_test(mbtGenericTrackingDepth-normal-disable                 mbtGenericTrackingDepthOnly -c ${OPTION_TO_DESACTIVE_DISPLAY} -T 4 -u 117)
+add_test(mbtGenericTrackingDepth-dense-normal-scanline-disable  mbtGenericTrackingDepthOnly -c ${OPTION_TO_DESACTIVE_DISPLAY} -l -T 12 -e 14 -u 117)
 
 #disable test with Ogre otherwise we get an Ogre exception with Ogre and remote access:
 #terminate called after throwing an instance of 'Ogre::RenderingAPIException'

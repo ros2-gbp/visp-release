@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -386,7 +386,7 @@ int main(int argc, const char **argv)
 #endif
 
     if (opt_display) {
-#if (defined VISP_HAVE_DISPLAY)
+#if defined(VISP_HAVE_DISPLAY)
       display1.setDownScalingFactor(vpDisplay::SCALE_AUTO);
       display2.setDownScalingFactor(vpDisplay::SCALE_AUTO);
       display3.setDownScalingFactor(vpDisplay::SCALE_AUTO);
@@ -404,6 +404,7 @@ int main(int argc, const char **argv)
       vpDisplay::flush(I3);
     }
 
+    // Object pointer to check that inheritance is ok
     vpMbTracker *tracker = new vpMbGenericTracker(3, trackerType);
     std::map<std::string, vpHomogeneousMatrix> mapOfCameraPoses;
     std::map<std::string, vpCameraParameters> mapOfCameraParams;
@@ -681,7 +682,7 @@ int main(int argc, const char **argv)
         }
       }
 
-      if (opt_click_allowed) {
+      if (opt_click_allowed && opt_display) {
         vpDisplay::displayText(I1, 10, 10, "Click to quit", vpColor::red);
         vpMouseButton::vpMouseButtonType button;
         if (vpDisplay::getClick(I1, button, click)) {
@@ -708,9 +709,11 @@ int main(int argc, const char **argv)
         std::cout << "Projection error: " << tracker->getProjectionError() << std::endl << std::endl;
       }
 
-      vpDisplay::flush(I1);
-      vpDisplay::flush(I2);
-      vpDisplay::flush(I3);
+      if (opt_display) {
+        vpDisplay::flush(I1);
+        vpDisplay::flush(I2);
+        vpDisplay::flush(I3);
+      }
     }
 
     std::cout << "Reached last frame: " << reader.getFrameIndex() << std::endl;
@@ -733,7 +736,7 @@ int main(int argc, const char **argv)
     vpXmlParser::cleanup();
 #endif
 
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION == 2 || COIN_MAJOR_VERSION == 3)
+#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
     // Cleanup memory allocated by Coin library used to load a vrml model in
     // vpMbGenericTracker::loadModel() We clean only if Coin was used.
     if (!cao3DModel)
@@ -741,7 +744,7 @@ int main(int argc, const char **argv)
 #endif
 
     return EXIT_SUCCESS;
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return EXIT_FAILURE;
   }
@@ -754,7 +757,7 @@ int main()
   std::cout << "visp_mbt, visp_gui modules and OpenCV are required to run "
                "this example."
             << std::endl;
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #endif

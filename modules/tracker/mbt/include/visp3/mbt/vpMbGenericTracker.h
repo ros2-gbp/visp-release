@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,14 +37,46 @@
  \brief Generic model-based tracker
 */
 
-#ifndef __vpMbGenericTracker_h_
-#define __vpMbGenericTracker_h_
+#ifndef _vpMbGenericTracker_h_
+#define _vpMbGenericTracker_h_
 
 #include <visp3/mbt/vpMbDepthDenseTracker.h>
 #include <visp3/mbt/vpMbDepthNormalTracker.h>
 #include <visp3/mbt/vpMbEdgeTracker.h>
 #include <visp3/mbt/vpMbKltTracker.h>
 
+/*!
+  \class vpMbGenericTracker
+  \ingroup group_mbt_trackers
+  \brief Real-time 6D object pose tracking using its CAD model.
+
+  The tracker requires the knowledge of the 3D model that could be provided in
+  a vrml or in a cao file. The cao format is described in loadCAOModel(). It may
+  also use an xml file used to tune the behavior of the tracker and an init file
+  used to compute the pose at the very first image.
+
+  This class allows tracking an object or a scene given its 3D model. More information in \cite Trinh18a.
+  A lot of videos can be found on <a href="https://www.youtube.com/user/VispTeam">YouTube VispTeam</a> channel.
+
+  \htmlonly
+  <iframe width="280" height="160" src="https://www.youtube.com/embed/UK10KMMJFCI"
+  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+  <iframe width="280" height="160" src="https://www.youtube.com/embed/DDdIXja7YpE"
+  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+  <iframe width="280" height="160" src="https://www.youtube.com/embed/M3XAxu9QC7Q"
+  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+  <iframe width="280" height="160" src="https://www.youtube.com/embed/4FARYLYzNL8"
+  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+  \endhtmlonly
+
+  The \ref tutorial-tracking-mb-generic is a good starting point to use this
+  class. If you want to track an object with a stereo camera refer to
+  \ref tutorial-tracking-mb-generic-stereo. If you want rather use a RGB-D camera and exploit
+  the depth information, you may see \ref tutorial-tracking-mb-generic-rgbd.
+  There is also \ref tutorial-detection-object that shows how to initialize the tracker from
+  an initial pose provided by a detection algorithm.
+
+*/
 class VISP_EXPORT vpMbGenericTracker : public vpMbTracker
 {
 public:
@@ -63,6 +95,9 @@ public:
   vpMbGenericTracker(const std::vector<std::string> &cameraNames, const std::vector<int> &trackerTypes);
 
   virtual ~vpMbGenericTracker();
+
+  virtual double computeCurrentProjectionError(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &_cMo,
+                                               const vpCameraParameters &_cam);
 
   virtual void display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
                        const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
@@ -129,10 +164,13 @@ public:
   virtual double getKltThresholdAcceptation() const;
 #endif
 
+  virtual void getLcircle(std::list<vpMbtDistanceCircle *> &circlesList, const unsigned int level = 0) const;
   virtual void getLcircle(const std::string &cameraName, std::list<vpMbtDistanceCircle *> &circlesList,
                           const unsigned int level = 0) const;
+  virtual void getLcylinder(std::list<vpMbtDistanceCylinder *> &cylindersList, const unsigned int level = 0) const;
   virtual void getLcylinder(const std::string &cameraName, std::list<vpMbtDistanceCylinder *> &cylindersList,
                             const unsigned int level = 0) const;
+  virtual void getLline(std::list<vpMbtDistanceLine *> &linesList, const unsigned int level = 0) const;
   virtual void getLline(const std::string &cameraName, std::list<vpMbtDistanceLine *> &linesList,
                         const unsigned int level = 0) const;
 
@@ -162,14 +200,18 @@ public:
 
   virtual inline vpColVector getRobustWeights() const { return m_w; }
 
+  virtual int getTrackerType() const;
+
   virtual void init(const vpImage<unsigned char> &I);
 
 #ifdef VISP_HAVE_MODULE_GUI
   using vpMbTracker::initClick;
   virtual void initClick(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
-                         const std::string &initFile1, const std::string &initFile2, const bool displayHelp = false);
+                         const std::string &initFile1, const std::string &initFile2, const bool displayHelp = false,
+                         const vpHomogeneousMatrix &T1=vpHomogeneousMatrix(), const vpHomogeneousMatrix &T2=vpHomogeneousMatrix());
   virtual void initClick(const std::map<std::string, const vpImage<unsigned char> *> &mapOfImages,
-                         const std::map<std::string, std::string> &mapOfInitFiles, const bool displayHelp = false);
+                         const std::map<std::string, std::string> &mapOfInitFiles, const bool displayHelp = false,
+                         const std::map<std::string, vpHomogeneousMatrix> &mapOfT=std::map<std::string, vpHomogeneousMatrix>());
 #endif
 
   using vpMbTracker::initFromPoints;
@@ -193,20 +235,24 @@ public:
   virtual void loadConfigFile(const std::string &configFile1, const std::string &configFile2);
   virtual void loadConfigFile(const std::map<std::string, std::string> &mapOfConfigFiles);
 
-  using vpMbTracker::loadModel;
-  virtual void loadModel(const std::string &modelFile, const bool verbose = false);
-  virtual void loadModel(const std::string &modelFile1, const std::string &modelFile2, const bool verbose = false);
-  virtual void loadModel(const std::map<std::string, std::string> &mapOfModelFiles, const bool verbose = false);
+  virtual void loadModel(const std::string &modelFile, const bool verbose = false, const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
+  virtual void loadModel(const std::string &modelFile1, const std::string &modelFile2, const bool verbose = false,
+                         const vpHomogeneousMatrix &T1=vpHomogeneousMatrix(), const vpHomogeneousMatrix &T2=vpHomogeneousMatrix());
+  virtual void loadModel(const std::map<std::string, std::string> &mapOfModelFiles, const bool verbose = false,
+                         const std::map<std::string, vpHomogeneousMatrix> &mapOfT=std::map<std::string, vpHomogeneousMatrix>());
 
   virtual void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name,
-                           const vpHomogeneousMatrix &cMo_, const bool verbose = false);
+                           const vpHomogeneousMatrix &cMo_, const bool verbose = false,
+                           const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
   virtual void reInitModel(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
                            const std::string &cad_name1, const std::string &cad_name2, const vpHomogeneousMatrix &c1Mo,
-                           const vpHomogeneousMatrix &c2Mo, const bool verbose = false);
+                           const vpHomogeneousMatrix &c2Mo, const bool verbose = false,
+                           const vpHomogeneousMatrix &T1=vpHomogeneousMatrix(), const vpHomogeneousMatrix &T2=vpHomogeneousMatrix());
   virtual void reInitModel(const std::map<std::string, const vpImage<unsigned char> *> &mapOfImages,
                            const std::map<std::string, std::string> &mapOfModelFiles,
                            const std::map<std::string, vpHomogeneousMatrix> &mapOfCameraPoses,
-                           const bool verbose = false);
+                           const bool verbose = false,
+                           const std::map<std::string, vpHomogeneousMatrix> &mapOfT=std::map<std::string, vpHomogeneousMatrix>());
 
   virtual void resetTracker();
 
@@ -274,6 +320,8 @@ public:
 
   virtual void setLod(const bool useLod, const std::string &name = "");
 
+  virtual void setMask(const vpImage<bool> &mask);
+
   virtual void setMinLineLengthThresh(const double minLineLengthThresh, const std::string &name = "");
   virtual void setMinPolygonAreaThresh(const double minPolygonAreaThresh, const std::string &name = "");
 
@@ -298,6 +346,10 @@ public:
 
   virtual void setProjectionErrorComputation(const bool &flag);
 
+  virtual void setProjectionErrorDisplay(const bool display);
+  virtual void setProjectionErrorDisplayArrowLength(const unsigned int length);
+  virtual void setProjectionErrorDisplayArrowThickness(const unsigned int thickness);
+
   virtual void setReferenceCameraName(const std::string &referenceCameraName);
 
   virtual void setScanLineVisibilityTest(const bool &v);
@@ -305,6 +357,8 @@ public:
   virtual void setTrackerType(const int type);
   virtual void setTrackerType(const std::map<std::string, int> &mapOfTrackerTypes);
 
+  virtual void setUseDepthDenseTracking(const std::string &name, const bool &useDepthDenseTracking);
+  virtual void setUseDepthNormalTracking(const std::string &name, const bool &useDepthNormalTracking);
   virtual void setUseEdgeTracking(const std::string &name, const bool &useEdgeTracking);
 #if defined(VISP_HAVE_MODULE_KLT) && (defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100))
   virtual void setUseKltTracking(const std::string &name, const bool &useKltTracking);
@@ -399,7 +453,8 @@ private:
     virtual void loadConfigFile(const std::string &configFile);
 
     virtual void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name,
-                             const vpHomogeneousMatrix &cMo_, const bool verbose = false);
+                             const vpHomogeneousMatrix &cMo_, const bool verbose = false,
+                             const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
 
     virtual void resetTracker();
 

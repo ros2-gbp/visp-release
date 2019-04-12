@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -262,8 +262,8 @@ int test_inverse(const std::vector<vpMatrix> &bench, const std::vector<vpMatrix>
 {
   for (unsigned int i = 0; i < bench.size(); i++) {
     vpMatrix I = bench[i] * result[i];
-    if (std::fabs(I.euclideanNorm() - sqrt(bench[0].AtA().getRows())) > 1e-10) {
-      std::cout << "Bad inverse[" << i << "]: " << I.euclideanNorm() << " " << sqrt(bench[0].AtA().getRows())
+    if (std::fabs(I.euclideanNorm() - sqrt((double)bench[0].AtA().getRows())) > 1e-10) {
+      std::cout << "Bad inverse[" << i << "]: " << I.euclideanNorm() << " " << sqrt((double)bench[0].AtA().getRows())
                 << std::endl;
       return EXIT_FAILURE;
     }

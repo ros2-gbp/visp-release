@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,9 @@
  *****************************************************************************/
 
 #include <visp3/core/vpServer.h>
+
+// inet_ntop() not supported on win XP
+#ifdef VISP_HAVE_FUNC_INET_NTOP
 
 #if defined(__APPLE__) && defined(__MACH__) // Apple OSX and iOS (Darwin)
 #include <TargetConditionals.h>             // To detect OSX or IOS using TARGET_OS_IPHONE or TARGET_OS_IOS macro
@@ -284,3 +287,8 @@ bool vpServer::checkForConnections()
   Print the connected clients.
 */
 void vpServer::print() { vpNetwork::print("Client"); }
+
+#elif !defined(VISP_BUILD_SHARED_LIBS)
+// Work arround to avoid warning: libvisp_core.a(vpServer.cpp.o) has no symbols
+void dummy_vpServer(){};
+#endif

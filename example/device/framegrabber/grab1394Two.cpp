@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -669,17 +669,19 @@ int main(int argc, const char **argv)
     if (display)
       delete[] d;
 #endif
-    return 0;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }
 #else
 int main()
 {
-  vpTRACE("Ieee 1394 grabber capabilities are not available...\n"
-          "You should install libdc1394-2 to use this example.");
+  std::cout << "This example requires dc1394 SDK. " << std::endl;
+  std::cout << "Tip if you are on a unix-like system:" << std::endl;
+  std::cout << "- Install libdc1394-2, configure again ViSP using cmake and build again this example" << std::endl;
+  return EXIT_SUCCESS;
 }
 
 #endif

@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,11 +66,11 @@ class vpColVector;
 
   The vpRotationVector class is derived from vpArray2D<double>.
   The vpRotationVector class is also the base class of specific rotations
-vectors such as vpThetaUVector, vpRxyzVector, vpRzyxVector, vpRzyzVector and
-vpQuaternionVector.
+  vectors such as vpThetaUVector, vpRxyzVector, vpRzyxVector, vpRzyzVector and
+  vpQuaternionVector.
 
   The code below shows how this class can be used to manipulate a
-vpRxyzVector.
+  vpRxyzVector.
 
   \code
 #include <iostream>
@@ -148,6 +148,8 @@ public:
 
   // Transpose of the rotation vector.
   vpRowVector t() const;
+
+  std::vector<double> toStdVector();
 
   //@}
 };

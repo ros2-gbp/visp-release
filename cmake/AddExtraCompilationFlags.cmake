@@ -1,7 +1,7 @@
 #############################################################################
 #
-# This file is part of the ViSP software.
-# Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+# ViSP, open source Visual Servoing Platform software.
+# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -43,12 +43,12 @@ macro(add_extra_compiler_option option)
   if(CMAKE_BUILD_TYPE)
     set(CMAKE_TRY_COMPILE_CONFIGURATION ${CMAKE_BUILD_TYPE})
   endif()
-  vp_check_flag_support(CXX "${option}" _varname)
+  vp_check_flag_support(CXX "${option}" _varname "")
   if(_varname)
     list(APPEND VISP_EXTRA_CXX_FLAGS ${option})
   endif()
 
-  vp_check_flag_support(C "${option}" _varname)
+  vp_check_flag_support(C "${option}" _varname "")
   if(_varname)
     list(APPEND VISP_EXTRA_C_FLAGS ${option})
   endif()
@@ -58,8 +58,7 @@ macro(add_extra_compiler_option_enabling option var_enabling flag)
   if(CMAKE_BUILD_TYPE)
     set(CMAKE_TRY_COMPILE_CONFIGURATION ${CMAKE_BUILD_TYPE})
   endif()
-
-  vp_check_flag_support(CXX "${option}" _cxx_varname)
+  vp_check_flag_support(CXX "${option}" _cxx_varname "")
   if(_cxx_varname)
     set(__msg "Activate ${option} compiler flag")
     set(${var_enabling} ${flag} CACHE BOOL ${__msg})
@@ -70,7 +69,7 @@ macro(add_extra_compiler_option_enabling option var_enabling flag)
     vp_list_filterout(VISP_EXTRA_CXX_FLAGS ${option})
   endif()
 
-  vp_check_flag_support(C "${option}" _c_varname)
+  vp_check_flag_support(C "${option}" _c_varname "")
   if(${${var_enabling}} AND _c_varname)
     list(APPEND VISP_EXTRA_C_FLAGS ${option})
   else()
@@ -94,14 +93,12 @@ elseif(MSVC)
   endif()
 endif()
 
-VP_OPTION(ACTIVATE_WARNING_3PARTY_MUTE  "" "" "Add flags to disable warning due to known 3rd parties" "" ON)
-
 if(USE_OPENMP)
   add_extra_compiler_option("${OpenMP_CXX_FLAGS}")
 endif()
 
-if(USE_CPP11)
-  add_extra_compiler_option("${CPP11_CXX_FLAGS}")
+if(USE_CXX11 AND CXX11_CXX_FLAGS)
+  add_extra_compiler_option("${CXX11_CXX_FLAGS}")
 endif()
 
 if(BUILD_COVERAGE)
@@ -129,14 +126,14 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_extra_compiler_option(-mno-ssse3)
   endif()
 
-  if(X86)
+  if(X86 AND NOT IOS)
     add_extra_compiler_option(-ffloat-store)
   endif()
 endif()
 
 if(UNIX)
   if(CMAKE_COMPILER_IS_GNUCXX)
-    add_extra_compiler_option(-fPIC)
+    add_extra_compiler_option(-fPIC) # Is needed for ANDROID too.
   endif()
 endif()
 
@@ -146,6 +143,7 @@ endif()
 
 # Add user supplied extra options (optimization, etc...)
 vp_list_unique(VISP_EXTRA_C_FLAGS)
+
 vp_list_unique(VISP_EXTRA_CXX_FLAGS)
 vp_list_remove_separator(VISP_EXTRA_C_FLAGS)
 vp_list_remove_separator(VISP_EXTRA_CXX_FLAGS)

@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -196,6 +196,9 @@ public:
 #ifdef VISP_HAVE_CPP11_COMPATIBILITY
   vpColVector &operator=(vpColVector &&v);
 #endif
+  //! Comparison operator.
+  bool operator==(const vpColVector &v) const;
+  bool operator!=(const vpColVector &v) const;
 
   double operator*(const vpColVector &x) const;
   vpMatrix operator*(const vpRowVector &v) const;
@@ -251,20 +254,22 @@ public:
     */
   void resize(const unsigned int nrows, const unsigned int ncols, const bool flagNullify)
   {
-    if (ncols != 1)
+    if (ncols != 1) {
       throw(vpException(vpException::fatalError,
                         "Cannot resize a column vector to a (%dx%d) "
                         "dimension vector that has more than one column",
                         nrows, ncols));
+    }
     vpArray2D<double>::resize(nrows, ncols, flagNullify);
   }
 
-  void stack(const double &d);
+  void stack(double d);
   void stack(const vpColVector &v);
 
   double sum() const;
   double sumSquare() const;
   vpRowVector t() const;
+  std::vector<double> toStdVector();
   vpRowVector transpose() const;
   void transpose(vpRowVector &v) const;
 

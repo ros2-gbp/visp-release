@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@
 #include <visp3/vision/vpKeyPoint.h>
 
 // List of allowed command line options
-#define GETOPTARGS "cdh"
+#define GETOPTARGS "cdph"
 
 void usage(const char *name, const char *badparam);
 bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display);
@@ -74,7 +74,7 @@ void usage(const char *name, const char *badparam)
 Test keypoints matching.\n\
 \n\
 SYNOPSIS\n\
-  %s [-c] [-d] [-h]\n", name);
+  %s [-c] [-d] [-p] [-h]\n", name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               \n\
@@ -85,6 +85,9 @@ OPTIONS:                                               \n\
 \n\
   -d \n\
      Turn off the display.\n\
+\n\
+  -p \n\
+     Use parallel RANSAC.\n\
 \n\
   -h\n\
      Print the help.\n");
@@ -104,7 +107,8 @@ OPTIONS:                                               \n\
   \return false if the program has to be stopped, true otherwise.
 
 */
-bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
+bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display,
+                bool &use_parallel_ransac)
 {
   const char *optarg_;
   int c;
@@ -116,6 +120,9 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
       break;
     case 'd':
       display = false;
+      break;
+    case 'p':
+      use_parallel_ransac = true;
       break;
     case 'h':
       usage(argv[0], NULL);
@@ -151,9 +158,10 @@ int main(int argc, const char **argv)
     std::string env_ipath;
     bool opt_click_allowed = true;
     bool opt_display = true;
+    bool use_parallel_ransac = false;
 
     // Read the command line options
-    if (getOptions(argc, argv, opt_click_allowed, opt_display) == false) {
+    if (getOptions(argc, argv, opt_click_allowed, opt_display, use_parallel_ransac) == false) {
       exit(-1);
     }
 
@@ -241,6 +249,7 @@ int main(int argc, const char **argv)
 
     // Init keypoints
     vpKeyPoint keypoints("ORB", "ORB", "BruteForce-Hamming");
+    keypoints.setRansacParallel(use_parallel_ransac);
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020400)
     // Bug when using LSH index with FLANN and OpenCV 2.3.1.
     // see http://code.opencv.org/issues/1741 (Bug #1741)
@@ -249,7 +258,7 @@ int main(int argc, const char **argv)
     keypoints.setDetectorParameter("ORB", "nLevels", 1);
 #else
     cv::Ptr<cv::ORB> orb_detector = keypoints.getDetector("ORB").dynamicCast<cv::ORB>();
-    if (orb_detector != NULL) {
+    if (orb_detector) {
       orb_detector->setNLevels(1);
     }
 #endif
@@ -348,6 +357,7 @@ int main(int argc, const char **argv)
     bool opt_click = false;
     double error;
     vpMouseButton::vpMouseButtonType button;
+    std::vector<double> times_vec;
     while ((opt_display && !g.end()) || (!opt_display && g.getFrameIndex() < 30)) {
       g.acquire(I);
 
@@ -362,6 +372,8 @@ int main(int argc, const char **argv)
 
       // Match keypoints and estimate the pose
       if (keypoints.matchPoint(I, cam, cMo, error, elapsedTime)) {
+        times_vec.push_back(elapsedTime);
+
         tracker.setCameraParameters(cam);
         tracker.setPose(I, cMo);
 
@@ -427,7 +439,13 @@ int main(int argc, const char **argv)
       }
     }
 
-  } catch (vpException &e) {
+    if (!times_vec.empty()) {
+      std::cout << "Computation time, Mean: " << vpMath::getMean(times_vec)
+                << " ms ; Median: " << vpMath::getMedian(times_vec)
+                << " ms ; Std: " << vpMath::getStdev(times_vec) << std::endl;
+    }
+
+  } catch (const vpException &e) {
     std::cerr << e.what() << std::endl;
     return -1;
   }

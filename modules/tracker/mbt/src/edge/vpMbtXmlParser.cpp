@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,18 +79,6 @@ void vpMbtXmlParser::init()
   nodeMap["mu2"] = mu2;
   nodeMap["sample"] = sample;
   nodeMap["step"] = step;
-}
-
-/*!
-  Parse the file in parameters.
-  This method is deprecated, use parse() instead.
-
-  \param filename : File to parse.
-*/
-void vpMbtXmlParser::parse(const char *filename)
-{
-  std::string file = filename;
-  vpXmlParser::parse(file);
 }
 
 /*!
