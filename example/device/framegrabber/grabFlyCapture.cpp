@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -234,14 +234,18 @@ int main(int argc, const char **argv)
 
     // The camera connection will be closed automatically in vpFlyCapture
     // destructor
-    return 0;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e.getStringMessage() << std::endl;
-    return 0;
+    return EXIT_FAILURE;
   }
 }
 
 #else
-int main() { std::cout << "PointGrey FlyCapture SDK is not available..." << std::endl; }
-
+int main() {
+  std::cout << "You do not have PointGrey FlyCapture SDK enabled..." << std::endl;
+  std::cout << "Tip:" << std::endl;
+  std::cout << "- Install FlyCapture SDK, configure again ViSP using cmake and build again this example" << std::endl;
+  return EXIT_SUCCESS;
+}
 #endif

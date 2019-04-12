@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -141,13 +141,15 @@ vpMeEllipse::~vpMeEllipse()
   the points with the smallest and the biggest \f$ alpha \f$ angle.
 
   \param I : Image in which the ellipse appears.
+  \param doNotTrack : Inherited parameter, not used.
 
   \exception vpTrackingException::initializationError : Moving edges not
   initialized.
 
 */
-void vpMeEllipse::sample(const vpImage<unsigned char> &I)
+void vpMeEllipse::sample(const vpImage<unsigned char> &I, const bool doNotTrack)
 {
+  (void)doNotTrack;
   if (!me) {
     throw(vpException(vpException::fatalError, "Moving edges on ellipse tracking not initialized"));
   }

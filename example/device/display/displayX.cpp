@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,18 +45,19 @@
 
 */
 
+#include <iostream>
 #include <stdlib.h>
 #include <visp3/core/vpConfig.h>
-#include <visp3/core/vpDebug.h>
+
 #ifdef VISP_HAVE_X11
 
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpIoTools.h>
+#include <visp3/core/vpTime.h>
 #include <visp3/gui/vpDisplayX.h>
 #include <visp3/io/vpImageIo.h>
 #include <visp3/io/vpParseArgv.h>
 
-#include <visp3/core/vpTime.h>
 
 /*!
   \example displayX.cpp
@@ -433,13 +434,17 @@ int main(int argc, const char **argv)
         std::cout << "Bye" << std::endl;
       }
     }
-    return 0;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }
 #else
-int main() { vpERROR_TRACE("You do not have X11 functionalities to display images..."); }
-
+int main() {
+  std::cout << "You do not have X11 functionalities to display images..." << std::endl;
+  std::cout << "Tip if you are on a unix-like system:" << std::endl;
+  std::cout << "- Install X11, configure again ViSP using cmake and build again this example" << std::endl;
+  return EXIT_SUCCESS;
+}
 #endif

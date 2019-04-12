@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -274,15 +274,18 @@ int main(int argc, const char **argv)
     robot.getVelocity(vpRobot::ARTICULAR_FRAME, qm);
     std::cout << "Velocity in the articular frame: "
               << " pan: " << vpMath::deg(qm[0]) << " tilt: " << vpMath::deg(qm[1]) << std::endl;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e.getMessage() << std::endl;
+    return EXIT_FAILURE
   }
 }
 #else
 int main()
 {
-  vpERROR_TRACE("You do not have a biclops robot connected to your computer...");
-  return 0;
+  std::cout << "You do not have an biclops PT robot connected to your computer..." << std::endl;
+  return EXIT_SUCCESS;
 }
 
 #endif
