@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,19 @@ vpRowVector vpRotationVector::t() const
   for (unsigned int i = 0; i < dsize; i++)
     v[i] = data[i];
 
+  return v;
+}
+
+/*!
+ * Converts the vpRotationVector to a std::vector.
+ * \return The corresponding std::vector<double>.
+ */
+std::vector<double> vpRotationVector::toStdVector()
+{
+  std::vector<double> v(this->size());
+
+  for (unsigned int i = 0; i < this->size(); i++)
+    v[i] = data[i];
   return v;
 }
 

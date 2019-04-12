@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -436,14 +436,20 @@ int main(int argc, const char **argv)
       // Wait for a blocking mouse click
       vpDisplay::getClick(vpI);
     }
-    return 0;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }
 #else
-int main() { vpERROR_TRACE("You do not have OpenCV functionalities..."); }
+int main()
+{
+  std::cout << "You do not have OpenCV functionalities to display images..." << std::endl;
+  std::cout << "Tip:" << std::endl;
+  std::cout << "- Install OpenCV, configure again ViSP using cmake and build again this example" << std::endl;
+  return EXIT_SUCCESS;
+}
 #endif
 #else
 #include <iostream>

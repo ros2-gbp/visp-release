@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,18 +36,23 @@
 #include <cstring>
 #include <sstream>
 
+#include <visp3/core/vpConfig.h>
+
+// inet_ntop() not supported on win XP
+#ifdef VISP_HAVE_FUNC_INET_NTOP
+
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-#include <arpa/inet.h>
-#include <errno.h>
-#include <netdb.h>
-#include <unistd.h>
-#define DWORD int
-#define WSAGetLastError() strerror(errno)
+#  include <arpa/inet.h>
+#  include <errno.h>
+#  include <netdb.h>
+#  include <unistd.h>
+#  define DWORD int
+#  define WSAGetLastError() strerror(errno)
 #else
-#if defined(__MINGW32__)
-#define _WIN32_WINNT _WIN32_WINNT_VISTA // 0x0600
-#endif
-#include <Ws2tcpip.h>
+#  if defined(__MINGW32__)
+#    define _WIN32_WINNT _WIN32_WINNT_VISTA // 0x0600
+#  endif
+#  include <Ws2tcpip.h>
 #endif
 
 #include <visp3/core/vpUDPServer.h>
@@ -217,8 +222,8 @@ int vpUDPServer::receive(std::string &msg, std::string &hostInfo, const int time
   if (retval > 0) {
 /* recvfrom: receive a UDP datagram from a client */
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-    int length = recvfrom(m_socketFileDescriptor, m_buf, sizeof(m_buf), 0, (struct sockaddr *)&m_clientAddress,
-                          (socklen_t *)&m_clientLength);
+    int length = static_cast<int>(recvfrom(m_socketFileDescriptor, m_buf, sizeof(m_buf), 0, (struct sockaddr *)&m_clientAddress,
+                                           (socklen_t *)&m_clientLength));
 #else
     int length =
         recvfrom(m_socketFileDescriptor, m_buf, sizeof(m_buf), 0, (struct sockaddr *)&m_clientAddress, &m_clientLength);
@@ -310,10 +315,15 @@ int vpUDPServer::send(const std::string &msg, const std::string &hostname, const
 
 /* send the message to the client */
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-  return sendto(m_socketFileDescriptor, msg.c_str(), msg.size(), 0, (struct sockaddr *)&m_clientAddress,
-                m_clientLength);
+  return static_cast<int>(sendto(m_socketFileDescriptor, msg.c_str(), msg.size(), 0, (struct sockaddr *)&m_clientAddress,
+                                 m_clientLength));
 #else
   return sendto(m_socketFileDescriptor, msg.c_str(), (int)msg.size(), 0, (struct sockaddr *)&m_clientAddress,
                 m_clientLength);
 #endif
 }
+
+#elif !defined(VISP_BUILD_SHARED_LIBS)
+// Work arround to avoid warning: libvisp_core.a(vpUDPServer.cpp.o) has no symbols
+void dummy_vpUDPServer(){};
+#endif

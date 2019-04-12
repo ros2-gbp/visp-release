@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -168,14 +168,15 @@ int main(int argc, const char **argv)
       return EXIT_FAILURE;
     }
 
-    vpImage<unsigned char> I;
+    vpImage<unsigned char> Iinput, I;
 
     // Set the path location of the image sequence
     std::string dirname = vpIoTools::createFilePath(env_ipath, "Klimt");
 
     // Build the name of the image files
     std::string filename = vpIoTools::createFilePath(dirname, "/Klimt.png");
-    vpImageIo::read(I, filename);
+    vpImageIo::read(Iinput, filename);
+    Iinput.halfSizeImage(I);
 
 #if defined VISP_HAVE_X11
     vpDisplayX display;
@@ -306,7 +307,7 @@ int main(int argc, const char **argv)
       }
     }
 
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     std::cerr << e.what() << std::endl;
     return EXIT_FAILURE;
   }

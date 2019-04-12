@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,9 @@
  *****************************************************************************/
 
 #include <visp3/core/vpNetwork.h>
+
+// inet_ntop() not supported on win XP
+#ifdef VISP_HAVE_FUNC_INET_NTOP
 
 vpNetwork::vpNetwork()
   : emitter(), receptor_list(), readFileDescriptor(), socketMax(0), request_list(), max_size_message(999999),
@@ -785,3 +788,8 @@ int vpNetwork::_receiveRequestOnceFrom(const unsigned int &receptorEmitting)
 
   return numbytes;
 }
+
+#elif !defined(VISP_BUILD_SHARED_LIBS)
+// Work arround to avoid warning: libvisp_core.a(vpNetwork.cpp.o) has no symbols
+void dummy_vpNetwork(){};
+#endif

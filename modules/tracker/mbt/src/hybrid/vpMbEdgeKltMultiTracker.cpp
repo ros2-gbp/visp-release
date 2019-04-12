@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2016 by INRIA. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,24 +11,22 @@
  * distribution for additional information about the GNU GPL.
  *
  * For using ViSP with software that can not be combined with the GNU
- * GPL, please contact INRIA about acquiring a ViSP Professional
+ * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See https://visp.inria.fr/download/ for more information.
+ * See http://visp.inria.fr for more information.
  *
  * This software was developed at:
- * INRIA Rennes - Bretagne Atlantique
+ * Inria Rennes - Bretagne Atlantique
  * Campus Universitaire de Beaulieu
  * 35042 Rennes Cedex
  * France
- * http://www.irisa.fr/lagadic
  *
  * If you have questions regarding the use of this file, please contact
- * INRIA at visp@inria.fr
+ * Inria at visp@inria.fr
  *
  * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- *
  *
  * Description:
  * Model-based edge klt tracker with multiple cameras.
@@ -44,6 +42,8 @@
 */
 
 #include <visp3/core/vpConfig.h>
+
+#if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
 
 #if defined(VISP_HAVE_MODULE_KLT) && defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100)
 
@@ -873,20 +873,23 @@ void vpMbEdgeKltMultiTracker::initClick(const vpImage<unsigned char> &I, const s
   \param I : Input image where the user has to click.
   \param initFile : File containing the coordinates of at least 4 3D points
   the user has to click in the image. This file should have .init extension
-  (ie teabox.init). \param displayHelp : Optionnal display of an image that
+  (ie teabox.init).
+  \param displayHelp : Optionnal display of an image that
   should have the same generic name as the init file (ie teabox.ppm). This
   image may be used to show where to click. This functionality is only
   available if visp_io module is used.
+  \param T : optional transformation matrix to transform
+  3D points expressed in the original object frame to the desired object frame.
 
   \exception vpException::ioError : The file specified in \e initFile doesn't
   exist.
 */
 void vpMbEdgeKltMultiTracker::initClick(const vpImage<unsigned char> &I, const std::string &initFile,
-                                        const bool displayHelp)
+                                        const bool displayHelp, const vpHomogeneousMatrix &T)
 {
   // Cannot use directly set pose for KLT as it is different than for the edge
   // case  It moves the KLT points instead of detecting new KLT points
-  vpMbKltMultiTracker::initClick(I, initFile, displayHelp);
+  vpMbKltMultiTracker::initClick(I, initFile, displayHelp, T);
 
   // Set pose for Edge (setPose or initFromPose is equivalent with
   // vpMbEdgeTracker)  And it avoids to click a second time
@@ -1343,7 +1346,7 @@ void vpMbEdgeKltMultiTracker::loadConfigFile(const std::map<std::string, std::st
 int main()
 {
     ...
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION == 3)
+#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
   SoDB::finish();
 #endif
 }
@@ -1356,11 +1359,14 @@ is not wrl or cao.
   The extension of this file is either .wrl or .cao.
   \param verbose : verbose option to print additional information when loading
 CAO model files which include other CAO model files.
+  \param T : optional transformation matrix (currently only for .cao) to transform
+  3D points expressed in the original object frame to the desired object frame.
 */
-void vpMbEdgeKltMultiTracker::loadModel(const std::string &modelFile, const bool verbose)
+void vpMbEdgeKltMultiTracker::loadModel(const std::string &modelFile, const bool verbose,
+                                        const vpHomogeneousMatrix &T)
 {
-  vpMbEdgeMultiTracker::loadModel(modelFile, verbose);
-  vpMbKltMultiTracker::loadModel(modelFile, verbose);
+  vpMbEdgeMultiTracker::loadModel(modelFile, verbose, T);
+  vpMbKltMultiTracker::loadModel(modelFile, verbose, T);
 
   modelInitialised = true;
 }
@@ -1435,14 +1441,18 @@ void vpMbEdgeKltMultiTracker::reinit(/*const vpImage<unsigned char>& I */)
   \param I : The image containing the object to initialize.
   \param cad_name : Path to the file containing the 3D model description.
   \param cMo_ : The new vpHomogeneousMatrix between the camera and the new
-  model \param verbose : verbose option to print additional information when
+  model
+  \param verbose : verbose option to print additional information when
   loading CAO model files which include other CAO model files.
+  \param T : optional transformation matrix (currently only for .cao) to transform
+  3D points expressed in the original object frame to the desired object frame.
 */
 void vpMbEdgeKltMultiTracker::reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name,
-                                          const vpHomogeneousMatrix &cMo_, const bool verbose)
+                                          const vpHomogeneousMatrix &cMo_, const bool verbose,
+                                          const vpHomogeneousMatrix &T)
 {
-  vpMbEdgeMultiTracker::reInitModel(I, cad_name, cMo_, verbose);
-  vpMbKltMultiTracker::reInitModel(I, cad_name, cMo_, verbose);
+  vpMbEdgeMultiTracker::reInitModel(I, cad_name, cMo_, verbose, T);
+  vpMbKltMultiTracker::reInitModel(I, cad_name, cMo_, verbose, T);
 }
 
 /*!
@@ -2192,5 +2202,10 @@ void vpMbEdgeKltMultiTracker::trackMovingEdges(std::map<std::string, const vpIma
 #elif !defined(VISP_BUILD_SHARED_LIBS)
 // Work arround to avoid warning:
 // libvisp_mbt.a(dummy_vpMbEdgeKltMultiTracker.cpp.o) has no symbols
-void dummy_vpMbEdgeKltMultiTracker(){};
+void dummy_vpMbEdgeKltMultiTracker(){}
 #endif // VISP_HAVE_OPENCV
+#elif !defined(VISP_BUILD_SHARED_LIBS)
+// Work arround to avoid warning:
+// libvisp_mbt.a(dummy_vpMbEdgeKltMultiTracker.cpp.o) has no symbols
+void dummy_vpMbEdgeKltMultiTracker(){}
+#endif //#if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
