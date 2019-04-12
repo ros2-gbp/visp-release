@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -781,4 +781,84 @@ void vpImageFilter::getGaussYPyramidal(const vpImage<unsigned char> &I, vpImage<
     GI[h - 1][j] = I[2 * h - 1][j];
   }
 #endif
+}
+
+/*!
+  Get Sobel kernel for X-direction.
+
+  \param filter : Pointer to a double array already allocated.
+  \param size : Kernel size computed as: kernel_size = size*2 + 1 (max size is 20).
+  \return Scaling factor.
+ */
+double vpImageFilter::getSobelKernelX(double *filter, unsigned int size)
+{
+  if (size == 0)
+    throw vpException(vpException::dimensionError, "Cannot get Sobel kernel of size 0!");
+  if (size > 20)
+    throw vpException(vpException::dimensionError, "Cannot get Sobel kernel of size > 20!");
+
+  vpMatrix SobelY(size*2+1, size*2+1);
+  double norm = getSobelKernelY(SobelY.data, size);
+  memcpy(filter, SobelY.t().data, SobelY.getRows()*SobelY.getCols()*sizeof(double));
+  return norm;
+}
+
+/*!
+  Get Sobel kernel for Y-direction.
+
+  \param filter : Pointer to a double array already allocated.
+  \param size : Kernel size computed as: kernel_size = size*2 + 1 (max size is 20).
+  \return Scaling factor.
+ */
+double vpImageFilter::getSobelKernelY(double *filter, unsigned int size)
+{
+  //Sobel kernel pre-computed for the usual size
+  static const double SobelY3x3[9] = {-1.0, -2.0, -1.0,
+                                      0.0, 0.0, 0.0,
+                                      1.0, 2.0, 1.0};
+  static const double SobelY5x5[25] = {-1.0, -4.0, -6.0, -4.0, -1.0,
+                                       -2.0, -8.0, -12.0, -8.0, -2.0,
+                                       0.0, 0.0, 0.0, 0.0, 0.0,
+                                       2.0, 8.0, 12.0, 8.0, 2.0,
+                                       1.0, 4.0, 6.0, 4.0, 1.0};
+  static const double SobelY7x7[49] = {-1, -6, -15, -20, -15, -6, -1,
+                                       -4, -24, -60, -80, -60, -24, -4,
+                                       -5, -30, -75, -100, -75, -30, -5,
+                                        0, 0, 0, 0, 0, 0, 0,
+                                        5, 30, 75, 100, 75, 30, 5,
+                                        4, 24, 60, 80, 60, 24, 4,
+                                        1, 6, 15, 20, 15, 6, 1};
+  static const vpMatrix smoothingKernel(3,3);
+  smoothingKernel[0][0] = 1.0;  smoothingKernel[0][1] = 2.0;  smoothingKernel[0][2] = 1.0;
+  smoothingKernel[1][0] = 2.0;  smoothingKernel[1][1] = 4.0;  smoothingKernel[1][2] = 2.0;
+  smoothingKernel[2][0] = 1.0;  smoothingKernel[2][1] = 2.0;  smoothingKernel[2][2] = 1.0;
+
+  if (size == 0)
+    throw vpException(vpException::dimensionError, "Cannot get Sobel kernel of size 0!");
+  if (size > 20)
+    throw vpException(vpException::dimensionError, "Cannot get Sobel kernel of size > 20!");
+
+  const unsigned int kernel_size = size*2+1;
+  if (kernel_size == 3) {
+    memcpy(filter, SobelY3x3, kernel_size*kernel_size*sizeof(double));
+    return 1/8.0;
+  }
+  if (kernel_size == 5) {
+    memcpy(filter, SobelY5x5, kernel_size*kernel_size*sizeof(double));
+    return 1/16.0;
+  }
+  if (kernel_size == 7) {
+    memcpy(filter, SobelY7x7, kernel_size*kernel_size*sizeof(double));
+    return 1/16.0;
+  }
+
+  vpMatrix sobelY(7,7);
+  memcpy(sobelY.data, SobelY7x7, sobelY.getRows()*sobelY.getCols()*sizeof(double));
+  for (unsigned int i = 4; i <= size; i++) {
+    sobelY = vpMatrix::conv2(sobelY, smoothingKernel, "full");
+  }
+
+  memcpy(filter, sobelY.data, sobelY.getRows()*sobelY.getCols()*sizeof(double));
+
+  return 1/16.0;
 }

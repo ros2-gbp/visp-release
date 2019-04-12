@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -747,7 +747,7 @@ void vpTemplateTracker::initHessienDesiredPyr(const vpImage<unsigned char> &I)
     HdesirePyr[0] = Hdesire;
     HLMdesirePyr[0] = HLMdesire;
     HLMdesireInversePyr[0] = HLMdesireInverse;
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     ptTemplateSuppPyr[0] = ptTemplateSupp;
     ptTemplateCompoPyr[0] = ptTemplateCompo;
     HdesirePyr[0] = Hdesire;
@@ -774,7 +774,7 @@ void vpTemplateTracker::initHessienDesiredPyr(const vpImage<unsigned char> &I)
         HdesirePyr[i] = Hdesire;
         HLMdesirePyr[i] = HLMdesire;
         HLMdesireInversePyr[i] = HLMdesireInverse;
-      } catch (vpException &e) {
+      } catch (const vpException &e) {
         ptTemplateSuppPyr[i] = ptTemplateSupp;
         ptTemplateCompoPyr[i] = ptTemplateCompo;
         HdesirePyr[i] = Hdesire;
@@ -890,7 +890,7 @@ void vpTemplateTracker::trackPyr(const vpImage<unsigned char> &I)
       trackRobust(I);
     }
     delete[] pyr_I;
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     delete[] pyr_I;
     throw(vpTrackingException(vpTrackingException::badValue, e.getMessage()));
   }

@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -237,7 +237,7 @@ int main(int argc, const char **argv)
     std::string opath;
     std::string filename;
     std::string username;
-    int nbIterations = 100;
+    int nbIterations = 1;
 
     // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH
     // environment variable value
@@ -616,12 +616,12 @@ int main(int argc, const char **argv)
     vpImage<unsigned char> R, G, B, a;
     vpImageConvert::split(Ic, &R, NULL, &B);
     double begintime = vpTime::measureTimeMs();
-    for (int i = 0; i < 1000; i++) {
+    for (int iteration = 0; iteration < nbIterations; iteration++) {
       vpImageConvert::split(Ic, &R, NULL, &B);
     }
     double endtime = vpTime::measureTimeMs();
 
-    std::cout << "   Time for 1000 split (ms): " << endtime - begintime << std::endl;
+    std::cout << "   Time for " << nbIterations << " split (ms): " << endtime - begintime << std::endl;
 
     filename = vpIoTools::createFilePath(opath, "Klimt_RChannel.pgm");
     /* Save the the current image */
@@ -640,7 +640,7 @@ int main(int argc, const char **argv)
     vpImageConvert::split(Ic, &R, &G, &B, &a);
     begintime = vpTime::measureTimeMs();
     vpImage<vpRGBa> I_merge;
-    for (int i = 0; i < 1000; i++) {
+    for (int iteration = 0; iteration < nbIterations; iteration++) {
       vpImageConvert::merge(&R, &G, &B, &a, I_merge);
     }
     endtime = vpTime::measureTimeMs();

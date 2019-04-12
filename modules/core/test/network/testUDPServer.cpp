@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,8 @@ struct DataType {
 
 int main()
 {
+// inet_ntop() used in vpUDPClient is not supported on win XP
+#ifdef VISP_HAVE_FUNC_INET_NTOP
   try {
     int port = 50037;
     vpUDPServer server(port);
@@ -114,4 +116,8 @@ int main()
     std::cerr << "Catch an exception: " << e.what() << std::endl;
     return EXIT_FAILURE;
   }
+#else
+  std::cout << "This test doesn't work on win XP where inet_ntop() is not available" << std::endl;
+  return EXIT_SUCCESS;
+#endif
 }
