@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -550,7 +550,9 @@ vpMatrix &vpMatrix::operator=(const vpArray2D<double> &A)
 {
   resize(A.getRows(), A.getCols(), false, false);
 
-  memcpy(data, A.data, dsize * sizeof(double));
+  if (data != NULL && A.data != NULL && data != A.data) {
+    memcpy(data, A.data, dsize * sizeof(double));
+  }
 
   return *this;
 }
@@ -558,9 +560,11 @@ vpMatrix &vpMatrix::operator=(const vpArray2D<double> &A)
 #ifdef VISP_HAVE_CPP11_COMPATIBILITY
 vpMatrix &vpMatrix::operator=(const vpMatrix &A)
 {
-  resize(A.getRows(), A.getCols(), false);
+  resize(A.getRows(), A.getCols(), false, false);
 
-  memcpy(data, A.data, dsize * sizeof(double));
+  if (data != NULL && A.data != NULL && data != A.data) {
+    memcpy(data, A.data, dsize * sizeof(double));
+  }
 
   return *this;
 }
@@ -591,10 +595,7 @@ vpMatrix &vpMatrix::operator=(vpMatrix &&other)
 //! Set all the element of the matrix A to \e x.
 vpMatrix &vpMatrix::operator=(double x)
 {
-  for (unsigned int i = 0; i < rowNum; i++)
-    for (unsigned int j = 0; j < colNum; j++)
-      rowPtrs[i][j] = x;
-
+  std::fill(data, data + rowNum*colNum, x);
   return *this;
 }
 
@@ -1939,8 +1940,7 @@ vpMatrix vpMatrix::pseudoInverse(double svThreshold) const
 #elif defined(VISP_HAVE_GSL)
   return pseudoInverseGsl(svThreshold);
 #else
-  (void)w;
-  (void)V;
+  (void)svThreshold;
   throw(vpException(vpException::fatalError, "Cannot compute pseudo-inverse. "
                                              "Install Lapack, Eigen3, OpenCV "
                                              "or GSL 3rd party"));
@@ -3708,10 +3708,11 @@ unsigned int vpMatrix::pseudoInverse(vpMatrix &Ap, vpColVector &sv, double svThr
 /*!
   Extract a column vector from a matrix.
   \warning All the indexes start from 0 in this function.
-  \param j : Index of the column to extract. If col=0, the first column is
-extracted. \param i_begin : Index of the row that gives the location of the
-first element of the column vector to extract. \param column_size : Size of
-the column vector to extract. \return The extracted column vector.
+  \param j : Index of the column to extract. If col=0, the first column is extracted.
+  \param i_begin : Index of the row that gives the location of the first element
+  of the column vector to extract.
+  \param column_size : Size of the column vector to extract.
+  \return The extracted column vector.
 
   The following example shows how to use this function:
   \code
@@ -3748,7 +3749,7 @@ column vector:
 vpColVector vpMatrix::getCol(const unsigned int j, const unsigned int i_begin, const unsigned int column_size) const
 {
   if (i_begin + column_size > getRows() || j >= getCols())
-    throw(vpException(vpException::dimensionError, "Unable to extract a column vector from the matrix"));
+    throw(vpException(vpException::dimensionError, "Unable to extract column %u from the %ux%u matrix", j, getRows(), getCols()));
   vpColVector c(column_size);
   for (unsigned int i = 0; i < column_size; i++)
     c[i] = (*this)[i_begin + i][j];
@@ -3758,8 +3759,8 @@ vpColVector vpMatrix::getCol(const unsigned int j, const unsigned int i_begin, c
 /*!
   Extract a column vector from a matrix.
   \warning All the indexes start from 0 in this function.
-  \param j : Index of the column to extract. If j=0, the first column is
-extracted. \return The extracted column vector.
+  \param j : Index of the column to extract. If j=0, the first column is extracted.
+  \return The extracted column vector.
 
   The following example shows how to use this function:
   \code
@@ -3797,7 +3798,7 @@ column vector:
 vpColVector vpMatrix::getCol(const unsigned int j) const
 {
   if (j >= getCols())
-    throw(vpException(vpException::dimensionError, "Unable to extract a column vector from the matrix"));
+    throw(vpException(vpException::dimensionError, "Unable to extract column %u from the %ux%u matrix", j, getRows(), getCols()));
   unsigned int nb_rows = getRows();
   vpColVector c(nb_rows);
   for (unsigned int i = 0; i < nb_rows; i++)
@@ -3848,7 +3849,7 @@ vpRowVector vpMatrix::getRow(const unsigned int i) const
   vpRowVector r;
   r.resize(colNum, false);
 
-  if (r.data != NULL && data != NULL && colNum > 0) {
+  if (r.data != NULL && data != NULL && r.data != data) {
     memcpy(r.data, data + i * colNum, sizeof(double) * colNum);
   }
 
@@ -3922,25 +3923,6 @@ vpMatrix vpMatrix::stack(const vpMatrix &A, const vpMatrix &B)
 }
 
 /*!
-  Stack row vector \e r to matrix \e A and return the resulting matrix [ A r
-  ]^T
-
-  \param A : Upper matrix.
-  \param r : Lower matrix.
-  \return Stacked matrix [ A r ]^T
-
-  \warning \e A and \e r must have the same number of columns.
-*/
-vpMatrix vpMatrix::stack(const vpMatrix &A, const vpRowVector &r)
-{
-  vpMatrix C;
-
-  vpMatrix::stack(A, r, C);
-
-  return C;
-}
-
-/*!
   Stack matrix \e B to the end of matrix \e A and return the resulting matrix
   in \e C.
 
@@ -3987,7 +3969,24 @@ void vpMatrix::stack(const vpMatrix &A, const vpMatrix &B, vpMatrix &C)
 }
 
 /*!
-  Stack row vector \e v to the end of matrix \e A and return the resulting
+  Stack row vector \e r to matrix \e A and return the resulting matrix [ A r ]^T
+
+  \param A : Upper matrix.
+  \param r : Lower row vector.
+  \return Stacked matrix [ A r ]^T
+
+  \warning \e A and \e r must have the same number of columns.
+*/
+vpMatrix vpMatrix::stack(const vpMatrix &A, const vpRowVector &r)
+{
+  vpMatrix C;
+  vpMatrix::stack(A, r, C);
+
+  return C;
+}
+
+/*!
+  Stack row vector \e r to the end of matrix \e A and return the resulting
   matrix in \e C.
 
   \param  A : Upper matrix.
@@ -3999,36 +3998,52 @@ void vpMatrix::stack(const vpMatrix &A, const vpMatrix &B, vpMatrix &C)
 */
 void vpMatrix::stack(const vpMatrix &A, const vpRowVector &r, vpMatrix &C)
 {
-  unsigned int nra = A.getRows();
-
-  if (nra != 0) {
-    if (A.getCols() != r.getCols()) {
-      throw(vpException(vpException::dimensionError, "Cannot stack (%dx%d) matrix with (1x%d) row vector", A.getRows(),
-                        A.getCols(), r.getCols()));
-    }
-  }
-
   if (A.data != NULL && A.data == C.data) {
     std::cerr << "A and C must be two different objects!" << std::endl;
     return;
   }
 
-  if (r.size() == 0) {
-    C = A;
+  C = A;
+  C.stack(r);
+}
+
+/*!
+  Stack column vector \e c to matrix \e A and return the resulting matrix [ A c ]
+
+  \param A : Left matrix.
+  \param c : Right column vector.
+  \return Stacked matrix [ A c ]
+
+  \warning \e A and \e c must have the same number of rows.
+*/
+vpMatrix vpMatrix::stack(const vpMatrix &A, const vpColVector &c)
+{
+  vpMatrix C;
+  vpMatrix::stack(A, c, C);
+
+  return C;
+}
+
+/*!
+  Stack column vector \e c to the end of matrix \e A and return the resulting
+  matrix in \e C.
+
+  \param  A : Left matrix.
+  \param  c : Right column vector.
+  \param  C : Stacked matrix C = [ A c ]
+
+  \warning A and c must have the same number of rows. A and C must be two
+  different objects.
+*/
+void vpMatrix::stack(const vpMatrix &A, const vpColVector &c, vpMatrix &C)
+{
+  if (A.data != NULL && A.data == C.data) {
+    std::cerr << "A and C must be two different objects!" << std::endl;
     return;
   }
 
-  C.resize(nra + 1, r.getCols(), false, false);
-
-  if (C.data != NULL && A.data != NULL && A.size() > 0) {
-    // Copy A in C
-    memcpy(C.data, A.data, sizeof(double) * A.size());
-  }
-
-  if (C.data != NULL && r.data != NULL && r.size() > 0) {
-    // Copy r in C
-    memcpy(C.data + A.size(), r.data, sizeof(double) * r.size());
-  }
+  C = A;
+  C.stack(c);
 }
 
 /*!
@@ -4462,7 +4477,7 @@ void vpMatrix::stack(const vpMatrix &A)
 
 /*!
   Stack row vector \e r at the end of the current matrix, or copy if the
-matrix has no dimensions : this = [ this r ]^T.
+matrix has no dimensions: this = [ this r ]^T.
 
   Here an example for a robot velocity log :
 \code
@@ -4471,7 +4486,7 @@ vpColVector v(6);
 for(unsigned int i = 0;i<100;i++)
 {
   robot.getVelocity(vpRobot::ARTICULAR_FRAME, v);
-  Velocities.stackMatrices(v.t());
+  Velocities.stack(v.t());
 }
 \endcode
 */
@@ -4492,9 +4507,52 @@ void vpMatrix::stack(const vpRowVector &r)
     unsigned int oldSize = size();
     resize(rowNum + 1, colNum, false, false);
 
-    if (data != NULL && r.data != NULL && r.size() > 0) {
+    if (data != NULL && r.data != NULL && data != r.data) {
       // Copy r in data
       memcpy(data + oldSize, r.data, sizeof(double) * r.size());
+    }
+  }
+}
+
+/*!
+  Stack column vector \e c at the right of the current matrix, or copy if the
+matrix has no dimensions: this = [ this c ].
+
+  Here an example for a robot velocity log :
+\code
+vpMatrix A;
+vpColVector v(6);
+for(unsigned int i = 0;i<100;i++)
+{
+  robot.getVelocity(vpRobot::ARTICULAR_FRAME, v);
+  Velocities.stack(v);
+}
+\endcode
+*/
+void vpMatrix::stack(const vpColVector &c)
+{
+  if (colNum == 0) {
+    *this = c;
+  } else {
+    if (rowNum != c.getRows()) {
+      throw(vpException(vpException::dimensionError, "Cannot stack (%dx%d) matrix with (%dx1) column vector", rowNum,
+                        colNum, c.getRows()));
+    }
+
+    if (c.size() == 0) {
+      return;
+    }
+
+    vpMatrix tmp = *this;
+    unsigned int oldColNum = colNum;
+    resize(rowNum, colNum + 1, false, false);
+
+    if (data != NULL && tmp.data != NULL && data != tmp.data) {
+      // Copy c in data
+      for (unsigned int i = 0; i < rowNum; i++) {
+        memcpy(data + i*colNum, tmp.data + i*oldColNum, sizeof(double) * oldColNum);
+        rowPtrs[i][oldColNum] = c[i];
+      }
     }
   }
 }
@@ -4512,9 +4570,9 @@ void vpMatrix::stack(const vpRowVector &r)
 void vpMatrix::insert(const vpMatrix &A, const unsigned int r, const unsigned int c)
 {
   if ((r + A.getRows()) <= rowNum && (c + A.getCols()) <= colNum) {
-    if (A.colNum == colNum && data != NULL && A.data != NULL && A.size() > 0) {
+    if (A.colNum == colNum && data != NULL && A.data != NULL && A.data != data) {
       memcpy(data + r * colNum, A.data, sizeof(double) * A.size());
-    } else if (data != NULL && A.data != NULL && A.colNum > 0) {
+    } else if (data != NULL && A.data != NULL && A.data != data) {
       for (unsigned int i = r; i < (r + A.getRows()); i++) {
         memcpy(data + i * colNum + c, A.data + (i - r) * A.colNum, sizeof(double) * A.colNum);
       }
@@ -5092,6 +5150,96 @@ double vpMatrix::sumSquare() const
   return sum_square;
 }
 
+/*!
+  Perform a 2D convolution similar to Matlab conv2 function: \f$ M \star kernel \f$.
+
+  \param M : First matrix.
+  \param kernel : Second matrix.
+  \param mode : Convolution mode: "full" (default), "same", "valid".
+
+  \image html vpMatrix-conv2-mode.jpg "Convolution mode: full, same, valid (image credit: Theano doc)."
+
+  \note This is a very basic implementation that does not use FFT.
+ */
+vpMatrix vpMatrix::conv2(const vpMatrix &M, const vpMatrix &kernel, const std::string &mode)
+{
+  vpMatrix res;
+  conv2(M, kernel, res, mode);
+  return res;
+}
+
+/*!
+  Perform a 2D convolution similar to Matlab conv2 function: \f$ M \star kernel \f$.
+
+  \param M : First matrix.
+  \param kernel : Second matrix.
+  \param res : Result.
+  \param mode : Convolution mode: "full" (default), "same", "valid".
+
+  \image html vpMatrix-conv2-mode.jpg "Convolution mode: full, same, valid (image credit: Theano doc)."
+
+  \note This is a very basic implementation that does not use FFT.
+ */
+void vpMatrix::conv2(const vpMatrix &M, const vpMatrix &kernel, vpMatrix &res, const std::string &mode)
+{
+  if (M.getRows()*M.getCols() == 0 || kernel.getRows()*kernel.getCols() == 0)
+    return;
+
+  if (mode == "valid") {
+    if (kernel.getRows() > M.getRows() || kernel.getCols() > M.getCols())
+      return;
+  }
+
+  vpMatrix M_padded, res_same;
+
+  if (mode == "full" || mode == "same") {
+    const unsigned int pad_x = kernel.getCols()-1;
+    const unsigned int pad_y = kernel.getRows()-1;
+    M_padded.resize(M.getRows() + 2*pad_y, M.getCols() + 2*pad_x, true, false);
+    M_padded.insert(M, pad_y, pad_x);
+
+    if (mode == "same") {
+      res.resize(M.getRows(), M.getCols(), false, false);
+      res_same.resize(M.getRows() + pad_y, M.getCols() + pad_x, true, false);
+    } else {
+      res.resize(M.getRows() + pad_y, M.getCols() + pad_x, true, false);
+    }
+  } else if (mode == "valid") {
+    M_padded = M;
+    res.resize(M.getRows()-kernel.getRows()+1, M.getCols()-kernel.getCols()+1);
+  } else {
+    return;
+  }
+
+  if (mode == "same") {
+    for (unsigned int i = 0; i < res_same.getRows(); i++) {
+      for (unsigned int j = 0; j < res_same.getCols(); j++) {
+        for (unsigned int k = 0; k < kernel.getRows(); k++) {
+          for (unsigned int l = 0; l < kernel.getCols(); l++) {
+            res_same[i][j] += M_padded[i+k][j+l] * kernel[kernel.getRows()-k-1][kernel.getCols()-l-1];
+          }
+        }
+      }
+    }
+
+    const unsigned int start_i = kernel.getRows()/2;
+    const unsigned int start_j = kernel.getCols()/2;
+    for (unsigned int i = 0; i < M.getRows(); i++) {
+      memcpy(res.data + i*M.getCols(), res_same.data + (i+start_i)*res_same.getCols() + start_j, sizeof(double)*M.getCols());
+    }
+  } else {
+    for (unsigned int i = 0; i < res.getRows(); i++) {
+      for (unsigned int j = 0; j < res.getCols(); j++) {
+        for (unsigned int k = 0; k < kernel.getRows(); k++) {
+          for (unsigned int l = 0; l < kernel.getCols(); l++) {
+            res[i][j] += M_padded[i+k][j+l] * kernel[kernel.getRows()-k-1][kernel.getCols()-l-1];
+          }
+        }
+      }
+    }
+  }
+}
+
 #if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
 vpMatrix vpMatrix::stackMatrices(const vpColVector &A, const vpColVector &B)
 {
@@ -5108,10 +5256,22 @@ vpMatrix vpMatrix::stackMatrices(const vpMatrix &A, const vpRowVector &B) { retu
 void vpMatrix::stackMatrices(const vpMatrix &A, const vpRowVector &B, vpMatrix &C) { vpMatrix::stack(A, B, C); }
 
 /*!
-  \deprecated This method is deprecated. You should use getRow().
+  \deprecated This method is deprecated. You should rather use getRow().
+  More precisely, the following code:
+  \code
+  vpMatrix L;
+  unsigned int row_index = ...;
+  ... = L.row(row_index);
+  \endcode
+  should be replaced with:
+  \code
+  ... = L.getRow(row_index - 1);
+  \endcode
 
-  Return the i-th row of the matrix.
-  \warning notice row(1) is the 0th row.
+  \warning Notice row(1) is the 0th row.
+  This function returns the i-th row of the matrix.
+  \param i : Index of the row to extract noting that row index start at 1 to get the first row.
+
 */
 vpRowVector vpMatrix::row(const unsigned int i)
 {
@@ -5123,11 +5283,21 @@ vpRowVector vpMatrix::row(const unsigned int i)
 }
 
 /*!
-  \deprecated This method is deprecated. You should use getCol().
+  \deprecated This method is deprecated. You should rather use getCol().
+  More precisely, the following code:
+  \code
+  vpMatrix L;
+  unsigned int column_index = ...;
+  ... = L.column(column_index);
+  \endcode
+  should be replaced with:
+  \code
+  ... = L.getCol(column_index - 1);
+  \endcode
 
-  Return the j-th columns of the matrix.
-  \warning notice column(1) is the 0-th column.
-  \param j : Index of the column to extract.
+  \warning Notice column(1) is the 0-th column.
+  This function returns the j-th columns of the matrix.
+  \param j : Index of the column to extract noting that column index start at 1 to get the first column.
 */
 vpColVector vpMatrix::column(const unsigned int j)
 {

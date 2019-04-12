@@ -5,11 +5,11 @@
 #include <visp3/gui/vpDisplayOpenCV.h>
 #include <visp3/gui/vpDisplayX.h>
 #include <visp3/io/vpVideoReader.h>
-#include <visp3/mbt/vpMbEdgeTracker.h>
+#include <visp3/mbt/vpMbGenericTracker.h>
 #include <visp3/vision/vpKeyPoint.h>
 
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020400)
-void learnCube(const vpImage<unsigned char> &I, vpMbEdgeTracker &tracker, vpKeyPoint &keypoint_learning, int id)
+void learnCube(const vpImage<unsigned char> &I, vpMbGenericTracker &tracker, vpKeyPoint &keypoint_learning, int id)
 {
   //! [Keypoints reference detection]
   std::vector<cv::KeyPoint> trainKeyPoints;
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
     vpHomogeneousMatrix cMo;
     vpCameraParameters cam;
 
-    vpMbEdgeTracker tracker;
+    vpMbGenericTracker tracker(vpMbGenericTracker::EDGE_TRACKER);
     bool usexml = false;
 #ifdef VISP_HAVE_XML2
     if (vpIoTools::checkFilename(objectname + ".xml")) {
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
     keypoint_learning.setDetectorParameter("ORB", "nLevels", 1);
 #else
     cv::Ptr<cv::ORB> orb_learning = keypoint_learning.getDetector("ORB").dynamicCast<cv::ORB>();
-    if (orb_learning != NULL) {
+    if (orb_learning) {
       orb_learning->setNLevels(1);
     }
 #endif
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
 #else
     cv::Ptr<cv::ORB> orb_detector = keypoint_detection.getDetector("ORB").dynamicCast<cv::ORB>();
     orb_detector = keypoint_detection.getDetector("ORB").dynamicCast<cv::ORB>();
-    if (orb_detector != NULL) {
+    if (orb_detector) {
       orb_detector->setNLevels(1);
     }
 #endif
@@ -318,10 +318,10 @@ int main(int argc, char **argv)
 #ifdef VISP_HAVE_XML2
     vpXmlParser::cleanup();
 #endif
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION == 3)
+#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
     SoDB::finish();
 #endif
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }
 #else

@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -105,7 +105,10 @@ int main()
 #elif defined(VISP_HAVE_OPENCV)
     vpDisplayOpenCV disp;
 #endif
+
+#if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GTK) || defined(VISP_HAVE_GDI) || defined(VISP_HAVE_OPENCV)
     disp.init(I, 100, 100, "Simulation display");
+#endif
 
     ////////////////////////////////////////
     // Desired visual features initialization
@@ -206,13 +209,21 @@ int main()
       vpTime::wait(t, 40);
     }
     task.kill();
-    return 0;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }
 
 #else
-int main() { vpTRACE("You should install GTK"); }
+int main()
+{
+  std::cout << "You do not have X11, GTK, or OpenCV, or GDI (Graphical Device Interface) functionalities to display images..." << std::endl;
+  std::cout << "Tip if you are on a unix-like system:" << std::endl;
+  std::cout << "- Install X11, configure again ViSP using cmake and build again this example" << std::endl;
+  std::cout << "Tip if you are on a windows-like system:" << std::endl;
+  std::cout << "- Install GDI, configure again ViSP using cmake and build again this example" << std::endl;
+  return EXIT_SUCCESS;
+}
 #endif

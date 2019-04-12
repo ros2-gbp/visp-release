@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,11 @@
 #include <cstring>
 #include <sstream>
 
+#include <visp3/core/vpConfig.h>
+
+// inet_ntop() not supported on win XP
+#ifdef VISP_HAVE_FUNC_INET_NTOP
+
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
 #include <arpa/inet.h>
 #include <errno.h>
@@ -44,7 +49,9 @@
 #define DWORD int
 #else
 #if defined(__MINGW32__)
-#define _WIN32_WINNT _WIN32_WINNT_VISTA // 0x0600
+#  ifndef _WIN32_WINNT
+#    define _WIN32_WINNT _WIN32_WINNT_VISTA // 0x0600
+#  endif
 #endif
 #include <Ws2tcpip.h>
 #endif
@@ -169,8 +176,8 @@ int vpUDPClient::receive(std::string &msg, const int timeoutMs)
 
   if (retval > 0) {
     /* recvfrom: receive a UDP datagram from the server */
-    int length = recvfrom(m_socketFileDescriptor, m_buf, sizeof(m_buf), 0, (struct sockaddr *)&m_serverAddress,
-                          (socklen_t *)&m_serverLength);
+    int length = static_cast<int>(recvfrom(m_socketFileDescriptor, m_buf, sizeof(m_buf), 0, (struct sockaddr *)&m_serverAddress,
+                                           (socklen_t *)&m_serverLength));
     if (length <= 0) {
       return length < 0 ? -1 : 0;
     }
@@ -217,10 +224,15 @@ int vpUDPClient::send(const std::string &msg)
 
 /* send the message to the server */
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-  return sendto(m_socketFileDescriptor, msg.c_str(), msg.size(), 0, (struct sockaddr *)&m_serverAddress,
-                m_serverLength);
+  return static_cast<int>(sendto(m_socketFileDescriptor, msg.c_str(), msg.size(), 0, (struct sockaddr *)&m_serverAddress,
+                                 m_serverLength));
 #else
   return sendto(m_socketFileDescriptor, msg.c_str(), (int)msg.size(), 0, (struct sockaddr *)&m_serverAddress,
                 m_serverLength);
 #endif
 }
+
+#elif !defined(VISP_BUILD_SHARED_LIBS)
+// Work arround to avoid warning: libvisp_core.a(vpUDPClient.cpp.o) has no symbols
+void dummy_vpUDPClient(){};
+#endif

@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,6 +76,7 @@ int main()
                "not available."
             << std::endl;
   std::cout << "You should install pthread third-party library." << std::endl;
+  return EXIT_SUCCESS;
 }
 // No display available
 #elif !defined(VISP_HAVE_X11) && !defined(VISP_HAVE_OPENCV) && !defined(VISP_HAVE_GDI) && !defined(VISP_HAVE_D3D9) &&  \
@@ -86,6 +87,7 @@ int main()
   std::cout << "You should install one of the following third-party library: "
                "X11, OpenCV, GDI, GTK."
             << std::endl;
+  return EXIT_SUCCESS;
 }
 #else
 
@@ -120,10 +122,10 @@ int main()
     init(cMo, cdMo);
 
     execute(1500);
-    return 0;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }
 

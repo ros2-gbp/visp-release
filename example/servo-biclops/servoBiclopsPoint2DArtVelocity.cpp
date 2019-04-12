@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -254,7 +254,7 @@ int main(int argc, const char **argv)
     }
 
     // Create the debug file: debugdir/$user/biclops.txt
-    char *filename = new char[FILENAME_MAX];
+    char filename[FILENAME_MAX];
     sprintf(filename, "%s/biclops.txt", debugdir.c_str());
     FILE *fd = fopen(filename, "w");
 
@@ -413,15 +413,18 @@ int main(int argc, const char **argv)
 
     fclose(fd);
 
-  } catch (...) {
-    vpERROR_TRACE("Throw uncatched...");
+    return EXIT_SUCCESS
+  }
+  catch (const vpException &e) {
+    std::cout << "Catch an exception: " << e.getMessage() << std::endl;
+    return EXIT_FAILURE
   }
 }
 
 #else
 int main()
 {
-  vpERROR_TRACE("You don't have a biclops head connected to your computer or "
-                "1394 framegrabbing capabilities...");
+  std::cout << "You do not have an biclops PT robot connected to your computer..." << std::endl;
+  return EXIT_SUCCESS;
 }
 #endif
