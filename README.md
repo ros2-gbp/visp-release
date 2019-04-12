@@ -1,3 +1,26 @@
+## visp (lunar) - 3.2.0-2
+
+The packages in the `visp` repository were released into the `lunar` distro by running `/usr/bin/bloom-release visp --ros-distro lunar --track lunar` on `Fri, 12 Apr 2019 15:05:30 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+
+- upstream repository: https://github.com/lagadic/visp.git
+- release repository: https://github.com/lagadic/visp-release.git
+- rosdistro version: `3.1.0-2`
+- old version: `3.2.0-1`
+- new version: `3.2.0-2`
+
+Versions of tools used:
+
+- bloom version: `0.7.2`
+- catkin_pkg version: `0.4.11`
+- rosdep version: `0.15.1`
+- rosdistro version: `0.7.3`
+- vcstools version: `0.1.40`
+
+
 ## visp (indigo) - 3.2.0-2
 
 The packages in the `visp` repository were released into the `indigo` distro by running `/usr/bin/bloom-release visp --ros-distro indigo --track indigo` on `Fri, 12 Apr 2019 13:55:40 -0000`
