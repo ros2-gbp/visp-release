@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,18 +88,6 @@ void vpMbXmlParser::init()
   nodeMap["use_lod"] = use_lod;
   nodeMap["min_line_length_threshold"] = min_line_length_threshold;
   nodeMap["min_polygon_area_threshold"] = min_polygon_area_threshold;
-}
-
-/*!
-  Parse the file in parameters.
-  This method is deprecated, use parse() instead.
-
-  \param filename : File to parse.
-*/
-void vpMbXmlParser::parse(const char *filename)
-{
-  std::string file = filename;
-  vpXmlParser::parse(file);
 }
 
 /*!

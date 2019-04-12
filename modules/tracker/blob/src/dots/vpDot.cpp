@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -655,7 +655,7 @@ void vpDot::initTracking(const vpImage<unsigned char> &I)
 
   try {
     track(I);
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     throw(e);
   }
 }
@@ -705,7 +705,7 @@ void vpDot::initTracking(const vpImage<unsigned char> &I, const vpImagePoint &ip
     gray_level_max = 255;
   try {
     track(I);
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     throw(e);
   }
 }
@@ -748,7 +748,7 @@ void vpDot::initTracking(const vpImage<unsigned char> &I, const vpImagePoint &ip
 
   try {
     track(I);
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     throw(e);
   }
 }
@@ -790,7 +790,7 @@ void vpDot::track(const vpImage<unsigned char> &I)
       vpDisplay::displayCross(I, this->cog, 3 * thickness + 8, vpColor::red, thickness);
     }
 
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     throw(e);
   }
 }

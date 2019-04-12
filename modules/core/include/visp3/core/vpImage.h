@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -179,10 +179,14 @@ public:
 
   // Return the maximum value within the bitmap
   Type getMaxValue() const;
+  // Return the mean value of the bitmap
+  Type getMeanValue() const;
   // Return the minumum value within the bitmap
   Type getMinValue() const;
   // Look for the minumum and the maximum value within the bitmap
   void getMinMaxValue(Type &min, Type &max) const;
+  // Look for the minumum and the maximum value within the bitmap and get their location
+  void getMinMaxLoc(vpImagePoint *minLoc, vpImagePoint *maxLoc, Type *minVal = NULL, Type *maxVal = NULL) const;
 
   /*!
 
@@ -214,10 +218,16 @@ public:
    */
   inline unsigned int getSize() const { return width * height; }
 
+  // Gets the value of a pixel at a location.
+  Type getValue(unsigned int i, unsigned int j) const;
   // Gets the value of a pixel at a location with bilinear interpolation.
   Type getValue(double i, double j) const;
   // Gets the value of a pixel at a location with bilinear interpolation.
   Type getValue(vpImagePoint &ip) const;
+
+  // Get image pixels sum
+  double getSum() const;
+
   /*!
     Get the image width.
 
@@ -307,7 +317,7 @@ public:
   vpImage<Type> &operator=(const Type &v);
   bool operator==(const vpImage<Type> &I);
   bool operator!=(const vpImage<Type> &I);
-  friend std::ostream &operator<<<>(std::ostream &s, const vpImage<Type> &I);
+  friend std::ostream &operator<< <>(std::ostream &s, const vpImage<Type> &I);
   friend std::ostream &operator<<(std::ostream &s, const vpImage<unsigned char> &I);
   friend std::ostream &operator<<(std::ostream &s, const vpImage<char> &I);
   friend std::ostream &operator<<(std::ostream &s, const vpImage<float> &I);
@@ -625,8 +635,9 @@ template <class Type> void vpImage<Type>::init(unsigned int h, unsigned int w, T
 {
   init(h, w);
 
-  for (unsigned int i = 0; i < npixels; i++)
-    bitmap[i] = value;
+  //  for (unsigned int i = 0; i < npixels; i++)
+  //    bitmap[i] = value;
+  std::fill(bitmap, bitmap + npixels, value);
 }
 
 /*!
@@ -682,8 +693,7 @@ template <class Type> void vpImage<Type>::init(unsigned int h, unsigned int w)
     throw(vpException(vpException::memoryAllocationError, "cannot allocate row "));
   }
 
-  unsigned int i;
-  for (i = 0; i < height; i++)
+  for (unsigned int i = 0; i < height; i++)
     row[i] = bitmap + i * width;
 }
 
@@ -732,7 +742,7 @@ void vpImage<Type>::init(Type *const array, const unsigned int h, const unsigned
     }
 
     // Copy the image data
-    memcpy(bitmap, array, (size_t)(npixels * sizeof(Type)));
+    memcpy(static_cast<void*>(bitmap), static_cast<void*>(array), (size_t)(npixels * sizeof(Type)));
   } else {
     // Copy the address of the array in the bitmap
     bitmap = array;
@@ -916,7 +926,7 @@ template <class Type>
 vpImage<Type>::vpImage(const vpImage<Type> &I) : bitmap(NULL), display(NULL), npixels(0), width(0), height(0), row(NULL)
 {
   resize(I.getHeight(), I.getWidth());
-  memcpy(bitmap, I.bitmap, I.npixels * sizeof(Type));
+  memcpy(static_cast<void*>(bitmap), static_cast<void*>(I.bitmap), I.npixels * sizeof(Type));
 }
 
 #ifdef VISP_HAVE_CPP11_COMPATIBILITY
@@ -943,6 +953,8 @@ vpImage<Type>::vpImage(vpImage<Type> &&I)
 */
 template <class Type> Type vpImage<Type>::getMaxValue() const
 {
+  if (npixels == 0)
+    throw(vpException(vpException::fatalError, "Cannot compute maximum value of an empty image"));
   Type m = bitmap[0];
   for (unsigned int i = 0; i < npixels; i++) {
     if (bitmap[i] > m)
@@ -952,12 +964,25 @@ template <class Type> Type vpImage<Type>::getMaxValue() const
 }
 
 /*!
+  \brief Return the mean value of the bitmap
+*/
+template <class Type> Type vpImage<Type>::getMeanValue() const
+{
+  if ((height == 0) || (width == 0))
+    return 0.0;
+
+  return getSum() / (height * width);
+}
+
+/*!
   \brief Return the minimum value within the bitmap
 
   \sa getMaxValue()
 */
 template <class Type> Type vpImage<Type>::getMinValue() const
 {
+  if (npixels == 0)
+    throw(vpException(vpException::fatalError, "Cannot compute minimum value of an empty image"));
   Type m = bitmap[0];
   for (unsigned int i = 0; i < npixels; i++)
     if (bitmap[i] < m)
@@ -970,9 +995,13 @@ template <class Type> Type vpImage<Type>::getMinValue() const
 
   \sa getMaxValue()
   \sa getMinValue()
+  \sa getMinMaxLoc()
 */
 template <class Type> void vpImage<Type>::getMinMaxValue(Type &min, Type &max) const
 {
+  if (npixels == 0)
+    throw(vpException(vpException::fatalError, "Cannot get minimum/maximum values of an empty image"));
+
   min = max = bitmap[0];
   for (unsigned int i = 0; i < npixels; i++) {
     if (bitmap[i] < min)
@@ -980,6 +1009,63 @@ template <class Type> void vpImage<Type>::getMinMaxValue(Type &min, Type &max) c
     if (bitmap[i] > max)
       max = bitmap[i];
   }
+}
+
+/*!
+  \brief Get the position of the minimum and/or the maximum pixel value within the bitmap and
+  the corresponding value.
+  Following code allows retrieving only minimum value and position:
+  \code
+  vpImage<double> I(h, w);
+  //[...] Fill I
+  vpImagePoint min_loc;
+  double min_val = 0.0;
+  I.getMinMaxLoc(&min_loc, NULL, &min_val, NULL);
+  \endcode
+
+  \param minLoc : Position of the pixel with minimum value if not NULL.
+  \param maxLoc : Position of the pixel with maximum value if not NULL.
+  \param minVal : Minimum pixel value if not NULL.
+  \param maxVal : Maximum pixel value if not NULL.
+
+  \sa getMaxValue()
+  \sa getMinValue()
+  \sa getMinMaxValue()
+*/
+template <class Type>
+void vpImage<Type>::getMinMaxLoc(vpImagePoint *minLoc, vpImagePoint *maxLoc, Type *minVal, Type *maxVal) const
+{
+  if (npixels == 0)
+    throw(vpException(vpException::fatalError, "Cannot get location of minimum/maximum "
+                                               "values of an empty image"));
+
+  Type min = bitmap[0], max = bitmap[0];
+  vpImagePoint minLoc_, maxLoc_;
+  for (unsigned int i = 0; i < height; i++) {
+    for (unsigned int j = 0; j < width; j++) {
+      if (row[i][j] < min) {
+        min = row[i][j];
+        minLoc_.set_ij(i, j);
+      }
+
+      if (row[i][j] > max) {
+        max = row[i][j];
+        maxLoc_.set_ij(i, j);
+      }
+    }
+  }
+
+  if (minLoc != NULL)
+    *minLoc = minLoc_;
+
+  if (maxLoc != NULL)
+    *maxLoc = maxLoc_;
+
+  if (minVal != NULL)
+    *minVal = min;
+
+  if (maxVal != NULL)
+    *maxVal = max;
 }
 
 /*!
@@ -1142,7 +1228,7 @@ template <class Type> void vpImage<Type>::insert(const vpImage<Type> &src, const
     Type *srcBitmap = src.bitmap + ((src_ibegin + i) * src_w + src_jbegin);
     Type *destBitmap = this->bitmap + ((dest_ibegin + i) * dest_w + dest_jbegin);
 
-    memcpy(destBitmap, srcBitmap, (size_t)wsize * sizeof(Type));
+    memcpy(static_cast<void*>(destBitmap), static_cast<void*>(srcBitmap), (size_t)wsize * sizeof(Type));
   }
 }
 
@@ -1318,6 +1404,29 @@ template <class Type> void vpImage<Type>::doubleSizeImage(vpImage<Type> &res)
 }
 
 /*!
+  Retrieves pixel value from an image containing values of type \e Type
+
+  Gets the value of a sub-pixel with coordinates (i,j).
+
+  \param i : Pixel coordinate along the rows.
+  \param j : Pixel coordinate along the columns.
+
+  \return Pixel value.
+
+  \exception vpImageException::notInTheImage : If (i,j) is out
+  of the image.
+
+*/
+template <class Type> inline Type vpImage<Type>::getValue(unsigned int i, unsigned int j) const
+{
+  if (i >= height || j >= width) {
+    throw(vpException(vpImageException::notInTheImage, "Pixel outside the image"));
+  }
+
+  return row[i][j];
+}
+
+/*!
 
   Retrieves pixel value from an image containing values of type \e Type with
   sub-pixel accuracy.
@@ -1325,6 +1434,8 @@ template <class Type> void vpImage<Type>::doubleSizeImage(vpImage<Type> &res)
   Gets the value of a sub-pixel with coordinates (i,j) with bilinear
   interpolation. If location is out of bounds, then return the value of the
   closest pixel.
+
+  See also vpImageTools::interpolate() for a similar result, but with a choice of the interpolation method.
 
   \param i : Sub-pixel coordinate along the rows.
   \param j : Sub-pixel coordinate along the columns.
@@ -1375,6 +1486,8 @@ template <class Type> Type vpImage<Type>::getValue(double i, double j) const
   Gets the value of a sub-pixel with coordinates (i,j) with bilinear
   interpolation. If location is out of bounds, then return value of
   closest pixel.
+
+  See also vpImageTools::interpolate() for a similar result, but with a choice of the interpolation method.
 
   \param i : Sub-pixel coordinate along the rows.
   \param j : Sub-pixel coordinate along the columns.
@@ -1464,6 +1577,8 @@ sub-pixel accuracy.
 Gets the value of a sub-pixel with coordinates (i,j) with bilinear
 interpolation. If location is out of bounds, then return the value of the
 closest pixel.
+
+See also vpImageTools::interpolate() for a similar result, but with a choice of the interpolation method.
 
 \param ip : Sub-pixel coordinates of a point in the image.
 
@@ -1577,6 +1692,21 @@ template <> inline vpRGBa vpImage<vpRGBa>::getValue(vpImagePoint &ip) const
                 (unsigned char)vpMath::round(valueB));
 }
 
+/**
+* Compute the sum of image intensities.
+*/
+template <class Type> inline double vpImage<Type>::getSum() const
+{
+  if ((height == 0) || (width == 0))
+    return 0.0;
+
+  double res = 0.0;
+  for (unsigned int i = 0; i < height * width; ++i) {
+    res += static_cast<double>(bitmap[i]);
+  }
+  return res;
+}
+
 /*!
   Operation C = *this - B.
 
@@ -1612,7 +1742,7 @@ template <class Type> void vpImage<Type>::sub(const vpImage<Type> &B, vpImage<Ty
   try {
     if ((this->getHeight() != C.getHeight()) || (this->getWidth() != C.getWidth()))
       C.resize(this->getHeight(), this->getWidth());
-  } catch (vpException &me) {
+  } catch (const vpException &me) {
     std::cout << me << std::endl;
     throw;
   }
@@ -1643,7 +1773,7 @@ template <class Type> void vpImage<Type>::sub(const vpImage<Type> &A, const vpIm
   try {
     if ((A.getHeight() != C.getHeight()) || (A.getWidth() != C.getWidth()))
       C.resize(A.getHeight(), A.getWidth());
-  } catch (vpException &me) {
+  } catch (const vpException &me) {
     std::cout << me << std::endl;
     throw;
   }

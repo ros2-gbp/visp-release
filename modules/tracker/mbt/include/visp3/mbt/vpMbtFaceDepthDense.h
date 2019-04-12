@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,8 +33,8 @@
  *
  *****************************************************************************/
 
-#ifndef __vpMbtFaceDepthDense_h_
-#define __vpMbtFaceDepthDense_h_
+#ifndef _vpMbtFaceDepthDense_h_
+#define _vpMbtFaceDepthDense_h_
 
 #include <iostream>
 
@@ -95,6 +95,7 @@ public:
                               ,
                               vpImage<unsigned char> &debugImage, std::vector<std::vector<vpImagePoint> > &roiPts_vec
 #endif
+                              , const vpImage<bool> *mask = NULL
   );
 #endif
   bool computeDesiredFeatures(const vpHomogeneousMatrix &cMo, const unsigned int width, const unsigned int height,
@@ -104,6 +105,7 @@ public:
                               ,
                               vpImage<unsigned char> &debugImage, std::vector<std::vector<vpImagePoint> > &roiPts_vec
 #endif
+                              , const vpImage<bool> *mask = NULL
   );
 
   void computeInteractionMatrixAndResidu(const vpHomogeneousMatrix &cMo, vpMatrix &L, vpColVector &error);
@@ -122,6 +124,8 @@ public:
                       const double scale = 0.05, const unsigned int thickness = 1);
 
   inline unsigned int getNbFeatures() const { return (unsigned int)(m_pointCloudFace.size() / 3); }
+
+  inline bool isTracked() const { return m_isTrackedDepthDenseFace; }
 
   inline bool isVisible() const { return m_polygon->isvisible; }
 
@@ -149,6 +153,8 @@ public:
       m_depthDenseFilteringOccupancyRatio = occupancyRatio;
     }
   }
+
+  inline void setTracked(const bool tracked) { m_isTrackedDepthDenseFace = tracked; }
 
 private:
   class PolygonLine
@@ -202,7 +208,7 @@ protected:
   //! Ratio between available depth points and theoretical number of points
   double m_depthDenseFilteringOccupancyRatio;
   //! Flag to define if the face should be tracked or not
-  bool m_isTracked;
+  bool m_isTrackedDepthDenseFace;
   //! Visibility flag
   bool m_isVisible;
   std::vector<vpMbtDistanceLine *> m_listOfFaceLines;

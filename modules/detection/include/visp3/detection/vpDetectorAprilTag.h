@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,8 @@
  * Base class for April Tag detection.
  *
  *****************************************************************************/
-#ifndef __vpDetectorAprilTag_h__
-#define __vpDetectorAprilTag_h__
+#ifndef _vpDetectorAprilTag_h_
+#define _vpDetectorAprilTag_h_
 
 #include <visp3/core/vpConfig.h>
 
@@ -41,30 +41,30 @@
 #include <visp3/core/vpCameraParameters.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpImage.h>
+#include <visp3/core/vpColor.h>
 #include <visp3/detection/vpDetectorBase.h>
 
 /*!
   \class vpDetectorAprilTag
   \ingroup group_detection_tag
   Base class for AprilTag detector. This class is a wrapper over <a
-href="https://april.eecs.umich.edu/software/apriltag.html">AprilTag</a>. There
-is no need to download and install AprilTag from source code or existing
-pre-built packages since the source code is embedded in ViSP. Reference papers
-are <I> AprilTag: A robust and flexible visual fiducial system </I>
-(\cite olson2011tags) and <I> AprilTag 2: Efficient and robust fiducial
-detection
-</I> (\cite wang2016iros).
+  href="https://april.eecs.umich.edu/software/apriltag.html">AprilTag</a>. There
+  is no need to download and install AprilTag from source code or existing
+  pre-built packages since the source code is embedded in ViSP. Reference papers
+  are <I> AprilTag: A robust and flexible visual fiducial system </I>
+  (\cite olson2011tags) and <I> AprilTag 2: Efficient and robust fiducial
+  detection</I> (\cite wang2016iros).
 
   The detect() function allows to detect multiple tags in an image. Once
-detected, for each tag it is possible to retrieve the location of the corners
-using getPolygon(), the encoded message using getMessage(), the bounding box
-using getBBox() and the center of gravity using getCog().
+  detected, for each tag it is possible to retrieve the location of the corners
+  using getPolygon(), the encoded message using getMessage(), the bounding box
+  using getBBox() and the center of gravity using getCog().
 
-  If camera parameters and the size of the tag are provided, thanks to
-  detect(const vpImage<unsigned char> &, const double, const
-vpCameraParameters &, std::vector<vpHomogeneousMatrix> &) this class allows
-also to estimate the 3D pose of the tag in terms of position and orientation
-wrt the camera.
+  If camera parameters and the size of the tag are provided, you can also estimate
+  the 3D pose of the tag in terms of position and orientation wrt the camera considering 2 cases:
+  - 1. If all the tags have the same size use
+  detect(const vpImage<unsigned char> &, const double, const vpCameraParameters &, std::vector<vpHomogeneousMatrix> &)
+  - 2. If tag sizes differ, use rather getPose()
 
   The following sample code shows how to use this class to detect the location
 of 36h11 AprilTag patterns in an image.
@@ -111,7 +111,7 @@ Tag code 1:
   \endcode
 
   This other example shows how to estimate the 3D pose of 36h11 AprilTag
-patterns.
+patterns considering that all the tags have the same size (in our example 0.053 m).
 \code
 #include <visp3/detection/vpDetectorAprilTag.h>
 #include <visp3/io/vpImageIo.h>
@@ -131,9 +131,14 @@ int main()
   bool status = detector.detect(I, tagSize, cam, cMo);
   if (status) {
     for(size_t i=0; i < detector.getNbObjects(); i++) {
-      std::cout << "Tag code " << i << ":" << std::endl;
+      std::cout << "Tag number " << i << ":" << std::endl;
       std::cout << "  Message: \"" << detector.getMessage(i) << "\"" << std::endl;
       std::cout << "  Pose: " << vpPoseVector(cMo[i]).t() << std::endl;
+      std::size_t tag_id_pos = detector.getMessage(i).find("id: ");
+      if (tag_id_pos != std::string::npos) {
+        std::string tag_id = detector.getMessage(i).substr(tag_id_pos + 4);
+        std::cout << "  Tag Id: " << tag_id << std::endl;
+      }
     }
   }
 #endif
@@ -141,12 +146,65 @@ int main()
   \endcode
   The previous example may produce results like:
   \code
-Tag code 0:
+Tag number 0:
   Message: "36h11 id: 0"
   Pose: 0.1015061088  -0.05239057228  0.3549037285  1.991474322  2.04143538 -0.9412360063
-Tag code 1:
+  Tag Id: 0
+Tag number 1:
   Message: "36h11 id: 1"
   Pose: 0.08951250829 0.02243780207  0.306540622  1.998073197  2.061488008  -0.8699567948
+  Tag Id: 1
+\endcode
+
+  In this other example we estimate the 3D pose of 36h11 AprilTag
+  patterns considering that tag 36h11 with id 0 (in that case the tag message is "36h11 id: 0")
+  has a size of 0.040 m, while all the others have a size of 0.053m.
+\code
+#include <visp3/detection/vpDetectorAprilTag.h>
+#include <visp3/io/vpImageIo.h>
+
+int main()
+{
+#ifdef VISP_HAVE_APRILTAG
+  vpImage<unsigned char> I;
+  vpImageIo::read(I, "image-tag36h11.pgm");
+
+  vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11);
+  vpHomogeneousMatrix cMo;
+  vpCameraParameters cam;
+  cam.initPersProjWithoutDistortion(615.1674805, 615.1675415, 312.1889954, 243.4373779);
+  double tagSize_id_0 = 0.04;
+  double tagSize_id_others = 0.053;
+
+  bool status = detector.detect(I);
+  if (status) {
+    for(size_t i=0; i < detector.getNbObjects(); i++) {
+      std::cout << "Tag code " << i << ":" << std::endl;
+      std::cout << "  Message: \"" << detector.getMessage(i) << "\"" << std::endl;
+      if (detector.getMessage(i) == std::string("36h11 id: 0")) {
+        if (! detector.getPose(i, tagSize_id_0, cam, cMo)) {
+          std::cout << "Unable to get tag index " << i << " pose!" << std::endl;
+        }
+      }
+      else {
+        if (! detector.getPose(i, tagSize_id_others, cam, cMo)) {
+          std::cout << "Unable to get tag index " << i << " pose!" << std::endl;
+        }
+      }
+      std::cout << "  Pose: " << vpPoseVector(cMo).t() << std::endl;
+    }
+  }
+#endif
+}
+\endcode
+  With respect to the previous example, this example may now produce a different pose for tag with id 0:
+  \code
+Tag code 0:
+  Message: "36h11 id: 0"
+  Pose: 0.07660838403  -0.03954005455  0.2678518706  1.991474322  2.04143538  -0.9412360063
+Tag code 1:
+  Message: "36h11 id: 1"
+  Pose: 0.08951250829  0.02243780207  0.306540622  1.998073197  2.061488008  -0.8699567948
 \endcode
 
   Other examples are also provided in tutorial-apriltag-detector.cpp and
@@ -177,6 +235,7 @@ public:
   };
 
   enum vpPoseEstimationMethod {
+    HOMOGRAPHY,              /*!< Pose from homography */
     HOMOGRAPHY_VIRTUAL_VS,   /*!< Non linear virtual visual servoing approach
                                 initialized by the homography approach */
     DEMENTHON_VIRTUAL_VS,    /*!< Non linear virtual visual servoing approach
@@ -196,6 +255,8 @@ public:
   bool detect(const vpImage<unsigned char> &I, const double tagSize, const vpCameraParameters &cam,
               std::vector<vpHomogeneousMatrix> &cMo_vec);
 
+  bool getPose(size_t tagIndex, const double tagSize, const vpCameraParameters &cam, vpHomogeneousMatrix &cMo);
+
   /*!
     Return the pose estimation method.
   */
@@ -211,12 +272,22 @@ public:
 
   /*! Allow to enable the display of overlay tag information in the windows
    * (vpDisplay) associated to the input image. */
-  inline void setDisplayTag(const bool display) { m_displayTag = display; }
+  inline void setDisplayTag(const bool display, const vpColor &color=vpColor::none,
+                            const unsigned int thickness=2) {
+    m_displayTag = display;
+    m_displayTagColor = color;
+    m_displayTagThickness = thickness;
+  }
+
+  void setZAlignedWithCameraAxis(bool zAlignedWithCameraFrame);
 
 protected:
   bool m_displayTag;
+  vpColor m_displayTagColor;
+  unsigned int m_displayTagThickness;
   vpPoseEstimationMethod m_poseEstimationMethod;
   vpAprilTagFamily m_tagFamily;
+  bool m_zAlignedWithCameraFrame;
 
 private:
   vpDetectorAprilTag(const vpDetectorAprilTag &);            // noncopyable
@@ -230,6 +301,10 @@ private:
 inline std::ostream &operator<<(std::ostream &os, const vpDetectorAprilTag::vpPoseEstimationMethod &method)
 {
   switch (method) {
+  case vpDetectorAprilTag::HOMOGRAPHY:
+    os << "HOMOGRAPHY";
+    break;
+
   case vpDetectorAprilTag::HOMOGRAPHY_VIRTUAL_VS:
     os << "HOMOGRAPHY_VIRTUAL_VS";
     break;
@@ -247,6 +322,7 @@ inline std::ostream &operator<<(std::ostream &os, const vpDetectorAprilTag::vpPo
     break;
 
   default:
+      os << "ERROR_UNKNOWN_POSE_METHOD!";
     break;
   }
 

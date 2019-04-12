@@ -1,7 +1,7 @@
 #############################################################################
 #
-# This file is part of the ViSP software.
-# Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+# ViSP, open source Visual Servoing Platform software.
+# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,40 +42,6 @@
 set(opt_incs "")
 set(opt_libs "")
 
-# winmm.lib for timeGetTime() under windows
-CHECK_LIBRARY_EXISTS("winmm.lib" getch "" HAVE_LIBWINMM) # for timeGetTime()
-if(HAVE_LIBWINMM)
-  list(APPEND opt_libs "winmm.lib")
-endif()
-
-# Add library ws2_32.a or ws2_32.lib for vpNetwork class
-if(WIN32 AND NOT CYGWIN)
-  if(MINGW)
-    CHECK_LIBRARY_EXISTS("ws2_32.a" getch "" HAVE_LIBWS2_32) # for inet_ntoa() and socket functionalities
-    if(HAVE_LIBWS2_32)
-      list(APPEND opt_libs "ws2_32.a")
-    else()
-      find_library(WS2_32_LIBRARY "libws2_32.a"
-        "$ENV{MINGW_DIR}/lib"
-        "$ENV{MINGW_DIR}/mingw/lib"
-        C:/mingw/mingw/lib)
-      mark_as_advanced(WS2_32_LIBRARY)
-      if(WS2_32_LIBRARY)
-        list(APPEND opt_libs "${WS2_32_LIBRARY}")
-      endif()
-    endif()
-  elseif(WINRT)
-    # Since check_library_exists() and find_library() does't work to detect ws2_32.lib we add the lib that is part of Windows SDK
-    list(APPEND opt_libs "ws2_32.lib")
-  else() # pure WIN32
-    CHECK_LIBRARY_EXISTS("ws2_32.lib" getch "" HAVE_LIBWS2_32) # for inet_ntoa() and socket functionalities
-    if(HAVE_LIBWS2_32)
-      #message("have ws2_32.lib")
-      list(APPEND opt_libs "ws2_32.lib")
-    endif()
-  endif()
-endif()
-
 # OpenCV
 if(USE_OPENCV)
   # On win32 since OpenCV 2.4.7 and on OSX with OpenCV 2.4.10 we cannot use OpenCV_LIBS to set ViSP 3rd party libraries.
@@ -95,14 +61,19 @@ if(USE_OPENCV)
   #message("OpenCV_LIBS: ${OpenCV_LIBS}")
   #if(WIN32 AND OpenCV_LIB_COMPONENTS AND OpenCV_VERSION AND OpenCV_VERSION VERSION_GREATER 2.4.6.1)
   if(OpenCV_LIB_COMPONENTS AND OpenCV_VERSION AND OpenCV_VERSION VERSION_GREATER 2.4.6.1)
+
+    if(OpenCV_VERSION VERSION_GREATER 4.0.0 OR OpenCV_VERSION VERSION_EQUAL 4.0.0)
+      # if C++11 option is OFF, force to ON
+      if(NOT USE_CXX11 AND CXX11_FOUND)
+        message(WARNING "OpenCV ${OpenCV_VERSION} 3rd party was detected and needs cxx11 compiler flags that are turned off. Thus to enable OpenCV usage we turn USE_CXX11=ON.")
+        unset(USE_CXX11)
+        set(USE_CXX11 ON CACHE BOOL "Enable c++11 support" FORCE)
+      endif()
+    endif()
+
     # ReleaseWithDebugInfo was requested to detect libopencv-devel under Fedora 20
     # RelWithDebugInfo was requested to detect ros-hydro-opencv2 2.4.9 under Ubuntu 12.04 LTS with ROS hydro
     set(config_ "NONE" "RELEASE" "DEBUG" "RELEASEWITHDEBINFO" "RELWITHDEBINFO")
-    if(POLICY CMP0045)
-      # Fix Error on non-existent target in get_target_property for 3rd party location extraction
-      cmake_policy(PUSH)
-      cmake_policy(SET CMP0045 OLD)
-    endif()
 
     foreach(component_ ${OpenCV_LIB_COMPONENTS})
       foreach(imp_config_ ${config_})
@@ -128,7 +99,7 @@ if(USE_OPENCV)
           list(APPEND opt_libs "${component_property_${imp_config_}_}")
         endif()
 
-        if(component_property_3rdparty_${imp_config_}_)
+        if(EXISTS "${component_property_3rdparty_${imp_config_}_}")
           foreach(3rdparty_ ${component_property_3rdparty_${imp_config_}_})
             #message("3rdparty_ ${3rdparty_}")
             list(FIND OpenCV_LIB_COMPONENTS ${3rdparty_} 3rdparty_is_opencv_component_)
@@ -166,10 +137,6 @@ if(USE_OPENCV)
       endforeach()
     endforeach()
 
-    if(POLICY CMP0045)
-      # Fix Error on non-existent target in get_target_property for 3rd party location extraction
-      cmake_policy(POP)
-    endif()
   elseif(APPLE_FRAMEWORK)
     # Add opencv framework
     list(APPEND opt_libs ${OpenCV_LIBRARIES})    # see FindMyOpenCV.cmake
@@ -259,12 +226,16 @@ if(MSVC)
   # warning C4996: 'gethostbyname': Use getaddrinfo() or GetAddrInfoW() instead
   # warning C4996: 'inet_ntoa': Use inet_ntop() or InetNtop() instead
   # warning C4996: 'inet_addr': Use inet_pton() or InetPton() instead
-  vp_set_source_file_compile_flag(src/tools/network/vpClient.cpp /wd"4996")
-  vp_set_source_file_compile_flag(src/tools/network/vpServer.cpp /wd"4996")
-  vp_set_source_file_compile_flag(src/tools/network/vpNetwork.cpp /wd"4996")
-  if(BUILD_TESTS)
-    vp_set_source_file_compile_flag(test/network/testClient.cpp /wd"4996")
-    vp_set_source_file_compile_flag(test/network/testServer.cpp /wd"4996")
+  if(BUILD_SHARED_LIBS)
+    vp_set_source_file_compile_flag(src/tools/network/vpClient.cpp /wd"4996")
+    vp_set_source_file_compile_flag(src/tools/network/vpServer.cpp /wd"4996")
+    vp_set_source_file_compile_flag(src/tools/network/vpNetwork.cpp /wd"4996")
+    if(BUILD_TESTS)
+      vp_set_source_file_compile_flag(test/network/testClient.cpp /wd"4996")
+      vp_set_source_file_compile_flag(test/network/testServer.cpp /wd"4996")
+    endif()
+  else()
+    vp_warnings_disable(CMAKE_CXX_FLAGS /wd4996)
   endif()
 endif()
 
@@ -272,8 +243,18 @@ if(USE_EIGEN3)
   vp_set_source_file_compile_flag(src/math/matrix/vpMatrix_svd.cpp -Wno-float-equal -Wno-strict-overflow -Wno-misleading-indentation -Wno-int-in-bool-context)
   vp_set_source_file_compile_flag(src/math/matrix/vpMatrix_lu.cpp -Wno-float-equal -Wno-strict-overflow -Wno-misleading-indentation -Wno-int-in-bool-context)
 endif()
+vp_set_source_file_compile_flag(src/image/vpImageConvert.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/image/vpImageFilter.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/image/vpImageTools.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/tools/network/vpServer.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/tools/optimization/vpQuadProg.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/tools/optimization/vpLinProg.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/tools/histogram/vpHistogram.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(test/image/testImageBinarise.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(test/network/testClient.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(test/network/testServer.cpp -Wno-strict-overflow)
 
-vp_add_module(core PRIVATE_OPTIONAL ${LAPACK_LIBRARIES})
+vp_add_module(core PRIVATE_OPTIONAL ${LAPACK_LIBRARIES} WRAP java)
 
 vp_source_group("Src" FILES "${VISP_MODULE_visp_core_BINARY_DIR}/version_string.inc")
 
@@ -282,3 +263,6 @@ vp_module_include_directories(${opt_incs})
 vp_create_module(${opt_libs})
 vp_create_compat_headers("include/visp3/core/vpConfig.h")
 vp_add_tests(CTEST_EXCLUDE_PATH network DEPENDS_ON visp_io visp_gui)
+
+# copy robot and wireframe simulator data
+vp_glob_module_copy_data("test/math/data/*.pgm" "modules/core" NO_INSTALL)

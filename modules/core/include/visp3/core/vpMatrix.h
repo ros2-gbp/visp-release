@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -212,6 +212,7 @@ vpMatrix M(R);
   // [ this A ]^T
   void stack(const vpMatrix &A);
   void stack(const vpRowVector &r);
+  void stack(const vpColVector &c);
   // Stacks columns of a matrix in a vector
   void stackColumns(vpColVector &out);
 
@@ -255,7 +256,6 @@ vpMatrix M(R);
   // return the determinant of the matrix.
   double det(vpDetMethod method = LU_DECOMPOSITION) const;
   double detByLU() const;
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #ifdef VISP_HAVE_EIGEN3
   double detByLUEigen3() const;
 #endif
@@ -268,7 +268,6 @@ vpMatrix M(R);
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
   double detByLUOpenCV() const;
 #endif
-#endif // #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
   // Compute the exponential matrix of a square matrix
   vpMatrix expm() const;
@@ -356,7 +355,6 @@ vpMatrix M(R);
   // inverse matrix A using the LU decomposition
   vpMatrix inverseByLU() const;
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(VISP_HAVE_EIGEN3)
   vpMatrix inverseByLUEigen3() const;
 #endif
@@ -369,29 +367,27 @@ vpMatrix M(R);
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
   vpMatrix inverseByLUOpenCV() const;
 #endif
-#endif // #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
   // inverse matrix A using the Cholesky decomposition (only for real
   // symmetric matrices)
   vpMatrix inverseByCholesky() const;
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(VISP_HAVE_LAPACK)
   vpMatrix inverseByCholeskyLapack() const;
 #endif
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
   vpMatrix inverseByCholeskyOpenCV() const;
 #endif
-#endif // #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
   // inverse matrix A using the QR decomposition
   vpMatrix inverseByQR() const;
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(VISP_HAVE_LAPACK)
   vpMatrix inverseByQRLapack() const;
 #endif
-#endif // #ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+  // inverse triangular matrix
+  vpMatrix inverseTriangular(bool upper = true) const;
+
 
   vpMatrix pseudoInverse(double svThreshold = 1e-6) const;
   unsigned int pseudoInverse(vpMatrix &Ap, double svThreshold = 1e-6) const;
@@ -400,7 +396,6 @@ vpMatrix M(R);
   unsigned int pseudoInverse(vpMatrix &Ap, vpColVector &sv, double svThreshold, vpMatrix &imA, vpMatrix &imAt,
                              vpMatrix &kerAt) const;
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(VISP_HAVE_LAPACK)
   vpMatrix pseudoInverseLapack(double svThreshold = 1e-6) const;
   unsigned int pseudoInverseLapack(vpMatrix &Ap, double svThreshold = 1e-6) const;
@@ -429,7 +424,6 @@ vpMatrix M(R);
   unsigned int pseudoInverseGsl(vpMatrix &Ap, vpColVector &sv, double svThreshold, vpMatrix &imA, vpMatrix &imAt,
                                 vpMatrix &kerAt) const;
 #endif
-#endif // #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
   //@}
 
@@ -449,7 +443,6 @@ vpMatrix M(R);
 
   // singular value decomposition SVD
   void svd(vpColVector &w, vpMatrix &V);
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #ifdef VISP_HAVE_EIGEN3
   void svdEigen3(vpColVector &w, vpMatrix &V);
 #endif
@@ -462,7 +455,18 @@ vpMatrix M(R);
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020101) // Require opencv >= 2.1.1
   void svdOpenCV(vpColVector &w, vpMatrix &V);
 #endif
-#endif
+  //@}
+
+  //-------------------------------------------------
+  // QR decomposition
+  //-------------------------------------------------
+
+  /** @name QR decomposition  */
+  //@{
+  unsigned int qr(vpMatrix &Q, vpMatrix &R, bool full = false, bool squareR = false, double tol = 1e-6) const;
+  unsigned int qrPivot(vpMatrix &Q, vpMatrix &R, vpMatrix &P, bool full = false, bool squareR = false, double tol = 1e-6) const;
+  void solveByQR(const vpColVector &b, vpColVector &x) const;
+  vpColVector solveByQR(const vpColVector &b) const;
   //@}
 
   //-------------------------------------------------
@@ -534,10 +538,12 @@ vpMatrix M(R);
   // Stack two matrices C = [ A B ]^T
   static vpMatrix stack(const vpMatrix &A, const vpMatrix &B);
   static vpMatrix stack(const vpMatrix &A, const vpRowVector &r);
+  static vpMatrix stack(const vpMatrix &A, const vpColVector &c);
 
   // Stack two matrices C = [ A B ]^T
   static void stack(const vpMatrix &A, const vpMatrix &B, vpMatrix &C);
   static void stack(const vpMatrix &A, const vpRowVector &r, vpMatrix &C);
+  static void stack(const vpMatrix &A, const vpColVector &c, vpMatrix &C);
   //@}
 
   //---------------------------------
@@ -571,6 +577,13 @@ vpMatrix M(R);
   // Compute Kronecker product matrix
   static vpMatrix kron(const vpMatrix &m1, const vpMatrix &m2);
   //@}
+
+  //-------------------------------------------------
+  // 2D Convolution Static Public Member Functions
+  //-------------------------------------------------
+  /** @name 2D Convolution with Static Public Member Functions  */
+  static vpMatrix conv2(const vpMatrix &M, const vpMatrix &kernel, const std::string &mode="full");
+  static void conv2(const vpMatrix &M, const vpMatrix &kernel, vpMatrix &res, const std::string &mode="full");
 
   //---------------------------------
   // Covariance computation Static Public Member Functions
@@ -659,7 +672,7 @@ vpMatrix M(R);
   {
     return vpArray2D<double>::saveYAML(filename, M, header);
   }
-//@}
+  //@}
 
 #if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
   /*!
@@ -715,7 +728,7 @@ vpMatrix M(R);
   vp_deprecated vpRowVector row(const unsigned int i);
   vp_deprecated vpColVector column(const unsigned int j);
 
-//@}
+  //@}
 #endif
 
 private:

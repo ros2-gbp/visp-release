@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -365,7 +365,7 @@ int main(int argc, const char **argv)
     opt_display = false;
 #endif
     if (opt_display) {
-#if (defined VISP_HAVE_DISPLAY)
+#if defined(VISP_HAVE_DISPLAY)
       display.init(I, 100, 100, "Test tracking");
 #endif
       vpDisplay::display(I);
@@ -581,7 +581,8 @@ int main(int argc, const char **argv)
         std::cout << "Projection error: " << tracker.getProjectionError() << std::endl << std::endl;
       }
 
-      vpDisplay::flush(I);
+      if (opt_display)
+        vpDisplay::flush(I);
     }
 
     std::cout << "Reached last frame: " << reader.getFrameIndex() << std::endl;
@@ -597,17 +598,17 @@ int main(int argc, const char **argv)
     vpXmlParser::cleanup();
 #endif
 
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION == 3)
+#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
     // Cleanup memory allocated by Coin library used to load a vrml model in
     // vpMbEdgeKltTracker::loadModel() We clean only if Coin was used.
     if (!cao3DModel)
       SoDB::finish();
 #endif
 
-    return 0;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }
 
@@ -618,7 +619,7 @@ int main()
   std::cout << "visp_mbt, visp_gui modules and OpenCV are required to run "
                "this example."
             << std::endl;
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #endif

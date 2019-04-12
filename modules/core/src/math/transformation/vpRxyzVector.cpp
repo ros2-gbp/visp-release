@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,12 +83,13 @@ vpRxyzVector::vpRxyzVector(const vpThetaUVector &tu) : vpRotationVector(3) { bui
 /*! Copy constructor from a 3-dimension vector. */
 vpRxyzVector::vpRxyzVector(const vpColVector &rxyz) : vpRotationVector(3)
 {
-  if (rxyz.size() != 3) {
-    throw(vpException(vpException::dimensionError, "Cannot construct a R-xyz vector from a %d-dimension col vector",
-                      rxyz.size()));
-  }
-  for (unsigned int i = 0; i < 3; i++)
-    data[i] = rxyz[i];
+  buildFrom(rxyz);
+}
+
+/*! Copy constructor from a 3-dimension vector. */
+vpRxyzVector::vpRxyzVector(const std::vector<double> &rxyz) : vpRotationVector(3)
+{
+  buildFrom(rxyz);
 }
 
 /*!
@@ -120,8 +121,8 @@ vpRxyzVector vpRxyzVector::buildFrom(const vpRotationMatrix &R)
 
 /*!
   Convert a \f$\theta {\bf u}\f$ vector into a
-  \f$R_{xyz}=(\varphi,\theta,\psi)\f$ Euler angles vector. \param tu :
-  \f$\theta {\bf u}\f$ representation of a rotation used here as input.
+  \f$R_{xyz}=(\varphi,\theta,\psi)\f$ Euler angles vector.
+  \param tu : \f$\theta {\bf u}\f$ representation of a rotation used here as input.
   \return \f$R_{xyz}=(\varphi,\theta,\psi)\f$ Euler angles vector.
 */
 vpRxyzVector vpRxyzVector::buildFrom(const vpThetaUVector &tu)
@@ -144,6 +145,36 @@ void vpRxyzVector::buildFrom(const double phi, const double theta, const double 
   data[0] = phi;
   data[1] = theta;
   data[2] = psi;
+}
+
+/*!
+  Construct a \f$R_{xyz}=(\varphi,\theta,\psi)\f$ Euler angles vector from a 3-dim vector.
+*/
+vpRxyzVector vpRxyzVector::buildFrom(const vpColVector &rxyz)
+{
+  if (rxyz.size() != 3) {
+    throw(vpException(vpException::dimensionError, "Cannot construct a R-xyz vector from a %d-dimension col vector",
+                      rxyz.size()));
+  }
+  for (unsigned int i = 0; i < 3; i++)
+    data[i] = rxyz[i];
+
+  return *this;
+}
+
+/*!
+  Construct a \f$R_{xyz}=(\varphi,\theta,\psi)\f$ Euler angles vector from a 3-dim vector.
+*/
+vpRxyzVector vpRxyzVector::buildFrom(const std::vector<double> &rxyz)
+{
+  if (rxyz.size() != 3) {
+    throw(vpException(vpException::dimensionError, "Cannot construct a R-xyz vector from a %d-dimension std::vector",
+                      rxyz.size()));
+  }
+  for (unsigned int i = 0; i < 3; i++)
+    data[i] = rxyz[i];
+
+  return *this;
 }
 
 /*!

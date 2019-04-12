@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,12 +66,13 @@ vpQuaternionVector::vpQuaternionVector(const double x_, const double y_, const d
 //! Constructor from a 4-dimension vector of doubles.
 vpQuaternionVector::vpQuaternionVector(const vpColVector &q) : vpRotationVector(4)
 {
-  if (q.size() != 4) {
-    throw(vpException(vpException::dimensionError,
-                      "Cannot construct a quaternion vector from a %d-dimension col vector", q.size()));
-  }
-  for (unsigned int i = 0; i < 4; i++)
-    data[i] = q[i];
+  buildFrom(q);
+}
+
+//! Constructor from a 4-dimension vector of doubles.
+vpQuaternionVector::vpQuaternionVector(const std::vector<double> &q) : vpRotationVector(4)
+{
+  buildFrom(q);
 }
 
 /*!
@@ -131,6 +132,37 @@ vpQuaternionVector vpQuaternionVector::buildFrom(const vpThetaUVector &tu)
 
   return *this;
 }
+
+/*!
+  Construct a quaternion vector from a 4-dim vector (x,y,z,w).
+*/
+vpQuaternionVector vpQuaternionVector::buildFrom(const vpColVector &q)
+{
+  if (q.size() != 4) {
+    throw(vpException(vpException::dimensionError,
+                      "Cannot construct a quaternion vector from a %d-dimension col vector", q.size()));
+  }
+  for (unsigned int i = 0; i < 4; i++)
+    data[i] = q[i];
+
+  return *this;
+}
+
+/*!
+  Construct a quaternion vector from a 4-dim vector (x,y,z,w).
+*/
+vpQuaternionVector vpQuaternionVector::buildFrom(const std::vector<double> &q)
+{
+  if (q.size() != 4) {
+    throw(vpException(vpException::dimensionError,
+                      "Cannot construct a quaternion vector from a %d-dimension std::vector", q.size()));
+  }
+  for (unsigned int i = 0; i < 4; i++)
+    data[i] = q[i];
+
+  return *this;
+}
+
 /*!
   Quaternion addition.
 

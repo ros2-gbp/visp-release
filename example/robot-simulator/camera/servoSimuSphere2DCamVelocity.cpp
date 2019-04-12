@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -198,7 +198,7 @@ int main(int argc, const char **argv)
 
     unsigned int iter = 0;
     // loop
-    while (iter++ < 500) {
+    while (iter++ < 200) {
       std::cout << "---------------------------------------------" << iter << std::endl;
       vpColVector v;
 
@@ -224,9 +224,9 @@ int main(int argc, const char **argv)
     // Display task information
     task.print();
     task.kill();
-    return 0;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch a ViSP exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }
