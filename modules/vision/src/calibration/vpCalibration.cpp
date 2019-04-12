@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -351,7 +351,7 @@ void vpCalibration::computeStdDeviation(double &deviation, double &deviation_dis
   \param verbose : set at true if information about the residual at each loop
   of the algorithm is hoped.
 
-  \return 0 if the calibration computation succeed.
+  \return EXIT_SUCCESS if the calibration succeed, EXIT_FAILURE otherwise.
 */
 int vpCalibration::computeCalibration(vpCalibrationMethodType method, vpHomogeneousMatrix &cMo_est,
                                       vpCameraParameters &cam_est, bool verbose)
@@ -423,7 +423,13 @@ int vpCalibration::computeCalibration(vpCalibrationMethodType method, vpHomogene
     this->cam_dist = cam_est;
 
     this->cMo_dist = cMo_est;
-    return 0;
+
+    if (cam_est.get_px() < 0 || cam_est.get_py() < 0 || cam_est.get_u0() < 0 || cam_est.get_v0() < 0) {
+      std::cout << "Unable to calibrate the camera. Estimated parameters are negative." << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
   } catch (...) {
     throw;
   }
@@ -437,10 +443,11 @@ int vpCalibration::computeCalibration(vpCalibrationMethodType method, vpHomogene
   \param table_cal : Vector of vpCalibration.
   \param cam_est : Estimated intrinsic camera parameters.
   \param globalReprojectionError : Global reprojection error or global
-  residual. \param verbose : Set at true if information about the residual at
+  residual.
+  \param verbose : Set at true if information about the residual at
   each loop of the algorithm is hoped.
 
-  \return 0 if the computation was managed succeed.
+  \return EXIT_SUCCESS if the calibration succeed, EXIT_FAILURE otherwise.
 */
 int vpCalibration::computeCalibrationMulti(vpCalibrationMethodType method, std::vector<vpCalibration> &table_cal,
                                            vpCameraParameters &cam_est, double &globalReprojectionError, bool verbose)
@@ -517,52 +524,13 @@ int vpCalibration::computeCalibrationMulti(vpCalibrationMethodType method, std::
       cam_est.printParameters();
       std::cout << std::endl;
     }
-    return 0;
-  } catch (...) {
-    throw;
-  }
-}
 
-/*!
-  \brief Compute the multi-image calibration of effector-camera from R. Tsai
-  and R. Lenz \cite Tsai89a.
-
-  Compute extrinsic camera parameters : the constant transformation from
-  the end-effector to the camera frame \f${^e}{\bf M}_c\f$ considering the
-  camera model with or without distortion.
-
-  \param[in] table_cal : Vector of vpCalibration that contains for each index
-  a couple of \f${^r}{\bf M}_e\f$ (world to end-effector) and \f${^c}{\bf
-  M}_o\f$ (camera to object) transformations. \param[out] eMc : Estimated pose
-  of the camera in relation to the end-effector considering the camera model
-  without distortion. \param[out] eMc_dist : Estimated pose of the camera in
-  relation to the end-effector considering the model with distortion. \return
-  0 if the computation managed, -1 if less than three poses are provides as
-  input.
-*/
-int vpCalibration::computeCalibrationTsai(const std::vector<vpCalibration> &table_cal, vpHomogeneousMatrix &eMc,
-                                          vpHomogeneousMatrix &eMc_dist)
-{
-  try {
-    unsigned int nbPose = (unsigned int)table_cal.size();
-    if (nbPose > 2) {
-      std::vector<vpHomogeneousMatrix> table_cMo(nbPose);
-      std::vector<vpHomogeneousMatrix> table_cMo_dist(nbPose);
-      std::vector<vpHomogeneousMatrix> table_rMe(nbPose);
-
-      for (unsigned int i = 0; i < nbPose; i++) {
-        table_cMo[i] = table_cal[i].cMo;
-        table_cMo_dist[i] = table_cal[i].cMo_dist;
-        table_rMe[i] = table_cal[i].rMe;
-      }
-      calibrationTsai(table_cMo, table_rMe, eMc);
-      calibrationTsai(table_cMo_dist, table_rMe, eMc_dist);
-
-      return 0;
-    } else {
-      vpERROR_TRACE("Three images are needed to compute Tsai calibration !\n");
-      return -1;
+    if (cam_est.get_px() < 0 || cam_est.get_py() < 0 || cam_est.get_u0() < 0 || cam_est.get_v0() < 0) {
+      std::cout << "Unable to calibrate the camera. Estimated parameters are negative." << std::endl;
+      return EXIT_FAILURE;
     }
+
+    return EXIT_SUCCESS;
   } catch (...) {
     throw;
   }

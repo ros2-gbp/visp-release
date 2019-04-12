@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <thread>
+#include <mutex>
 
 namespace
 {
@@ -228,17 +229,22 @@ int main()
     std::cerr << e.what() << std::endl;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 #else
 int main()
 {
 #if !defined(VISP_HAVE_REALSENSE2)
-  std::cout << "Install librealsense2." << std::endl;
+  std::cout << "You do not realsense2 SDK functionality enabled..." << std::endl;
+  std::cout << "Tip:" << std::endl;
+  std::cout << "- Install librealsense2, configure again ViSP using cmake and build again this example" << std::endl;
+  return EXIT_SUCCESS;
 #endif
 #if !defined(VISP_HAVE_CPP11_COMPATIBILITY)
-  std::cout << "Build ViSP with C++11 compiler flag (cmake -DUSE_CPP11=ON)." << std::endl;
+  std::cout << "You do not build ViSP with C++11 compiler flag" << std::endl;
+  std::cout << "Tip:" << std::endl;
+  std::cout << "- Configure ViSP again using cmake -DUSE_CPP11=ON, and build again this example" << std::endl;
 #endif
-  return 0;
+  return EXIT_SUCCESS;
 }
 #endif

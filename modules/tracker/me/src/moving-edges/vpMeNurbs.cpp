@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -289,9 +289,11 @@ void vpMeNurbs::initTracking(const vpImage<unsigned char> &I, const std::list<vp
   step between the two extremities of the nurbs.
 
   \param I : Image in which the edge appears.
+  \param doNotTrack : Inherited parameter, not used.
 */
-void vpMeNurbs::sample(const vpImage<unsigned char> &I)
+void vpMeNurbs::sample(const vpImage<unsigned char> &I, const bool doNotTrack)
 {
+  (void)doNotTrack;
   int rows = (int)I.getHeight();
   int cols = (int)I.getWidth();
   double step = 1.0 / (double)me->getPointsToTrack();
@@ -299,7 +301,6 @@ void vpMeNurbs::sample(const vpImage<unsigned char> &I)
   // Delete old list
   list.clear();
 
-  vpImagePoint ip;
   double u = 0.0;
   vpImagePoint *pt = NULL;
   vpImagePoint pt_1(-rows, -cols);

@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -281,6 +281,22 @@ int main()
     }
     std::cout << "r: [" << r << "]" << std::endl;
     r.print(std::cout, 8, "r");
+  }
+
+  {
+    std::cout << "** Test conversion to/from std::vector" << std::endl;
+    std::vector<double> std_vector(5);
+    for (size_t i = 0; i < std_vector.size(); i++) {
+      std_vector[i] = (double) i;
+    }
+    vpRowVector v(std_vector);
+    if (test("v", v, std_vector) == false)
+      return EXIT_FAILURE;
+
+    std_vector.clear();
+    std_vector = v.toStdVector();
+    if (test("v", v, std_vector) == false)
+      return EXIT_FAILURE;
   }
   std::cout << "All tests succeed" << std::endl;
   return 0;

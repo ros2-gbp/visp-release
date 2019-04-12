@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,9 @@
 
 #ifndef vpConfig_h
 #define vpConfig_h
+
+// To get access to EXIT_SUCCESS and EXIT_FAILURE
+#include <cstdlib>
 
 #if defined _MSC_VER && _MSC_VER >= 1200
   #pragma warning( disable: 4100 4127 4251 4275 4351 4514 4668 4710 4820 )
@@ -351,8 +354,14 @@
 #cmakedefine VISP_HAVE_VIPER850_DATA
 #define VISP_VIPER850_DATA_PATH "${VISP_VIPER850_DATA_PATH}"
 
-// Defined if Franka Emika robot available.
+// Defined if libfranka from Franka Emika available to control Panda robot.
 #cmakedefine VISP_HAVE_FRANKA
+
+// libfranka version in hexadecimal (for example 0.5.0 gives 0x000500).
+#ifdef VISP_HAVE_FRANKA
+#  define VISP_HAVE_FRANKA_VERSION ${VISP_HAVE_FRANKA_VERSION}
+#endif
+
 
 // Defined if the Aria library and (pthread, rt, dl libraries under Unix) is found.
 // These libraries are used to control Pioneer mobile robots.
@@ -380,11 +389,15 @@
 // other interaction matrices
 #cmakedefine VISP_MOMENTS_COMBINE_MATRICES
 
-//Defined if we want to use openmp
+// Defined if we want to use openmp
 #cmakedefine VISP_HAVE_OPENMP
 
-//Defined if we want to use c++ 11
-#cmakedefine VISP_HAVE_CPP11_COMPATIBILITY
+// Defined if we want to use c++ 11
+#cmakedefine VISP_HAVE_CXX11
+#ifdef VISP_HAVE_CXX11
+// Define VISP_HAVE_CPP11_COMPATIBILITY to keep compat with previous releases
+#  define VISP_HAVE_CPP11_COMPATIBILITY
+#endif
 
 // Defined if isnan macro is available
 #cmakedefine VISP_HAVE_FUNC_ISNAN
@@ -421,6 +434,9 @@
 
 // Defined if log1p function is available
 #cmakedefine VISP_HAVE_FUNC_LOG1P
+
+// Defined if inet_ntop function is available
+#cmakedefine VISP_HAVE_FUNC_INET_NTOP
 
 // Defined if xrandr program available
 #cmakedefine VISP_HAVE_XRANDR

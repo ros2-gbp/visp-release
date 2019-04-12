@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@
  *
  *****************************************************************************/
 
-#ifndef __QUATERNIONVECTOR_H__
-#define __QUATERNIONVECTOR_H__
+#ifndef _vpQuaternionVector_h_
+#define _vpQuaternionVector_h_
 
 /*!
   \file vpQuaternionVector.h
@@ -88,6 +88,7 @@ public:
   explicit vpQuaternionVector(const vpRotationMatrix &R);
   explicit vpQuaternionVector(const vpThetaUVector &tu);
   explicit vpQuaternionVector(const vpColVector &q);
+  explicit vpQuaternionVector(const std::vector<double> &q);
 
   //! Destructor.
   virtual ~vpQuaternionVector(){};
@@ -95,6 +96,8 @@ public:
   vpQuaternionVector buildFrom(const double qx, const double qy, const double qz, const double qw);
   vpQuaternionVector buildFrom(const vpRotationMatrix &R);
   vpQuaternionVector buildFrom(const vpThetaUVector &tu);
+  vpQuaternionVector buildFrom(const vpColVector &q);
+  vpQuaternionVector buildFrom(const std::vector<double> &q);
   void set(const double x, const double y, const double z, const double w);
 
   double x() const;
