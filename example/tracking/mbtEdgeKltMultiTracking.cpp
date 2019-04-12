@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,6 +46,8 @@
 
 #include <iostream>
 #include <visp3/core/vpConfig.h>
+
+#if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
 
 #if defined(VISP_HAVE_MODULE_MBT) && defined(VISP_HAVE_MODULE_KLT) && defined(VISP_HAVE_OPENCV) &&                     \
     defined(VISP_HAVE_DISPLAY) && (VISP_HAVE_OPENCV_VERSION >= 0x020100)
@@ -368,7 +370,7 @@ int main(int argc, const char **argv)
     opt_display = false;
 #endif
     if (opt_display) {
-#if (defined VISP_HAVE_DISPLAY)
+#if defined(VISP_HAVE_DISPLAY)
       display1.setDownScalingFactor(vpDisplay::SCALE_AUTO);
       display2.setDownScalingFactor(vpDisplay::SCALE_AUTO);
       display1.init(I1, 100, 100, "Test tracking (Left)");
@@ -590,8 +592,10 @@ int main(int argc, const char **argv)
         std::cout << "Projection error: " << tracker.getProjectionError() << std::endl << std::endl;
       }
 
-      vpDisplay::flush(I1);
-      vpDisplay::flush(I2);
+      if (opt_display) {
+        vpDisplay::flush(I1);
+        vpDisplay::flush(I2);
+      }
     }
 
     std::cout << "Reached last frame: " << reader.getFrameIndex() << std::endl;
@@ -607,28 +611,33 @@ int main(int argc, const char **argv)
     vpXmlParser::cleanup();
 #endif
 
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION == 2 || COIN_MAJOR_VERSION == 3)
+#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
     // Cleanup memory allocated by Coin library used to load a vrml model in
     // vpMbEdgeKltTracker::loadModel() We clean only if Coin was used.
     if (!cao3DModel)
       SoDB::finish();
 #endif
 
-    return 0;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }
 
 #else
-
 int main()
 {
   std::cout << "visp_mbt, visp_gui modules and OpenCV are required to run "
                "this example."
             << std::endl;
+  return EXIT_SUCCESS;
+}
+#endif
+#else
+int main()
+{
+  std::cout << "Nothing to run, deprecated example." << std::endl;
   return 0;
 }
-
-#endif
+#endif //#if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)

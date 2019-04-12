@@ -4,6 +4,9 @@ os:
   - linux
   - osx
 
+# Set Xcode version to 10.1 (default is 9.4)
+osx_image: xcode10.1
+
 env:
   - VISP_INPUT_IMAGE_PATH=${TRAVIS_BUILD_DIR}
   
@@ -15,16 +18,39 @@ sudo: required
 dist: trusty
 
 before_install:
-  - git clone https://github.com/lagadic/ViSP-images ${TRAVIS_BUILD_DIR}/ViSP-images
+  - git clone --depth 1 https://github.com/lagadic/ViSP-images ${TRAVIS_BUILD_DIR}/ViSP-images
 #  - cd ${TRAVIS_BUILD_DIR} && { curl -O http://visp-doc.inria.fr/download/dataset/ViSP-images-3.0.0.zip ; cd -; }
 #  - unzip ${TRAVIS_BUILD_DIR}/ViSP-images-3.0.0.zip -d ${TRAVIS_BUILD_DIR}
   # Get libs for OSX
   - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew update; fi"
   - "if [ $TRAVIS_OS_NAME = 'osx' ]; then /usr/bin/yes | pip2 uninstall numpy; fi"
-  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew tap homebrew/science; fi"
-  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install opencv3; fi"
-  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then export OpenCV_DIR=/usr/local/opt/opencv3; fi"
+  # Issue during opencv installation
+  # ==> Pouring gcc-8.2.0.high_sierra.bottle.1.tar.gz
+  # Error: The `brew link` step did not complete successfully
+  # The formula built, but is not symlinked into /usr/local
+  # Could not symlink include/c++
+  # Target /usr/local/include/c++
+  # already exists. You may want to remove it:
+  # rm '/usr/local/include/c++'
+  # To force the link and overwrite all conflicting files:
+  # brew link --overwrite gcc
+  # Work around before caling brew install opencv
+  #- "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew update; fi"
+  #- "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install gcc || brew link --overwrite gcc; fi"
+  #- "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew upgrade; fi"
+  # end work around
+  # Work around for issue:
+  # dyld: Library not loaded: /usr/local/opt/glog/lib/libglog.0.3.5.dylib
+  # Referenced from: /usr/local/opt/opencv/lib/libopencv_sfm.3.4.dylib
+  # Reason: image not found
+  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install glog; fi"
+  # end work around
+
+  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install opencv; fi"
+  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install tesseract; fi"
+  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then export OpenCV_DIR=/usr/local/opt/opencv; fi"
   - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install libxml2 libdc1394 gsl; fi"
+  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install ant; fi"
   
   # Get libs for Linux
   - "if [ $TRAVIS_OS_NAME = 'linux' ]; then sudo apt-get update -qq; fi"
@@ -39,9 +65,7 @@ before_install:
   - "if [ $TRAVIS_OS_NAME = 'linux' ]; then sudo apt-get install -qq libavcodec-dev libbz2-dev; fi"
   - "if [ $TRAVIS_OS_NAME = 'linux' ]; then sudo apt-get install -qq libogre-1.9-dev libois-dev; fi"
   - "if [ $TRAVIS_OS_NAME = 'linux' ]; then sudo apt-get install -qq libzbar-dev libdmtx-dev; fi"
-
-  # Work arround to found libomp.so when executing tests
-  - "if [ $CC = 'clang' ]; then export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/clang-3.9.0/lib; fi"
+  - "if [ $TRAVIS_OS_NAME = 'linux' ]; then sudo apt-get install -qq ant; fi"
 
 before_script:
   - mkdir build
@@ -52,7 +76,7 @@ before_script:
 
 script: 
   - make
-  - ctest
+  - ctest --output-on-failure
 
 notifications:
   email:

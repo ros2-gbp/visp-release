@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -406,6 +406,9 @@ public:
   static void getGradY(const vpImage<double> &I, vpImage<double> &dIy, const double *filter, unsigned int size);
   static void getGradYGauss2D(const vpImage<unsigned char> &I, vpImage<double> &dIy, const double *gaussianKernel,
                               const double *gaussianDerivativeKernel, unsigned int size);
+
+  static double getSobelKernelX(double *filter, unsigned int size);
+  static double getSobelKernelY(double *filter, unsigned int size);
 };
 
 #endif

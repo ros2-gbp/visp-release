@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,10 +90,12 @@
   \class vpMbEdgeTracker
   \ingroup group_mbt_trackers
   \brief Make the complete tracking of an object by using its CAD model.
+  \warning This class is deprecated for user usage. You should rather use the high level
+  vpMbGenericTracker class.
 
   This class allows to track an object or a scene given its 3D model. A
   video can be found on YouTube \e https://www.youtube.com/watch?v=UK10KMMJFCI
-. The \ref tutorial-tracking-mb is also a good starting point to use this
+. The \ref tutorial-tracking-mb-deprecated is also a good starting point to use this
 class.
 
   The tracker requires the knowledge of the 3D model that could be provided in
@@ -395,11 +397,10 @@ public:
   virtual inline vpColVector getRobustWeights() const { return m_w_edge; }
 
   void loadConfigFile(const std::string &configFile);
-  void loadConfigFile(const char *configFile);
+
   virtual void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name,
-                           const vpHomogeneousMatrix &cMo_, const bool verbose = false);
-  void reInitModel(const vpImage<unsigned char> &I, const char *cad_name, const vpHomogeneousMatrix &cMo,
-                   const bool verbose = false);
+                           const vpHomogeneousMatrix &cMo_, const bool verbose = false,
+                           const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
   void resetTracker();
 
   /*!
@@ -498,7 +499,6 @@ public:
 protected:
   /** @name Protected Member Functions Inherited from vpMbEdgeTracker */
   //@{
-  bool samePoint(const vpPoint &P1, const vpPoint &P2) const;
   void addCircle(const vpPoint &P1, const vpPoint &P2, const vpPoint &P3, const double r, int idFace = -1,
                  const std::string &name = "");
   void addCylinder(const vpPoint &P1, const vpPoint &P2, const double r, int idFace = -1, const std::string &name = "");
