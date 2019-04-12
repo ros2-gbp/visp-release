@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -175,15 +175,15 @@ int main(int argc, const char **argv)
       printf("Can't close the parallel port\n");
       break;
     }
-  } catch (...) {
-    printf("An error occurs...\n");
+  } catch (const vpException &e) {
+    std::cout << "An error occurs: " << e.getMessage() << std::endl;
   }
-  return 0;
+  return EXIT_SUCCESS;
 }
 #else
 int main()
 {
-  vpTRACE("Sorry, for the moment, vpParallelPort class works only on unix...");
-  return 0;
+  std::cout << "vpParallelPort class works only on unix..." << std::endl;
+  return EXIT_SUCCESS;
 }
 #endif

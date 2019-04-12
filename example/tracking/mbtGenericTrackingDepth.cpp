@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -294,14 +294,15 @@ bool read_data(const unsigned int cpt, const std::string &input_directory, vpIma
   }
 
   unsigned int height = 0, width = 0;
-  file_depth.read((char *)(&height), sizeof(height));
-  file_depth.read((char *)(&width), sizeof(width));
+  vpIoTools::readBinaryValueLE(file_depth, height);
+  vpIoTools::readBinaryValueLE(file_depth, width);
+
   I_depth_raw.resize(height, width);
 
   uint16_t depth_value = 0;
   for (unsigned int i = 0; i < height; i++) {
     for (unsigned int j = 0; j < width; j++) {
-      file_depth.read((char *)(&depth_value), sizeof(depth_value));
+      vpIoTools::readBinaryValueLE(file_depth, depth_value);
       I_depth_raw[i][j] = depth_value;
     }
   }
@@ -476,7 +477,12 @@ int main(int argc, const char **argv)
     bool projectionError = false;
     int trackerType_image = vpMbGenericTracker::EDGE_TRACKER;
     int trackerType_depth = vpMbGenericTracker::DEPTH_DENSE_TRACKER;
+#if defined(__mips__) || defined(__mips) || defined(mips) || defined(__MIPS__)
+    // To avoid Debian test timeout
+    int opt_lastFrame = 5;
+#else
     int opt_lastFrame = -1;
+#endif
 
     // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH
     // environment variable value
@@ -602,7 +608,7 @@ int main(int argc, const char **argv)
     opt_display = false;
 #endif
     if (opt_display) {
-#if (defined VISP_HAVE_DISPLAY)
+#if defined(VISP_HAVE_DISPLAY)
       display1.setDownScalingFactor(vpDisplay::SCALE_AUTO);
       display2.setDownScalingFactor(vpDisplay::SCALE_AUTO);
       display1.init(I, 100, 100, "Test tracking (Left)");
@@ -618,6 +624,7 @@ int main(int argc, const char **argv)
     std::vector<int> trackerTypes(2);
     trackerTypes[0] = trackerType_image;
     trackerTypes[1] = trackerType_depth;
+    // Object pointer to check that inheritance is ok
     vpMbTracker *tracker = new vpMbGenericTracker(trackerTypes);
     vpHomogeneousMatrix c1Mo, c2Mo;
     vpCameraParameters cam1, cam2;
@@ -786,10 +793,14 @@ int main(int argc, const char **argv)
           std::stringstream ss;
           ss << "Computation time: " << t << " ms";
           vpDisplay::displayText(I, 60, 20, ss.str(), vpColor::red);
+          // nb features
+          ss.str("");
+          ss << "nb features: " << tracker->getError().getRows();
+          vpDisplay::displayText(I_depth, 80, 20, ss.str(), vpColor::red);
         }
       }
 
-      if (opt_click_allowed) {
+      if (opt_click_allowed && opt_display) {
         vpDisplay::displayText(I, 10, 10, "Click to quit", vpColor::red);
         vpMouseButton::vpMouseButtonType button;
         if (vpDisplay::getClick(I, button, click)) {
@@ -816,8 +827,10 @@ int main(int argc, const char **argv)
         std::cout << "Projection error: " << tracker->getProjectionError() << std::endl << std::endl;
       }
 
-      vpDisplay::flush(I);
-      vpDisplay::flush(I_depth);
+      if (opt_display) {
+        vpDisplay::flush(I);
+        vpDisplay::flush(I_depth);
+      }
 
       frame_index++;
     }
@@ -840,7 +853,7 @@ int main(int argc, const char **argv)
     vpXmlParser::cleanup();
 #endif
 
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION == 2 || COIN_MAJOR_VERSION == 3 || COIN_MAJOR_VERSION == 4)
+#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
     // Cleanup memory allocated by Coin library used to load a vrml model in
     // vpMbGenericTracker::loadModel() We clean only if Coin was used.
     if (use_vrml)
@@ -848,7 +861,7 @@ int main(int argc, const char **argv)
 #endif
 
     return EXIT_SUCCESS;
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return EXIT_FAILURE;
   }

@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2016 by INRIA. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,24 +11,22 @@
  * distribution for additional information about the GNU GPL.
  *
  * For using ViSP with software that can not be combined with the GNU
- * GPL, please contact INRIA about acquiring a ViSP Professional
+ * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See https://visp.inria.fr/download/ for more information.
+ * See http://visp.inria.fr for more information.
  *
  * This software was developed at:
- * INRIA Rennes - Bretagne Atlantique
+ * Inria Rennes - Bretagne Atlantique
  * Campus Universitaire de Beaulieu
  * 35042 Rennes Cedex
  * France
- * http://www.irisa.fr/lagadic
  *
  * If you have questions regarding the use of this file, please contact
- * INRIA at visp@inria.fr
+ * Inria at visp@inria.fr
  *
  * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- *
  *
  * Description:
  * Model-based edge tracker with multiple cameras.
@@ -43,22 +41,28 @@
  \brief Model-based edge tracker with multiple cameras.
 */
 
-#ifndef __vpMbEdgeMultiTracker_h__
-#define __vpMbEdgeMultiTracker_h__
+#ifndef _vpMbEdgeMultiTracker_h_
+#define _vpMbEdgeMultiTracker_h_
+
+#include <visp3/core/vpConfig.h>
 
 #include <iostream>
 #include <vector>
 
 #include <visp3/mbt/vpMbEdgeTracker.h>
 
+#if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
+
 /*!
   \class vpMbEdgeMultiTracker
   \ingroup group_mbt_trackers
   \brief Make the complete stereo (or more) tracking of an object by using its
   CAD model.
+  \warning This class is deprecated for user usage. You should rather use the high level
+  vpMbGenericTracker class.
 
   This class allows to track an object or a scene given its 3D model.
-  The \ref tutorial-tracking-mb-stereo is also a good starting point to use
+  The \ref tutorial-tracking-mb-stereo-deprecated is also a good starting point to use
   this class.
 
   The tracker requires the knowledge of the 3D model that could be provided in
@@ -66,7 +70,7 @@
   may also use an xml file used to tune the behavior of the tracker and an
   init file used to compute the pose at the very first image.
 */
-class VISP_EXPORT vpMbEdgeMultiTracker : public vpMbEdgeTracker
+class VISP_EXPORT vp_deprecated vpMbEdgeMultiTracker : public vpMbEdgeTracker
 {
 protected:
   //! Map of camera transformation matrix between the current camera frame to
@@ -188,7 +192,8 @@ public:
   virtual void initClick(const vpImage<unsigned char> &I, const std::vector<vpPoint> &points3D_list,
                          const std::string &displayFile = "");
 
-  virtual void initClick(const vpImage<unsigned char> &I, const std::string &initFile, const bool displayHelp = false);
+  virtual void initClick(const vpImage<unsigned char> &I, const std::string &initFile, const bool displayHelp = false,
+                         const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
 
   virtual void initClick(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
                          const std::string &initFile1, const std::string &initFile2, const bool displayHelp = false,
@@ -220,10 +225,12 @@ public:
 
   virtual void loadConfigFile(const std::map<std::string, std::string> &mapOfConfigFiles);
 
-  virtual void loadModel(const std::string &modelFile, const bool verbose = false);
+  virtual void loadModel(const std::string &modelFile, const bool verbose = false,
+                         const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
 
   virtual void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name,
-                           const vpHomogeneousMatrix &cMo_, const bool verbose = false);
+                           const vpHomogeneousMatrix &cMo_, const bool verbose = false,
+                           const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
   virtual void reInitModel(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
                            const std::string &cad_name, const vpHomogeneousMatrix &c1Mo,
                            const vpHomogeneousMatrix &c2Mo, const bool verbose = false,
@@ -373,4 +380,5 @@ protected:
   //@}
 };
 
-#endif
+#endif //#if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
+#endif //_vpMbEdgeMultiTracker_h_

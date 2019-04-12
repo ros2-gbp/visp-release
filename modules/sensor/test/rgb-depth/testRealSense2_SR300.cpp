@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,6 +55,7 @@
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <thread>
+#include <mutex>
 #endif
 
 #if VISP_HAVE_OPENCV_VERSION >= 0x030000
@@ -211,7 +212,7 @@ void frame_to_mat(const rs2::frame &f, cv::Mat &img)
   const int size = w * h;
 
   if (f.get_profile().format() == RS2_FORMAT_BGR8) {
-    memcpy(img.ptr<cv::Vec3b>(), f.get_data(), size * 3);
+    memcpy(static_cast<void*>(img.ptr<cv::Vec3b>()), f.get_data(), size * 3);
   } else if (f.get_profile().format() == RS2_FORMAT_RGB8) {
     cv::Mat tmp(h, w, CV_8UC3, (void *)f.get_data(), cv::Mat::AUTO_STEP);
     cv::cvtColor(tmp, img, cv::COLOR_RGB2BGR);
@@ -224,14 +225,28 @@ void frame_to_mat(const rs2::frame &f, cv::Mat &img)
 
 int main(int argc, char *argv[])
 {
+#ifdef VISP_HAVE_PCL
   bool pcl_color = false;
+#endif
   bool show_info = false;
 
   for (int i = 1; i < argc; i++) {
-    if (std::string(argv[i]) == "--pcl_color") {
-      pcl_color = true;
-    } else if (std::string(argv[i]) == "--show_info") {
+    if (std::string(argv[i]) == "--show_info") {
       show_info = true;
+    }
+#ifdef VISP_HAVE_PCL
+    else if (std::string(argv[i]) == "--pcl_color") {
+      pcl_color = true;
+    }
+#endif
+    else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
+      std::cout << argv[0] << " [--show_info]"
+#ifdef VISP_HAVE_PCL
+                           << " [--pcl_color]"
+#endif
+                           << " [--help] [-h]"
+                           << "\n";
+      return EXIT_SUCCESS;
     }
   }
 
@@ -499,7 +514,11 @@ int main(int argc, char *argv[])
 
     auto data = pipe.wait_for_frames();
     frame_to_mat(data.get_color_frame(), mat_color);
+#if (RS2_API_VERSION >= ((2 * 10000) + (16 * 100) + 0))
+    frame_to_mat(data.get_depth_frame().apply_filter(color_map), mat_depth);
+#else
     frame_to_mat(color_map(data.get_depth_frame()), mat_depth);
+#endif
     frame_to_mat(data.first(RS2_STREAM_INFRARED), mat_infrared);
 
     cv::imshow("OpenCV color", mat_color);
@@ -512,6 +531,55 @@ int main(int argc, char *argv[])
   }
 
   std::cout << "Acquisition3 - Mean time: " << vpMath::getMean(time_vector)
+            << " ms ; Median time: " << vpMath::getMedian(time_vector) << " ms" << std::endl;
+#endif
+
+#ifdef VISP_HAVE_PCL
+  //Pointcloud acquisition using std::vector<vpColVector> + visualization
+  //See issue #355
+  ViewerWorker viewer_colvector2(false, mutex);
+  std::thread viewer_colvector_thread2(&ViewerWorker::run, &viewer_colvector2);
+  cancelled = false;
+
+  rs.close();
+  config.disable_all_streams();
+  config.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGBA8, 60);
+  config.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 60);
+  config.enable_stream(RS2_STREAM_INFRARED, 640, 480, RS2_FORMAT_Y8, 60);
+  rs.open(config);
+
+  time_vector.clear();
+  t_begin = vpTime::measureTimeMs();
+  while (vpTime::measureTimeMs() - t_begin < 10000) {
+    double t = vpTime::measureTimeMs();
+    rs.acquire(NULL, NULL, &pointcloud_colvector, NULL, NULL);
+
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      pointcloud->width = 640;
+      pointcloud->height = 480;
+      pointcloud->points.resize(pointcloud_colvector.size());
+      for (size_t i = 0; i < pointcloud_colvector.size(); i++) {
+        pointcloud->points[(size_t)i].x = pointcloud_colvector[i][0];
+        pointcloud->points[(size_t)i].y = pointcloud_colvector[i][1];
+        pointcloud->points[(size_t)i].z = pointcloud_colvector[i][2];
+      }
+
+      update_pointcloud = true;
+    }
+
+    time_vector.push_back(vpTime::measureTimeMs() - t);
+    vpTime::wait(t, 30.0);
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    cancelled = true;
+  }
+
+  viewer_colvector_thread2.join();
+
+  std::cout << "Acquisition4 - Mean time: " << vpMath::getMean(time_vector)
             << " ms ; Median time: " << vpMath::getMedian(time_vector) << " ms" << std::endl;
 #endif
 

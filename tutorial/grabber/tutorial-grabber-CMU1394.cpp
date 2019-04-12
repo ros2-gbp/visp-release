@@ -31,8 +31,10 @@ int main()
       if (vpDisplay::getClick(I, false)) // A click to exit
         break;
     }
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }
+#else
+  std::cout << "Install CMU1394 SDK, configure and build ViSP again to use this example" << std::endl;
 #endif
 }

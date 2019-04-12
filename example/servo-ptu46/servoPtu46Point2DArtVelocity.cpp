@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -256,15 +256,17 @@ int main()
     vpTRACE("Display task information ");
     task.print();
     task.kill();
-
-  } catch (...) {
-    vpERROR_TRACE("Trow uncatched...");
   }
+  catch (const vpException &e) {
+    std::cout << "Sorry PtU46 not available. Got exception: " << e << std::endl;
+    return EXIT_FAILURE
+  }
+  return EXIT_SUCCESS;
 }
 
 #else
 int main()
 {
-  vpERROR_TRACE("You don't have a ptu-46 head connected to your computer ", "or 1394 framegrabbing capabilities...");
+  std::cout << "You do not have an PTU46 PT robot connected to your computer..." << std::endl;
 }
 #endif
