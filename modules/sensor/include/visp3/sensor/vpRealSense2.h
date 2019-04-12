@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,8 +33,8 @@
  *
  *****************************************************************************/
 
-#ifndef __vpRealSense2_h_
-#define __vpRealSense2_h_
+#ifndef _vpRealSense2_h_
+#define _vpRealSense2_h_
 
 #include <visp3/core/vpConfig.h>
 
@@ -102,9 +102,12 @@ int main()
   vpRealSense2 rs;
   rs.open();
 
-  vpImage<unsigned char> I(rs.getIntrinsics(RS2_STREAM_COLOR).height,
-rs.getIntrinsics(RS2_STREAM_COLOR).width); #ifdef VISP_HAVE_X11 vpDisplayX
-d(I); #elif defined(VISP_HAVE_GDI) vpDisplayGDI d(I); #endif
+  vpImage<unsigned char> I(rs.getIntrinsics(RS2_STREAM_COLOR).height, rs.getIntrinsics(RS2_STREAM_COLOR).width);
+#ifdef VISP_HAVE_X11
+  vpDisplayX d(I);
+#elif defined(VISP_HAVE_GDI)
+  vpDisplayGDI d(I);
+#endif
 
   while (true) {
     rs.acquire(I);
@@ -301,6 +304,8 @@ public:
   vpCameraParameters getCameraParameters(
       const rs2_stream &stream,
       vpCameraParameters::vpCameraParametersProjType type = vpCameraParameters::perspectiveProjWithDistortion) const;
+
+  float getDepthScale();
 
   rs2_intrinsics getIntrinsics(const rs2_stream &stream) const;
 

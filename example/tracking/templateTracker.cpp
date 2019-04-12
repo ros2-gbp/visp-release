@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -366,7 +366,7 @@ int main(int argc, const char **argv)
 #else
       opt_display = false;
 #endif
-#if (defined VISP_HAVE_DISPLAY)
+#if defined(VISP_HAVE_DISPLAY)
       display->init(I, 100, 100, "Test tracking");
 #endif
       vpDisplay::display(I);
@@ -533,10 +533,10 @@ int main(int argc, const char **argv)
     delete warp;
     delete tracker;
 
-    return 0;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 }
 
@@ -545,7 +545,7 @@ int main(int argc, const char **argv)
 int main()
 {
   std::cout << "visp_tt module or display not available." << std::endl;
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #endif

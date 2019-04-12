@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -391,7 +391,7 @@ void vpMbDepthNormalTracker::loadConfigFile(const std::string &configFile)
   try {
     std::cout << " *********** Parsing XML for Mb Depth Tracker ************ " << std::endl;
     xmlp.parse(configFile);
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     std::cerr << "Exception: " << e.what() << std::endl;
     throw vpException(vpException::ioError, "Cannot open XML file \"%s\"", configFile.c_str());
   }
@@ -520,6 +520,17 @@ void vpMbDepthNormalTracker::setScanLineVisibilityTest(const bool &v)
   }
 }
 
+void vpMbDepthNormalTracker::setUseDepthNormalTracking(const std::string &name, const bool &useDepthNormalTracking)
+{
+  for (std::vector<vpMbtFaceDepthNormal *>::const_iterator it = m_depthNormalFaces.begin();
+       it != m_depthNormalFaces.end(); ++it) {
+    vpMbtFaceDepthNormal *face = *it;
+    if (face->m_polygon->getName() == name) {
+      face->setTracked(useDepthNormalTracking);
+    }
+  }
+}
+
 void vpMbDepthNormalTracker::testTracking() {}
 
 #ifdef VISP_HAVE_PCL
@@ -542,7 +553,7 @@ void vpMbDepthNormalTracker::segmentPointCloud(const pcl::PointCloud<pcl::PointX
        ++it) {
     vpMbtFaceDepthNormal *face = *it;
 
-    if (face->isVisible()) {
+    if (face->isVisible() && face->isTracked()) {
       vpColVector desired_features;
 
 #if DEBUG_DISPLAY_DEPTH_NORMAL
@@ -554,6 +565,7 @@ void vpMbDepthNormalTracker::segmentPointCloud(const pcl::PointCloud<pcl::PointX
                                        ,
                                        m_debugImage_depthNormal, roiPts_vec_
 #endif
+                                       , m_mask
                                        )) {
         m_depthNormalListOfDesiredFeatures.push_back(desired_features);
         m_depthNormalListOfActiveFaces.push_back(face);
@@ -604,7 +616,7 @@ void vpMbDepthNormalTracker::segmentPointCloud(const std::vector<vpColVector> &p
        ++it) {
     vpMbtFaceDepthNormal *face = *it;
 
-    if (face->isVisible()) {
+    if (face->isVisible() && face->isTracked()) {
       vpColVector desired_features;
 
 #if DEBUG_DISPLAY_DEPTH_NORMAL
@@ -617,6 +629,7 @@ void vpMbDepthNormalTracker::segmentPointCloud(const std::vector<vpColVector> &p
                                        ,
                                        m_debugImage_depthNormal, roiPts_vec_
 #endif
+                                       , m_mask
                                        )) {
         m_depthNormalListOfDesiredFeatures.push_back(desired_features);
         m_depthNormalListOfActiveFaces.push_back(face);

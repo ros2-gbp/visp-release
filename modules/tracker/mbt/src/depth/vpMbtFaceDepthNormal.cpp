@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,8 +59,9 @@ vpMbtFaceDepthNormal::vpMbtFaceDepthNormal()
   : m_cam(), m_clippingFlag(vpPolygon3D::NO_CLIPPING), m_distFarClip(100), m_distNearClip(0.001), m_hiddenFace(NULL),
     m_planeObject(), m_polygon(NULL), m_useScanLine(false), m_faceActivated(false),
     m_faceCentroidMethod(GEOMETRIC_CENTROID), m_faceDesiredCentroid(), m_faceDesiredNormal(),
-    m_featureEstimationMethod(ROBUST_FEATURE_ESTIMATION), m_isTracked(false), m_isVisible(false), m_listOfFaceLines(),
-    m_planeCamera(), m_pclPlaneEstimationMethod(2), // SAC_MSAC, see pcl/sample_consensus/method_types.h
+    m_featureEstimationMethod(ROBUST_FEATURE_ESTIMATION), m_isTrackedDepthNormalFace(true), m_isVisible(false),
+    m_listOfFaceLines(), m_planeCamera(),
+    m_pclPlaneEstimationMethod(2), // SAC_MSAC, see pcl/sample_consensus/method_types.h
     m_pclPlaneEstimationRansacMaxIter(200), m_pclPlaneEstimationRansacThreshold(0.001), m_polygonLines()
 {
 }
@@ -156,6 +157,7 @@ bool vpMbtFaceDepthNormal::computeDesiredFeatures(const vpHomogeneousMatrix &cMo
                                                   vpImage<unsigned char> &debugImage,
                                                   std::vector<std::vector<vpImagePoint> > &roiPts_vec
 #endif
+                                                  , const vpImage<bool> *mask
 )
 {
   m_faceActivated = false;
@@ -217,7 +219,7 @@ bool vpMbtFaceDepthNormal::computeDesiredFeatures(const vpHomogeneousMatrix &cMo
   double x = 0.0, y = 0.0;
   for (unsigned int i = top; i < bottom; i += stepY) {
     for (unsigned int j = left; j < right; j += stepX) {
-      if (pcl::isFinite((*point_cloud)(j, i)) && (*point_cloud)(j, i).z > 0 &&
+      if (vpMeTracker::inMask(mask, i, j) && pcl::isFinite((*point_cloud)(j, i)) && (*point_cloud)(j, i).z > 0 &&
           (m_useScanLine ? (i < m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs().getHeight() &&
                             j < m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs().getWidth() &&
                             m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs()[i][j] == m_polygon->getIndex())
@@ -315,6 +317,7 @@ bool vpMbtFaceDepthNormal::computeDesiredFeatures(const vpHomogeneousMatrix &cMo
                                                   vpImage<unsigned char> &debugImage,
                                                   std::vector<std::vector<vpImagePoint> > &roiPts_vec
 #endif
+                                                  , const vpImage<bool> *mask
 )
 {
   m_faceActivated = false;
@@ -371,7 +374,7 @@ bool vpMbtFaceDepthNormal::computeDesiredFeatures(const vpHomogeneousMatrix &cMo
   double x = 0.0, y = 0.0;
   for (unsigned int i = top; i < bottom; i += stepY) {
     for (unsigned int j = left; j < right; j += stepX) {
-      if (point_cloud[i * width + j][2] > 0 &&
+      if (vpMeTracker::inMask(mask, i, j) && point_cloud[i * width + j][2] > 0 &&
           (m_useScanLine ? (i < m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs().getHeight() &&
                             j < m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs().getWidth() &&
                             m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs()[i][j] == m_polygon->getIndex())
@@ -899,7 +902,7 @@ void vpMbtFaceDepthNormal::display(const vpImage<unsigned char> &I, const vpHomo
                                    const vpCameraParameters &cam, const vpColor &col, const unsigned int thickness,
                                    const bool displayFullModel)
 {
-  if (m_polygon->isVisible() || displayFullModel) {
+  if ((m_polygon->isVisible() && m_isTrackedDepthNormalFace) || displayFullModel) {
     computeVisibilityDisplay();
 
     for (std::vector<vpMbtDistanceLine *>::const_iterator it = m_listOfFaceLines.begin(); it != m_listOfFaceLines.end();
@@ -914,7 +917,7 @@ void vpMbtFaceDepthNormal::display(const vpImage<vpRGBa> &I, const vpHomogeneous
                                    const vpCameraParameters &cam, const vpColor &col, const unsigned int thickness,
                                    const bool displayFullModel)
 {
-  if (m_polygon->isVisible() || displayFullModel) {
+  if ((m_polygon->isVisible() && m_isTrackedDepthNormalFace) || displayFullModel) {
     computeVisibilityDisplay();
 
     for (std::vector<vpMbtDistanceLine *>::const_iterator it = m_listOfFaceLines.begin(); it != m_listOfFaceLines.end();
@@ -929,7 +932,7 @@ void vpMbtFaceDepthNormal::displayFeature(const vpImage<unsigned char> &I, const
                                           const vpCameraParameters &cam, const double scale,
                                           const unsigned int thickness)
 {
-  if (m_faceActivated /*&& m_isTracked*/ && m_isVisible) {
+  if (m_faceActivated && m_isTrackedDepthNormalFace && m_isVisible) {
     // Desired feature
     vpPoint pt_centroid = m_faceDesiredCentroid;
     pt_centroid.changeFrame(cMo);
@@ -985,7 +988,7 @@ void vpMbtFaceDepthNormal::displayFeature(const vpImage<vpRGBa> &I, const vpHomo
                                           const vpCameraParameters &cam, const double scale,
                                           const unsigned int thickness)
 {
-  if (m_faceActivated /*&& m_isTracked*/ && m_isVisible) {
+  if (m_faceActivated && m_isTrackedDepthNormalFace && m_isVisible) {
     // Desired feature
     vpPoint pt_centroid = m_faceDesiredCentroid;
     pt_centroid.changeFrame(cMo);

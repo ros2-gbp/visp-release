@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -326,14 +326,21 @@ int main(int argc, const char **argv)
     // Display task information
     task.print();
     task.kill();
-    return 0;
-  } catch (vpException &e) {
+    return EXIT_SUCCESS;
+  } catch (const vpException &e) {
     std::cout << "Catch a ViSP exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }
 
 #else
-int main() { vpERROR_TRACE("You do not have X11, GTK, GDI or OpenCV display functionalities..."); }
-
+int main()
+{
+  std::cout << "You do not have X11, or GTK, or GDI (Graphical Device Interface) functionalities to display images..." << std::endl;
+  std::cout << "Tip if you are on a unix-like system:" << std::endl;
+  std::cout << "- Install X11, configure again ViSP using cmake and build again this example" << std::endl;
+  std::cout << "Tip if you are on a windows-like system:" << std::endl;
+  std::cout << "- Install GDI, configure again ViSP using cmake and build again this example" << std::endl;
+  return EXIT_SUCCESS;
+}
 #endif

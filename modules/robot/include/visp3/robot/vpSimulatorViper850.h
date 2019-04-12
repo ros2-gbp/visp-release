@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,6 +72,8 @@ Irisa's Viper850 robot.  This robot is an ADEPT six degrees of freedom arm.
   - in the camera frame (vpRobot::CAMERA_FRAME),
   - or in a mixed frame (vpRobot::MIXT_FRAME) where translations are expressed
   in the reference frame and rotations in the camera frame.
+
+  End-effector frame (vpRobot::END_EFFECTOR_FRAME) is not implemented.
 
   All the translations are expressed in meters for positions and m/s
   for the velocities. Rotations are expressed in radians for the

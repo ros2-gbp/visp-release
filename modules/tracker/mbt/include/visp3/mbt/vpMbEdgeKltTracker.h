@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,20 +62,22 @@
 /*!
   \class vpMbEdgeKltTracker
   \ingroup group_mbt_trackers
+  \warning This class is deprecated for user usage. You should rather use the high level
+  vpMbGenericTracker class.
   \warning This class is only available if OpenCV is installed, and used.
 
   \brief Hybrid tracker based on moving-edges and keypoints tracked using KLT
   tracker.
 
-  The \ref tutorial-tracking-mb is a good starting point to use this class.
+  The \ref tutorial-tracking-mb-deprecated is a good starting point to use this class.
 
   The tracker requires the knowledge of the 3D model that could be provided in
-a vrml or in a cao file. The cao format is described in loadCAOModel(). It may
-also use an xml file used to tune the behavior of the tracker and an init file
-used to compute the pose at the very first image.
+  a vrml or in a cao file. The cao format is described in loadCAOModel(). It may
+  also use an xml file used to tune the behavior of the tracker and an init file
+  used to compute the pose at the very first image.
 
   The following code shows the simplest way to use the tracker. The \ref
-tutorial-tracking-mb is also a good starting point to use this class.
+  tutorial-tracking-mb-deprecated is also a good starting point to use this class.
 
 \code
 #include <visp/vpCameraParameters.h>
@@ -267,13 +269,10 @@ public:
    */
   virtual inline double getNearClippingDistance() const { return vpMbKltTracker::getNearClippingDistance(); }
 
-  void loadConfigFile(const char *configFile);
   virtual void loadConfigFile(const std::string &configFile);
 
   void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name, const vpHomogeneousMatrix &cMo_,
-                   const bool verbose = false);
-  void reInitModel(const vpImage<unsigned char> &I, const char *cad_name, const vpHomogeneousMatrix &cMo,
-                   const bool verbose = false);
+                   const bool verbose = false, const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
   void resetTracker();
 
   virtual void setCameraParameters(const vpCameraParameters &cam);

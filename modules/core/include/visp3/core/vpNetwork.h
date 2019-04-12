@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,27 +47,30 @@
 #include <string.h>
 #include <vector>
 
+// inet_ntop() not supported on win XP
+#ifdef VISP_HAVE_FUNC_INET_NTOP
+
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#  include <arpa/inet.h>
+#  include <netdb.h>
+#  include <netinet/in.h>
+#  include <sys/socket.h>
+#  include <unistd.h>
 #else
-#include <io.h>
+#  include <io.h>
 //#  include<winsock.h>
-#include <winsock2.h>
+#  include <winsock2.h>
 //#  pragma comment(lib, "ws2_32.lib") // Done by CMake in main CMakeLists.txt
 #endif
 
 #if defined(__APPLE__) && defined(__MACH__) // Apple OSX and iOS (Darwin)
-#include <TargetConditionals.h>             // To detect OSX or IOS using TARGET_OS_IPHONE or TARGET_OS_IOS macro
+#  include <TargetConditionals.h>             // To detect OSX or IOS using TARGET_OS_IPHONE or TARGET_OS_IOS macro
 #endif
 
 /*!
   \class vpNetwork
 
-  \ingroup group_core_network
+  \ingroup group_core_com_ethernet
 
   \brief This class represents a Transmission Control Protocol (TCP) network.
 
@@ -495,4 +498,5 @@ template <typename T> int vpNetwork::sendTo(T *object, const unsigned int &dest,
 #endif
 }
 
+#endif
 #endif

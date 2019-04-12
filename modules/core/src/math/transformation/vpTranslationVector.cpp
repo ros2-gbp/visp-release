@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -645,4 +645,44 @@ double vpTranslationVector::sumSquare() const
   }
 
   return sum_square;
+}
+
+/*!
+  Compute the Euclidean mean of the translation vector extracted from a vector of homogeneous matrices.
+
+  \param[in] vec_M : Set of homogeneous matrices.
+  \return The Euclidian mean of the translation vectors.
+
+  \sa vpRotationMatrix::mean()
+ */
+vpTranslationVector vpTranslationVector::mean(const std::vector<vpHomogeneousMatrix> &vec_M)
+{
+  vpColVector meanT(3);
+  for (size_t i = 0; i < vec_M.size(); i++) {
+    meanT += (vpColVector) vec_M[i].getTranslationVector();
+  }
+  meanT /= static_cast<double>(vec_M.size());
+
+  vpTranslationVector t(meanT);
+  return t;
+}
+
+/*!
+  Compute the Euclidean mean of a vector of translation vector.
+
+  \param[in] vec_t : Set of translation vectors.
+  \return The Euclidian mean of the translation vectors.
+
+  \sa vpRotationMatrix::mean()
+ */
+vpTranslationVector vpTranslationVector::mean(const std::vector<vpTranslationVector> &vec_t)
+{
+  vpColVector meanT(3);
+  for (size_t i = 0; i < vec_t.size(); i++) {
+    meanT += (vpColVector) vec_t[i];
+  }
+  meanT /= static_cast<double>(vec_t.size());
+
+  vpTranslationVector t(meanT);
+  return t;
 }
