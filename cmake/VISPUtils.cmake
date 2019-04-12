@@ -1,7 +1,7 @@
 #############################################################################
 #
-# This file is part of the ViSP software.
-# Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+# ViSP, open source Visual Servoing Platform software.
+# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -52,6 +52,128 @@ if(NOT COMMAND find_host_package)
     find_package(${ARGN})
   endmacro()
 endif()
+
+# TODO: adding macros for android build
+# -------------------------------------------
+
+macro(visp_get_libname var_name)
+  get_filename_component(__libname "${ARGN}" NAME)
+  # visp_core.so.3.4 -> visp_core
+  string(REGEX REPLACE "^lib(.+)\\.(a|so|dll)(\\.[.0-9]+)?$" "\\1" __libname "${__libname}")
+  # MacOSX: libvisp_core.3.3.1.dylib -> visp_core
+  string(REGEX REPLACE "^lib(.+[^.0-9])\\.([.0-9]+\\.)?dylib$" "\\1" __libname "${__libname}")
+  set(${var_name} "${__libname}")
+endmacro()
+
+macro(vp_path_join result_var P1 P2_)
+  string(REGEX REPLACE "^[/]+" "" P2 "${P2_}")
+  if("${P1}" STREQUAL "" OR "${P1}" STREQUAL ".")
+    set(${result_var} "${P2}")
+  elseif("${P1}" STREQUAL "/")
+    set(${result_var} "/${P2}")
+  elseif("${P2}" STREQUAL "")
+    set(${result_var} "${P1}")
+  else()
+    set(${result_var} "${P1}/${P2}")
+  endif()
+  string(REGEX REPLACE "([/\\]?)[\\.][/\\]" "\\1" ${result_var} "${${result_var}}")
+  if("${${result_var}}" STREQUAL "")
+    set(${result_var} ".")
+  endif()
+  #message(STATUS "'${P1}' '${P2_}' => '${${result_var}}'")
+endmacro()
+
+# Used to parse Android SDK 'source.properties' files
+# File lines format:
+# - '<var_name>=<value>' (with possible 'space' symbols around '=')
+# - '#<any comment>'
+# Parsed values are saved into CMake variables:
+# - '${var_prefix}_${var_name}'
+# Flags:
+# - 'CACHE_VAR <var1> <var2>' - put these properties into CMake internal cache
+# - 'MSG_PREFIX <msg>' - prefix string for emitted messages
+# - flag 'VALIDATE' - emit messages about missing values from required cached variables
+# - flag 'WARNING' - emit CMake WARNING instead of STATUS messages
+function(vp_parse_properties_file file var_prefix)
+  cmake_parse_arguments(PARSE_PROPERTIES_PARAM "VALIDATE;WARNING" "" "CACHE_VAR;MSG_PREFIX" ${ARGN})
+
+  set(__msg_type STATUS)
+  if(PARSE_PROPERTIES_PARAM_WARNING)
+    set(__msg_type WARNING)
+  endif()
+
+  if(EXISTS "${file}")
+    set(SOURCE_PROPERTIES_REGEX "^[ ]*([^=:\n\"' ]+)[ ]*=[ ]*(.*)$")
+    file(STRINGS "${file}" SOURCE_PROPERTIES_LINES REGEX "^[ ]*[^#].*$")
+    foreach(line ${SOURCE_PROPERTIES_LINES})
+      if(line MATCHES "${SOURCE_PROPERTIES_REGEX}")
+        set(__name "${CMAKE_MATCH_1}")
+        set(__value "${CMAKE_MATCH_2}")
+        string(REGEX REPLACE "[^a-zA-Z0-9_]" "_" __name ${__name})
+        if(";${PARSE_PROPERTIES_PARAM_CACHE_VAR};" MATCHES ";${__name};")
+          set(${var_prefix}_${__name} "${__value}" CACHE INTERNAL "from ${file}")
+        else()
+          set(${var_prefix}_${__name} "${__value}" PARENT_SCOPE)
+        endif()
+      else()
+        message(${__msg_type} "${PARSE_PROPERTIES_PARAM_MSG_PREFIX}Can't parse source property: '${line}' (from ${file})")
+      endif()
+    endforeach()
+    if(PARSE_PROPERTIES_PARAM_VALIDATE)
+      set(__missing "")
+      foreach(__name ${PARSE_PROPERTIES_PARAM_CACHE_VAR})
+        if(NOT DEFINED ${var_prefix}_${__name})
+          list(APPEND __missing ${__name})
+        endif()
+      endforeach()
+      if(__missing)
+        message(${__msg_type} "${PARSE_PROPERTIES_PARAM_MSG_PREFIX}Can't read properties '${__missing}' from '${file}'")
+      endif()
+    endif()
+  else()
+    message(${__msg_type} "${PARSE_PROPERTIES_PARAM_MSG_PREFIX}Can't find file: ${file}")
+  endif()
+endfunction()
+
+
+
+macro(vp_update VAR)
+  if(NOT DEFINED ${VAR})
+    if("x${ARGN}" STREQUAL "x")
+      set(${VAR} "")
+    else()
+      set(${VAR} ${ARGN})
+    endif()
+  endif()
+endmacro()
+
+function(vp_gen_config TMP_DIR NESTED_PATH ROOT_NAME)
+  vp_path_join(__install_nested "${VISP_CONFIG_INSTALL_PATH}" "${NESTED_PATH}")
+  vp_path_join(__tmp_nested "${TMP_DIR}" "${NESTED_PATH}")
+
+  configure_file("${VISP_SOURCE_DIR}/cmake/templates/VISPConfig-version.cmake.in" "${TMP_DIR}/VISPConfig-version.cmake" @ONLY)
+
+  configure_file("${VISP_SOURCE_DIR}/cmake/templates/VISPConfig.cmake.in" "${__tmp_nested}/VISPConfig.cmake" @ONLY)
+  configure_file("${VISP_SOURCE_DIR}/cmake/templates/VISPUse.cmake.in" "${__tmp_nested}/VISPUse.cmake" @ONLY)
+  install(EXPORT VISPModules DESTINATION "${__install_nested}" FILE VISPModules.cmake COMPONENT dev)
+  install(FILES
+      "${TMP_DIR}/VISPConfig-version.cmake"
+      "${__tmp_nested}/VISPConfig.cmake"
+      "${__tmp_nested}/VISPUse.cmake"
+      DESTINATION "${__install_nested}" COMPONENT dev)
+
+  if(ROOT_NAME)
+    # Root config file
+    configure_file("${VISP_SOURCE_DIR}/cmake/templates/${ROOT_NAME}" "${TMP_DIR}/VISPConfig.cmake" @ONLY)
+    install(FILES
+        "${TMP_DIR}/VISPConfig-version.cmake"
+        "${TMP_DIR}/VISPConfig.cmake"
+        DESTINATION "${VISP_CONFIG_INSTALL_PATH}" COMPONENT dev)
+  endif()
+endfunction()
+
+# Finished adding android macros for visp
+# -------------------------------------------
 
 # adds include directories in such way that directories from the ViSP source tree go first
 function(vp_include_directories)
@@ -107,6 +229,124 @@ macro(vp_clear_vars)
   endforeach()
 endmacro()
 
+# assert macro
+# Note: it doesn't support lists in arguments
+# Usage samples:
+#   vp_assert(MyLib_FOUND)
+#   vp_assert(DEFINED MyLib_INCLUDE_DIRS)
+macro(vp_assert)
+  if(NOT (${ARGN}))
+    string(REPLACE ";" " " __assert_msg "${ARGN}")
+    message(AUTHOR_WARNING "Assertion failed: ${__assert_msg}")
+  endif()
+endmacro()
+
+# add prefix to each item in the list
+macro(vp_list_add_prefix LST PREFIX)
+  set(__tmp "")
+  foreach(item ${${LST}})
+    list(APPEND __tmp "${PREFIX}${item}")
+  endforeach()
+  set(${LST} ${__tmp})
+  unset(__tmp)
+endmacro()
+
+
+# add suffix to each item in the list
+macro(vp_list_add_suffix LST SUFFIX)
+  set(__tmp "")
+  foreach(item ${${LST}})
+    list(APPEND __tmp "${item}${SUFFIX}")
+  endforeach()
+  set(${LST} ${__tmp})
+  unset(__tmp)
+endmacro()
+
+macro(vp_copyfiles_append_dir list_var src dst)
+  set(__glob ${ARGN})
+  list(LENGTH ${list_var} __id)
+  list(APPEND ${list_var} ${__id})
+  set(${list_var}_SRC_${__id} "${src}")
+  set(${list_var}_DST_${__id} "${dst}")
+  set(${list_var}_MODE_${__id} "COPYDIR")
+  if(__glob)
+    set(${list_var}_GLOB_${__id} ${__glob})
+  endif()
+endmacro()
+
+macro(vp_copyfiles_make_config_string content_var list_var)
+  set(var_name "${list_var}")
+  set(${content_var} "${${content_var}}
+set(${var_name} \"${${var_name}}\")
+")
+  foreach(__id ${${list_var}})
+    set(${content_var} "${${content_var}}
+set(${list_var}_SRC_${__id} \"${${list_var}_SRC_${__id}}\")
+set(${list_var}_DST_${__id} \"${${list_var}_DST_${__id}}\")
+")
+    if(DEFINED ${list_var}_MODE_${__id})
+      set(${content_var} "${${content_var}}set(${list_var}_MODE_${__id} \"${${list_var}_MODE_${__id}}\")\n")
+    endif()
+    if(DEFINED ${list_var}_GLOB_${__id})
+      set(${content_var} "${${content_var}}set(${list_var}_GLOB_${__id} \"${${list_var}_GLOB_${__id}}\")\n")
+    endif()
+  endforeach()
+endmacro()
+
+
+macro(vp_copyfiles_make_config_file filename_var list_var)
+  vp_copyfiles_make_config_string(${list_var}_CONFIG ${list_var})
+  set(${filename_var} "${CMAKE_CURRENT_BINARY_DIR}/copyfiles-${list_var}.cmake")
+  file(WRITE "${${filename_var}}" "${${list_var}_CONFIG}")
+endmacro()
+
+
+macro(vp_copyfiles_add_forced_target target list_var comment_str)
+  vp_copyfiles_make_config_file(CONFIG_FILE ${list_var})
+  vp_cmake_byproducts(__byproducts BYPRODUCTS "${VISP_DEPHELPER}/${target}")
+  add_custom_target(${target}
+      ${__byproducts}  # required for add_custom_target() by ninja
+      COMMAND ${CMAKE_COMMAND}
+        "-DCONFIG_FILE:PATH=${CONFIG_FILE}"
+        "-DCOPYLIST_VAR:STRING=${list_var}"
+        "-DDEPHELPER=${VISP_DEPHELPER}/${target}"
+        -P "${VISP_SOURCE_DIR}/cmake/copy_files.cmake"
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      COMMENT "${comment_str}"
+      DEPENDS "${VISP_SOURCE_DIR}/cmake/copy_files.cmake"
+              # ninja warn about file(WRITE): "${SRC_COPY_CONFIG_FILE}"
+  )
+endmacro()
+
+macro(vp_copyfiles_add_target target list_var comment_str)
+  set(deps ${ARGN})
+  vp_copyfiles_make_config_file(CONFIG_FILE ${list_var})
+  add_custom_command(OUTPUT "${VISP_DEPHELPER}/${target}"
+      COMMAND ${CMAKE_COMMAND}
+        "-DCONFIG_FILE:PATH=${CONFIG_FILE}"
+        "-DCOPYLIST_VAR:STRING=${list_var}"
+        "-DDEPHELPER=${VISP_DEPHELPER}/${target}"
+        -P "${VISP_SOURCE_DIR}/cmake/copy_files.cmake"
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      COMMENT "${comment_str}"
+      DEPENDS "${VISP_SOURCE_DIR}/cmake/copy_files.cmake" ${deps}
+              # ninja warn about file(WRITE): "${SRC_COPY_CONFIG_FILE}"
+  )
+  add_custom_target(${target} DEPENDS "${VISP_DEPHELPER}/${target}")
+endmacro()
+
+# Used in detecting PATH variables
+macro(vp_check_environment_variables)
+  foreach(_var ${ARGN})
+    if(" ${${_var}}" STREQUAL " " AND DEFINED ENV{${_var}})
+      set(__value "$ENV{${_var}}")
+      file(TO_CMAKE_PATH "${__value}" __value) # Assume that we receive paths
+      set(${_var} "${__value}")
+      message(STATUS "Update variable ${_var} from environment: ${${_var}}")
+    endif()
+  endforeach()
+endmacro()
+
 # print message
 macro(vp_debug_message)
   #string(REPLACE ";" " " __msg "${ARGN}")
@@ -135,6 +375,20 @@ macro(vp_list_remove_empty __lst)
     list(REMOVE_ITEM ${__lst} "")
   endif()
 endmacro()
+
+# needed by visp-java
+if(CMAKE_VERSION VERSION_LESS "3.2")
+  macro(vp_cmake_byproducts var_name)
+    set(${var_name}) # nothing
+  endmacro()
+else()
+  macro(vp_cmake_byproducts var_name)
+    set(${var_name} BYPRODUCTS ${ARGN})
+  endmacro()
+endif()
+
+set(VISP_DEPHELPER "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/dephelper" CACHE INTERNAL "")
+file(MAKE_DIRECTORY ${VISP_DEPHELPER})
 
 # list elements removal macro
 macro(vp_list_remove_item __lst __item)
@@ -529,6 +783,18 @@ macro(VP_CHECK_PACKAGE package)
   endif()
 endmacro()
 
+# Macros that checks if a functions exists in libraries
+# After it set vars:
+#   HAVE_FUNC_<function>
+include(CheckFunctionExists)
+macro(VP_CHECK_FUNCTION_EXISTS function libraries)
+  set(ALIAS                 ${function})
+  string(TOUPPER "${ALIAS}" ALIAS_UPPER)
+  set(ALIAS_HAVE            HAVE_FUNC_${ALIAS_UPPER})
+  set(CMAKE_REQUIRED_LIBRARIES "${libraries}")
+  check_function_exists(${ALIAS} ${ALIAS_HAVE})
+endmacro()
+
 # Macro the get the list of subdirs from the path
 # var: returned variable name
 # path: path from witch relative subdirs are
@@ -561,9 +827,11 @@ set(VP_COMPILER_FAIL_REGEX
 
 # test if a compiler flag is supported
 macro(vp_check_compiler_flag LANG FLAG RESULT)
+  set(_fname "${ARGN}")
   if(NOT DEFINED ${RESULT})
-
-    if("_${LANG}_" MATCHES "_CXX_")
+    if(_fname)
+      # nothing
+    elseif("_${LANG}_" MATCHES "_CXX_")
       set(_fname "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/src.cxx")
       #if("${CMAKE_CXX_FLAGS} ${FLAG} " MATCHES "-Werror " OR "${CMAKE_CXX_FLAGS} ${FLAG} " MATCHES "-Werror=unknown-pragmas ")
         file(WRITE "${_fname}" "int main() { return 0; }\n")
@@ -591,19 +859,39 @@ macro(vp_check_compiler_flag LANG FLAG RESULT)
       unset(_fname)
     endif()
     if(_fname)
-      message(STATUS "Performing Test ${RESULT}")
+      if(NOT "x${ARGN}" STREQUAL "x")
+        file(RELATIVE_PATH __msg "${CMAKE_SOURCE_DIR}" "${ARGN}")
+        set(__msg " (check file: ${__msg})")
+      else()
+        set(__msg "")
+      endif()
+      message(STATUS "Performing Test ${RESULT}${__msg}")
       try_compile(${RESULT}
         "${CMAKE_BINARY_DIR}"
         "${_fname}"
+        CMAKE_FLAGS "-DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}"   # CMP0056 do this on new CMake
         COMPILE_DEFINITIONS "${FLAG}"
         OUTPUT_VARIABLE OUTPUT)
 
-      foreach(_regex ${VP_COMPILER_FAIL_REGEX})
-        if("${OUTPUT}" MATCHES "${_regex}")
-          set(${RESULT} 0)
-          break()
-        endif()
-      endforeach()
+      if(${RESULT})
+        string(REPLACE ";" "," OUTPUT_LINES "${OUTPUT}")
+        string(REPLACE "\n" ";" OUTPUT_LINES "${OUTPUT_LINES}")
+        foreach(_regex ${VP_COMPILER_FAIL_REGEX})
+          if(NOT ${RESULT})
+            break()
+          endif()
+          foreach(_line ${OUTPUT_LINES})
+            if("${_line}" MATCHES "${_regex}")
+              file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
+                  "Build output check failed:\n"
+                  "    Regex: '${_regex}'\n"
+                  "    Output line: '${_line}'\n")
+              set(${RESULT} 0)
+              break()
+            endif()
+          endforeach()
+        endforeach()
+      endif()
 
       if(${RESULT})
         set(${RESULT} 1 CACHE INTERNAL "Test ${RESULT}")
@@ -626,7 +914,11 @@ macro(vp_check_compiler_flag LANG FLAG RESULT)
 endmacro()
 
 # check if a compiler flag is supported
-macro(vp_check_flag_support lang flag varname)
+macro(vp_check_flag_support lang flag varname base_options)
+  if(CMAKE_BUILD_TYPE)
+    set(CMAKE_TRY_COMPILE_CONFIGURATION ${CMAKE_BUILD_TYPE})
+  endif()
+
   if("_${lang}_" MATCHES "_CXX_")
     set(_lang CXX)
   elseif("_${lang}_" MATCHES "_C_")
@@ -636,15 +928,15 @@ macro(vp_check_flag_support lang flag varname)
   else()
     set(_lang ${lang})
   endif()
-
   string(TOUPPER "${flag}" ${varname})
   string(REGEX REPLACE "^(/|-)" "HAVE_${_lang}_" ${varname} "${${varname}}")
   string(REGEX REPLACE " -|-|=| |\\." "_" ${varname} "${${varname}}")
-  vp_check_compiler_flag("${_lang}" "${ARGN} ${flag}" ${${varname}})
+  vp_check_compiler_flag("${_lang}" "${base_options} ${flag}" ${${varname}} ${ARGN})
 endmacro()
 
 # turns off warnings
 macro(vp_warnings_disable)
+  if(ACTIVATE_WARNING_3PARTY_MUTE)
     set(_flag_vars "")
     set(_msvc_warnings "")
     set(_gxx_warnings "")
@@ -670,7 +962,7 @@ macro(vp_warnings_disable)
             string(REPLACE "${warning}" "" ${var} "${${var}}")
             string(REPLACE "-W" "-Wno-" warning "${warning}")
           endif()
-          vp_check_flag_support(${var} "${warning}" _varname)
+          vp_check_flag_support(${var} "${warning}" _varname "")
           if(${_varname})
             set(${var} "${${var}} ${warning}")
           endif()
@@ -680,26 +972,32 @@ macro(vp_warnings_disable)
     unset(_flag_vars)
     unset(_msvc_warnings)
     unset(_gxx_warnings)
+  endif()
 endmacro()
 
 macro(vp_set_source_file_compile_flag file)
   if(ACTIVATE_WARNING_3PARTY_MUTE)
     set(__cxxflags "")
     set(__lang "CXX")
-    get_filename_component(__ext ${file} EXT)
-    if(__ext MATCHES "$.c")
+    if("${file}" MATCHES "\\.(c)$")
       set(__lang "C")
-    elseif(__ext MATCHES "$.f")
-      set(__lang "Fortran")
-    elseif(__ext MATCHES "$.F")
+    elseif("${file}" MATCHES "\\.(cpp|cc|cxx)$")
+      set(__lang "CXX")
+    elseif("${file}" MATCHES "\\.(f|F)$")
       set(__lang "Fortran")
     endif()
+    # Since cxx11 option makes try_compile() result wrong, we remove all the CXX_FLAGS
+    # when we check if an option is available or not
+    #set(CXX_FLAGS_BACKUP ${CMAKE_CXX_FLAGS})
+    #set(CMAKE_CXX_FLAGS "")
     foreach(cxxflag ${ARGN})
-      vp_check_flag_support(${__lang} ${cxxflag} __support_flag)
+      vp_check_flag_support(${__lang} ${cxxflag} __support_flag "")
       if(${__support_flag})
         set(__cxxflags "${__cxxflags} ${cxxflag}")
       endif()
     endforeach()
+    #set(CMAKE_CXX_FLAGS ${CXX_FLAGS_BACKUP})
+    #unset(CXX_FLAGS_BACKUP)
     if(NOT ${__cxxflags} STREQUAL "")
       if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/${file})
         set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/${file} PROPERTIES COMPILE_FLAGS ${__cxxflags})
@@ -741,20 +1039,47 @@ macro(vp_check_subdirectories lst subdir result)
   endif()
 endmacro()
 
-set(VISP_BUILD_INFO_FILE "${CMAKE_BINARY_DIR}/visp-build-info.tmp")
-set(VISP_TXT_INFO_FILE "${CMAKE_BINARY_DIR}/ViSP-third-party.txt")
-file(REMOVE "${VISP_BUILD_INFO_FILE}")
-file(REMOVE "${VISP_TXT_INFO_FILE}")
+set(VISP_BUILD_INFO_STR "" CACHE INTERNAL "")
+set(VISP_TXT_INFO_STR "" CACHE INTERNAL "")
 function(vp_output_status msg)
   message(STATUS "${msg}")
   string(REPLACE "\\" "\\\\" msg "${msg}")
   string(REPLACE "\"" "\\\"" msg "${msg}")
   string(REPLACE "\\\\" "\\" msg_txt "${msg}")
-  file(APPEND "${VISP_BUILD_INFO_FILE}" "\"${msg}\\n\"\n")
-  file(APPEND "${VISP_TXT_INFO_FILE}" "${msg_txt}\n")
+  set(VISP_BUILD_INFO_STR "${VISP_BUILD_INFO_STR}\"${msg}\\n\"\n" CACHE INTERNAL "")
+  set(VISP_TXT_INFO_STR "${VISP_TXT_INFO_STR}${msg_txt}\n" CACHE INTERNAL "")
 endfunction()
 
 macro(vp_finalize_status)
+  set(VISP_BUILD_INFO_FILE "${CMAKE_BINARY_DIR}/visp-build-info.tmp")
+  set(VISP_TXT_INFO_FILE "${CMAKE_BINARY_DIR}/ViSP-third-party.txt")
+
+  if(EXISTS "${VISP_BUILD_INFO_FILE}")
+    file(READ "${VISP_BUILD_INFO_FILE}" __content_build_info)
+  else()
+    set(__content_build_info "")
+  endif()
+  if("${__content_build_info}" STREQUAL "${VISP_BUILD_INFO_STR}")
+    #message(STATUS "${VISP_BUILD_INFO_FILE} contains the same content")
+  else()
+    file(WRITE "${VISP_BUILD_INFO_FILE}" "${VISP_BUILD_INFO_STR}")
+  endif()
+  unset(__content_build_info)
+  unset(VISP_BUILD_INFO_STR CACHE)
+
+  if(EXISTS "${VISP_TXT_INFO_FILE}")
+    file(READ "${VISP_TXT_INFO_FILE}" __content_txt_info)
+  else()
+    set(__content_txt_info "")
+  endif()
+  if("${__content_txt_info}" STREQUAL "${VISP_TXT_INFO_STR}")
+    #message(STATUS "${VISP_TXT_INFO_FILE} contains the same content")
+  else()
+    file(WRITE "${VISP_TXT_INFO_FILE}" "${VISP_TXT_INFO_STR}")
+  endif()
+  unset(__content_txt_info)
+  unset(VISP_TXT_INFO_STR CACHE)
+
   if(DEFINED VISP_MODULE_visp_core_BINARY_DIR)
     execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${VISP_BUILD_INFO_FILE}" "${VISP_MODULE_visp_core_BINARY_DIR}/version_string.inc" OUTPUT_QUIET)
   endif()
@@ -905,4 +1230,27 @@ macro(vp_cmake_script_append_var content_var)
 set(${var_name} \"${${var_name}}\")
 ")
   endforeach()
+endmacro()
+
+# files: A list of input files like headers (in)
+# paths: A list of corresponding paths (out)
+# usage: vp_find_path(type.h paths PATHS /usr/local)
+macro(vp_find_path files paths)
+  set(__paths "")
+  foreach(arg_ ${ARGN})
+    if("${arg_}" STREQUAL "PATHS")
+      set(__varname "__paths")
+    else()
+      list(APPEND ${__varname} ${arg_})
+    endif()
+  endforeach()
+  unset(__varname)
+  foreach(f_ ${${files}})
+    find_path(path_ ${f_} PATHS ${__paths})
+    if(path_)
+      list(APPEND ${paths} ${path_})
+    endif()
+    unset(path_ CACHE)
+  endforeach()
+  vp_list_unique(${paths})
 endmacro()

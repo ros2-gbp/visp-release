@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -253,7 +253,7 @@ int main(int argc, const char **argv)
       filename = vpIoTools::createFilePath(ipath, "image-that-does-not-exist.pgm");
       std::cout << "Read image: " << filename << std::endl;
       vpImageIo::read(I, filename);
-    } catch (vpException &e) {
+    } catch (const vpException &e) {
       std::cout << "Catch an exception due to a non existing file: " << e << std::endl;
     }
 
@@ -262,11 +262,11 @@ int main(int argc, const char **argv)
       filename = vpIoTools::createFilePath(opath, "directory-that-does-not-exist/Klimt.pgm");
       std::cout << "Write image: " << filename << std::endl;
       vpImageIo::write(I, filename);
-    } catch (vpException &e) {
+    } catch (const vpException &e) {
       std::cout << "Catch an exception due to a non existing file: " << e << std::endl;
     }
     return 0;
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return 1;
   }

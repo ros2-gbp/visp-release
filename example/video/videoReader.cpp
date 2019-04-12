@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -299,15 +299,15 @@ int main(int argc, const char **argv)
       std::cout << "Click to exit this example" << std::endl;
       vpDisplay::getClick(I);
     }
-  } catch (vpException &e) {
+  } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }
-  return 0;
+  return EXIT_SUCCESS;
 }
 #else
 int main()
 {
   std::cout << "Sorry, no display is available. We quit this example." << std::endl;
-  return 0;
+  return EXIT_SUCCESS;
 }
 #endif

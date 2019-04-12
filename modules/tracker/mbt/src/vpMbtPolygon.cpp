@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,7 +98,8 @@ vpMbtPolygon::~vpMbtPolygon() {}
   \param alpha : Maximum angle to detect if the face is visible (in rad).
   \param modulo : Indicates if the test should also consider faces that are
   not oriented counter clockwise. If true, the orientation of the face is
-  without importance. \param cam : Camera parameters (intrinsics parameters)
+  without importance.
+  \param cam : Camera parameters (intrinsics parameters)
   \param I : Image used to consider level of detail.
 
   \return Return true if the polygon is visible.

@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ class vpDetectorAprilTag::Impl
 public:
   Impl(const vpAprilTagFamily &tagFamily, const vpPoseEstimationMethod &method)
     : m_cam(), m_poseEstimationMethod(method), m_tagFamily(tagFamily), m_tagPoses(), m_tagSize(1.0), m_td(NULL),
-      m_tf(NULL)
+      m_tf(NULL), m_detections(NULL), m_zAlignedWithCameraFrame(false)
   {
     switch (m_tagFamily) {
     case TAG_36h11:
@@ -129,11 +129,18 @@ public:
     default:
       break;
     }
+
+    if (m_detections) {
+      apriltag_detections_destroy(m_detections);
+      m_detections = NULL;
+    }
   }
 
   bool detect(const vpImage<unsigned char> &I, std::vector<std::vector<vpImagePoint> > &polygons,
-              std::vector<std::string> &messages, const bool computePose, const bool displayTag)
+              std::vector<std::string> &messages, const bool computePose, const bool displayTag,
+              const vpColor color, const unsigned int thickness)
   {
+    std::vector<vpHomogeneousMatrix> tagPosesPrev = m_tagPoses;
     m_tagPoses.clear();
 
     image_u8_t im = {/*.width =*/(int32_t)I.getWidth(),
@@ -141,16 +148,21 @@ public:
                      /*.stride =*/(int32_t)I.getWidth(),
                      /*.buf =*/I.bitmap};
 
-    zarray_t *detections = apriltag_detector_detect(m_td, &im);
-    int nb_detections = zarray_size(detections);
+    if (m_detections) {
+      apriltag_detections_destroy(m_detections);
+      m_detections = NULL;
+    }
+
+    m_detections = apriltag_detector_detect(m_td, &im);
+    int nb_detections = zarray_size(m_detections);
     bool detected = nb_detections > 0;
 
     polygons.resize((size_t)nb_detections);
     messages.resize((size_t)nb_detections);
 
-    for (int i = 0; i < zarray_size(detections); i++) {
+    for (int i = 0; i < zarray_size(m_detections); i++) {
       apriltag_detection_t *det;
-      zarray_get(detections, i, &det);
+      zarray_get(m_detections, i, &det);
 
       std::vector<vpImagePoint> polygon;
       for (int j = 0; j < 4; j++) {
@@ -162,111 +174,173 @@ public:
       messages[i] = ss.str();
 
       if (displayTag) {
+        vpColor Ox = (color == vpColor::none) ? vpColor::red : color;
+        vpColor Oy = (color == vpColor::none) ? vpColor::green : color;
+        vpColor Ox2 = (color == vpColor::none) ? vpColor::yellow : color;
+        vpColor Oy2 = (color == vpColor::none) ? vpColor::blue : color;
+
         vpDisplay::displayLine(I, (int)det->p[0][1], (int)det->p[0][0], (int)det->p[1][1], (int)det->p[1][0],
-                               vpColor::red, 2);
+                               Ox, thickness);
         vpDisplay::displayLine(I, (int)det->p[0][1], (int)det->p[0][0], (int)det->p[3][1], (int)det->p[3][0],
-                               vpColor::green, 2);
+                               Oy, thickness);
         vpDisplay::displayLine(I, (int)det->p[1][1], (int)det->p[1][0], (int)det->p[2][1], (int)det->p[2][0],
-                               vpColor::blue, 2);
+                               Ox2, thickness);
         vpDisplay::displayLine(I, (int)det->p[2][1], (int)det->p[2][0], (int)det->p[3][1], (int)det->p[3][0],
-                               vpColor::yellow, 2);
+                               Oy2, thickness);
       }
 
       if (computePose) {
         vpHomogeneousMatrix cMo;
-        if (m_poseEstimationMethod == HOMOGRAPHY_VIRTUAL_VS || m_poseEstimationMethod == BEST_RESIDUAL_VIRTUAL_VS) {
-          double fx = m_cam.get_px(), fy = m_cam.get_py();
-          double cx = m_cam.get_u0(), cy = m_cam.get_v0();
-
-          matd_t *M = homography_to_pose(det->H, fx, fy, cx, cy, m_tagSize / 2);
-
-          for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-              cMo[i][j] = MATD_EL(M, i, j);
-            }
-            cMo[i][3] = MATD_EL(M, i, 3);
-          }
-
-          matd_destroy(M);
-        }
-
-        // Add marker object points
-        vpPoint pt;
-        vpImagePoint imPt;
-        double x = 0.0, y = 0.0;
-        std::vector<vpPoint> pts(4);
-        pt.setWorldCoordinates(-m_tagSize / 2.0, -m_tagSize / 2.0, 0.0);
-        imPt.set_uv(det->p[0][0], det->p[0][1]);
-        vpPixelMeterConversion::convertPoint(m_cam, imPt, x, y);
-        pt.set_x(x);
-        pt.set_y(y);
-        pts[0] = pt;
-
-        pt.setWorldCoordinates(m_tagSize / 2.0, -m_tagSize / 2.0, 0.0);
-        imPt.set_uv(det->p[1][0], det->p[1][1]);
-        vpPixelMeterConversion::convertPoint(m_cam, imPt, x, y);
-        pt.set_x(x);
-        pt.set_y(y);
-        pts[1] = pt;
-
-        pt.setWorldCoordinates(m_tagSize / 2.0, m_tagSize / 2.0, 0.0);
-        imPt.set_uv(det->p[2][0], det->p[2][1]);
-        vpPixelMeterConversion::convertPoint(m_cam, imPt, x, y);
-        pt.set_x(x);
-        pt.set_y(y);
-        pts[2] = pt;
-
-        pt.setWorldCoordinates(-m_tagSize / 2.0, m_tagSize / 2.0, 0.0);
-        imPt.set_uv(det->p[3][0], det->p[3][1]);
-        vpPixelMeterConversion::convertPoint(m_cam, imPt, x, y);
-        pt.set_x(x);
-        pt.set_y(y);
-        pts[3] = pt;
-
-        vpPose pose;
-        pose.addPoints(pts);
-
-        if (m_poseEstimationMethod != HOMOGRAPHY_VIRTUAL_VS) {
-          if (m_poseEstimationMethod == BEST_RESIDUAL_VIRTUAL_VS) {
-            vpHomogeneousMatrix cMo_dementhon, cMo_lagrange, cMo_homography = cMo;
-
-            double residual_dementhon = std::numeric_limits<double>::max(),
-                   residual_lagrange = std::numeric_limits<double>::max();
-            double residual_homography = pose.computeResidual(cMo_homography);
-
-            if (pose.computePose(vpPose::DEMENTHON, cMo_dementhon)) {
-              residual_dementhon = pose.computeResidual(cMo_dementhon);
-            }
-
-            if (pose.computePose(vpPose::LAGRANGE, cMo_lagrange)) {
-              residual_lagrange = pose.computeResidual(cMo_lagrange);
-            }
-
-            if (residual_dementhon < residual_lagrange) {
-              if (residual_dementhon < residual_homography) {
-                cMo = cMo_dementhon;
-              } else {
-                cMo = cMo_homography;
-              }
-            } else if (residual_lagrange < residual_homography) {
-              cMo = cMo_lagrange;
-            } else {
-              //              cMo = cMo_homography; //already the case
-            }
-          } else {
-            pose.computePose(m_mapOfCorrespondingPoseMethods[m_poseEstimationMethod], cMo);
+        {
+          if ((int)tagPosesPrev.size() > i) {
+            cMo = tagPosesPrev[i];
           }
         }
-
-        // Compute final pose using VVS
-        pose.computePose(vpPose::VIRTUAL_VS, cMo);
-        m_tagPoses.push_back(cMo);
+        if (getPose(i, m_tagSize, m_cam, cMo)) {
+          m_tagPoses.push_back(cMo);
+        }
+        // else case should never happen
       }
     }
 
-    apriltag_detections_destroy(detections);
-
     return detected;
+  }
+
+  bool getPose(size_t tagIndex, const double tagSize, const vpCameraParameters &cam, vpHomogeneousMatrix &cMo) {
+    if (m_detections == NULL) {
+      throw(vpException(vpException::fatalError, "Cannot get tag index=%d pose: detection empty", tagIndex));
+    }
+    apriltag_detection_t *det;
+    zarray_get(m_detections, static_cast<int>(tagIndex), &det);
+
+    int nb_detections = zarray_size(m_detections);
+    if (tagIndex >= (size_t)nb_detections) {
+      return false;
+    }
+
+    if (m_poseEstimationMethod == HOMOGRAPHY || m_poseEstimationMethod == HOMOGRAPHY_VIRTUAL_VS
+        || m_poseEstimationMethod == BEST_RESIDUAL_VIRTUAL_VS) {
+      double fx = cam.get_px(), fy = cam.get_py();
+      double cx = cam.get_u0(), cy = cam.get_v0();
+
+      matd_t *M = homography_to_pose(det->H, fx, fy, cx, cy, tagSize / 2);
+
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          cMo[i][j] = MATD_EL(M, i, j);
+        }
+        cMo[i][3] = MATD_EL(M, i, 3);
+      }
+
+      matd_destroy(M);
+
+      if (m_zAlignedWithCameraFrame) {
+        vpHomogeneousMatrix oMo;
+        // Apply a rotation of 180deg around x axis
+        oMo[0][0] = 1; oMo[0][1] =  0; oMo[0][2] = 0;
+        oMo[1][0] = 0; oMo[1][1] = -1; oMo[1][2] = 0;
+        oMo[2][0] = 0; oMo[2][1] =  0; oMo[2][2] = -1;
+        cMo = cMo*oMo;
+      }
+    }
+
+    // Add marker object points
+    vpPose pose;
+    if (m_poseEstimationMethod != HOMOGRAPHY) {
+      vpPoint pt;
+
+      vpImagePoint imPt;
+      double x = 0.0, y = 0.0;
+      std::vector<vpPoint> pts(4);
+      if (m_zAlignedWithCameraFrame) {
+        pt.setWorldCoordinates(-tagSize / 2.0, tagSize / 2.0, 0.0);
+      }
+      else {
+        pt.setWorldCoordinates(-tagSize / 2.0, -tagSize / 2.0, 0.0);
+      }
+      imPt.set_uv(det->p[0][0], det->p[0][1]);
+      vpPixelMeterConversion::convertPoint(cam, imPt, x, y);
+      pt.set_x(x);
+      pt.set_y(y);
+      pts[0] = pt;
+
+      if (m_zAlignedWithCameraFrame) {
+        pt.setWorldCoordinates(tagSize / 2.0, tagSize / 2.0, 0.0);
+      }
+      else {
+        pt.setWorldCoordinates(tagSize / 2.0, -tagSize / 2.0, 0.0);
+      }
+      imPt.set_uv(det->p[1][0], det->p[1][1]);
+      vpPixelMeterConversion::convertPoint(cam, imPt, x, y);
+      pt.set_x(x);
+      pt.set_y(y);
+      pts[1] = pt;
+
+      if (m_zAlignedWithCameraFrame) {
+        pt.setWorldCoordinates(tagSize / 2.0, -tagSize / 2.0, 0.0);
+      }
+      else {
+        pt.setWorldCoordinates(tagSize / 2.0, tagSize / 2.0, 0.0);
+      }
+      imPt.set_uv(det->p[2][0], det->p[2][1]);
+      vpPixelMeterConversion::convertPoint(cam, imPt, x, y);
+      pt.set_x(x);
+      pt.set_y(y);
+      pts[2] = pt;
+
+      if (m_zAlignedWithCameraFrame) {
+        pt.setWorldCoordinates(-tagSize / 2.0, -tagSize / 2.0, 0.0);
+      }
+      else {
+        pt.setWorldCoordinates(-tagSize / 2.0, tagSize / 2.0, 0.0);
+      }
+      imPt.set_uv(det->p[3][0], det->p[3][1]);
+      vpPixelMeterConversion::convertPoint(cam, imPt, x, y);
+      pt.set_x(x);
+      pt.set_y(y);
+      pts[3] = pt;
+
+      pose.addPoints(pts);
+    }
+
+    if (m_poseEstimationMethod != HOMOGRAPHY && m_poseEstimationMethod != HOMOGRAPHY_VIRTUAL_VS) {
+      if (m_poseEstimationMethod == BEST_RESIDUAL_VIRTUAL_VS) {
+        vpHomogeneousMatrix cMo_dementhon, cMo_lagrange, cMo_homography = cMo;
+
+        double residual_dementhon = std::numeric_limits<double>::max(),
+               residual_lagrange = std::numeric_limits<double>::max();
+        double residual_homography = pose.computeResidual(cMo_homography);
+
+        if (pose.computePose(vpPose::DEMENTHON, cMo_dementhon)) {
+          residual_dementhon = pose.computeResidual(cMo_dementhon);
+        }
+
+        if (pose.computePose(vpPose::LAGRANGE, cMo_lagrange)) {
+          residual_lagrange = pose.computeResidual(cMo_lagrange);
+        }
+
+        if (residual_dementhon < residual_lagrange) {
+          if (residual_dementhon < residual_homography) {
+            cMo = cMo_dementhon;
+          } else {
+            cMo = cMo_homography;
+          }
+        } else if (residual_lagrange < residual_homography) {
+          cMo = cMo_lagrange;
+        } else {
+          //              cMo = cMo_homography; //already the case
+        }
+      } else {
+        pose.computePose(m_mapOfCorrespondingPoseMethods[m_poseEstimationMethod], cMo);
+      }
+    }
+
+    if (m_poseEstimationMethod != HOMOGRAPHY) {
+      // Compute final pose using VVS
+      pose.computePose(vpPose::VIRTUAL_VS, cMo);
+    }
+
+    return true;
   }
 
   void getTagPoses(std::vector<vpHomogeneousMatrix> &tagPoses) const { tagPoses = m_tagPoses; }
@@ -289,6 +363,8 @@ public:
 
   void setPoseEstimationMethod(const vpPoseEstimationMethod &method) { m_poseEstimationMethod = method; }
 
+  void setZAlignedWithCameraAxis(bool zAlignedWithCameraFrame) { m_zAlignedWithCameraFrame = zAlignedWithCameraFrame; }
+
 protected:
   vpCameraParameters m_cam;
   std::map<vpPoseEstimationMethod, vpPose::vpPoseMethodType> m_mapOfCorrespondingPoseMethods;
@@ -298,6 +374,8 @@ protected:
   double m_tagSize;
   apriltag_detector_t *m_td;
   apriltag_family_t *m_tf;
+  zarray_t *m_detections;
+  bool m_zAlignedWithCameraFrame;
 };
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -306,7 +384,8 @@ protected:
 */
 vpDetectorAprilTag::vpDetectorAprilTag(const vpAprilTagFamily &tagFamily,
                                        const vpPoseEstimationMethod &poseEstimationMethod)
-  : m_displayTag(false), m_poseEstimationMethod(poseEstimationMethod), m_tagFamily(tagFamily),
+  : m_displayTag(false), m_displayTagColor(vpColor::none), m_displayTagThickness(2),
+    m_poseEstimationMethod(poseEstimationMethod), m_tagFamily(tagFamily), m_zAlignedWithCameraFrame(false),
     m_impl(new Impl(tagFamily, poseEstimationMethod))
 {
 }
@@ -329,19 +408,26 @@ bool vpDetectorAprilTag::detect(const vpImage<unsigned char> &I)
   m_polygon.clear();
   m_nb_objects = 0;
 
-  bool detected = m_impl->detect(I, m_polygon, m_message, false, m_displayTag);
+  bool detected = m_impl->detect(I, m_polygon, m_message, false, m_displayTag,
+                                 m_displayTagColor, m_displayTagThickness);
   m_nb_objects = m_message.size();
 
   return detected;
 }
 
 /*!
-  Detect AprilTag tags in the image and compute the corresponding tag poses.
+  Detect AprilTag tags in the image and compute the corresponding tag poses considering that all the tags have
+  the same size.
+
+  If tags with different sizes have to be considered, you may use getPose().
 
   \param I : Input image.
-  \param tagSize : Tag size in meter corresponding to the external width of
-  the pattern. \param cam : Camera intrinsic parameters. \param cMo_vec : List
-  of tag poses. \return true if at least one tag is detected.
+  \param tagSize : Tag size in meter corresponding to the external width of the pattern.
+  \param cam : Camera intrinsic parameters.
+  \param cMo_vec : List of tag poses.
+  \return true if at least one tag is detected.
+
+  \sa getPose()
 */
 bool vpDetectorAprilTag::detect(const vpImage<unsigned char> &I, const double tagSize, const vpCameraParameters &cam,
                                 std::vector<vpHomogeneousMatrix> &cMo_vec)
@@ -352,11 +438,43 @@ bool vpDetectorAprilTag::detect(const vpImage<unsigned char> &I, const double ta
 
   m_impl->setTagSize(tagSize);
   m_impl->setCameraParameters(cam);
-  bool detected = m_impl->detect(I, m_polygon, m_message, true, m_displayTag);
+  bool detected = m_impl->detect(I, m_polygon, m_message, true, m_displayTag,
+                                 m_displayTagColor, m_displayTagThickness);
   m_nb_objects = m_message.size();
   m_impl->getTagPoses(cMo_vec);
 
   return detected;
+}
+
+/*!
+  Get the pose of a tag depending on its size and camera parameters.
+  This function is useful to get the pose of tags with different sizes, while
+  detect(const vpImage<unsigned char> &, const double, const vpCameraParameters &, std::vector<vpHomogeneousMatrix> &)
+  considers that all the tags have the same size.
+
+  \param[in] tagIndex : Index of the tag. Value should be in range [0, nb tags-1] with nb_tags = getNbObjects().
+  \param[in] tagSize : Tag size in meter corresponding to the external width of the pattern.
+  \param[in] cam : Camera intrinsic parameters.
+  \param[out] cMo : Pose of the tag.
+  \return true if success, false otherwise.
+
+  The following code shows how to use this function:
+  \code
+    vpCameraParameters cam;
+  vpDetectorAprilTag detector(tagFamily);
+  detector.detect(I);
+  for (size_t i = 0; i < detector.getNbObjects(); i++) {
+    vpHomogeneousMatrix cMo;
+    double tagSize;
+    detector.getPose(i, tagSize, cam, cMo);
+  }
+  \endcode
+
+  \sa detect(const vpImage<unsigned char> &, const double, const vpCameraParameters &, std::vector<vpHomogeneousMatrix> &)
+ */
+bool vpDetectorAprilTag::getPose(size_t tagIndex, const double tagSize, const vpCameraParameters &cam, vpHomogeneousMatrix &cMo)
+{
+  return (m_impl->getPose(tagIndex, tagSize, cam, cMo));
 }
 
 /*!
@@ -456,6 +574,18 @@ void vpDetectorAprilTag::setAprilTagRefineEdges(const bool refineEdges) { m_impl
   \param refinePose : If true, set refine_pose to 1.
 */
 void vpDetectorAprilTag::setAprilTagRefinePose(const bool refinePose) { m_impl->setRefinePose(refinePose); }
+
+/*!
+ * Modify the resulting tag pose returned by getPose() in order to get
+ * a pose where z-axis is aligned when the camera plane is parallel to the tag.
+ * \param zAlignedWithCameraFrame : Flag to get a pose where z-axis is aligned with the camera frame.
+ */
+void vpDetectorAprilTag::setZAlignedWithCameraAxis(bool zAlignedWithCameraFrame)
+{
+  m_zAlignedWithCameraFrame = zAlignedWithCameraFrame;
+  m_impl->setZAlignedWithCameraAxis(zAlignedWithCameraFrame);
+}
+
 #elif !defined(VISP_BUILD_SHARED_LIBS)
 // Work arround to avoid warning: libvisp_core.a(vpDetectorAprilTag.cpp.o) has
 // no symbols

@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@ private:
 
 public:
   vpMbHiddenFaces();
-  ~vpMbHiddenFaces();
+  virtual ~vpMbHiddenFaces();
   vpMbHiddenFaces(const vpMbHiddenFaces &copy);
   vpMbHiddenFaces &operator=(vpMbHiddenFaces other);
   friend void swap<>(vpMbHiddenFaces &first, vpMbHiddenFaces &second);
@@ -554,12 +554,14 @@ unsigned int vpMbHiddenFaces<PolygonType>::setVisiblePrivate(const vpHomogeneous
   \param angleAppears : Angle used to test the appearance of a face
   \param angleDisappears : Angle used to test the disappearance of a face
   \param changed : True if a face appeared, disappeared or too many points
-  have been lost. False otherwise \param useOgre : True if a Ogre is used to
-  test the visibility, False otherwise. \param not_used : Unused parameter.
+  have been lost. False otherwise
+  \param useOgre : True if a Ogre is used to test the visibility, False otherwise.
+  \param not_used : Unused parameter.
   \param I : Image used to test if a face is entirely projected in the image.
   \param cam : Camera parameters.
   \param cameraPos : Position of the camera. Used only when Ogre is used as
-  3rd party. \param index : Index of the face to consider.
+  3rd party.
+  \param index : Index of the face to consider.
 
   \return Return true if the face is visible.
 */

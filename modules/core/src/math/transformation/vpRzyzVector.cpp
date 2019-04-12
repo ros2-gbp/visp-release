@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,12 +81,13 @@ vpRzyzVector::vpRzyzVector(const vpThetaUVector &tu) : vpRotationVector(3) { bui
 /*! Copy constructor from a 3-dimension vector. */
 vpRzyzVector::vpRzyzVector(const vpColVector &rzyz) : vpRotationVector(3)
 {
-  if (rzyz.size() != 3) {
-    throw(vpException(vpException::dimensionError, "Cannot construct a R-zyz vector from a %d-dimension col vector",
-                      rzyz.size()));
-  }
-  for (unsigned int i = 0; i < 3; i++)
-    data[i] = rzyz[i];
+  buildFrom(rzyz);
+}
+
+/*! Copy constructor from a 3-dimension vector. */
+vpRzyzVector::vpRzyzVector(const std::vector<double> &rzyz) : vpRotationVector(3)
+{
+  buildFrom(rzyz);
 }
 
 /*!
@@ -126,6 +127,37 @@ vpRzyzVector vpRzyzVector::buildFrom(const vpThetaUVector &tu)
   vpRotationMatrix R;
   R.buildFrom(tu);
   buildFrom(R);
+
+  return *this;
+}
+
+/*!
+  Construct a \f$R_{zyz}=(\varphi,\theta,\psi)\f$ Euler angles vectorfrom a 3-dim vector.
+*/
+vpRzyzVector vpRzyzVector::buildFrom(const vpColVector &rzyz)
+{
+  if (rzyz.size() != 3) {
+    throw(vpException(vpException::dimensionError, "Cannot construct a R-zyz vector from a %d-dimension col vector",
+                      rzyz.size()));
+  }
+  for (unsigned int i = 0; i < 3; i++)
+    data[i] = rzyz[i];
+
+
+  return *this;
+}
+
+/*!
+  Construct a \f$R_{zyx}=(\varphi,\theta,\psi)\f$ Euler angles vector from a 3-dim vector.
+*/
+vpRzyzVector vpRzyzVector::buildFrom(const std::vector<double> &rzyz)
+{
+  if (rzyz.size() != 3) {
+    throw(vpException(vpException::dimensionError, "Cannot construct a R-zyx vector from a %d-dimension std::vector",
+                      rzyz.size()));
+  }
+  for (unsigned int i = 0; i < 3; i++)
+    data[i] = rzyz[i];
 
   return *this;
 }

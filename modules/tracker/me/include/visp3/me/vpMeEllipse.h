@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -113,8 +113,8 @@ public:
   /*!
     \return Expected number of moving edges to track along the ellipse.
    */
-  int getExpectedDensity() { return (int)expecteddensity; };
-  void track(const vpImage<unsigned char> &Im);
+  int getExpectedDensity() { return (int)expecteddensity; }
+  void track(const vpImage<unsigned char> &I);
 
   void initTracking(const vpImage<unsigned char> &I);
   void initTracking(const vpImage<unsigned char> &I, const unsigned int n, vpImagePoint *iP);
@@ -320,7 +320,7 @@ protected:
 
 private:
   void computeAngle(const vpImagePoint &pt1, const vpImagePoint &pt);
-  void sample(const vpImage<unsigned char> &image);
+  virtual void sample(const vpImage<unsigned char> &image, const bool doNotTrack=false);
   void reSample(const vpImage<unsigned char> &I);
   void leastSquare();
   void updateTheta();

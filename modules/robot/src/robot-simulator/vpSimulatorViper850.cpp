@@ -1,7 +1,7 @@
 /****************************************************************************
  *
- * This file is part of the ViSP software.
- * Copyright (C) 2005 - 2017 by Inria. All rights reserved.
+ * ViSP, open source Visual Servoing Platform software.
+ * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -918,6 +918,7 @@ void vpSimulatorViper850::setVelocity(const vpRobot::vpControlFrameType frame, c
       scale_sat = scale_rot_sat;
     break;
   }
+  case vpRobot::END_EFFECTOR_FRAME:
   case vpRobot::MIXT_FRAME: {
     break;
   }
@@ -968,6 +969,7 @@ void vpSimulatorViper850::computeArticularVelocity()
     set_artVel(articularVelocity);
     break;
   }
+  case vpRobot::END_EFFECTOR_FRAME:
   case vpRobot::MIXT_FRAME: {
     break;
   }
@@ -996,6 +998,7 @@ void vpSimulatorViper850::computeArticularVelocity()
     set_artVel(articularVelocity * scale_sat);
     break;
   }
+  case vpRobot::END_EFFECTOR_FRAME:
   case vpRobot::ARTICULAR_FRAME:
   case vpRobot::MIXT_FRAME: {
     break;
@@ -1074,6 +1077,7 @@ void vpSimulatorViper850::getVelocity(const vpRobot::vpControlFrameType frame, v
     vel = fJe_ * articularVelocity;
     break;
   }
+  case vpRobot::END_EFFECTOR_FRAME:
   case vpRobot::MIXT_FRAME: {
     break;
   }
@@ -1380,9 +1384,12 @@ void vpSimulatorViper850::setPosition(const vpRobot::vpControlFrameType frame, c
     break;
   }
   case vpRobot::MIXT_FRAME: {
-    vpERROR_TRACE("Positionning error. Mixt frame not implemented");
     throw vpRobotException(vpRobotException::lowLevelError, "Positionning error: "
                                                             "Mixt frame not implemented.");
+  }
+  case vpRobot::END_EFFECTOR_FRAME: {
+    throw vpRobotException(vpRobotException::lowLevelError, "Positionning error: "
+                                                            "End-effector frame not implemented.");
   }
   }
 }
@@ -1616,6 +1623,11 @@ void vpSimulatorViper850::getPosition(const vpRobot::vpControlFrameType frame, v
     vpERROR_TRACE("Positionning error. Mixt frame not implemented");
     throw vpRobotException(vpRobotException::lowLevelError, "Positionning error: "
                                                             "Mixt frame not implemented.");
+  }
+  case vpRobot::END_EFFECTOR_FRAME: {
+    vpERROR_TRACE("Positionning error. Mixt frame not implemented");
+    throw vpRobotException(vpRobotException::lowLevelError, "Positionning error: "
+                                                            "End-effector frame not implemented.");
   }
   }
 }
@@ -1880,6 +1892,10 @@ void vpSimulatorViper850::getDisplacement(vpRobot::vpControlFrameType frame, vpC
 
     case vpRobot::MIXT_FRAME: {
       std::cout << "getDisplacement() MIXT_FRAME not implemented\n";
+      return;
+    }
+    case vpRobot::END_EFFECTOR_FRAME: {
+      std::cout << "getDisplacement() END_EFFECTOR_FRAME not implemented\n";
       return;
     }
     }
