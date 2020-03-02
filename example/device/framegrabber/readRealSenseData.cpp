@@ -2,7 +2,7 @@
 
 #include <visp3/core/vpConfig.h>
 
-#if defined (VISP_HAVE_CPP11_COMPATIBILITY) && (defined (VISP_HAVE_X11) || defined (VISP_HAVE_GDI))
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11) && (defined (VISP_HAVE_X11) || defined (VISP_HAVE_GDI))
 #include <fstream>
 #include <queue>
 #include <mutex>
@@ -15,7 +15,7 @@
 #include <pcl/visualization/cloud_viewer.h>
 #endif
 
-#if defined (VISP_HAVE_PCL) && defined (VISP_HAVE_CPP11_COMPATIBILITY)
+#if defined (VISP_HAVE_PCL) && (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
 #define USE_PCL_VIEWER
 #endif
 
@@ -154,10 +154,10 @@ private:
 };
 #endif
 
-bool readData(const int cpt, const std::string &input_directory, vpImage<vpRGBa> &I_color, vpImage<uint16_t> &I_depth_raw,
-              const bool pointcloud_binary_format
+bool readData(int cpt, const std::string &input_directory, vpImage<vpRGBa> &I_color, vpImage<uint16_t> &I_depth_raw,
+              bool pointcloud_binary_format
 #ifdef USE_PCL_VIEWER
-              , pcl::PointCloud<pcl::PointXYZ>::Ptr pointcloud
+              , pcl::PointCloud<pcl::PointXYZ>::Ptr point_cloud
 #endif
               ) {
   char buffer[256];
@@ -217,10 +217,10 @@ bool readData(const int cpt, const std::string &input_directory, vpImage<vpRGBa>
     vpIoTools::readBinaryValueLE(file_pointcloud, width);
     file_pointcloud.read( (char *)(&is_dense), sizeof(is_dense) );
 
-    pointcloud->width = width;
-    pointcloud->height = height;
-    pointcloud->is_dense = (is_dense != 0);
-    pointcloud->resize((size_t) width*height);
+    point_cloud->width = width;
+    point_cloud->height = height;
+    point_cloud->is_dense = (is_dense != 0);
+    point_cloud->resize((size_t) width*height);
 
     float x = 0.0f, y = 0.0f, z = 0.0f;
     for (uint32_t i = 0; i < height; i++) {
@@ -229,13 +229,13 @@ bool readData(const int cpt, const std::string &input_directory, vpImage<vpRGBa>
         vpIoTools::readBinaryValueLE(file_pointcloud, y);
         vpIoTools::readBinaryValueLE(file_pointcloud, z);
 
-        pointcloud->points[(size_t) (i*width + j)].x = x;
-        pointcloud->points[(size_t) (i*width + j)].y = y;
-        pointcloud->points[(size_t) (i*width + j)].z = z;
+        point_cloud->points[(size_t) (i*width + j)].x = x;
+        point_cloud->points[(size_t) (i*width + j)].y = y;
+        point_cloud->points[(size_t) (i*width + j)].z = z;
       }
     }
   } else {
-    if (pcl::io::loadPCDFile<pcl::PointXYZ> (filename_pointcloud, *pointcloud) == -1) {
+    if (pcl::io::loadPCDFile<pcl::PointXYZ> (filename_pointcloud, *point_cloud) == -1) {
       std::cerr << "Cannot read PCD: " << filename_pointcloud << std::endl;
     }
   }
@@ -377,7 +377,7 @@ int main(int argc, char *argv[]) {
 }
 #else
 int main() {
-  std::cerr << "Need C++11 and displayX or displayGDI!" << std::endl;
+  std::cerr << "Enable C++11 or higher (cmake -DUSE_CXX_STANDARD=11) and install X11 or GDI!" << std::endl;
   return 0;
 }
 #endif

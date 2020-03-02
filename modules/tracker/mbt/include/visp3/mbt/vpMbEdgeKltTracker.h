@@ -57,7 +57,6 @@
 #include <visp3/mbt/vpMbEdgeTracker.h>
 #include <visp3/mbt/vpMbKltTracker.h>
 #include <visp3/mbt/vpMbTracker.h>
-#include <visp3/mbt/vpMbtEdgeKltXmlParser.h>
 
 /*!
   \class vpMbEdgeKltTracker
@@ -80,13 +79,12 @@
   tutorial-tracking-mb-deprecated is also a good starting point to use this class.
 
 \code
-#include <visp/vpCameraParameters.h>
-#include <visp/vpDisplayX.h>
-#include <visp/vpException.h>
-#include <visp/vpHomogeneousMatrix.h>
-#include <visp/vpImage.h>
-#include <visp/vpImageIo.h>
-#include <visp/vpMbEdgeKltTracker.h>
+#include <visp3/core/vpCameraParameters.h>
+#include <visp3/core/vpHomogeneousMatrix.h>
+#include <visp3/core/vpImage.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/io/vpImageIo.h>
+#include <visp3/mbt/vpMbEdgeKltTracker.h>
 
 int main()
 {
@@ -104,7 +102,7 @@ int main()
   display.init(I,100,100,"Mb Hybrid Tracker");
 #endif
 
-#if defined VISP_HAVE_XML2
+#if defined VISP_HAVE_PUGIXML
   tracker.loadConfigFile("cube.xml"); // Load the configuration of the tracker
 #endif
   // Load the 3d model in cao format. No 3rd party library is required
@@ -125,11 +123,6 @@ int main()
     vpDisplay::flush(I);
   }
 
-#if defined VISP_HAVE_XML2
-  // Cleanup memory allocated by xml library used to parse the xml config file in vpMbEdgeKltTracker::loadConfigFile()
-  vpXmlParser::cleanup();
-#endif
-
   return 0;
 #endif
 }
@@ -140,11 +133,11 @@ int main()
 computed using another method:
 
 \code
-#include <visp/vpCameraParameters.h>
-#include <visp/vpHomogeneousMatrix.h>
-#include <visp/vpImage.h>
-#include <visp/vpImageIo.h>
-#include <visp/vpMbEdgeKltTracker.h>
+#include <visp3/core/vpCameraParameters.h>
+#include <visp3/core/vpHomogeneousMatrix.h>
+#include <visp3/core/vpImage.h>
+#include <visp3/io/vpImageIo.h>
+#include <visp3/mbt/vpMbEdgeKltTracker.h>
 
 int main()
 {
@@ -156,7 +149,7 @@ int main()
   //acquire an image
   vpImageIo::read(I, "cube.pgm"); // Example of acquisition
 
-#if defined VISP_HAVE_XML2
+#if defined VISP_HAVE_PUGIXML
   tracker.loadConfigFile("cube.xml"); // Load the configuration of the tracker
 #endif
   // load the 3d model, to read .wrl model coin is required, if coin is not installed .cao file can be used.
@@ -169,11 +162,6 @@ int main()
     tracker.getPose(cMo); // get the pose
   }
 
-#if defined VISP_HAVE_XML2
-  // Cleanup memory allocated by xml library used to parse the xml config file in vpMbEdgeKltTracker::loadConfigFile()
-  vpXmlParser::cleanup();
-#endif
-
   return 0;
 #endif
 }
@@ -183,12 +171,12 @@ int main()
 a given pose:
 
 \code
-#include <visp/vpCameraParameters.h>
-#include <visp/vpDisplayX.h>
-#include <visp/vpHomogeneousMatrix.h>
-#include <visp/vpImage.h>
-#include <visp/vpImageIo.h>
-#include <visp/vpMbEdgeKltTracker.h>
+#include <visp3/core/vpCameraParameters.h>
+#include <visp3/core/vpHomogeneousMatrix.h>
+#include <visp3/core/vpImage.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/io/vpImageIo.h>
+#include <visp3/mbt/vpMbEdgeKltTracker.h>
 
 int main()
 {
@@ -206,7 +194,7 @@ int main()
   display.init(I,100,100,"Mb Hybrid Tracker");
 #endif
 
-#if defined VISP_HAVE_XML2
+#if defined VISP_HAVE_PUGIXML
   tracker.loadConfigFile("cube.xml"); // Load the configuration of the tracker
 #endif
   tracker.getCameraParameters(cam); // Get the camera parameters used by the tracker (from the configuration file).
@@ -222,12 +210,8 @@ int main()
   }
 
 #endif
-  // Cleanup memory allocated by xml library used to parse the xml config file in vpMbEdgeKltTracker::loadConfigFile()
- vpXmlParser::cleanup();
-#endif
 
   return 0;
-#endif
 }
 \endcode
 */
@@ -235,15 +219,15 @@ class VISP_EXPORT vpMbEdgeKltTracker : public vpMbKltTracker, public vpMbEdgeTra
 {
 protected:
   //! The threshold used in the robust estimation of KLT.
-  double thresholdKLT;
+  double m_thresholdKLT;
   //! The threshold used in the robust estimation of MBT.
-  double thresholdMBT;
+  double m_thresholdMBT;
   //! The maximum iteration of the virtual visual servoing stage.
   unsigned int m_maxIterKlt;
   //! Robust weights for Edge
-  vpColVector w_mbt;
+  vpColVector m_w_mbt;
   //! Robust weights for KLT
-  vpColVector w_klt;
+  vpColVector m_w_klt;
   //! (s - s*)
   vpColVector m_error_hybrid;
   //! Robust weights
@@ -254,11 +238,16 @@ public:
   virtual ~vpMbEdgeKltTracker();
 
   virtual void display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-                       const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+                       const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
   virtual void display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-                       const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+                       const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
 
   virtual inline vpColVector getError() const { return m_error_hybrid; }
+
+  virtual std::vector<std::vector<double> > getModelForDisplay(unsigned int width, unsigned int height,
+                                                               const vpHomogeneousMatrix &cMo,
+                                                               const vpCameraParameters &cam,
+                                                               bool displayFullModel=false);
 
   virtual inline vpColVector getRobustWeights() const { return m_w_hybrid; }
 
@@ -271,8 +260,8 @@ public:
 
   virtual void loadConfigFile(const std::string &configFile);
 
-  void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name, const vpHomogeneousMatrix &cMo_,
-                   const bool verbose = false, const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
+  void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name, const vpHomogeneousMatrix &cMo,
+                   bool verbose = false, const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
   void resetTracker();
 
   virtual void setCameraParameters(const vpCameraParameters &cam);
@@ -328,6 +317,7 @@ public:
   }
 
   virtual void setPose(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cdMo);
+  virtual void setPose(const vpImage<vpRGBa> &I_color, const vpHomogeneousMatrix &cdMo);
   /*!
     Set if the projection error criteria has to be computed.
 
@@ -338,31 +328,34 @@ public:
 
   virtual void testTracking() {}
   virtual void track(const vpImage<unsigned char> &I);
+  virtual void track(const vpImage<vpRGBa> &I_color);
 
 protected:
   virtual void computeVVS(const vpImage<unsigned char> &I, const unsigned int &nbInfos, unsigned int &nbrow,
-                          const unsigned int lvl = 0);
+                          unsigned int lvl = 0);
   virtual void computeVVSInit();
   virtual void computeVVSInteractionMatrixAndResidu();
   using vpMbTracker::computeCovarianceMatrixVVS;
   using vpMbTracker::computeVVSPoseEstimation;
 
   virtual void init(const vpImage<unsigned char> &I);
-  virtual void initCircle(const vpPoint &, const vpPoint &, const vpPoint &, const double r, const int idFace = 0,
+  virtual void initCircle(const vpPoint &, const vpPoint &, const vpPoint &, double r, int idFace = 0,
                           const std::string &name = "");
-  virtual void initCylinder(const vpPoint &, const vpPoint &, const double r, const int idFace,
+  virtual void initCylinder(const vpPoint &, const vpPoint &, double r, int idFace,
                             const std::string &name = "");
   virtual void initFaceFromCorners(vpMbtPolygon &polygon);
   virtual void initFaceFromLines(vpMbtPolygon &polygon);
-  unsigned int initMbtTracking(const unsigned int level = 0);
+  unsigned int initMbtTracking(unsigned int level = 0);
 
   bool postTracking(const vpImage<unsigned char> &I, vpColVector &w_mbt, vpColVector &w_klt,
-                    const unsigned int lvl = 0);
-  void postTrackingMbt(vpColVector &w, const unsigned int level = 0);
+                    unsigned int lvl = 0);
+  bool postTracking(const vpImage<vpRGBa> &I_color, vpColVector &w_mbt, vpColVector &w_klt,
+                    unsigned int lvl = 0);
+  void postTrackingMbt(vpColVector &w, unsigned int level = 0);
 
-  unsigned int trackFirstLoop(const vpImage<unsigned char> &I, vpColVector &factor, const unsigned int lvl = 0);
-  void trackSecondLoop(const vpImage<unsigned char> &I, vpMatrix &L, vpColVector &_error, vpHomogeneousMatrix &cMo,
-                       const unsigned int lvl = 0);
+  unsigned int trackFirstLoop(const vpImage<unsigned char> &I, vpColVector &factor, unsigned int lvl = 0);
+  void trackSecondLoop(const vpImage<unsigned char> &I, vpMatrix &L, vpColVector &_error, const vpHomogeneousMatrix &cMo,
+                       unsigned int lvl = 0);
 };
 
 #endif

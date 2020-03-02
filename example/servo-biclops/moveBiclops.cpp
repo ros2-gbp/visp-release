@@ -54,7 +54,6 @@
 
 #include <stdlib.h>
 #include <visp3/core/vpColVector.h>
-#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDebug.h>
 #include <visp3/core/vpTime.h>
 #include <visp3/io/vpParseArgv.h>
@@ -274,11 +273,11 @@ int main(int argc, const char **argv)
     robot.getVelocity(vpRobot::ARTICULAR_FRAME, qm);
     std::cout << "Velocity in the articular frame: "
               << " pan: " << vpMath::deg(qm[0]) << " tilt: " << vpMath::deg(qm[1]) << std::endl;
-    return EXIT_SUCCESS
+    return EXIT_SUCCESS;
   }
   catch (const vpException &e) {
     std::cout << "Catch an exception: " << e.getMessage() << std::endl;
-    return EXIT_FAILURE
+    return EXIT_FAILURE;
   }
 }
 #else

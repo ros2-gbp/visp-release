@@ -360,10 +360,10 @@ public:
   */
   virtual void displayImage(const vpImage<vpRGBa> &I) = 0;
 
-  virtual void displayImageROI(const vpImage<unsigned char> &I, const vpImagePoint &iP, const unsigned int width,
-                               const unsigned int height) = 0;
-  virtual void displayImageROI(const vpImage<vpRGBa> &I, const vpImagePoint &iP, const unsigned int width,
-                               const unsigned int height) = 0;
+  virtual void displayImageROI(const vpImage<unsigned char> &I, const vpImagePoint &iP, unsigned int width,
+                               unsigned int height) = 0;
+  virtual void displayImageROI(const vpImage<vpRGBa> &I, const vpImagePoint &iP, unsigned int width,
+                               unsigned int height) = 0;
 
   /*!
     Display a point at the image point \e ip location.
@@ -430,7 +430,7 @@ public:
     Flushes the display.
     It's necessary to use this function to see the results of any drawing.
   */
-  virtual void flushDisplayROI(const vpImagePoint &iP, const unsigned int width, const unsigned int height) = 0;
+  virtual void flushDisplayROI(const vpImagePoint &iP, unsigned int width, unsigned int height) = 0;
 
   /* Simple interface with the mouse event */
 
@@ -727,7 +727,7 @@ int main()
   static void displayDotLine(const vpImage<unsigned char> &I, int i1, int j1, int i2, int j2, const vpColor &color,
                              unsigned int thickness = 1);
   static void displayDotLine(const vpImage<unsigned char> &I, const std::vector<vpImagePoint> &ips,
-                             const bool closeTheShape, const vpColor &color, unsigned int thickness = 1);
+                             bool closeTheShape, const vpColor &color, unsigned int thickness = 1);
   static void displayEllipse(const vpImage<unsigned char> &I, const vpImagePoint &center, const double &coef1,
                              const double &coef2, const double &coef3, bool use_centered_moments, const vpColor &color,
                              unsigned int thickness = 1);
@@ -738,17 +738,17 @@ int main()
                            const vpCameraParameters &cam, double size, const vpColor &color = vpColor::none,
                            unsigned int thickness = 1, const vpImagePoint &offset = vpImagePoint(0, 0));
   static void displayLine(const vpImage<unsigned char> &I, const vpImagePoint &ip1, const vpImagePoint &ip2,
-                          const vpColor &color, unsigned int thickness = 1);
+                          const vpColor &color, unsigned int thickness = 1, bool segment = true);
   static void displayLine(const vpImage<unsigned char> &I, int i1, int j1, int i2, int j2, const vpColor &color,
-                          unsigned int thickness = 1);
+                          unsigned int thickness = 1, bool segment = true);
   static void displayLine(const vpImage<unsigned char> &I, const std::vector<vpImagePoint> &ips,
-                          const bool closeTheShape, const vpColor &color, unsigned int thickness = 1);
+                          bool closeTheShape, const vpColor &color, unsigned int thickness = 1);
   static void displayPoint(const vpImage<unsigned char> &I, const vpImagePoint &ip, const vpColor &color,
                            unsigned int thickness = 1);
   static void displayPoint(const vpImage<unsigned char> &I, int i, int j, const vpColor &color,
                            unsigned int thickness = 1);
   static void displayPolygon(const vpImage<unsigned char> &I, const std::vector<vpImagePoint> &vip,
-                             const vpColor &color, unsigned int thickness = 1);
+                             const vpColor &color, unsigned int thickness = 1, bool closed = true);
   static void displayRectangle(const vpImage<unsigned char> &I, const vpImagePoint &topLeft, unsigned int width,
                                unsigned int height, const vpColor &color, bool fill = false,
                                unsigned int thickness = 1);
@@ -825,7 +825,7 @@ int main()
                              const vpColor &color, unsigned int thickness = 1);
   static void displayDotLine(const vpImage<vpRGBa> &I, int i1, int j1, int i2, int j2, const vpColor &color,
                              unsigned int thickness = 1);
-  static void displayDotLine(const vpImage<vpRGBa> &I, const std::vector<vpImagePoint> &ips, const bool closeTheShape,
+  static void displayDotLine(const vpImage<vpRGBa> &I, const std::vector<vpImagePoint> &ips, bool closeTheShape,
                              const vpColor &color, unsigned int thickness = 1);
   static void displayEllipse(const vpImage<vpRGBa> &I, const vpImagePoint &center, const double &coef1,
                              const double &coef2, const double &coef3, bool use_centered_moments, const vpColor &color,
@@ -837,16 +837,16 @@ int main()
                            double size, const vpColor &color = vpColor::none, unsigned int thickness = 1,
                            const vpImagePoint &offset = vpImagePoint(0, 0));
   static void displayLine(const vpImage<vpRGBa> &I, const vpImagePoint &ip1, const vpImagePoint &ip2,
-                          const vpColor &color, unsigned int thickness = 1);
+                          const vpColor &color, unsigned int thickness = 1, bool segment = true);
   static void displayLine(const vpImage<vpRGBa> &I, int i1, int j1, int i2, int j2, const vpColor &color,
-                          unsigned int thickness = 1);
-  static void displayLine(const vpImage<vpRGBa> &I, const std::vector<vpImagePoint> &ips, const bool closeTheShape,
+                          unsigned int thickness = 1, bool segment = true);
+  static void displayLine(const vpImage<vpRGBa> &I, const std::vector<vpImagePoint> &ips, bool closeTheShape,
                           const vpColor &color, unsigned int thickness = 1);
   static void displayPoint(const vpImage<vpRGBa> &I, const vpImagePoint &ip, const vpColor &color,
                            unsigned int thickness = 1);
   static void displayPoint(const vpImage<vpRGBa> &I, int i, int j, const vpColor &color, unsigned int thickness = 1);
   static void displayPolygon(const vpImage<vpRGBa> &I, const std::vector<vpImagePoint> &vip, const vpColor &color,
-                             unsigned int thickness = 1);
+                             unsigned int thickness = 1, bool closed = true);
   static void displayRectangle(const vpImage<vpRGBa> &I, const vpImagePoint &topLeft, unsigned int width,
                                unsigned int height, const vpColor &color, bool fill = false,
                                unsigned int thickness = 1);

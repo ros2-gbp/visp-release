@@ -22,7 +22,7 @@
 #include <visp3/vision/vpPose.h>
 
 namespace {
-void calcChessboardCorners(const int width, const int height, const double squareSize, std::vector<vpPoint> &corners) {
+void calcChessboardCorners(int width, int height, double squareSize, std::vector<vpPoint> &corners) {
   corners.resize(0);
 
   for (int i = 0; i < height; i++) {
@@ -94,7 +94,7 @@ int main(int argc, const char ** argv) {
   calcChessboardCorners(chessboard_width, chessboard_height, chessboard_square_size, corners_pts);
 
   vpCameraParameters cam;
-#ifdef VISP_HAVE_XML2
+#ifdef VISP_HAVE_PUGIXML
   vpXmlParserCamera parser;
   if (!intrinsic_file.empty() && !camera_name.empty()) {
     parser.parse(cam, intrinsic_file, camera_name, vpCameraParameters::perspectiveProjWithDistortion);
