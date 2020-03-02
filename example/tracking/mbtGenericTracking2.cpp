@@ -290,7 +290,7 @@ int main(int argc, const char **argv)
     else
       ipath = vpIoTools::createFilePath(env_ipath, "mbt/cube/image%04d.pgm");
 
-#if defined(VISP_HAVE_XML2) && USE_XML
+#if defined(VISP_HAVE_PUGIXML) && USE_XML
     std::string configFile;
     if (!opt_configFile.empty())
       configFile = opt_configFile;
@@ -410,7 +410,7 @@ int main(int argc, const char **argv)
     std::map<std::string, vpCameraParameters> mapOfCameraParams;
 
 // Initialise the tracker: camera parameters, moving edge and KLT settings
-#if defined(VISP_HAVE_XML2) && USE_XML
+#if defined(VISP_HAVE_PUGIXML) && USE_XML
     // From the xml file
     std::map<std::string, std::string> mapOfConfigFiles;
     mapOfConfigFiles["Camera1"] = configFile;
@@ -575,17 +575,15 @@ int main(int argc, const char **argv)
         }
 
         tracker->resetTracker();
-#if defined(VISP_HAVE_XML2) && USE_XML
+#if defined(VISP_HAVE_PUGIXML) && USE_XML
         dynamic_cast<vpMbGenericTracker *>(tracker)->loadConfigFile(mapOfConfigFiles);
 #else
         // By setting the parameters:
-        vpCameraParameters cam;
         cam.initPersProjWithoutDistortion(547, 542, 338, 234);
         mapOfCameraParams["Camera1"] = cam;
         mapOfCameraParams["Camera2"] = cam;
         mapOfCameraParams["Camera3"] = cam;
 
-        vpMe me;
         me.setMaskSize(5);
         me.setMaskNumber(180);
         me.setRange(7);
@@ -593,13 +591,12 @@ int main(int argc, const char **argv)
         me.setMu1(0.5);
         me.setMu2(0.5);
         me.setSampleStep(4);
-        std::map<std::string, vpMe> mapOfMe;
+
         mapOfMe["Camera1"] = me;
         mapOfMe["Camera2"] = me;
         mapOfMe["Camera3"] = me;
 
 #if defined(VISP_HAVE_MODULE_KLT) && (defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100))
-        vpKltOpencv klt;
         klt.setMaxFeatures(10000);
         klt.setWindowSize(5);
         klt.setQuality(0.01);
@@ -607,7 +604,7 @@ int main(int argc, const char **argv)
         klt.setHarrisFreeParameter(0.01);
         klt.setBlockSize(3);
         klt.setPyramidLevels(3);
-        std::map<std::string, vpKltOpencv> mapOfKlt;
+
         mapOfKlt["Camera1"] = klt;
         mapOfKlt["Camera2"] = klt;
         mapOfKlt["Camera3"] = klt;
@@ -625,7 +622,6 @@ int main(int argc, const char **argv)
         tracker->setNearClippingDistance(0.01);
         tracker->setFarClippingDistance(0.90);
 
-        std::map<std::string, unsigned int> mapOfClippingFlags;
         dynamic_cast<vpMbGenericTracker *>(tracker)->getClipping(mapOfClippingFlags);
         for (std::map<std::string, unsigned int>::iterator it = mapOfClippingFlags.begin();
              it != mapOfClippingFlags.end(); ++it) {
@@ -729,12 +725,6 @@ int main(int argc, const char **argv)
 
     delete tracker;
     tracker = NULL;
-
-#if defined(VISP_HAVE_XML2) && USE_XML
-    // Cleanup memory allocated by xml library used to parse the xml config
-    // file in vpMbGenericTracker::loadConfigFile()
-    vpXmlParser::cleanup();
-#endif
 
 #if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
     // Cleanup memory allocated by Coin library used to load a vrml model in

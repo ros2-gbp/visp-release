@@ -112,14 +112,14 @@ int main() {
   \endcode
 
   If you want to send a complex data type, you can either send the ASCII
-representation or send directly the byte data. In the last case, you should
-have to handle that both the server and the client have the same data type
-representation. Be careful also with the endianness of the network / host.
+  representation or send directly the byte data. In the last case, you should
+  have to handle that both the server and the client have the same data type
+  representation. Be careful also with the endianness of the network / host.
 
   Here an example using a structure of data, assuming that both the server and
-the client have the same architecture (probably you should write your own
-serialization / deserialization functions for the data you want to send /
-receive):
+  the client have the same architecture (probably you should write your own
+  serialization / deserialization functions for the data you want to send /
+  receive):
 
   \code
 #include <cstdlib>
@@ -131,7 +131,7 @@ struct DataType {
   double double_val;
   int int_val;
   DataType() : double_val(0.0), int_val(0) {}
-  DataType(const double dbl, const int i) : double_val(dbl), int_val(i) {}
+  DataType(double dbl, int i) : double_val(dbl), int_val(i) {}
 };
 
 int main() {
@@ -168,11 +168,22 @@ int main() {
 class VISP_EXPORT vpUDPClient
 {
 public:
-  vpUDPClient(const std::string &hostname, const int port);
+  vpUDPClient();
+  vpUDPClient(const std::string &hostname, int port);
   virtual ~vpUDPClient();
 
-  int receive(std::string &msg, const int timeoutMs = 0);
+  /** @name Inherited functionalities from vpUDPClient */
+  //@{
+  void init(const std::string &hostname, int port);
+
+  int receive(std::string &msg, int timeoutMs = 0);
+  int receive(void *msg, size_t len, int timeoutMs = 0);
   int send(const std::string &msg);
+  int send(const void *msg, size_t len);
+  //@}
+
+protected:
+  bool m_is_init;
 
 private:
   char m_buf[VP_MAX_UDP_PAYLOAD];
@@ -185,7 +196,7 @@ private:
   WSADATA m_wsa;
 #endif
 
-  void init(const std::string &hostname, const int port);
+  void close();
 };
 
 #endif

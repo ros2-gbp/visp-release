@@ -81,6 +81,41 @@ void vpJointVelTrajGenerator::control_thread(franka::Robot *robot,
   std::ofstream log_dq_cmd;
   std::ofstream log_v_des;
 
+  if (! log_folder.empty()) {
+    std::cout << "Save franka logs in \"" << log_folder << "\" folder" << std::endl;
+    std::cout << "Use gnuplot tool to visualize logs:" << std::endl;
+    std::cout << "$ cd " << log_folder << std::endl;
+    std::cout << "$ gnuplot plot.gp" << std::endl;
+    std::cout << "<press return key in the terminal to view next plot>" << std::endl;
+
+    std::ofstream gnuplot;
+    gnuplot.open(log_folder + "/plot.gp");
+    gnuplot << "set st data li\n" << std::endl;
+
+    if (frame == vpRobot::CAMERA_FRAME || frame == vpRobot::REFERENCE_FRAME || frame == vpRobot::END_EFFECTOR_FRAME) {
+      gnuplot << "plot ";
+      for (size_t i = 0; i < 7; i++) {
+        gnuplot << "'v-des.log' u " << i+1 << " title \"d-des" << i+1 << "\", ";
+      }
+      gnuplot << "\npause -1\n" << std::endl;
+    }
+
+    gnuplot << "plot ";
+    for (size_t i = 0; i < 7; i++) {
+      gnuplot << "'q-mes.log' u " << i+1 << " title \"q-mes" << i+1 << "\", ";
+    }
+    gnuplot << "\npause -1\n" << std::endl;
+
+    for (size_t i = 0; i < 7; i++) {
+      gnuplot << "plot 'dq-mes.log' u " << i+1 << " title \"dq-mes" << i+1
+              << "\", 'dq-des.log' u " << i+1 << " title \"dq-des" << i+1
+              << "\", 'dq-cmd.log' u " << i+1 << " title \"dq-cmd" << i+1 << "\"" << std::endl;
+      gnuplot << "\npause -1\n" << std::endl;
+    }
+
+    gnuplot.close();
+  }
+
   auto joint_velocity_callback = [=, &log_time, &log_q_mes, &log_dq_mes, &log_dq_des, &log_dq_cmd, &time, &q_prev, &dq_des, &stop, &robot_state, &mutex]
       (const franka::RobotState& state, franka::Duration period) -> franka::JointVelocities {
 
@@ -90,7 +125,6 @@ void vpJointVelTrajGenerator::control_thread(franka::Robot *robot,
 
     if (time == 0.0) {
       if (! log_folder.empty()) {
-        std::cout << "Save franka logs in \"" << log_folder << "\" folder" << std::endl;
         log_time.open(log_folder + "/time.log");
         log_q_mes.open(log_folder + "/q-mes.log");
         log_dq_mes.open(log_folder + "/dq-mes.log");
@@ -176,13 +210,12 @@ void vpJointVelTrajGenerator::control_thread(franka::Robot *robot,
 
     if (time == 0.0) {
       if (! log_folder.empty()) {
-        std::cout << "Save franka logs in \"" << log_folder << "\" folder" << std::endl;
         log_time.open(log_folder + "/time.log");
         log_q_mes.open(log_folder + "/q-mes.log");
         log_dq_mes.open(log_folder + "/dq-mes.log");
         log_dq_des.open(log_folder + "/dq-des.log");
         log_dq_cmd.open(log_folder + "/dq-cmd.log");
-        log_v_des.open(log_folder + "v-des.log");
+        log_v_des.open(log_folder + "/v-des.log");
       }
       q_prev = state.q_d;
       joint_vel_traj_generator.init(state.q_d, q_min, q_max, dq_max, ddq_max, delta_t);
@@ -225,14 +258,14 @@ void vpJointVelTrajGenerator::control_thread(franka::Robot *robot,
       q_dot = (cVe * fJe).pseudoInverse() * v_cart_des; // TODO introduce try catch
     }
 
-    std::array<double, 7> dq_des;
+    std::array<double, 7> dq_des_eigen;
     for (size_t i = 0; i < 7; i++) // TODO create a function to convert
-      dq_des[i] = q_dot[i];
+      dq_des_eigen[i] = q_dot[i];
 
     std::array<double, 7> q_cmd;
     std::array<double, 7> dq_cmd;
 
-    auto dq_des_ = dq_des;
+    auto dq_des_ = dq_des_eigen;
     if (stop) { // Stop asked
       for (auto & dq_ : dq_des_) {
         dq_ = 0.0;
@@ -346,7 +379,7 @@ void vpJointVelTrajGenerator::init(const std::array<double, 7> &q,
                                    const std::array<double, 7> &q_max,
                                    const std::array<double, 7> &dq_max,
                                    const std::array<double, 7> &ddq_max,
-                                   const double delta_t)
+                                   double delta_t)
 {
   if (m_njoints != q_min.size() || m_njoints != q_max.size()
       || m_njoints != dq_max.size() || m_njoints != ddq_max.size()) {

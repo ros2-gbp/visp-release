@@ -40,7 +40,7 @@
 #include <visp3/core/vpMatrixException.h>
 #include <visp3/core/vpQuadProg.h>
 
-#ifdef VISP_HAVE_CPP11_COMPATIBILITY
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
 
 /*!
 Changes a canonical quadratic cost \f$\min \frac{1}{2}\mathbf{x}^T\mathbf{H}\mathbf{x} + \mathbf{c}^T\mathbf{x}\f$
@@ -103,7 +103,7 @@ void vpQuadProg::fromCanonicalCost(const vpMatrix &/*H*/, const vpColVector &/*c
 
 {
 #ifdef VISP_HAVE_GSL
-  const unsigned int n = H.getCols();
+  unsigned int n = H.getCols();
   if(H.getRows() != n || c.getRows() != n)
   {
     throw(vpException(vpMatrixException::dimensionError, "vpQuadProg::fromCanonicalCost: H is not square or not the same dimension as c"));
@@ -113,7 +113,7 @@ void vpQuadProg::fromCanonicalCost(const vpMatrix &/*H*/, const vpColVector &/*c
   vpMatrix    V(n,n);
   // Compute the eigenvalues and eigenvectors
   H.eigenValues(d, V);
-  // find first non-null eigen value
+  // find first non-nullptr eigen value
   unsigned int k = 0;
   for(unsigned int i = 0; i < n; ++i)
   {
@@ -255,7 +255,7 @@ bool vpQuadProg::solveByProjection(const vpMatrix &Q, const vpColVector &r,
 bool vpQuadProg::solveQPe (const vpMatrix &Q, const vpColVector &r,
                            vpColVector &x, const double &tol) const
 {
-  const unsigned int n = Q.getCols();
+  unsigned int n = Q.getCols();
   if(Q.getRows() != r.getRows() ||
      Z.getRows() != n ||
      x1.getRows() != n)
@@ -325,7 +325,7 @@ bool vpQuadProg::solveQPe (const vpMatrix &Q, const vpColVector &r,
 bool vpQuadProg::solveQPe (const vpMatrix &Q, const vpColVector &r, vpMatrix A, vpColVector b,
                            vpColVector &x, const double &tol)
 {
-  checkDimensions(Q, r, &A, &b, NULL, NULL, "solveQPe");
+  checkDimensions(Q, r, &A, &b, nullptr, nullptr, "solveQPe");
 
   if(!solveByProjection(Q, r, A, b, x, tol))
   {
@@ -464,10 +464,10 @@ bool vpQuadProg::solveQP(const vpMatrix &Q, const vpColVector &r,
 */
 bool vpQuadProg::solveQPi(const vpMatrix &Q, const vpColVector &r,
                           const vpMatrix &C, const vpColVector &d,
-                          vpColVector &x, const bool use_equality,
+                          vpColVector &x, bool use_equality,
                           const double &tol)
 {
-  const unsigned int n = checkDimensions(Q, r, NULL, NULL, &C, &d, "solveQPi");
+  unsigned int n = checkDimensions(Q, r, nullptr, nullptr, &C, &d, "solveQPi");
 
   if(use_equality)
   {
@@ -710,6 +710,24 @@ bool vpQuadProg::solveQPi(const vpMatrix &Q, const vpColVector &r,
       g -= alpha*Q*u;
     }
   }
+}
+
+/*!
+  Pick either SVD (over-constrained) or QR (square or under-constrained)
+
+  Assumes A is full rank, hence uses SVD iif A has more row than columns.
+
+  \param A : matrix (dimension m x n)
+  \param b : vector (dimension m)
+
+  \return least-norm solution to \f$\arg\min||\mathbf{A}\mathbf{x} - \mathbf{b}||\f$
+*/
+vpColVector vpQuadProg::solveSVDorQR(const vpMatrix &A, const vpColVector &b)
+{
+  // assume A is full rank
+  if(A.getRows() > A.getCols())
+    return A.solveBySVD(b);
+  return A.solveByQR(b);
 }
 #else
 void dummy_vpQuadProg(){};

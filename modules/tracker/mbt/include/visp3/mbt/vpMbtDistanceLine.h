@@ -141,10 +141,11 @@ public:
   void computeInteractionMatrixError(const vpHomogeneousMatrix &cMo);
 
   void display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-               const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+               const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
   void display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-               const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+               const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
   void displayMovingEdges(const vpImage<unsigned char> &I);
+  void displayMovingEdges(const vpImage<vpRGBa> &I);
 
   /*!
    Get the camera paramters.
@@ -169,6 +170,13 @@ public:
   */
   inline double getMeanWeight() const { return wmean; }
 
+  std::vector<std::vector<double> > getFeaturesForDisplay();
+
+  std::vector<std::vector<double> > getModelForDisplay(unsigned int width, unsigned int height,
+                                                       const vpHomogeneousMatrix &cMo,
+                                                       const vpCameraParameters &cam,
+                                                       bool displayFullModel = false);
+
   /*!
     Get the name of the line.
 
@@ -185,7 +193,7 @@ public:
 
   void initInteractionMatrixError();
 
-  bool initMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const bool doNotTrack,
+  bool initMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, bool doNotTrack,
                       const vpImage<bool> *mask = NULL);
 
   /*!
@@ -216,14 +224,14 @@ public:
 
     \param i : The index number
   */
-  inline void setIndex(const unsigned int i) { index = i; }
+  inline void setIndex(unsigned int i) { index = i; }
 
   /*!
    Set the mean weight of the line.
 
    \param w_mean : The mean weight of the line.
   */
-  inline void setMeanWeight(const double w_mean) { this->wmean = w_mean; }
+  inline void setMeanWeight(double w_mean) { this->wmean = w_mean; }
 
   void setMovingEdge(vpMe *Me);
 

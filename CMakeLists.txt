@@ -78,7 +78,7 @@ endif()
 
 # By default set release configuration
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release" CACHE String "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
 project(VISP C CXX)
@@ -105,6 +105,9 @@ endif()
 if(POLICY CMP0072)
   cmake_policy(SET CMP0072 NEW) # To use legacy GL library with FindOpenGL and cmake 3.12.0
 endif()
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW) # For PCL_ROOT usage and cmake 3.12.0 when PCL 1.9.1 all in one is used on Windows
+endif()
 if(POLICY CMP0075)
   cmake_policy(SET CMP0075 NEW) # For check_include_file and cmake 3.12.0
 endif()
@@ -112,13 +115,14 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 include(cmake/VISPUtils.cmake)
+include(cmake/VISPDetectCXXStandard.cmake) # Set cxx standard to 11 by default
 
 vp_clear_vars(VISPModules_TARGETS)
 
 #-----------------------------------------------------------------------------
 # VISP version number.  An even minor number corresponds to releases.
 set(VISP_VERSION_MAJOR "3")
-set(VISP_VERSION_MINOR "2")
+set(VISP_VERSION_MINOR "3")
 set(VISP_VERSION_PATCH "0")
 set(VISP_VERSION "${VISP_VERSION_MAJOR}.${VISP_VERSION_MINOR}.${VISP_VERSION_PATCH}")
 # Package revision number
@@ -235,11 +239,21 @@ endif()
 include_directories(${VISP_INCLUDE_DIR})
 
 #----------------------------------------------------------------------
-# SSE optimization
+# x86 SIMD optimization
 #----------------------------------------------------------------------
 VP_OPTION(ENABLE_SSE2  "" "" "Enable SSE2 instructions"  "" ON IF ((MSVC OR CMAKE_COMPILER_IS_GNUCXX) AND (X86 OR X86_64)) )
 VP_OPTION(ENABLE_SSE3  "" "" "Enable SSE3 instructions"  "" ON IF ((MSVC OR CMAKE_COMPILER_IS_GNUCXX) AND (X86 OR X86_64)) )
 VP_OPTION(ENABLE_SSSE3 "" "" "Enable SSSE3 instructions" "" ON IF ((MSVC OR CMAKE_COMPILER_IS_GNUCXX) AND (X86_64)) ) # X86 disabled since it produces an issue on Debian i386
+if(X86_64)
+  VP_OPTION(ENABLE_AVX   "" "" "Enable AVX instructions"   "" OFF) # should be explicitely enabled, used in matrix transpose code
+endif()
+
+#----------------------------------------------------------------------
+# BLAS / LAPACK
+#----------------------------------------------------------------------
+if(NOT WINRT AND NOT IOS)
+  include(cmake/ChooseBlas.cmake)
+endif()
 
 # ----------------------------------------------------------------------------
 # Handle always full RPATH
@@ -379,7 +393,7 @@ if(WIN32 AND NOT CYGWIN)
   mark_as_advanced(HAVE_LIBWS2_32)
 endif()
 
-# Should be before USE_CXX11
+# Should be before include(cmake/VISPDetectCXXStandard.cmake)
 VP_CHECK_FUNCTION_EXISTS(inet_ntop "${VISP_LINKER_LIBS}")
 
 #--------------------------------------------------------------------
@@ -436,7 +450,7 @@ VP_OPTION(BUILD_WITH_STATIC_CRT  "" "" "Enables use of staticaly linked CRT for 
 # ----------------------------------------------------------------------------
 VP_OPTION(ENABLE_SOLUTION_FOLDERS "" "" "Solution folder in Visual Studio or in other IDEs" "" (MSVC_IDE OR CMAKE_GENERATOR MATCHES Xcode))
 # Note that it is better to set ENABLE_MOMENTS_COMBINE_MATRICES to OFF
-VP_OPTION(ENABLE_MOMENTS_COMBINE_MATRICES  "" "" "Use linear combination of matrices instead of linear combination of moments to compute interaction matrices." "ENABLE_MOMENTS_COMBINE_MATRICES" OFF)
+VP_OPTION(ENABLE_MOMENTS_COMBINE_MATRICES  "" "" "Use linear combination of matrices instead of linear combination of moments to compute interaction matrices." "" OFF)
 VP_OPTION(ENABLE_TEST_WITHOUT_DISPLAY      "" "" "Don't use display feature when testing" "" ON)
 VP_OPTION(ENABLE_FULL_DOC      "" "" "Build doc with internal classes that are by default not part of the doc" "" OFF)
 
@@ -492,16 +506,22 @@ VP_OPTION(USE_AFMA6       ""          ""    "Include Afma6 robot support"      "
 VP_OPTION(USE_VIPER650    ""          ""    "Include Viper s650 robot support" "" ON IF (RAW1394_FOUND AND RT_FOUND AND CALINUX_FOUND AND IRISA_FOUND AND NOT WINRT AND NOT IOS))
 VP_OPTION(USE_VIPER850    ""          ""    "Include Viper s850 robot support" "" ON IF (RAW1394_FOUND AND RT_FOUND AND CALINUX_FOUND AND IRISA_FOUND AND NOT WINRT AND NOT IOS))
 VP_OPTION(USE_VIRTUOSE    Virtuose    ""    "Include Virtuose SDK support for Haption devices" "" ON IF NOT WINRT AND NOT IOS)
+VP_OPTION(USE_ARSDK       ARSDK       QUIET "Include Parrot ARSDK support"     "" ON IF NOT WINRT AND NOT IOS)
+if(USE_ARSDK)
+  VP_OPTION(USE_FFMPEG    FFMPEG       ""    "Include ffmpeg support for Parrot Bebop2"  "" ON)
+endif()
 VP_OPTION(USE_FRANKA      Franka      QUIET "Include libfranka SDK support for Franka Emika robots" "" ON IF NOT WINRT AND NOT IOS)
 # Note: libfranka needs c++14 option to build, but to use the library c++11 is enough.
-# That's why, setting USE_CXX11=ON (which is the defqult) allows to use libfranka.
+# That's why, setting USE_CXX_STANDARD=11 (which is the default) allows to use libfranka.
 VP_OPTION(USE_DC1394      DC1394      ""    "Include dc1394 support"           "" ON IF UNIX AND NOT WINRT AND NOT IOS)
 VP_OPTION(USE_V4L2        V4L2        ""    "Include v4l2 support"             "" ON IF UNIX AND NOT WINRT AND NOT IOS)
 VP_OPTION(USE_FLYCAPTURE  FlyCapture  ""    "Include FlyCapture SDK support for PointGrey cameras" "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_PYLON       Pylon       ""    "Include Pylon SDK support for Basler cameras" "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_COMEDI      Comedi      ""    "Include comedi (linux control and measurement device interface) support" "" ON IF NOT WINRT AND NOT IOS)
+VP_OPTION(USE_FTIITSDK    FTIITSDK    ""    "Include IIT force-torque SDK support" "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_BICLOPS     BICLOPS     ""    "Include biclops support"          "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_PTU46       PTU46       ""    "Include ptu-46 support"           "" ON IF UNIX AND NOT WINRT AND NOT IOS)
+VP_OPTION(USE_FLIRPTUSDK  FlirPtuSDK  ""    "Include Flir PTU SDK support"     "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_CMU1394     CMU1394     ""    "Include cmu1494 support"          "" ON IF WIN32 AND NOT WINRT AND NOT IOS)
 VP_OPTION(USE_GDI         GDI         ""    "Include gdi support"              "" ON IF WIN32 AND NOT WINRT AND NOT IOS)
 #VP_OPTION(USE_DIRECT3D    DIRECT3D    ""    "Include d3d support"             "" ON IF WIN32 AND NOT WINRT AND NOT IOS)
@@ -519,7 +539,7 @@ VP_OPTION(USE_OPENMP      OpenMP      ""    "Include openmp support"           "
 VP_OPTION(USE_EIGEN3      Eigen3      QUIET "Include eigen3 support"           "" ON IF NOT WINRT AND NOT IOS)
 # Since the FindLAPACK.cmake provided with CMake is for Fortran language,
 # in CMakeModules we have added FindLAPACK_C.cmake for C language
-VP_OPTION(USE_LAPACK      LAPACK_C    ""    "Include lapack support"           "" ON IF NOT WINRT AND NOT IOS)
+#VP_OPTION(USE_LAPACK      LAPACK_C    ""    "Include lapack support"           "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_GSL         GSL         ""    "Include gsl support"              "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_COIN3D      "Coin3D;MyCoin3D" "" "Include coin3d support"        "" ON IF OPENGL_FOUND AND NOT WINRT AND NOT IOS)
 VP_OPTION(USE_YARP        YARP        QUIET "Include yarp support"             "YARP_DIR" ON IF NOT WINRT AND NOT IOS)
@@ -529,30 +549,6 @@ VP_OPTION(USE_LIBFREENECT LIBFREENECT ""    "Include libfreenect support"      "
 VP_OPTION(USE_LIBUSB_1    LIBUSB_1    ""    "Include libusb-1 support"         "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_REALSENSE   RealSense   ""    "Include RealSense SDK support"    "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_REALSENSE2  RealSense2  ""    "Include RealSense2 SDK support"   "" ON IF NOT WINRT AND NOT IOS)
-VP_OPTION(USE_CXX11       CXX11     ""    "Enable c++11 support"            "" ON)
-# if C++11 option is OFF, force 3rd parties that required cxx11 to OFF
-if(NOT USE_CXX11 AND CXX11_FOUND)
-  if(USE_REALSENSE)
-     message(WARNING "librealsense 3rd party was detected and needs cxx11 compiler flag that is turned off. Thus we disable librealsense usage turning USE_REALSENSE=OFF.")
-     unset(USE_REALSENSE)
-     set(USE_REALSENSE OFF CACHE BOOL "Include RealSense SDK support" FORCE)
-  endif()
-  if(USE_REALSENSE2)
-     message(WARNING "librealsense2 3rd party was detected and needs cxx11 compiler flag that is turned off. Thus we disable librealsense2 usage turning USE_REALSENSE2=OFF.")
-     unset(USE_REALSENSE2)
-     set(USE_REALSENSE2 OFF CACHE BOOL "Include RealSense2 SDK support" FORCE)
-  endif()
-  if(USE_FRANKA)
-     message(WARNING "libfranka 3rd party was detected and needs cxx11 compiler flag that is turned off. Thus we disable libfranka usage turning USE_FRANKA=OFF.")
-     unset(USE_FRANKA)
-     set(USE_FRANKA OFF CACHE BOOL "Include libfranka SDK support for Franka Emika robots" FORCE)
-  endif()
-  # Downgrade to cxx98 to completely disable cxx11
-  if(CXX11_STANDARD_FOUND)
-    unset(CMAKE_CXX_STANDARD)
-  endif()
-endif()
-
 VP_OPTION(USE_SOWIN       SOWIN       ""    "Include Coin/SoWin support"   "" OFF IF (WIN32 AND USE_COIN3D) AND NOT WINRT AND NOT IOS)
 # Check for SoQt 1.6.0 linked to Qt5 or older version with SOQT
 VP_OPTION(USE_SOQT        "SoQt;SOQT" QUIET "Include Coin/SoQt support"    "" OFF IF USE_COIN3D AND NOT WINRT AND NOT IOS)
@@ -565,8 +561,8 @@ if (ANDROID)
 else()
   VP_OPTION(USE_PTHREAD     PTHREAD     ""    "Include pthread support"      "" ON)
 endif()
-# We need threads with cxx11
-if(USE_CXX11 AND NOT USE_PTHREAD)
+# We need threads with c++11
+if((VISP_CXX_STANDARD GREATER VISP_CXX_STANDARD_98) AND NOT USE_PTHREAD)
   if(Threads_FOUND OR PTHREAD_FOUND)
     message(WARNING "We need threads. Turn USE_PTHREAD=ON.")
     unset(USE_PTHREAD)
@@ -595,30 +591,99 @@ VP_OPTION(USE_ARIA        ARIA         ""    "Include aria support"         "" O
 VP_OPTION(USE_ZBAR        ZBAR         ""    "Include zbar support"         "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_DMTX        DMTX         ""    "Include dmtx support"         "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_PCL         PCL          QUIET "Include Point Cloud Library support" "" ON IF NOT WINRT AND NOT IOS)
+
+# ----------------------------------------------------------------------------
+# Handle cxx standard depending on specific 3rd parties. Should be before module parsing and VISP3rdParty.cmake include
+# ----------------------------------------------------------------------------
+# if c++ standard is not at leat c++11, force 3rd parties that require at least c++11 to OFF
+if(VISP_CXX_STANDARD LESS VISP_CXX_STANDARD_11)
+  if(USE_REALSENSE)
+     message(WARNING "librealsense 3rd party was detected and needs at least c++11 standard compiler flag while you have set c++${USE_CXX_STANDARD}. Thus we disable librealsense usage turning USE_REALSENSE=OFF.")
+     unset(USE_REALSENSE)
+     set(USE_REALSENSE OFF CACHE BOOL "Include RealSense SDK support" FORCE)
+  endif()
+  if(USE_REALSENSE2)
+     message(WARNING "librealsense2 3rd party was detected and needs at least c++11 standard compiler flag while you have set c++${USE_CXX_STANDARD}. Thus we disable librealsense2 usage turning USE_REALSENSE2=OFF.")
+     unset(USE_REALSENSE2)
+     set(USE_REALSENSE2 OFF CACHE BOOL "Include RealSense2 SDK support" FORCE)
+  endif()
+  if(USE_FRANKA)
+     message(WARNING "libfranka 3rd party was detected and needs at least c++11 c++11 standard compiler flag while you have set c++${USE_CXX_STANDARD}. Thus we disable libfranka usage turning USE_FRANKA=OFF.")
+     unset(USE_FRANKA)
+     set(USE_FRANKA OFF CACHE BOOL "Include libfranka SDK support for Franka Emika robots" FORCE)
+  endif()
+  if((OpenCV_VERSION VERSION_GREATER 4.0.0) OR (OpenCV_VERSION VERSION_EQUAL 4.0.0))
+    # if c++ standard is not at least 11: disable opencv 4.x usage
+    message(WARNING "OpenCV ${OpenCV_VERSION} 3rd party was detected and needs c++11 or higher compiler flag while you have set c++${USE_CXX_STANDARD}. Thus we disable OpenCV usage turning USE_OPENCV=OFF")
+    unset(USE_OPENCV)
+    set(USE_OPENCV OFF CACHE BOOL "Include OpenCV support" FORCE)
+  endif()
+  # Downgrade to cxx98 to completely disable cxx11
+  unset(CMAKE_CXX_STANDARD)
+endif()
+
+# Upgrade c++ standard to 14 for pcl 1.9.1.99 that enables by default c++ 14 standard
+if(USE_PCL)
+  if(PCL_VERSION VERSION_GREATER 1.9.1)
+    # pcl > 1.9.1 requires c++14
+    # if c++14 option is OFF, force to c++14
+    if((VISP_CXX_STANDARD LESS VISP_CXX_STANDARD_14) AND CXX14_STANDARD_FOUND)
+      message(WARNING "pcl ${PCL_VERSION} 3rd party was detected and needs c++14 compiler flags that is turned off. Thus to enable pcl usage we turn USE_CXX_STANDARD=14.")
+      set(USE_CXX_STANDARD "14" CACHE STRING "cxx standard" FORCE) # Update cmake-gui option
+      unset(CMAKE_CXX_STANDARD)
+      set(CMAKE_CXX_STANDARD 14)
+      set(VISP_CXX_STANDARD ${VISP_CXX_STANDARD_14}) # for vpConfig.h
+    endif()
+  endif()
+endif()
+
+# Upgrade c++ standard to 14 for IIT force-torque SDK that needs at least c++ 14 standard
+if(USE_FTIITSDK)
+  if((VISP_CXX_STANDARD LESS VISP_CXX_STANDARD_14) AND CXX14_STANDARD_FOUND)
+    message(WARNING "IIT force-torque SDK 3rd party was detected and needs c++14 compiler flags that is turned off. Thus to enable IIT SDK usage we turn USE_CXX_STANDARD=14.")
+    set(USE_CXX_STANDARD "14" CACHE STRING "cxx standard" FORCE) # Update cmake-gui option
+    unset(CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 14)
+    set(VISP_CXX_STANDARD ${VISP_CXX_STANDARD_14}) # for vpConfig.h
+  endif()
+endif()
+
+# ----------------------------------------------------------------------------
+# Build-in 3rd parties. Should be after c++ standard potential modification
+# ----------------------------------------------------------------------------
 VP_OPTION(WITH_PTHREAD    ""           ""    "Build pthread as built-in library"   "" ON IF (NOT USE_PTHREAD) AND (WIN32 OR MINGW) AND (NOT WINRT_8_1) AND (NOT WINRT_8_0))
 # Since C99 is not supported by MSVC 2010 or prior, we disable apriltag if MSVC < 2012
 VP_OPTION(WITH_APRILTAG   ""           ""    "Build AprilTag as built-in library"  "" ON IF (USE_PTHREAD OR WITH_PTHREAD) AND (NOT WINRT_8_1) AND (NOT WINRT_8_0) AND (NOT MSVC_VERSION LESS 1700))
+VP_OPTION(WITH_APRILTAG_BIG_FAMILY ""  ""    "Build AprilTag big family (41h12, 48h12, 49h12, 52h13)" "" OFF IF WITH_APRILTAG)
 VP_OPTION(WITH_ATIDAQ     ""           ""    "Build atidaq-c as built-in library"  "" ON IF USE_COMEDI AND NOT WINRT)
 VP_OPTION(WITH_CLIPPER    ""           ""    "Build clipper as built-in library"   "" ON IF USE_OPENCV)
-VP_OPTION(WITH_LAPACK     ""           ""    "Build lapack as built-in library"    "" ON IF NOT USE_LAPACK)
+VP_OPTION(WITH_LAPACK     ""           ""    "Build lapack as built-in library"    "" ON IF NOT USE_BLAS/LAPACK)
+VP_OPTION(WITH_PUGIXML    ""           ""    "Build pugixml as built-in library"   "" ON)
+VP_OPTION(WITH_QBDEVICE   ""           ""    "Build qbdevice-api as built-in library" "" ON IF (VISP_CXX_STANDARD GREATER VISP_CXX_STANDARD_98) AND (NOT WINRT) AND (NOT IOS))
 
-# Find IsNaN (should be after USE_CXX11)
+# Use stb_image as built-in library only when OpenCV, libjpeg and libpng not available
+if(NOT USE_OPENCV AND (NOT USE_PNG OR NOT USE_JPEG))
+  set(WITH_STBIMAGE ON)
+else()
+  set(WITH_STBIMAGE OFF)
+endif()
+
+VP_OPTION(WITH_CATCH2   ""           ""    "Use catch2" "" ON IF (VISP_CXX_STANDARD GREATER VISP_CXX_STANDARD_98))
+
+# ----------------------------------------------------------------------------
+# Check for specific functions. Should be after cxx standard detection in VISPDetectCXXStandard.cmake and potential modification depending on pcl, realsense2, libfranka
+# ----------------------------------------------------------------------------
 VP_CHECK_PACKAGE(IsNaN)
-# Find IsInf (should be after USE_CXX11)
 VP_CHECK_PACKAGE(IsInf)
-# Find Round (should be after USE_CXX11)
 VP_CHECK_PACKAGE(Round)
-# Find Erfc
 VP_CHECK_PACKAGE(Erfc)
-# Find Strtof
 VP_CHECK_PACKAGE(Strtof)
-# Find Log1p
 VP_CHECK_PACKAGE(Log1p)
 
 #----------------------------------------------------------------------
 # For Dart server and tests
 # We use CDash set through CTestConfig.cmake file
-# Dashboards are sent to http://cdash.irisa.fr/CDash/index.php?project=ViSP
+# Dashboards are sent to https://cdash-ci.inria.fr/index.php?project=ViSP
 #----------------------------------------------------------------------
 if(BUILD_TESTS)
   enable_testing()
@@ -724,6 +789,7 @@ endif()
 # definition
 if(WIN32 AND MSVC)
   add_definitions("-D_CRT_SECURE_NO_DEPRECATE")
+  add_definitions("-D_SCL_SECURE_NO_WARNINGS") # to avoid warning C4996; std::copy::_Unchecked_iterators::_Deprecate
 endif()
 
 #----------------------------------------------------------------------
@@ -743,7 +809,7 @@ if(UNIX AND NOT ANDROID)
     file(MAKE_DIRECTORY ${VISP_BINARY_DIR}/doc/man/man1)
     add_custom_command(
       OUTPUT ${VISP_BINARY_DIR}/doc/man/man1/visp-config.1.gz
-      COMMAND ${GZIP} --best -c ${CMAKE_CURRENT_SOURCE_DIR}/doc/man/man1/visp-config.1 > ${VISP_BINARY_DIR}/doc/man/man1/visp-config.1.gz
+      COMMAND ${GZIP} -9 -c ${CMAKE_CURRENT_SOURCE_DIR}/doc/man/man1/visp-config.1 > ${VISP_BINARY_DIR}/doc/man/man1/visp-config.1.gz
       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/doc/man/man1/visp-config.1
     )
     add_custom_target(man ALL
@@ -782,7 +848,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Add extra compilation flags
 #-----------------------------------------------------------------------------
-include(cmake/AddExtraCompilationFlags.cmake) # should be called after FindOpenMP
+include(cmake/AddExtraCompilationFlags.cmake) # should be called after FindOpenMP and cxx standard potential changes
 
 #----------------------------------------------------------------------
 # Modules
@@ -805,8 +871,12 @@ VP_SET(VISP_HAVE_JPEG        TRUE IF (BUILD_MODULE_visp_core AND USE_JPEG))
 VP_SET(VISP_HAVE_PNG         TRUE IF (BUILD_MODULE_visp_core AND USE_PNG))
 VP_SET(VISP_HAVE_YARP        TRUE IF (BUILD_MODULE_visp_core AND USE_YARP))
 VP_SET(VISP_HAVE_EIGEN3      TRUE IF (BUILD_MODULE_visp_core AND USE_EIGEN3))
+VP_SET(VISP_HAVE_MKL         TRUE IF (BUILD_MODULE_visp_core AND USE_MKL))
+VP_SET(VISP_HAVE_OPENBLAS    TRUE IF (BUILD_MODULE_visp_core AND USE_OPENBLAS))
+VP_SET(VISP_HAVE_ATLAS       TRUE IF (BUILD_MODULE_visp_core AND USE_ATLAS))
 VP_SET(VISP_HAVE_GSL         TRUE IF (BUILD_MODULE_visp_core AND USE_GSL))
 VP_SET(VISP_HAVE_LAPACK      TRUE IF (BUILD_MODULE_visp_core AND (USE_LAPACK OR WITH_LAPACK)))
+VP_SET(VISP_HAVE_LAPACK_NETLIB   TRUE IF (BUILD_MODULE_visp_core AND USE_LAPACK_NETLIB))
 VP_SET(VISP_HAVE_LAPACK_BUILT_IN TRUE IF (BUILD_MODULE_visp_core AND WITH_LAPACK))
 VP_SET(VISP_HAVE_PTHREAD     TRUE IF (BUILD_MODULE_visp_core AND USE_PTHREAD))
 VP_SET(VISP_HAVE_XML2        TRUE IF (BUILD_MODULE_visp_core AND USE_XML2))
@@ -830,6 +900,9 @@ VP_SET(VISP_HAVE_VIPER850    TRUE IF (BUILD_MODULE_visp_robot AND USE_VIPER850))
 VP_SET(VISP_HAVE_FRANKA      TRUE IF (BUILD_MODULE_visp_robot AND USE_FRANKA))
 VP_SET(VISP_HAVE_BICLOPS     TRUE IF (BUILD_MODULE_visp_robot AND USE_BICLOPS))
 VP_SET(VISP_HAVE_PTU46       TRUE IF (BUILD_MODULE_visp_robot AND USE_PTU46))
+VP_SET(VISP_HAVE_FLIR_PTU_SDK TRUE IF (BUILD_MODULE_visp_robot AND USE_FLIRPTUSDK))
+VP_SET(VISP_HAVE_ARSDK       TRUE IF (BUILD_MODULE_visp_robot AND USE_ARSDK))
+VP_SET(VISP_HAVE_FFMPEG      TRUE IF (BUILD_MODULE_visp_robot AND USE_FFMPEG))
 #VP_SET(VISP_HAVE_PIONEER     TRUE IF (BUILD_MODULE_visp_robot AND USE_ARIA))
 if(BUILD_MODULE_visp_robot AND USE_ARIA)
   if(UNIX AND USE_PTHREAD AND RT_FOUND AND DL_FOUND)
@@ -857,18 +930,23 @@ VP_SET(VISP_HAVE_LIBUSB_1    TRUE IF (BUILD_MODULE_visp_sensor AND USE_LIBUSB_1)
 VP_SET(VISP_HAVE_REALSENSE   TRUE IF (BUILD_MODULE_visp_sensor AND USE_REALSENSE))
 VP_SET(VISP_HAVE_REALSENSE2  TRUE IF (BUILD_MODULE_visp_sensor AND USE_REALSENSE2))
 VP_SET(VISP_HAVE_FLYCAPTURE  TRUE IF (BUILD_MODULE_visp_sensor AND USE_FLYCAPTURE))
-VP_SET(VISP_HAVE_PYLON  TRUE IF (BUILD_MODULE_visp_sensor AND USE_PYLON))
+VP_SET(VISP_HAVE_PYLON       TRUE IF (BUILD_MODULE_visp_sensor AND USE_PYLON))
 VP_SET(VISP_HAVE_COMEDI      TRUE IF (BUILD_MODULE_visp_sensor AND USE_COMEDI))
 VP_SET(VISP_HAVE_ATIDAQ      TRUE IF (BUILD_MODULE_visp_sensor AND WITH_ATIDAQ))
+VP_SET(VISP_HAVE_FT_IIT_SDK  TRUE IF (BUILD_MODULE_visp_sensor AND USE_FTIITSDK))
 VP_SET(VISP_HAVE_CLIPPER     TRUE IF (BUILD_MODULE_visp_mbt AND BUILD_MODULE_visp_klt AND WITH_CLIPPER))
 VP_SET(VISP_HAVE_APRILTAG    TRUE IF (BUILD_MODULE_visp_detection AND WITH_APRILTAG))
+VP_SET(VISP_HAVE_APRILTAG_BIG_FAMILY TRUE IF (BUILD_MODULE_visp_detection AND WITH_APRILTAG AND WITH_APRILTAG_BIG_FAMILY))
+VP_SET(VISP_HAVE_PUGIXML     TRUE IF (BUILD_MODULE_visp_core AND WITH_PUGIXML))
+VP_SET(VISP_HAVE_QBDEVICE    TRUE IF (BUILD_MODULE_visp_robot AND WITH_QBDEVICE))
+VP_SET(VISP_HAVE_CATCH2      TRUE IF (BUILD_MODULE_visp_core AND WITH_CATCH2))
 
-VP_SET(VISP_BUILD_SHARED_LIBS TRUE IF BUILD_SHARED_LIBS) # for header vpConfig.h
+VP_SET(VISP_BUILD_SHARED_LIBS            TRUE IF BUILD_SHARED_LIBS) # for header vpConfig.h
 VP_SET(VISP_HAVE_DC1394_CAMERA_ENUMERATE TRUE IF (USE_DC1394 AND DC1394_CAMERA_ENUMERATE_FOUND)) # for header vpConfig.h
 VP_SET(VISP_HAVE_DC1394_FIND_CAMERAS     TRUE IF (USE_DC1394 AND DC1394_FIND_CAMERAS_FOUND)) # for header vpConfig.h
-VP_SET(VISP_HAVE_D3D9     TRUE IF USE_DIRECT3D) # for header vpConfig.h
-VP_SET(VISP_HAVE_GTK      TRUE IF USE_GTK2) # for header vpConfig.h
-VP_SET(VISP_HAVE_XRANDR   TRUE IF XRANDR) # for header vpConfig.h
+VP_SET(VISP_HAVE_D3D9        TRUE IF USE_DIRECT3D) # for header vpConfig.h
+VP_SET(VISP_HAVE_GTK         TRUE IF USE_GTK2) # for header vpConfig.h
+VP_SET(VISP_HAVE_XRANDR      TRUE IF XRANDR) # for header vpConfig.h
 
 # Check if libfreenect dependencies (ie libusb-1.0 and libpthread) are available
 if(USE_LIBFREENECT AND USE_LIBUSB_1 AND USE_PTHREAD)
@@ -926,11 +1004,6 @@ if(USE_SOWIN OR USE_SOXT OR (USE_SOQT AND SoQt_FOUND) OR (USE_SOQT AND USE_QT))
   set(VISP_HAVE_COIN3D_AND_GUI TRUE)         # for header vpConfig.h
 endif()
 
-# PCL and 3rd party advanced vars
-if(USE_PCL)
-  include(cmake/PCLTools.cmake)
-endif()
-
 # check libfranka and set version
 if(USE_FRANKA)
   set(VISP_HAVE_FRANKA_VERSION "(${Franka_VERSION_MAJOR}<<16 | ${Franka_VERSION_MINOR}<<8 | ${Franka_VERSION_PATCH})") # for vpConfig.h
@@ -966,8 +1039,6 @@ VP_SET(VISP_HAVE_FUNC_INET_NTOP TRUE IF HAVE_FUNC_INET_NTOP) # for header vpConf
 VP_SET(VISP_BUILD_DEPRECATED_FUNCTIONS TRUE IF BUILD_DEPRECATED_FUNCTIONS) # for header vpConfig.h
 VP_SET(VISP_MOMENTS_COMBINE_MATRICES TRUE IF ENABLE_MOMENTS_COMBINE_MATRICES) # for header vpConfig.h
 VP_SET(VISP_USE_MSVC TRUE IF MSVC) # for header vpConfig.h
-# Hack for msvc12 (Visual 2013) where C++11 implementation is incomplete
-VP_SET(VISP_HAVE_CXX11 TRUE IF USE_CXX11 OR (MSVC_VERSION EQUAL 1800)) # for header vpConfig.h
 
 VP_SET(VISP_HAVE_BICLOPS_AND_GET_HOMED_STATE_FUNCTION TRUE IF (USE_BICLOPS AND BICLOPS_HAVE_GET_HOMED_STATE_FUNCTION)) # for header vpConfig.h
 
@@ -1083,6 +1154,10 @@ endif()
 if(Coin_FOUND)
   mark_as_advanced(Coin_DIR Coin_LIBRARY Qt5OpenGL_DIR)
 endif()
+# PCL and 3rd party advanced vars
+if(USE_PCL)
+  include(cmake/PCLTools.cmake)
+endif()
 
 # ----------------------------------------------------------------------------
 #  Update version of 3rd party for which info is missing
@@ -1123,6 +1198,10 @@ endif()
 if(USE_COIN3D)
   vp_parse_header("${COIN3D_INCLUDE_DIRS}/Inventor/C/basic.h" COIN_VERSION_LINES COIN_MAJOR_VERSION COIN_MINOR_VERSION COIN_MICRO_VERSION)
   set(COIN3D_VERSION "${COIN_MAJOR_VERSION}.${COIN_MINOR_VERSION}.${COIN_MICRO_VERSION}")
+endif()
+if(USE_FLIRPTUSDK)
+  vp_parse_header("${FLIRPTUSDK_CPI_INCLUDE_DIR}/cpi.h" CPI_VERSION_LINES CPI_VER_MAJOR CPI_VER_MINOR CPI_VER_REV)
+  set(FLIRPTUSDK_VERSION "${CPI_VER_MAJOR}.${CPI_VER_MINOR}.${CPI_VER_REV}")
 endif()
 
 # ----------------------------------------------------------------------------
@@ -1343,11 +1422,14 @@ status("    Build with moment combine:"  ENABLE_MOMENTS_COMBINE_MATRICES THEN "y
 # ===================== Optional 3rd parties =====================
 status("")
 status("  Mathematics: ")
-status("    Use Lapack/blas:"        USE_LAPACK       THEN "yes (ver ${LAPACK_C_VERSION})" ELSE "no")
-status("    Use Lapack (built-in):"  WITH_LAPACK      THEN "yes (ver ${LAPACK_VERSION})" ELSE "no")
-status("    Use Eigen3:"             USE_EIGEN3       THEN "yes (ver ${EIGEN3_VERSION_STRING})" ELSE "no")
-status("    Use OpenCV:"             USE_OPENCV       THEN "yes (ver ${OpenCV_VERSION})" ELSE "no")
-status("    Use GSL:"                USE_GSL          THEN "yes (ver ${GSL_VERSION})" ELSE "no")
+status("    Use MKL:"                USE_MKL            THEN "yes" ELSE "no")
+status("    Use OpenBLAS:"           USE_OPENBLAS       THEN "yes" ELSE "no")
+status("    Use Atlas:"              USE_ATLAS          THEN "yes" ELSE "no")
+status("    Use Netlib Lapack:"      USE_LAPACK_NETLIB  THEN "yes (ver ${LAPACK_C_VERSION})" ELSE "no")
+status("    Use Lapack (built-in):"  WITH_LAPACK        THEN "yes (ver ${LAPACK_VERSION})" ELSE "no")
+status("    Use Eigen3:"             USE_EIGEN3         THEN "yes (ver ${EIGEN3_VERSION_STRING})" ELSE "no")
+status("    Use OpenCV:"             USE_OPENCV         THEN "yes (ver ${OpenCV_VERSION})" ELSE "no")
+status("    Use GSL:"                USE_GSL            THEN "yes (ver ${GSL_VERSION})" ELSE "no")
 status("")
 status("  Simulator: ")
 status("    Ogre simulator: ")
@@ -1371,17 +1453,22 @@ status("    Use JPEG:"               USE_JPEG         THEN "yes (ver ${JPEG_LIB_
 status("    Use PNG:"                USE_PNG          THEN "yes (ver ${PNG_VERSION_STRING})" ELSE "no")
 status("    \\- Use ZLIB:"           USE_ZLIB         THEN "yes (ver ${ZLIB_VERSION_STRING})" ELSE "no")
 status("    Use OpenCV:"             USE_OPENCV       THEN "yes (ver ${OpenCV_VERSION})" ELSE "no")
+status("    Use stb_image (built-in):" WITH_STBIMAGE  THEN "yes (ver ${STBIMAGE_VERSION})" ELSE "no")
 status("")
 status("  Real robots: ")
 status("    Use Afma4:"              USE_AFMA4        THEN "yes" ELSE "no")
 status("    Use Afma6:"              USE_AFMA6        THEN "yes" ELSE "no")
 status("    Use Franka:"             USE_FRANKA       THEN "yes (ver ${Franka_VERSION})" ELSE "no")
-status("    Use Viper650:"           USE_VIPER850     THEN "yes" ELSE "no")
+status("    Use Viper650:"           USE_VIPER650     THEN "yes" ELSE "no")
 status("    Use Viper850:"           USE_VIPER850     THEN "yes" ELSE "no")
 status("    Use aria (Pioneer):"     USE_ARIA         THEN "yes" ELSE "no")
 status("    Use PTU46:"              USE_PTU46        THEN "yes" ELSE "no")
-status("    Use Biclops PT:"         USE_BICLOPS      THEN "yes" ELSE "no")
+status("    Use Biclops PTU:"        USE_BICLOPS      THEN "yes" ELSE "no")
+status("    Use Flir PTU SDK:"       USE_FLIRPTUSDK   THEN "yes (ver ${FLIRPTUSDK_VERSION})" ELSE "no")
+status("    Use Parrot ARSDK:"       USE_ARSDK        THEN "yes" ELSE "no")
+status("    \\-Use ffmpeg:"          USE_FFMPEG       THEN "yes" ELSE "no")
 status("    Use Virtuose:"           USE_VIRTUOSE     THEN "yes" ELSE "no")
+status("    Use qbdevice (built-in):" WITH_QBDEVICE   THEN "yes (ver ${QBDEVICE_VERSION})" ELSE "no")
 status("")
 status("  GUI: ")
 status("    Use X11:"                USE_X11          THEN "yes" ELSE "no")
@@ -1396,8 +1483,8 @@ status("    Use CMU 1394:"           USE_CMU1394      THEN "yes" ELSE "no")
 status("    Use V4L2:"               USE_V4L2         THEN "yes (ver ${V4L2_VERSION})" ELSE "no")
 status("    Use directshow:"         USE_DIRECTSHOW   THEN "yes" ELSE "no")
 status("    Use OpenCV:"             USE_OPENCV       THEN "yes (ver ${OpenCV_VERSION})" ELSE "no")
-status("    Use Flycapture:"         USE_FLYCAPTURE   THEN "yes (ver ${FLYCAPTURE_VERSION})" ELSE "no")
-status("    Use Pylon:"         USE_PYLON   THEN "yes (ver ${PYLON_VERSION})" ELSE "no")
+status("    Use Flycapture:"         USE_FLYCAPTURE   THEN "yes" ELSE "no")
+status("    Use Pylon:"              USE_PYLON        THEN "yes (ver ${PYLON_VERSION})" ELSE "no")
 status("")
 status("  RGB-D sensors: ")
 status("    Use Realsense:"          USE_REALSENSE    THEN "yes (ver ${REALSENSE_VERSION})" ELSE "no")
@@ -1412,22 +1499,24 @@ status("")
 status("  F/T sensors: ")
 status("    Use atidaq (built-in):"  WITH_ATIDAQ      THEN "yes (ver ${ATIDAQ_VERSION})" ELSE "no")
 status("    Use comedi:"             USE_COMEDI       THEN "yes (ver ${COMEDI_VERSION})" ELSE "no")
+status("    Use IIT SDK:"            USE_FTIITSDK     THEN "yes" ELSE "no")
 status("")
 status("  Detection: ")
-status("    Use zbar:"                USE_ZBAR         THEN "yes (ver ${ZBAR_VERSION})" ELSE "no")
-status("    Use dmtx:"                USE_DMTX         THEN "yes (ver ${DMTX_VERSION})" ELSE "no")
-status("    Use AprilTag (built-in):" WITH_APRILTAG    THEN "yes (ver ${APRILTAG_VERSION})" ELSE "no")
+status("    Use zbar:"                    USE_ZBAR                  THEN "yes (ver ${ZBAR_VERSION})" ELSE "no")
+status("    Use dmtx:"                    USE_DMTX                  THEN "yes (ver ${DMTX_VERSION})" ELSE "no")
+status("    Use AprilTag (built-in):"     WITH_APRILTAG             THEN "yes (ver ${APRILTAG_VERSION})" ELSE "no")
+status("    \\- Use AprilTag big family:" WITH_APRILTAG_BIG_FAMILY  THEN "yes" ELSE "no")
 status("")
 status("  Misc: ")
 status("    Use Clipper (built-in):"  WITH_CLIPPER     THEN "yes (ver ${CLIPPER_VERSION})" ELSE "no")
-status("    Use XML2:"                USE_XML2         THEN "yes (ver ${XML2_VERSION_STRING})" ELSE "no")
+status("    Use pugixml (built-in):"  WITH_PUGIXML     THEN "yes (ver ${PUGIXML_VERSION})" ELSE "no")
+status("    Use libxml2:"             USE_XML2         THEN "yes (ver ${XML2_VERSION_STRING})" ELSE "no")
 status("")
 status("  Optimization: ")
 status("    Use OpenMP:"             USE_OPENMP         THEN "yes" ELSE "no")
 status("    Use pthread:"            USE_PTHREAD        THEN "yes" ELSE "no")
 status("    Use pthread (built-in):" WITH_PTHREAD       THEN "yes (ver ${PTHREADS_VERSION})" ELSE "no")
-status("    Use cxx11:"              USE_CXX11          THEN "yes" ELSE "no")
-status("    cxx standard:"           CMAKE_CXX_STANDARD THEN "${CMAKE_CXX_STANDARD}" ELSE "no")
+status("    Use cxx standard:"       CMAKE_CXX_STANDARD THEN "${CMAKE_CXX_STANDARD}" ELSE "no")
 
 # ========================== documentation ==========================
 status("")
@@ -1437,6 +1526,7 @@ status("    Use doxygen:"            DOXYGEN_FOUND    THEN "yes" ELSE "no")
 # ========================== samples and tests ==========================
 status("")
 status("  Tests and samples:")
+status("    Use catch2 (built-in):"  WITH_CATCH2      THEN "yes (ver ${CATCH2_VERSION})" ELSE "no")
 status("    Tests:"                  BUILD_TESTS      THEN "yes" ELSE "no")
 status("    Demos:"                  BUILD_DEMOS      THEN "yes" ELSE "no")
 status("    Examples:"               BUILD_EXAMPLES   THEN "yes" ELSE "no")
