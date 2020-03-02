@@ -147,11 +147,11 @@ void vpMbtFaceDepthNormal::addLine(vpPoint &P1, vpPoint &P2, vpMbHiddenFaces<vpM
 }
 
 #ifdef VISP_HAVE_PCL
-bool vpMbtFaceDepthNormal::computeDesiredFeatures(const vpHomogeneousMatrix &cMo, const unsigned int width,
-                                                  const unsigned int height,
+bool vpMbtFaceDepthNormal::computeDesiredFeatures(const vpHomogeneousMatrix &cMo, unsigned int width,
+                                                  unsigned int height,
                                                   const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud,
-                                                  vpColVector &desired_features, const unsigned int stepX,
-                                                  const unsigned int stepY
+                                                  vpColVector &desired_features, unsigned int stepX,
+                                                  unsigned int stepY
 #if DEBUG_DISPLAY_DEPTH_NORMAL
                                                   ,
                                                   vpImage<unsigned char> &debugImage,
@@ -307,11 +307,11 @@ bool vpMbtFaceDepthNormal::computeDesiredFeatures(const vpHomogeneousMatrix &cMo
 }
 #endif
 
-bool vpMbtFaceDepthNormal::computeDesiredFeatures(const vpHomogeneousMatrix &cMo, const unsigned int width,
-                                                  const unsigned int height,
+bool vpMbtFaceDepthNormal::computeDesiredFeatures(const vpHomogeneousMatrix &cMo, unsigned int width,
+                                                  unsigned int height,
                                                   const std::vector<vpColVector> &point_cloud,
-                                                  vpColVector &desired_features, const unsigned int stepX,
-                                                  const unsigned int stepY
+                                                  vpColVector &desired_features, unsigned int stepX,
+                                                  unsigned int stepY
 #if DEBUG_DISPLAY_DEPTH_NORMAL
                                                   ,
                                                   vpImage<unsigned char> &debugImage,
@@ -497,6 +497,7 @@ bool vpMbtFaceDepthNormal::computeDesiredFeaturesPCL(const pcl::PointCloud<pcl::
     extract.setNegative(false);
     extract.filter(*point_cloud_face_extracted);
 
+#if PCL_VERSION_COMPARE(>=, 1, 8, 0)
     pcl::PointXYZ centroid_point_pcl;
     if (pcl::computeCentroid(*point_cloud_face_extracted, centroid_point_pcl)) {
       pcl::PointXYZ face_normal;
@@ -519,6 +520,10 @@ bool vpMbtFaceDepthNormal::computeDesiredFeaturesPCL(const pcl::PointCloud<pcl::
       std::cerr << "Cannot compute centroid!" << std::endl;
       return false;
     }
+#else
+    std::cerr << "Cannot compute centroid using PCL " << PCL_VERSION_PRETTY << "!" << std::endl;
+    return false;
+#endif
   } catch (const pcl::PCLException &e) {
     std::cerr << "Catch a PCL exception: " << e.what() << std::endl;
     throw;
@@ -646,8 +651,8 @@ bool vpMbtFaceDepthNormal::computePolygonCentroid(const std::vector<vpPoint> &po
   return true;
 }
 
-void vpMbtFaceDepthNormal::computeROI(const vpHomogeneousMatrix &cMo, const unsigned int width,
-                                      const unsigned int height, std::vector<vpImagePoint> &roiPts
+void vpMbtFaceDepthNormal::computeROI(const vpHomogeneousMatrix &cMo, unsigned int width,
+                                      unsigned int height, std::vector<vpImagePoint> &roiPts
 #if DEBUG_DISPLAY_DEPTH_NORMAL
                                       ,
                                       std::vector<std::vector<vpImagePoint> > &roiPts_vec
@@ -746,7 +751,7 @@ void vpMbtFaceDepthNormal::computeVisibilityDisplay()
   }
 }
 
-void vpMbtFaceDepthNormal::computeNormalVisibility(const double nx, const double ny, const double nz,
+void vpMbtFaceDepthNormal::computeNormalVisibility(double nx, double ny, double nz,
                                                    const vpHomogeneousMatrix &cMo, const vpCameraParameters &camera,
                                                    vpColVector &correct_normal, vpPoint &centroid)
 {
@@ -809,7 +814,7 @@ void vpMbtFaceDepthNormal::computeNormalVisibility(const double nx, const double
 }
 
 #ifdef VISP_HAVE_PCL
-void vpMbtFaceDepthNormal::computeNormalVisibility(const float nx, const float ny, const float nz,
+void vpMbtFaceDepthNormal::computeNormalVisibility(float nx, float ny, float nz,
                                                    const pcl::PointXYZ &centroid_point, pcl::PointXYZ &face_normal)
 {
   vpColVector faceNormal(3);
@@ -833,7 +838,7 @@ void vpMbtFaceDepthNormal::computeNormalVisibility(const float nx, const float n
 }
 #endif
 
-void vpMbtFaceDepthNormal::computeNormalVisibility(const double nx, const double ny, const double nz,
+void vpMbtFaceDepthNormal::computeNormalVisibility(double nx, double ny, double nz,
                                                    const vpColVector &centroid_point, vpColVector &face_normal)
 {
   face_normal.resize(3, false);
@@ -899,38 +904,34 @@ void vpMbtFaceDepthNormal::computeInteractionMatrix(const vpHomogeneousMatrix &c
 }
 
 void vpMbtFaceDepthNormal::display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo,
-                                   const vpCameraParameters &cam, const vpColor &col, const unsigned int thickness,
-                                   const bool displayFullModel)
+                                   const vpCameraParameters &cam, const vpColor &col, unsigned int thickness,
+                                   bool displayFullModel)
 {
-  if ((m_polygon->isVisible() && m_isTrackedDepthNormalFace) || displayFullModel) {
-    computeVisibilityDisplay();
+  std::vector<std::vector<double> > models = getModelForDisplay(I.getWidth(), I.getHeight(), cMo, cam, displayFullModel);
 
-    for (std::vector<vpMbtDistanceLine *>::const_iterator it = m_listOfFaceLines.begin(); it != m_listOfFaceLines.end();
-         ++it) {
-      vpMbtDistanceLine *line = *it;
-      line->display(I, cMo, cam, col, thickness, displayFullModel);
-    }
+  for (size_t i = 0; i < models.size(); i++) {
+    vpImagePoint ip1(models[i][1], models[i][2]);
+    vpImagePoint ip2(models[i][3], models[i][4]);
+    vpDisplay::displayLine(I, ip1, ip2, col, thickness);
   }
 }
 
 void vpMbtFaceDepthNormal::display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo,
-                                   const vpCameraParameters &cam, const vpColor &col, const unsigned int thickness,
-                                   const bool displayFullModel)
+                                   const vpCameraParameters &cam, const vpColor &col, unsigned int thickness,
+                                   bool displayFullModel)
 {
-  if ((m_polygon->isVisible() && m_isTrackedDepthNormalFace) || displayFullModel) {
-    computeVisibilityDisplay();
+  std::vector<std::vector<double> > models = getModelForDisplay(I.getWidth(), I.getHeight(), cMo, cam, displayFullModel);
 
-    for (std::vector<vpMbtDistanceLine *>::const_iterator it = m_listOfFaceLines.begin(); it != m_listOfFaceLines.end();
-         ++it) {
-      vpMbtDistanceLine *line = *it;
-      line->display(I, cMo, cam, col, thickness, displayFullModel);
-    }
+  for (size_t i = 0; i < models.size(); i++) {
+    vpImagePoint ip1(models[i][1], models[i][2]);
+    vpImagePoint ip2(models[i][3], models[i][4]);
+    vpDisplay::displayLine(I, ip1, ip2, col, thickness);
   }
 }
 
 void vpMbtFaceDepthNormal::displayFeature(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo,
-                                          const vpCameraParameters &cam, const double scale,
-                                          const unsigned int thickness)
+                                          const vpCameraParameters &cam, double scale,
+                                          unsigned int thickness)
 {
   if (m_faceActivated && m_isTrackedDepthNormalFace && m_isVisible) {
     // Desired feature
@@ -985,8 +986,8 @@ void vpMbtFaceDepthNormal::displayFeature(const vpImage<unsigned char> &I, const
 }
 
 void vpMbtFaceDepthNormal::displayFeature(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo,
-                                          const vpCameraParameters &cam, const double scale,
-                                          const unsigned int thickness)
+                                          const vpCameraParameters &cam, double scale,
+                                          unsigned int thickness)
 {
   if (m_faceActivated && m_isTrackedDepthNormalFace && m_isVisible) {
     // Desired feature
@@ -1360,7 +1361,7 @@ void vpMbtFaceDepthNormal::estimatePlaneEquationSVD(const std::vector<double> &p
                                                     const vpHomogeneousMatrix &cMo,
                                                     vpColVector &plane_equation_estimated, vpColVector &centroid)
 {
-  const unsigned int max_iter = 10;
+  unsigned int max_iter = 10;
   double prev_error = 1e3;
   double error = 1e3 - 1;
 
@@ -1450,9 +1451,9 @@ void vpMbtFaceDepthNormal::estimatePlaneEquationSVD(const std::vector<double> &p
       residues[i] = std::fabs(A * point_cloud_face[3 * i] + B * point_cloud_face[3 * i + 1] +
                               C * point_cloud_face[3 * i + 2] + D) /
                     sqrt(A * A + B * B + C * C);
-      error += residues[i] * residues[i];
+      error += weights[i] * residues[i];
     }
-    error /= sqrt(error / total_w);
+    error /= total_w;
   }
 
   // Update final weights
@@ -1482,6 +1483,133 @@ void vpMbtFaceDepthNormal::estimatePlaneEquationSVD(const std::vector<double> &p
   plane_equation_estimated[1] = B;
   plane_equation_estimated[2] = C;
   plane_equation_estimated[3] = D;
+}
+
+/*!
+  Return a list of features parameters for display.
+  - Parameters are: `<feature id (here 2 for depth normal)>`, `<centroid.i()>`, `<centroid.j()>`,
+  `<extremity.i()>`, `extremity.j()`
+*/
+std::vector<std::vector<double> > vpMbtFaceDepthNormal::getFeaturesForDisplay(const vpHomogeneousMatrix &cMo,
+                                                                              const vpCameraParameters &cam,
+                                                                              double scale)
+{
+  std::vector<std::vector<double> > features;
+
+  if (m_faceActivated && m_isTrackedDepthNormalFace && m_isVisible) {
+    // Desired feature
+    vpPoint pt_centroid = m_faceDesiredCentroid;
+    pt_centroid.changeFrame(cMo);
+    pt_centroid.project();
+
+    vpImagePoint im_centroid;
+    vpMeterPixelConversion::convertPoint(cam, pt_centroid.get_x(), pt_centroid.get_y(), im_centroid);
+
+    vpPoint pt_normal = m_faceDesiredNormal;
+    pt_normal.changeFrame(cMo);
+    pt_normal.project();
+
+    vpPoint pt_extremity;
+    pt_extremity.set_X(pt_centroid.get_X() + pt_normal.get_X() * scale);
+    pt_extremity.set_Y(pt_centroid.get_Y() + pt_normal.get_Y() * scale);
+    pt_extremity.set_Z(pt_centroid.get_Z() + pt_normal.get_Z() * scale);
+    pt_extremity.project();
+
+    vpImagePoint im_extremity;
+    vpMeterPixelConversion::convertPoint(cam, pt_extremity.get_x(), pt_extremity.get_y(), im_extremity);
+
+    {
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+      std::vector<double> params = {2, //desired normal
+                                    im_centroid.get_i(),
+                                    im_centroid.get_j(),
+                                    im_extremity.get_i(),
+                                    im_extremity.get_j()};
+#else   
+      std::vector<double> params;
+      params.push_back(2); //desired normal
+      params.push_back(im_centroid.get_i());
+      params.push_back(im_centroid.get_j());
+      params.push_back(im_extremity.get_i());
+      params.push_back(im_extremity.get_j());
+#endif
+      features.push_back(params);
+    }
+
+    // Current feature
+    // Transform the plane equation for the current pose
+    m_planeCamera = m_planeObject;
+    m_planeCamera.changeFrame(cMo);
+
+    double ux = m_planeCamera.getA();
+    double uy = m_planeCamera.getB();
+    double uz = m_planeCamera.getC();
+
+    vpColVector correct_normal;
+    computeNormalVisibility(ux, uy, uz, cMo, cam, correct_normal, pt_centroid);
+
+    pt_centroid.project();
+    vpMeterPixelConversion::convertPoint(cam, pt_centroid.get_x(), pt_centroid.get_y(), im_centroid);
+
+    pt_extremity.set_X(pt_centroid.get_X() + correct_normal[0] * scale);
+    pt_extremity.set_Y(pt_centroid.get_Y() + correct_normal[1] * scale);
+    pt_extremity.set_Z(pt_centroid.get_Z() + correct_normal[2] * scale);
+    pt_extremity.project();
+
+    vpMeterPixelConversion::convertPoint(cam, pt_extremity.get_x(), pt_extremity.get_y(), im_extremity);
+
+    {
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+      std::vector<double> params = {3, //normal at current pose
+                                    im_centroid.get_i(),
+                                    im_centroid.get_j(),
+                                    im_extremity.get_i(),
+                                    im_extremity.get_j()};
+#else   
+      std::vector<double> params;
+      params.push_back(3); //normal at current pose
+      params.push_back(im_centroid.get_i());
+      params.push_back(im_centroid.get_j());
+      params.push_back(im_extremity.get_i());
+      params.push_back(im_extremity.get_j());
+#endif
+      features.push_back(params);
+    }
+  }
+
+  return features;
+}
+
+/*!
+  Return a list of line parameters to display the primitive at a given pose and camera parameters.
+  - Parameters are: `<primitive id (here 0 for line)>`, `<pt_start.i()>`, `<pt_start.j()>`,
+  `<pt_end.i()>`, `<pt_end.j()>`
+
+  \param width : Image width.
+  \param height : Image height.
+  \param cMo : Pose used to project the 3D model into the image.
+  \param cam : The camera parameters.
+  \param displayFullModel : If true, the line is displayed even if it is not
+*/
+std::vector<std::vector<double> > vpMbtFaceDepthNormal::getModelForDisplay(unsigned int width, unsigned int height,
+                                                                           const vpHomogeneousMatrix &cMo,
+                                                                           const vpCameraParameters &cam,
+                                                                           bool displayFullModel)
+{
+  std::vector<std::vector<double> > models;
+
+  if ((m_polygon->isVisible() && m_isTrackedDepthNormalFace) || displayFullModel) {
+    computeVisibilityDisplay();
+
+    for (std::vector<vpMbtDistanceLine *>::const_iterator it = m_listOfFaceLines.begin(); it != m_listOfFaceLines.end();
+         ++it) {
+      vpMbtDistanceLine *line = *it;
+      std::vector<std::vector<double> > lineModels = line->getModelForDisplay(width, height, cMo, cam, displayFullModel);
+      models.insert(models.end(), lineModels.begin(), lineModels.end());
+    }
+  }
+
+  return models;
 }
 
 /*!
@@ -1516,7 +1644,7 @@ void vpMbtFaceDepthNormal::setCameraParameters(const vpCameraParameters &camera)
   }
 }
 
-void vpMbtFaceDepthNormal::setScanLineVisibilityTest(const bool v)
+void vpMbtFaceDepthNormal::setScanLineVisibilityTest(bool v)
 {
   m_useScanLine = v;
 

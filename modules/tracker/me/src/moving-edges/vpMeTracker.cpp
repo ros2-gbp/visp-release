@@ -137,7 +137,7 @@ unsigned int vpMeTracker::totalNumberOfSignal() { return (unsigned int)list.size
   \param i : Pixel coordinate along the rows.
   \param j : Pixel coordinate along the columns.
 */
-bool vpMeTracker::inMask(const vpImage<bool> *mask, const unsigned int i, const unsigned int j)
+bool vpMeTracker::inMask(const vpImage<bool> *mask, unsigned int i, unsigned int j)
 {
   try {
     return (mask == NULL || mask->getValue(i, j));
@@ -331,6 +331,14 @@ void vpMeTracker::display(const vpImage<unsigned char> &I)
     std::cout << " There are " << list.size() << " sites in the list " << std::endl;
   }
 #endif
+  for (std::list<vpMeSite>::const_iterator it = list.begin(); it != list.end(); ++it) {
+    vpMeSite p_me = *it;
+    p_me.display(I);
+  }
+}
+
+void vpMeTracker::display(const vpImage<vpRGBa> &I)
+{
   for (std::list<vpMeSite>::const_iterator it = list.begin(); it != list.end(); ++it) {
     vpMeSite p_me = *it;
     p_me.display(I);

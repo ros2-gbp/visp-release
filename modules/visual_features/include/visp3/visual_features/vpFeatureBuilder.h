@@ -125,7 +125,7 @@ public:
 
   // create vpFeatureLine feature
   static void create(vpFeatureLine &s, const vpLine &l);
-  static void create(vpFeatureLine &s, const vpCylinder &c, const int line);
+  static void create(vpFeatureLine &s, const vpCylinder &c, int line);
 
 #ifdef VISP_HAVE_MODULE_ME
   static void create(vpFeatureLine &s, const vpCameraParameters &cam, const vpMeLine &mel);
@@ -143,21 +143,11 @@ public:
   static void create(vpFeatureEllipse &s, const vpCameraParameters &cam, const vpMeEllipse &d);
 #endif
 
-  /*!
-      create vpFeatureVanishingPoint feature from the 2D coordinates of a
-     point in the image plane
-  */
-  static void create(vpFeatureVanishingPoint &s, const vpPoint &p);
-  /*!
-    create vpFeatureVanishingPoint feature from 2 FeatureLine, ie lines in
-    the image plane (error if the 2 lines are parallel)
-  */
-  static void create(vpFeatureVanishingPoint &s, const vpFeatureLine &l1, const vpFeatureLine &l2);
-  /*!
-    create vpFeatureVanishingPoint feature from 2 Lines, (error if the 2
-    lines are parallel in the image plane)
-  */
-  static void create(vpFeatureVanishingPoint &s, const vpLine &l1, const vpLine &l2);
+  // To keep compat with previous releases, we set cartesian coordinates as default initialising select var to selectX() or selectY()
+  static void create(vpFeatureVanishingPoint &s, const vpPoint &p, unsigned int select = (vpFeatureVanishingPoint::selectX() | vpFeatureVanishingPoint::selectY()));
+  static void create(vpFeatureVanishingPoint &s, const vpFeatureLine &l1, const vpFeatureLine &l2, unsigned int select = (vpFeatureVanishingPoint::selectX() | vpFeatureVanishingPoint::selectY()));
+  static void create(vpFeatureVanishingPoint &s, const vpLine &l1, const vpLine &l2, unsigned int select = (vpFeatureVanishingPoint::selectX() | vpFeatureVanishingPoint::selectY()));
+  // This function is new that's why select is not initialized
+  static void create(vpFeatureVanishingPoint &s, const vpCameraParameters &cam, const vpImagePoint &line1_ip1, const vpImagePoint &line1_ip2, const vpImagePoint &line2_ip1, const vpImagePoint &line2_ip2, unsigned int select);
 };
-
 #endif

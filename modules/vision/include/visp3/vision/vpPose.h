@@ -58,9 +58,11 @@
 #include <list>
 #include <math.h>
 #include <vector>
-#ifdef VISP_HAVE_CPP11_COMPATIBILITY
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
 #include <atomic>
 #endif
+
+#include <visp3/core/vpUniRand.h>
 
 /*!
   \class vpPose
@@ -152,26 +154,23 @@ private:
   class RansacFunctor
   {
   public:
-    RansacFunctor(const vpHomogeneousMatrix &cMo_, const unsigned int ransacNbInlierConsensus_,
-                  const int ransacMaxTrials_, const double ransacThreshold_, const unsigned int initial_seed_,
-                  const bool checkDegeneratePoints_, const std::vector<vpPoint> &listOfUniquePoints_,
+    RansacFunctor(const vpHomogeneousMatrix &cMo_, unsigned int ransacNbInlierConsensus_,
+                  const int ransacMaxTrials_, double ransacThreshold_, unsigned int initial_seed_,
+                  bool checkDegeneratePoints_, const std::vector<vpPoint> &listOfUniquePoints_,
                   bool (*func_)(const vpHomogeneousMatrix &)
-              #ifdef VISP_HAVE_CPP11_COMPATIBILITY
+              #if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
                   , std::atomic<bool> &abort
               #endif
                   )
       :
-    #ifdef VISP_HAVE_CPP11_COMPATIBILITY
+    #if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
         m_abort(abort),
     #endif
         m_best_consensus(), m_checkDegeneratePoints(checkDegeneratePoints_), m_cMo(cMo_), m_foundSolution(false),
-        m_func(func_), m_initial_seed(initial_seed_), m_listOfUniquePoints(listOfUniquePoints_), m_nbInliers(0),
+        m_func(func_), m_listOfUniquePoints(listOfUniquePoints_), m_nbInliers(0),
         m_ransacMaxTrials(ransacMaxTrials_), m_ransacNbInlierConsensus(ransacNbInlierConsensus_),
-        m_ransacThreshold(ransacThreshold_)
+        m_ransacThreshold(ransacThreshold_), m_uniRand(initial_seed_)
     {
-#if (defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__)) || defined(ANDROID))
-      (void)initial_seed_;
-#endif
     }
 
     void operator()() { m_foundSolution = poseRansacImpl(); }
@@ -186,7 +185,7 @@ private:
     unsigned int getNbInliers() const { return m_nbInliers; }
 
   private:
-#ifdef VISP_HAVE_CPP11_COMPATIBILITY
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
     std::atomic<bool> &m_abort;
 #endif
     std::vector<unsigned int> m_best_consensus;
@@ -194,12 +193,12 @@ private:
     vpHomogeneousMatrix m_cMo;
     bool m_foundSolution;
     bool (*m_func)(const vpHomogeneousMatrix &);
-    unsigned int m_initial_seed;
     std::vector<vpPoint> m_listOfUniquePoints;
     unsigned int m_nbInliers;
     int m_ransacMaxTrials;
     unsigned int m_ransacNbInlierConsensus;
     double m_ransacThreshold;
+    vpUniRand m_uniRand;
 
     bool poseRansacImpl();
   };
@@ -212,6 +211,7 @@ protected:
 
 public:
   vpPose();
+  vpPose(const std::vector<vpPoint>& lP);
   virtual ~vpPose();
   void addPoint(const vpPoint &P);
   void addPoints(const std::vector<vpPoint> &lP);
@@ -222,7 +222,7 @@ public:
   bool coplanar(int &coplanar_plane_type);
   void displayModel(vpImage<unsigned char> &I, vpCameraParameters &cam, vpColor col = vpColor::none);
   void displayModel(vpImage<vpRGBa> &I, vpCameraParameters &cam, vpColor col = vpColor::none);
-  void init();
+
   void poseDementhonPlan(vpHomogeneousMatrix &cMo);
   void poseDementhonNonPlan(vpHomogeneousMatrix &cMo);
   void poseLagrangePlan(vpHomogeneousMatrix &cMo);
@@ -313,7 +313,7 @@ public:
     automatically determined with C++11.
     \sa setUseParallelRansac
   */
-  inline void setNbParallelRansacThreads(const int nb) { nbParallelRansacThreads = nb; }
+  inline void setNbParallelRansacThreads(int nb) { nbParallelRansacThreads = nb; }
 
   /*!
     \return True if the parallel RANSAC version should be used (depends also to C++11 availability).
@@ -325,9 +325,9 @@ public:
   /*!
     Set if parallel RANSAC version should be used or not (only if C++11).
 
-    \note Need C++11.
+    \note Need C++11 or higher.
   */
-  inline void setUseParallelRansac(const bool use) { useParallelRansac = use; }
+  inline void setUseParallelRansac(bool use) { useParallelRansac = use; }
 
   /*!
     Get the vector of points.
@@ -353,8 +353,21 @@ public:
   static void findMatch(std::vector<vpPoint> &p2D, std::vector<vpPoint> &p3D,
                         const unsigned int &numberOfInlierToReachAConsensus, const double &threshold,
                         unsigned int &ninliers, std::vector<vpPoint> &listInliers, vpHomogeneousMatrix &cMo,
-                        const int &maxNbTrials=10000, const bool useParallelRansac=true, const unsigned int nthreads=0,
-                        bool (*func)(const vpHomogeneousMatrix &)=NULL);
+                        const int &maxNbTrials=10000, bool useParallelRansac=true, unsigned int nthreads=0,
+                        bool (*func)(const vpHomogeneousMatrix &) = NULL);
+
+  static bool computePlanarObjectPoseFromRGBD(const vpImage<float> &depthMap, const std::vector<vpImagePoint> &corners,
+                                              const vpCameraParameters &colorIntrinsics, const std::vector<vpPoint> &point3d, vpHomogeneousMatrix &cMo,
+                                              double *confidence_index = NULL);
+
+#if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
+  /*!
+    @name Deprecated functions
+  */
+  //@{
+  vp_deprecated void init();
+  //@}
+#endif
 };
 
 #endif

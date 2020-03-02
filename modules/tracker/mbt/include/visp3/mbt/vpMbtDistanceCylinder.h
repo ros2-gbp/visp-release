@@ -140,15 +140,16 @@ public:
   vpMbtDistanceCylinder();
   virtual ~vpMbtDistanceCylinder();
 
-  void buildFrom(const vpPoint &_p1, const vpPoint &_p2, const double r);
+  void buildFrom(const vpPoint &_p1, const vpPoint &_p2, double r);
 
   void computeInteractionMatrixError(const vpHomogeneousMatrix &cMo, const vpImage<unsigned char> &I);
 
   void display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-               const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+               const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
   void display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-               const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+               const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
   void displayMovingEdges(const vpImage<unsigned char> &I);
+  void displayMovingEdges(const vpImage<vpRGBa> &I);
 
   /*!
    Get the camera paramters.
@@ -182,6 +183,13 @@ public:
   */
   inline double getMeanWeight2() const { return wmean2; }
 
+  std::vector<std::vector<double> > getFeaturesForDisplay();
+
+  std::vector<std::vector<double> > getModelForDisplay(unsigned int width, unsigned int height,
+                                                       const vpHomogeneousMatrix &cMo,
+                                                       const vpCameraParameters &cam,
+                                                       bool displayFullModel = false);
+
   /*!
     Get the name of the cylinder.
 
@@ -191,7 +199,7 @@ public:
 
   void initInteractionMatrixError();
 
-  bool initMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const bool doNotTrack,
+  bool initMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, bool doNotTrack,
                       const vpImage<bool> *mask = NULL);
 
   /*!
@@ -229,21 +237,21 @@ public:
 
     \param i : The index number
   */
-  inline void setIndex(const unsigned int i) { index = i; }
+  inline void setIndex(unsigned int i) { index = i; }
 
   /*!
    Set the mean weight of the first line.
 
    \param wmean : The mean weight of the first line.
   */
-  inline void setMeanWeight1(const double wmean) { this->wmean1 = wmean; }
+  inline void setMeanWeight1(double wmean) { this->wmean1 = wmean; }
 
   /*!
    Set the mean weight of the second line.
 
    \param wmean : The mean weight of the second line.
   */
-  inline void setMeanWeight2(const double wmean) { this->wmean2 = wmean; }
+  inline void setMeanWeight2(double wmean) { this->wmean2 = wmean; }
 
   void setMovingEdge(vpMe *Me);
 

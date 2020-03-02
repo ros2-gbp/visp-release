@@ -229,11 +229,12 @@ void vpDisplay::displayDotLine(const vpImage<unsigned char> &I, int i1, int j1, 
   \param I : The image associated to the display.
   \param ips : List of image points.
   \param closeTheShape : If true, display a dashed line from the first and
-  last image points. \param color : Line color. \param thickness : Dashed line
-  thickness.
+  last image points.
+  \param color : Line color.
+  \param thickness : Dashed line thickness.
 */
 void vpDisplay::displayDotLine(const vpImage<unsigned char> &I, const std::vector<vpImagePoint> &ips,
-                               const bool closeTheShape, const vpColor &color, unsigned int thickness)
+                               bool closeTheShape, const vpColor &color, unsigned int thickness)
 {
   if (ips.size() <= 1)
     return;
@@ -254,12 +255,14 @@ void vpDisplay::displayDotLine(const vpImage<unsigned char> &I, const std::vecto
   - the centered moments expressed in pixels: \f$\mu_{20}, \mu_{11},
   \mu_{02}\f$;
   - the major and minor axis lenght in pixels and the excentricity of the
-  ellipse in radians: \f$a, b, e\f$. \param use_centered_moments : When false,
-  the parameters coef1, coef2, coef3 are the parameters \f$a, b, e\f$. When
-  true, the parameters coef1, coef2, coef3 are rather the centered moments
-  \f$\mu_{20}, \mu_{11}, \mu_{02}\f$ expressed in pixels. In that case, we
-  compute the parameters \e a, \e b and \e e from the centered moments. \param
-  color : Drawings color. \param thickness : Drawings thickness.
+  ellipse in radians: \f$a, b, e\f$.
+  \param use_centered_moments : When false, the parameters coef1, coef2, coef3
+  are the parameters \f$a, b, e\f$. When true, the parameters coef1, coef2,
+  coef3 are rather the centered moments \f$\mu_{20}, \mu_{11}, \mu_{02}\f$
+  expressed in pixels. In that case, we compute the parameters \e a, \e b and
+  \e e from the centered moments.
+  \param color : Ellipse color.
+  \param thickness : Ellipse thickness.
 
   All the points \f$(u_\theta,v_\theta)\f$ on the ellipse are drawn thanks to
   its parametric representation:
@@ -310,15 +313,18 @@ void vpDisplay::displayEllipse(const vpImage<unsigned char> &I, const vpImagePoi
   - the centered moments expressed in pixels: \f$\mu_{20}, \mu_{11},
   \mu_{02}\f$;
   - the major and minor axis lenght in pixels and the excentricity of the
-  ellipse in radians: \f$a, b, e\f$. \param theta1, theta2 : Angles
+  ellipse in radians: \f$a, b, e\f$.
+  \param theta1, theta2 : Angles
   \f$(\theta_1, \theta_2)\f$ in radians used to select a portion of the
   ellipse. If theta1=0 and theta2=vpMath::rad(360) all the ellipse is
-  displayed. \param use_centered_moments : When false, the parameters coef1,
+  displayed.
+  \param use_centered_moments : When false, the parameters coef1,
   coef2, coef3 are the parameters \f$a, b, e\f$. When true, the parameters
   coef1, coef2, coef3 are rather the centered moments \f$\mu_{20}, \mu_{11},
   \mu_{02}\f$ expressed in pixels. In that case, we compute the parameters \e
-  a, \e b and \e e from the centered moments. \param color : Drawings color.
-  \param thickness : Drawings thickness.
+  a, \e b and \e e from the centered moments.
+  \param color : Ellipse color.
+  \param thickness : Ellipse thickness.
 
   All the points \f$(u_\theta,v_\theta)\f$ on the ellipse are drawn thanks to
   its parametric representation:
@@ -362,7 +368,7 @@ void vpDisplay::displayEllipse(const vpImage<unsigned char> &I, const vpImagePoi
 
 /*!
   Display the projection of an object frame represented by 3 arrows in
-  the image.
+  the image. Red, green and blue arrows correspond to frame X, Y and Z axis respectively.
 
   \param I : The image associated to the display.
   \param cMo : Homogeneous matrix that gives the transformation
@@ -388,11 +394,13 @@ void vpDisplay::displayFrame(const vpImage<unsigned char> &I, const vpHomogeneou
   \param ip1,ip2 : Initial and final image points.
   \param color : Line color.
   \param thickness : Line thickness.
+  \param segment: If true (default) display the segment between the two image points.
+  If false, display the line passing through the two image points.
 */
 void vpDisplay::displayLine(const vpImage<unsigned char> &I, const vpImagePoint &ip1, const vpImagePoint &ip2,
-                            const vpColor &color, unsigned int thickness)
+                            const vpColor &color, unsigned int thickness, bool segment)
 {
-  vp_display_display_line(I, ip1, ip2, color, thickness);
+  displayLine(I, static_cast<int>(ip1.get_i()), static_cast<int>(ip1.get_j()), static_cast<int>(ip2.get_i()), static_cast<int>(ip2.get_j()), color, thickness, segment);
 }
 
 /*!
@@ -402,11 +410,65 @@ void vpDisplay::displayLine(const vpImage<unsigned char> &I, const vpImagePoint 
   \param i2,j2: Final image point.
   \param color : Line color.
   \param thickness : Line thickness.
+  \param segment: If true (default) display the segment between the two image points.
+  If false, display the line passing through the two image points.
 */
 void vpDisplay::displayLine(const vpImage<unsigned char> &I, int i1, int j1, int i2, int j2, const vpColor &color,
-                            unsigned int thickness)
+                            unsigned int thickness, bool segment)
 {
-  vp_display_display_line(I, i1, j1, i2, j2, color, thickness);
+  if (segment) {
+    vp_display_display_line(I, i1, j1, i2, j2, color, thickness);
+  }
+  else {
+    // line equation in image: i = a * j + b
+    double delta_j = static_cast<double>(j2) - static_cast<double>(j1);
+    double delta_i = static_cast<double>(i2) - static_cast<double>(i1);
+    // Test if horizontal line
+    if (std::fabs(delta_i) <= std::numeric_limits<double>::epsilon()) {
+      vp_display_display_line(I, i1, 0, i1, (I.getWidth()-1), color, thickness);
+    }
+    // Test if vertical line
+    else if (std::fabs(delta_j) <= std::numeric_limits<double>::epsilon()) {
+      vp_display_display_line(I, 0, j1, (I.getHeight()-1), j1, color, thickness);
+    }
+    else {
+      double a = delta_i / delta_j;
+      double b = static_cast<double>(i1) - a * static_cast<double>(j1);
+      std::vector<vpImagePoint> vip; // Image points that intersect image borders
+      // Test intersection with vertical line j=0
+      vpImagePoint ip_left(b, 0);
+      if (ip_left.get_i() >= 0. && ip_left.get_i() <= (I.getHeight()-1.)) {
+        vip.push_back(ip_left);
+      }
+      // Test intersection with vertical line j=width-1
+      vpImagePoint ip_right(a*(I.getWidth()-1)+b, I.getWidth()-1.);
+      if (ip_right.get_i() >= 0. && ip_right.get_i() <= (I.getHeight()-1.)) {
+        vip.push_back(ip_right);
+      }
+      if (vip.size() == 2) {
+        vp_display_display_line(I, vip[0], vip[1], color, thickness);
+        return;
+      }
+      // Test intersection with horizontal line i=0
+      vpImagePoint ip_top(0, -b/a);
+      if (ip_top.get_j() >= 0. && ip_top.get_j() <= (I.getWidth()-1.)) {
+        vip.push_back(ip_top);
+      }
+      if (vip.size() == 2) {
+        vp_display_display_line(I, vip[0], vip[1], color, thickness);
+        return;
+      }
+      // Test intersection with horizontal line i=height-1
+      vpImagePoint ip_bottom(I.getHeight()-1., (I.getHeight()-1. - b)/a);
+      if (ip_bottom.get_j() >= 0. && ip_bottom.get_j() <= (I.getWidth()-1.)) {
+        vip.push_back(ip_bottom);
+      }
+      if (vip.size() == 2) {
+        vp_display_display_line(I, vip[0], vip[1], color, thickness);
+        return;
+      }
+    }
+  }
 }
 
 /*!
@@ -417,7 +479,7 @@ void vpDisplay::displayLine(const vpImage<unsigned char> &I, int i1, int j1, int
   points. \param color : Line color. \param thickness : Line thickness.
 */
 void vpDisplay::displayLine(const vpImage<unsigned char> &I, const std::vector<vpImagePoint> &ips,
-                            const bool closeTheShape, const vpColor &color, unsigned int thickness)
+                            bool closeTheShape, const vpColor &color, unsigned int thickness)
 {
   if (ips.size() <= 1)
     return;
@@ -461,11 +523,12 @@ void vpDisplay::displayPoint(const vpImage<unsigned char> &I, int i, int j, cons
   \param vip : Vector of image point that define the vertexes of the polygon.
   \param color : Line color.
   \param thickness : Line thickness.
+  \param closed : When true display a closed polygon with a segment between first and last image point.
 */
 void vpDisplay::displayPolygon(const vpImage<unsigned char> &I, const std::vector<vpImagePoint> &vip,
-                               const vpColor &color, unsigned int thickness)
+                               const vpColor &color, unsigned int thickness, bool closed)
 {
-  vp_display_display_polygon(I, vip, color, thickness);
+  vp_display_display_polygon(I, vip, color, thickness, closed);
 }
 
 /*!

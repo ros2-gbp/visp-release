@@ -170,20 +170,20 @@ int main(int argc, const char **argv)
     }
 
 #ifdef VISP_HAVE_X11
-    vpDisplayX d(I);
+    vpDisplayX d(I, vpDisplay::SCALE_AUTO);
 #elif defined VISP_HAVE_GDI
-    vpDisplayGDI d(I);
+    vpDisplayGDI d(I, vpDisplay::SCALE_AUTO);
 #elif defined VISP_HAVE_GTK
-    vpDisplayGTK d(I);
+    vpDisplayGTK d(I, vpDisplay::SCALE_AUTO);
 #elif defined VISP_HAVE_OPENCV
-    vpDisplayOpenCV d(I);
+    vpDisplayOpenCV d(I, vpDisplay::SCALE_AUTO);
 #endif
 
     vpCameraParameters cam;
 
     // Initialize camera parameters
     double px = cam.get_px();
-    double py = cam.get_px();
+    double py = cam.get_py();
     // Set (u0,v0) in the middle of the image
     double u0 = I.getWidth() / 2;
     double v0 = I.getHeight() / 2;
@@ -327,7 +327,7 @@ int main(int argc, const char **argv)
       std::cout << "Global reprojection error: " << error << std::endl;
       ss_additional_info << "<global_reprojection_error><without_distortion>" << error << "</without_distortion>";
 
-#ifdef VISP_HAVE_XML2
+#ifdef VISP_HAVE_PUGIXML
       vpXmlParserCamera xml;
 
       if (xml.save(cam, outputFileName.c_str(), "Camera", I.getWidth(), I.getHeight()) ==
@@ -354,7 +354,7 @@ int main(int argc, const char **argv)
       std::cout << "Global reprojection error: " << error << std::endl;
       ss_additional_info << "<with_distortion>" << error << "</with_distortion></global_reprojection_error>";
 
-#ifdef VISP_HAVE_XML2
+#ifdef VISP_HAVE_PUGIXML
       vpXmlParserCamera xml;
 
       if (xml.save(cam, outputFileName.c_str(), "Camera", I.getWidth(), I.getHeight(), ss_additional_info.str()) ==
