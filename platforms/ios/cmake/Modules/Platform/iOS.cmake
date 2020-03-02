@@ -46,7 +46,7 @@ if (APPLE_FRAMEWORK AND BUILD_SHARED_LIBS)
   set (CMAKE_INSTALL_NAME_DIR "@rpath")
 endif()
 
-# Hidden visibilty is required for cxx on iOS
+# Hidden visibility is required for cxx on iOS
 set (no_warn "-Wno-unused-function -Wno-overloaded-virtual")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${no_warn}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fvisibility=hidden -fvisibility-inlines-hidden ${no_warn}")
@@ -66,7 +66,7 @@ set (CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS "-dynamiclib -headerpad_max_install_nam
 set (CMAKE_SHARED_MODULE_CREATE_C_FLAGS "-bundle -headerpad_max_install_names")
 set (CMAKE_SHARED_MODULE_LOADER_C_FLAG "-Wl,-bundle_loader,")
 set (CMAKE_SHARED_MODULE_LOADER_CXX_FLAG "-Wl,-bundle_loader,")
-set (CMAKE_FIND_LIBRARY_SUFFIXES ".dylib" ".so" ".a" ".tbd") # tbd to detect pthread and libxml2
+set (CMAKE_FIND_LIBRARY_SUFFIXES ".dylib" ".so" ".a" ".tbd") # tbd to detect pthread
 
 # hack: if a new cmake (which uses CMAKE_INSTALL_NAME_TOOL) runs on an old build tree
 # (where install_name_tool was hardcoded) and where CMAKE_INSTALL_NAME_TOOL isn't in the cache
@@ -107,10 +107,10 @@ if (_CMAKE_IOS_SDKS)
     set (CMAKE_OSX_SYSROOT ${_CMAKE_IOS_SDK_ROOT} CACHE PATH "Sysroot used for iOS support")
 
     # set the architecture for iOS - this env var sets armv6,armv7 and appears to be XCode's standard. The other found is ARCHS_UNIVERSAL_IPHONE_OS but that is armv7 only
-    set (CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_BIT)" CACHE string  "Build architecture for iOS")
+    set (CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_BIT)" CACHE STRING  "Build architecture for iOS")
 
     # Set the default based on this file and not the environment variable
-    set (CMAKE_FIND_ROOT_PATH ${_CMAKE_IOS_DEVELOPER_ROOT} ${_CMAKE_IOS_SDK_ROOT} CACHE string  "iOS library search path root")
+    set (CMAKE_FIND_ROOT_PATH ${_CMAKE_IOS_DEVELOPER_ROOT} ${_CMAKE_IOS_SDK_ROOT} CACHE STRING  "iOS library search path root")
 
     # default to searching for frameworks first
     set (CMAKE_FIND_FRAMEWORK FIRST)

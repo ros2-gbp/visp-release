@@ -395,8 +395,8 @@ void vpViper650::init(vpViper650::vpToolType tool, const vpHomogeneousMatrix &eM
 */
 void vpViper650::parseConfigFile(const std::string &filename)
 {
-  vpRxyzVector erc;        // eMc rotation
-  vpTranslationVector etc; // eMc translation
+  vpRxyzVector erc_;        // eMc rotation
+  vpTranslationVector etc_; // eMc translation
 
   std::ifstream fdconfig(filename.c_str(), std::ios::in);
 
@@ -431,10 +431,10 @@ void vpViper650::parseConfigFile(const std::string &filename)
       break; // Nothing to do: camera name
 
     case 1: {
-      ss >> erc[0] >> erc[1] >> erc[2];
+      ss >> erc_[0] >> erc_[1] >> erc_[2];
 
       // Convert rotation from degrees to radians
-      erc = erc * M_PI / 180.0;
+      erc_ = erc_ * M_PI / 180.0;
       get_erc = true;
       break;
     }
@@ -455,7 +455,7 @@ void vpViper650::parseConfigFile(const std::string &filename)
 
   // Compute the eMc matrix from the translations and rotations
   if (get_etc && get_erc) {
-    this->set_eMc(etc, erc);
+    this->set_eMc(etc_, erc_);
   } else {
     throw vpRobotException(vpRobotException::readingParametersError,
                            "Could not read translation and rotation "
@@ -469,7 +469,7 @@ void vpViper650::parseConfigFile(const std::string &filename)
 
   \warning This method needs XML library to parse the file defined in
   vpViper650::CONST_CAMERA_FILENAME and containing the camera
-  parameters. If XML is detected by ViSP, VISP_HAVE_XML2 macro is
+  parameters. If XML is detected by ViSP, VISP_HAVE_PUGIXML macro is
   defined in include/visp3/core/vpConfig.h file.
 
   \warning Thid method needs also an access to the files containing the
@@ -477,7 +477,7 @@ void vpViper650::parseConfigFile(const std::string &filename)
   VISP_HAVE_VIPER650_DATA macro is defined in include/visp3/core/vpConfig.h
 file.
 
-  - If VISP_HAVE_VIPER650_DATA and VISP_HAVE_XML2 macros are defined,
+  - If VISP_HAVE_VIPER650_DATA and VISP_HAVE_PUGIXML macros are defined,
   this method gets the camera parameters from const_camera_Viper650.xml
   config file.
 
@@ -492,7 +492,6 @@ file.
   attached to the robot.
 
   \code
-#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/robot/vpRobotViper650.h>
 #include <visp3/robot/vpViper650.h>
@@ -519,7 +518,7 @@ int main()
   // Get the intrinsic camera parameters depending on the image size
   // Camera parameters are read from
   // /udd/fspindle/robot/Viper650/current/include/const_camera_Viper650.xml
-  // if VISP_HAVE_VIPER650_DATA and VISP_HAVE_XML2 macros are defined
+  // if VISP_HAVE_VIPER650_DATA and VISP_HAVE_PUGIXML macros are defined
   // in vpConfig.h file
   try {
     robot.getCameraParameters (cam, I.getWidth(), I.getHeight());
@@ -539,7 +538,7 @@ parameters are not found.
 void vpViper650::getCameraParameters(vpCameraParameters &cam, const unsigned int &image_width,
                                      const unsigned int &image_height) const
 {
-#if defined(VISP_HAVE_XML2) && defined(VISP_HAVE_VIPER650_DATA)
+#if defined(VISP_HAVE_PUGIXML) && defined(VISP_HAVE_VIPER650_DATA)
   vpXmlParserCamera parser;
   switch (getToolType()) {
   case vpViper650::TOOL_MARLIN_F033C_CAMERA: {
@@ -664,10 +663,6 @@ void vpViper650::getCameraParameters(vpCameraParameters &cam, const unsigned int
   case vpViper650::TOOL_CUSTOM: {
     throw vpRobotException(vpRobotException::badValue, "No intrinsic parameters available for a custom tool");
   }
-  default:
-    vpERROR_TRACE("This error should not occur!");
-    throw vpRobotException(vpRobotException::readingParametersError, "Impossible to read the camera parameters.");
-    break;
   }
 #endif
   return;
@@ -678,7 +673,7 @@ void vpViper650::getCameraParameters(vpCameraParameters &cam, const unsigned int
 
   \warning This method needs XML library to parse the file defined in
   vpViper650::CONST_CAMERA_FILENAME and containing the camera
-  parameters. If XML is detected by ViSP, VISP_HAVE_XML2 macro is
+  parameters. If XML is detected by ViSP, VISP_HAVE_PUGIXML macro is
   defined in include/visp3/core/vpConfig.h file.
 
   \warning Thid method needs also an access to the files containing the
@@ -686,7 +681,7 @@ void vpViper650::getCameraParameters(vpCameraParameters &cam, const unsigned int
   VISP_HAVE_VIPER650_DATA macro is defined in include/visp3/core/vpConfig.h
 file.
 
-  - If VISP_HAVE_VIPER650_DATA and VISP_HAVE_XML2 macros are defined,
+  - If VISP_HAVE_VIPER650_DATA and VISP_HAVE_PUGIXML macros are defined,
   this method gets the camera parameters from const_camera_Viper650.xml
   config file.
 
@@ -697,7 +692,6 @@ file.
   \param I : A B&W image send by the current camera in use.
 
   \code
-#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/robot/vpRobotViper650.h>
 #include <visp3/robot/vpViper650.h>
@@ -745,7 +739,7 @@ void vpViper650::getCameraParameters(vpCameraParameters &cam, const vpImage<unsi
 
     \warning This method needs XML library to parse the file defined in
   vpViper650::CONST_CAMERA_FILENAME and containing the camera
-  parameters. If XML is detected by ViSP, VISP_HAVE_XML2 macro is
+  parameters. If XML is detected by ViSP, VISP_HAVE_PUGIXML macro is
   defined in include/visp3/core/vpConfig.h file.
 
   \warning Thid method needs also an access to the files containing the camera
@@ -753,7 +747,7 @@ void vpViper650::getCameraParameters(vpCameraParameters &cam, const vpImage<unsi
 VISP_HAVE_VIPER650_DATA macro is defined in include/visp3/core/vpConfig.h
 file.
 
-  - If VISP_HAVE_VIPER650_DATA and VISP_HAVE_XML2 macros are defined,
+  - If VISP_HAVE_VIPER650_DATA and VISP_HAVE_PUGIXML macros are defined,
   this method gets the camera parameters from const_camera_Viper650.xml
   config file.
 
@@ -764,7 +758,6 @@ file.
   \param I : A color image send by the current camera in use.
 
   \code
-#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/robot/vpRobotViper650.h>
 #include <visp3/robot/vpViper650.h>

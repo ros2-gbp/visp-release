@@ -96,8 +96,8 @@
 */
 bool vpLinProg::colReduction(vpMatrix &A, vpColVector &b, bool full_rank, const double &tol)
 {
-  const unsigned int m = A.getRows();
-  const unsigned int n = A.getCols();
+  unsigned int m = A.getRows();
+  unsigned int n = A.getCols();
 
   // degeneracy if A is actually null
   if(A.infinityNorm() < tol)
@@ -263,8 +263,21 @@ or \f$\mathbf{b} = \left[\begin{array}{c}0\\0\\1\end{array}\right]\f$ (not feasi
 */
 bool vpLinProg::rowReduction(vpMatrix &A, vpColVector &b, const double &tol)
 {
-  const unsigned int m = A.getRows();
-  const unsigned int n = A.getCols();
+  unsigned int m = A.getRows();
+  unsigned int n = A.getCols();
+
+  // degeneracy if A is actually null
+  if(A.infinityNorm() < tol)
+  {
+    if(b.infinityNorm() < tol)
+    {
+      b.resize(0);
+      A.resize(0,n);
+      return true;
+    }
+    else
+      return false;
+  }
 
   vpMatrix Q, R, P;
   const unsigned int r = A.qrPivot(Q, R, P, false, false, tol);
@@ -284,7 +297,7 @@ bool vpLinProg::rowReduction(vpMatrix &A, vpColVector &b, const double &tol)
   return false;
 }
 
-#ifdef VISP_HAVE_CPP11_COMPATIBILITY
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
 /*!
   Solves a Linear Program under various constraints
 
@@ -310,7 +323,7 @@ bool vpLinProg::rowReduction(vpMatrix &A, vpColVector &b, const double &tol)
 
   Lower and upper bounds may be passed as a list of (index, bound) with C++11's braced initialization.
 
-  \warning This function is only available if C++11 is activated during compilation. Configure ViSP using cmake -DUSE_CPP11=ON.
+  \warning This function is only available if c++11 or higher is activated during compilation. Configure ViSP using cmake -DUSE_CXX_STANDARD=11.
 
   Here is an example:
 
@@ -350,8 +363,8 @@ bool vpLinProg::solveLP(const vpColVector &c, vpMatrix A, vpColVector b,
                         std::vector<BoundedIndex> l, std::vector<BoundedIndex> u,
                         const double &tol)
 {
-  const unsigned int n = c.getRows();
-  const unsigned int m = A.getRows();
+  unsigned int n = c.getRows();
+  unsigned int m = A.getRows();
   const unsigned int p = C.getRows();
 
   // check if we should forward a feasible point to the next solver
@@ -394,7 +407,9 @@ bool vpLinProg::solveLP(const vpColVector &c, vpMatrix A, vpColVector b,
   unsigned int s1 = 0, s2 = 0;
   for(unsigned int i = 0; i < n; ++i)
   {
-    const auto cmp = [&](const BoundedIndex &p){return p.first == i;};
+    const auto cmp = [&](const BoundedIndex &bi) {
+      return bi.first == i;
+    };
     // look for lower bound
     const bool has_low = find_if(l.begin(), l.end(), cmp) != l.end();
     // look for upper bound
@@ -435,8 +450,9 @@ bool vpLinProg::solveLP(const vpColVector &c, vpMatrix A, vpColVector b,
   for(unsigned int i = 0; i < n; ++i)
   {
     // lambda to find a bound for this index
-    const auto cmp = [&](const BoundedIndex &p)
-    {return p.first == i;};
+    const auto cmp = [&](const BoundedIndex &bi) {
+      return bi.first == i;
+    };
 
     // look for lower bound
     const auto low = find_if(l.begin(), l.end(), cmp);
@@ -508,9 +524,9 @@ bool vpLinProg::solveLP(const vpColVector &c, vpMatrix A, vpColVector b,
   \f$\begin{array}{lll}
   \mathbf{x} = &  \arg\min & \mathbf{c}^T\mathbf{x}\\
                & \text{s.t.}& \mathbf{A}\mathbf{x} = \mathbf{b}\\
-                & \text{s.t.}& \mathbf{x} \geq 0
-\end{array}
-\f$
+               & \text{s.t.}& \mathbf{x} \geq 0
+  \end{array}
+  \f$
   \param c : cost vector (dimension n)
   \param A : equality matrix (dimension m x n)
   \param b : equality vector (dimension m)
@@ -519,7 +535,8 @@ bool vpLinProg::solveLP(const vpColVector &c, vpMatrix A, vpColVector b,
 
   \return True if the solution was found.
 
-  \warning This function is only available if C++11 is activated during compilation. Configure ViSP using cmake -DUSE_CPP11=ON.
+  \warning This function is only available if c++11 or higher is activated during build.
+  Configure ViSP using cmake -DUSE_CXX_STANDARD=11.
 
   Here is an example:
 
@@ -562,7 +579,7 @@ bool vpLinProg::solveLP(const vpColVector &c, vpMatrix A, vpColVector b,
 */
 bool vpLinProg::simplex(const vpColVector &c, vpMatrix A, vpColVector b, vpColVector &x, const double &tol)
 {
-  const unsigned int n = c.getRows();
+  unsigned int n = c.getRows();
   unsigned int m = A.getRows();
 
   // find a feasible point is passed x is not
