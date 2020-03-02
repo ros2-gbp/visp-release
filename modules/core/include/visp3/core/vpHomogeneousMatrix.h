@@ -88,6 +88,63 @@ class vpPoint;
   \f$ ^a{\bf R}_b \f$ is a rotation matrix and
   \f$ ^a{\bf t}_b \f$ is a translation vector.
 
+  There are different ways to initialize an homogeneous matrix. You can set each element of the matrix like:
+  \code
+#include <visp3/core/vpHomogeneousMatrix.h>
+
+int main()
+{
+  vpHomogeneousMatrix M;
+  M[0][0] =  0; M[0][1] =  0; M[0][2] = -1; M[0][3] = 0.1;
+  M[1][0] =  0; M[1][1] = -1; M[1][2] =  0; M[1][3] = 0.2;
+  M[2][0] = -1; M[2][1] =  0; M[2][2] =  0; M[2][3] = 0.3;
+
+  std::cout << "M:" << std::endl;
+  for (unsigned int i = 0; i < M.getRows(); i++) {
+    for (unsigned int j = 0; j < M.getCols(); j++) {
+      std::cout << M[i][j] << " ";
+    }
+    std::cout << std::endl;
+  }
+}
+  \endcode
+  It produces the following printings:
+  \code
+M:
+0 0 -1 0.1
+0 -1 0 0.2
+-1 0 0 0.3
+0 0 0 1
+  \endcode
+  You can also use vpRotationMatrix::operator<< and vpTranslationVector::operator<< like:
+  \code
+#include <visp3/core/vpHomogeneousMatrix.h>
+
+int main()
+{
+  vpTranslationVector t;
+  vpRotationMatrix R;
+  R << 0, 0, -1,
+       0, -1, 0,
+       -1, 0, 0;
+  t << 0.1, 0.2, 0.3;
+  vpHomogeneousMatrix M(t, R);
+  std::cout << "M:\n" << M << std::endl;
+}
+  \endcode
+  If ViSP is build with c++11 enabled, you can do the same using:
+  \code
+#include <visp3/core/vpHomogeneousMatrix.h>
+
+int main()
+{
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  vpHomogeneousMatrix M( vpTranslationVector(0.1, 0.2, 0.3), vpRotationMatrix( {0, 0, -1, 0, -1, 0, -1, 0, 0} ) );
+  std::cout << "M:\n" << M << std::endl;
+#endif
+}
+  \endcode
+
 */
 class VISP_EXPORT vpHomogeneousMatrix : public vpArray2D<double>
 {
@@ -100,8 +157,7 @@ public:
   explicit vpHomogeneousMatrix(const vpPoseVector &p);
   explicit vpHomogeneousMatrix(const std::vector<float> &v);
   explicit vpHomogeneousMatrix(const std::vector<double> &v);
-  vpHomogeneousMatrix(const double tx, const double ty, const double tz, const double tux, const double tuy,
-                      const double tuz);
+  vpHomogeneousMatrix(double tx, double ty, double tz, double tux, double tuy, double tuz);
   /*!
     Destructor.
   */
@@ -113,8 +169,7 @@ public:
   void buildFrom(const vpPoseVector &p);
   void buildFrom(const std::vector<float> &v);
   void buildFrom(const std::vector<double> &v);
-  void buildFrom(const double tx, const double ty, const double tz, const double tux, const double tuy,
-                 const double tuz);
+  void buildFrom(double tx, double ty, double tz, double tux, double tuy, double tuz);
 
   void convert(std::vector<float> &M);
   void convert(std::vector<double> &M);
@@ -122,7 +177,7 @@ public:
   // Set to identity
   void eye();
 
-  vpColVector getCol(const unsigned int j) const;
+  vpColVector getCol(unsigned int j) const;
   vpRotationMatrix getRotationMatrix() const;
   vpThetaUVector getThetaUVector() const;
   vpTranslationVector getTranslationVector() const;
@@ -167,7 +222,7 @@ public:
     4-by-4 matrix.
     \exception vpException::fatalError When this function is called.
     */
-  void resize(const unsigned int nrows, const unsigned int ncols, const bool flagNullify = true)
+  void resize(unsigned int nrows, unsigned int ncols, bool flagNullify = true)
   {
     (void)nrows;
     (void)ncols;

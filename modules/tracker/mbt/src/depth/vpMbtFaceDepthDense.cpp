@@ -140,7 +140,7 @@ void vpMbtFaceDepthDense::addLine(vpPoint &P1, vpPoint &P2, vpMbHiddenFaces<vpMb
 #ifdef VISP_HAVE_PCL
 bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
                                                  const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud,
-                                                 const unsigned int stepX, const unsigned int stepY
+                                                 unsigned int stepX, unsigned int stepY
 #if DEBUG_DISPLAY_DEPTH_DENSE
                                                  ,
                                                  vpImage<unsigned char> &debugImage,
@@ -266,9 +266,9 @@ bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
 }
 #endif
 
-bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo, const unsigned int width,
-                                                 const unsigned int height, const std::vector<vpColVector> &point_cloud,
-                                                 const unsigned int stepX, const unsigned int stepY
+bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo, unsigned int width,
+                                                 unsigned int height, const std::vector<vpColVector> &point_cloud,
+                                                 unsigned int stepX, unsigned int stepY
 #if DEBUG_DISPLAY_DEPTH_DENSE
                                                  ,
                                                  vpImage<unsigned char> &debugImage,
@@ -575,8 +575,8 @@ void vpMbtFaceDepthDense::computeInteractionMatrixAndResidu(const vpHomogeneousM
   }
 }
 
-void vpMbtFaceDepthDense::computeROI(const vpHomogeneousMatrix &cMo, const unsigned int width,
-                                     const unsigned int height, std::vector<vpImagePoint> &roiPts
+void vpMbtFaceDepthDense::computeROI(const vpHomogeneousMatrix &cMo, unsigned int width,
+                                     unsigned int height, std::vector<vpImagePoint> &roiPts
 #if DEBUG_DISPLAY_DEPTH_DENSE
                                      ,
                                      std::vector<std::vector<vpImagePoint> > &roiPts_vec
@@ -683,32 +683,28 @@ void vpMbtFaceDepthDense::computeROI(const vpHomogeneousMatrix &cMo, const unsig
 }
 
 void vpMbtFaceDepthDense::display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo,
-                                  const vpCameraParameters &cam, const vpColor &col, const unsigned int thickness,
-                                  const bool displayFullModel)
+                                  const vpCameraParameters &cam, const vpColor &col, unsigned int thickness,
+                                  bool displayFullModel)
 {
-  if ((m_polygon->isVisible() && m_isTrackedDepthDenseFace) || displayFullModel) {
-    computeVisibilityDisplay();
+  std::vector<std::vector<double> > models = getModelForDisplay(I.getWidth(), I.getHeight(), cMo, cam, displayFullModel);
 
-    for (std::vector<vpMbtDistanceLine *>::const_iterator it = m_listOfFaceLines.begin(); it != m_listOfFaceLines.end();
-         ++it) {
-      vpMbtDistanceLine *line = *it;
-      line->display(I, cMo, cam, col, thickness, displayFullModel);
-    }
+  for (size_t i = 0; i < models.size(); i++) {
+    vpImagePoint ip1(models[i][1], models[i][2]);
+    vpImagePoint ip2(models[i][3], models[i][4]);
+    vpDisplay::displayLine(I, ip1, ip2, col, thickness);
   }
 }
 
 void vpMbtFaceDepthDense::display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo,
-                                  const vpCameraParameters &cam, const vpColor &col, const unsigned int thickness,
-                                  const bool displayFullModel)
+                                  const vpCameraParameters &cam, const vpColor &col, unsigned int thickness,
+                                  bool displayFullModel)
 {
-  if ((m_polygon->isVisible() && m_isTrackedDepthDenseFace) || displayFullModel) {
-    computeVisibilityDisplay();
+  std::vector<std::vector<double> > models = getModelForDisplay(I.getWidth(), I.getHeight(), cMo, cam, displayFullModel);
 
-    for (std::vector<vpMbtDistanceLine *>::const_iterator it = m_listOfFaceLines.begin(); it != m_listOfFaceLines.end();
-         ++it) {
-      vpMbtDistanceLine *line = *it;
-      line->display(I, cMo, cam, col, thickness, displayFullModel);
-    }
+  for (size_t i = 0; i < models.size(); i++) {
+    vpImagePoint ip1(models[i][1], models[i][2]);
+    vpImagePoint ip2(models[i][3], models[i][4]);
+    vpDisplay::displayLine(I, ip1, ip2, col, thickness);
   }
 }
 
@@ -722,6 +718,38 @@ void vpMbtFaceDepthDense::displayFeature(const vpImage<vpRGBa> & /*I*/, const vp
                                          const vpCameraParameters & /*cam*/, const double /*scale*/,
                                          const unsigned int /*thickness*/)
 {
+}
+
+/*!
+  Return a list of line parameters to display the primitive at a given pose and camera parameters.
+  - Parameters are: `<primitive id (here 0 for line)>`, `<pt_start.i()>`, `<pt_start.j()>`,
+  `<pt_end.i()>`, `<pt_end.j()>`
+
+  \param width : Image width.
+  \param height : Image height.
+  \param cMo : Pose used to project the 3D model into the image.
+  \param cam : The camera parameters.
+  \param displayFullModel : If true, the line is displayed even if it is not
+*/
+std::vector<std::vector<double> > vpMbtFaceDepthDense::getModelForDisplay(unsigned int width, unsigned int height,
+                                                                          const vpHomogeneousMatrix &cMo,
+                                                                          const vpCameraParameters &cam,
+                                                                          bool displayFullModel)
+{
+  std::vector<std::vector<double> > models;
+
+  if ((m_polygon->isVisible() && m_isTrackedDepthDenseFace) || displayFullModel) {
+    computeVisibilityDisplay();
+
+    for (std::vector<vpMbtDistanceLine *>::const_iterator it = m_listOfFaceLines.begin(); it != m_listOfFaceLines.end();
+         ++it) {
+      vpMbtDistanceLine *line = *it;
+      std::vector<std::vector<double> > lineModels = line->getModelForDisplay(width, height, cMo, cam, displayFullModel);
+      models.insert(models.end(), lineModels.begin(), lineModels.end());
+    }
+  }
+
+  return models;
 }
 
 /*!
@@ -756,7 +784,7 @@ void vpMbtFaceDepthDense::setCameraParameters(const vpCameraParameters &camera)
   }
 }
 
-void vpMbtFaceDepthDense::setScanLineVisibilityTest(const bool v)
+void vpMbtFaceDepthDense::setScanLineVisibilityTest(bool v)
 {
   m_useScanLine = v;
 

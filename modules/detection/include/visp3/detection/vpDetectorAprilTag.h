@@ -35,6 +35,8 @@
 #ifndef _vpDetectorAprilTag_h_
 #define _vpDetectorAprilTag_h_
 
+#include <map>
+
 #include <visp3/core/vpConfig.h>
 
 #ifdef VISP_HAVE_APRILTAG
@@ -52,8 +54,9 @@
   is no need to download and install AprilTag from source code or existing
   pre-built packages since the source code is embedded in ViSP. Reference papers
   are <I> AprilTag: A robust and flexible visual fiducial system </I>
-  (\cite olson2011tags) and <I> AprilTag 2: Efficient and robust fiducial
-  detection</I> (\cite wang2016iros).
+  (\cite olson2011tags), <I> AprilTag 2: Efficient and robust fiducial
+  detection </I> (\cite wang2016iros) and <I> Flexible Layouts for Fiducial Tags
+  (Under Review) </I> (\cite krogius2019iros).
 
   The detect() function allows to detect multiple tags in an image. Once
   detected, for each tag it is possible to retrieve the location of the corners
@@ -67,7 +70,7 @@
   - 2. If tag sizes differ, use rather getPose()
 
   The following sample code shows how to use this class to detect the location
-of 36h11 AprilTag patterns in an image.
+  of 36h11 AprilTag patterns in an image.
 \code
 #include <visp3/detection/vpDetectorAprilTag.h>
 #include <visp3/io/vpImageIo.h>
@@ -111,7 +114,7 @@ Tag code 1:
   \endcode
 
   This other example shows how to estimate the 3D pose of 36h11 AprilTag
-patterns considering that all the tags have the same size (in our example 0.053 m).
+  patterns considering that all the tags have the same size (in our example 0.053 m).
 \code
 #include <visp3/detection/vpDetectorAprilTag.h>
 #include <visp3/io/vpImageIo.h>
@@ -212,72 +215,79 @@ Tag code 1:
 */
 class VISP_EXPORT vpDetectorAprilTag : public vpDetectorBase
 {
-
 public:
   enum vpAprilTagFamily {
-    TAG_36h11,       /*!< AprilTag <a
-                        href="https://april.eecs.umich.edu/software/apriltag.html">36h11</a>
-                        pattern (recommended) */
-    TAG_36h10,       /*!< AprilTag <a
-                        href="https://april.eecs.umich.edu/software/apriltag.html">36h10</a>
-                        pattern */
-    TAG_36ARTOOLKIT, /*!< <a href="https://artoolkit.org/">ARToolKit</a>
-                        pattern. */
-    TAG_25h9,        /*!< AprilTag <a
-                        href="https://april.eecs.umich.edu/software/apriltag.html">25h9</a>
-                        pattern */
-    TAG_25h7,        /*!< AprilTag <a
-                        href="https://april.eecs.umich.edu/software/apriltag.html">25h7</a>
-                        pattern */
-    TAG_16h5         /*!< AprilTag <a
-                        href="https://april.eecs.umich.edu/software/apriltag.html">16h5</a>
-                        pattern */
+    TAG_36h11,         ///< AprilTag 36h11 pattern (recommended)
+    TAG_36h10,         ///< DEPRECATED
+    TAG_36ARTOOLKIT,   ///< DEPRECATED AND WILL NOT DETECT ARTOOLKIT TAGS
+    TAG_25h9,          ///< AprilTag 25h9 pattern
+    TAG_25h7,          ///< DEPRECATED AND POOR DETECTION PERFORMANCE
+    TAG_16h5,          ///< AprilTag 16h5 pattern
+    TAG_CIRCLE21h7,    ///< AprilTag Circle21h7 pattern
+    TAG_CIRCLE49h12,   ///< AprilTag Circle49h12 pattern
+    TAG_CUSTOM48h12,   ///< AprilTag Custom48h12 pattern
+    TAG_STANDARD41h12, ///< AprilTag Standard41h12 pattern
+    TAG_STANDARD52h13  ///< AprilTag Standard52h13 pattern
   };
 
   enum vpPoseEstimationMethod {
-    HOMOGRAPHY,              /*!< Pose from homography */
-    HOMOGRAPHY_VIRTUAL_VS,   /*!< Non linear virtual visual servoing approach
-                                initialized by the homography approach */
-    DEMENTHON_VIRTUAL_VS,    /*!< Non linear virtual visual servoing approach
-                                initialized by the Dementhon approach */
-    LAGRANGE_VIRTUAL_VS,     /*!< Non linear virtual visual servoing approach
-                                initialized by the Lagrange approach */
-    BEST_RESIDUAL_VIRTUAL_VS /*!< Non linear virtual visual servoing approach
-                                initialized by the approach that gives the
-                                lowest residual */
+    HOMOGRAPHY,                       /*!< Pose from homography */
+    HOMOGRAPHY_VIRTUAL_VS,            /*!< Non linear virtual visual servoing approach
+                                        initialized by the homography approach */
+    DEMENTHON_VIRTUAL_VS,             /*!< Non linear virtual visual servoing approach
+                                        initialized by the Dementhon approach */
+    LAGRANGE_VIRTUAL_VS,              /*!< Non linear virtual visual servoing approach
+                                        initialized by the Lagrange approach */
+    BEST_RESIDUAL_VIRTUAL_VS,         /*!< Non linear virtual visual servoing approach
+                                        initialized by the approach that gives the
+                                        lowest residual */
+    HOMOGRAPHY_ORTHOGONAL_ITERATION   /*!< Pose from homography followed by a refine by Orthogonal Iteration */
   };
 
   vpDetectorAprilTag(const vpAprilTagFamily &tagFamily = TAG_36h11,
                      const vpPoseEstimationMethod &poseEstimationMethod = HOMOGRAPHY_VIRTUAL_VS);
+  vpDetectorAprilTag(const vpDetectorAprilTag &o);
+  vpDetectorAprilTag &operator=(vpDetectorAprilTag o);
   virtual ~vpDetectorAprilTag();
 
   bool detect(const vpImage<unsigned char> &I);
-  bool detect(const vpImage<unsigned char> &I, const double tagSize, const vpCameraParameters &cam,
-              std::vector<vpHomogeneousMatrix> &cMo_vec);
+  bool detect(const vpImage<unsigned char> &I, double tagSize, const vpCameraParameters &cam,
+              std::vector<vpHomogeneousMatrix> &cMo_vec, std::vector<vpHomogeneousMatrix> *cMo_vec2=NULL,
+              std::vector<double> *projErrors=NULL, std::vector<double> *projErrors2=NULL);
 
-  bool getPose(size_t tagIndex, const double tagSize, const vpCameraParameters &cam, vpHomogeneousMatrix &cMo);
+  bool getPose(size_t tagIndex, double tagSize, const vpCameraParameters &cam,
+               vpHomogeneousMatrix &cMo, vpHomogeneousMatrix *cMo2=NULL,
+               double *projError=NULL, double *projError2=NULL);
 
   /*!
     Return the pose estimation method.
   */
   inline vpPoseEstimationMethod getPoseEstimationMethod() const { return m_poseEstimationMethod; }
 
-  void setAprilTagNbThreads(const int nThreads);
+  std::vector<std::vector<vpImagePoint> > getTagsCorners() const;
+  std::vector<int> getTagsId() const;
+  std::vector<std::vector<vpPoint> > getTagsPoints3D(const std::vector<int>& tagsId, const std::map<int, double>& tagsSize) const;
+
+  void setAprilTagDecodeSharpening(double decodeSharpening);
+  void setAprilTagFamily(const vpAprilTagFamily &tagFamily);
+  void setAprilTagNbThreads(int nThreads);
   void setAprilTagPoseEstimationMethod(const vpPoseEstimationMethod &poseEstimationMethod);
-  void setAprilTagQuadDecimate(const float quadDecimate);
-  void setAprilTagQuadSigma(const float quadSigma);
-  void setAprilTagRefineDecode(const bool refineDecode);
-  void setAprilTagRefineEdges(const bool refineEdges);
-  void setAprilTagRefinePose(const bool refinePose);
+  void setAprilTagQuadDecimate(float quadDecimate);
+  void setAprilTagQuadSigma(float quadSigma);
+  void setAprilTagRefineDecode(bool refineDecode);
+  void setAprilTagRefineEdges(bool refineEdges);
+  void setAprilTagRefinePose(bool refinePose);
 
   /*! Allow to enable the display of overlay tag information in the windows
    * (vpDisplay) associated to the input image. */
-  inline void setDisplayTag(const bool display, const vpColor &color=vpColor::none,
-                            const unsigned int thickness=2) {
+  inline void setDisplayTag(bool display, const vpColor &color=vpColor::none,
+                            unsigned int thickness=2) {
     m_displayTag = display;
     m_displayTagColor = color;
     m_displayTagThickness = thickness;
   }
+
+  friend void swap(vpDetectorAprilTag &o1, vpDetectorAprilTag &o2);
 
   void setZAlignedWithCameraAxis(bool zAlignedWithCameraFrame);
 
@@ -287,11 +297,9 @@ protected:
   unsigned int m_displayTagThickness;
   vpPoseEstimationMethod m_poseEstimationMethod;
   vpAprilTagFamily m_tagFamily;
-  bool m_zAlignedWithCameraFrame;
 
 private:
-  vpDetectorAprilTag(const vpDetectorAprilTag &);            // noncopyable
-  vpDetectorAprilTag &operator=(const vpDetectorAprilTag &); //
+  vpCameraParameters m_defaultCam;
 
   // PIMPL idiom
   class Impl;
@@ -319,6 +327,10 @@ inline std::ostream &operator<<(std::ostream &os, const vpDetectorAprilTag::vpPo
 
   case vpDetectorAprilTag::BEST_RESIDUAL_VIRTUAL_VS:
     os << "BEST_RESIDUAL_VIRTUAL_VS";
+    break;
+
+  case vpDetectorAprilTag::HOMOGRAPHY_ORTHOGONAL_ITERATION:
+    os << "HOMOGRAPHY_ORTHOGONAL_ITERATION";
     break;
 
   default:
@@ -354,6 +366,26 @@ inline std::ostream &operator<<(std::ostream &os, const vpDetectorAprilTag::vpAp
 
   case vpDetectorAprilTag::TAG_16h5:
     os << "16h5";
+    break;
+
+  case vpDetectorAprilTag::TAG_CIRCLE21h7:
+    os << "CIRCLE21h7";
+    break;
+
+  case vpDetectorAprilTag::TAG_CIRCLE49h12:
+    os << "CIRCLE49h12";
+    break;
+
+  case vpDetectorAprilTag::TAG_CUSTOM48h12:
+    os << "CUSTOM48h12";
+    break;
+
+  case vpDetectorAprilTag::TAG_STANDARD52h13:
+    os << "STANDARD52h13";
+    break;
+
+  case vpDetectorAprilTag::TAG_STANDARD41h12:
+    os << "STANDARD41h12";
     break;
 
   default:

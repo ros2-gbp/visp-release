@@ -88,6 +88,65 @@ class vpRowVector;
   To know more about the \f$\theta \bf u\f$ rotation representation,
   see vpThetaUVector documentation.
 
+  The following code shows how to initialize a pose vector:
+  \code
+#include <visp3/core/vpPoseVector.h>
+
+int main()
+{
+  vpPoseVector pose;
+
+  pose[0] = 0.1;    // tx
+  pose[1] = 0.2;    // ty
+  pose[2] = 0.3;    // tz
+
+  pose[3] = M_PI;   // tux
+  pose[4] = M_PI_2; // tux
+  pose[5] = M_PI_4; // tuz
+
+  std::cout << "pose vector:\n" << pose << std::endl;
+}
+  \endcode
+  It produces the following printings:
+  \code
+pose vector:
+0.1
+0.2
+0.3
+3.141592654
+1.570796327
+0.7853981634
+  \endcode
+  The same initialization could be achieved this way:
+  \code
+#include <visp3/core/vpPoseVector.h>
+
+int main()
+{
+  vpTranslationVector t;
+  vpThetaUVector tu;
+
+  t << 0.1, 0.2, 0.3;
+  tu << M_PI, M_PI_2, M_PI_4;
+  vpPoseVector pose(t, tu);
+}
+  \endcode
+  If ViSP is build with c++11 suport, you could also initialize the vector using:
+  \code
+#include <visp3/core/vpPoseVector.h>
+
+int main()
+{
+  vpTranslationVector t;
+  vpThetaUVector tu;
+
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  t = { 0.1, 0.2, 0.3 };
+  tu = { M_PI, M_PI_2, M_PI_4 };
+#endif
+  vpPoseVector pose(t, tu);
+}
+  \endcode
 */
 class VISP_EXPORT vpPoseVector : public vpArray2D<double>
 {
@@ -95,7 +154,7 @@ public:
   // constructor
   vpPoseVector();
   // constructor from 3 angles (in radian)
-  vpPoseVector(const double tx, const double ty, const double tz, const double tux, const double tuy, const double tuz);
+  vpPoseVector(double tx, double ty, double tz, double tux, double tuy, double tuz);
   // constructor convert an homogeneous matrix in a pose
   explicit vpPoseVector(const vpHomogeneousMatrix &M);
   // constructor  convert a translation and a "thetau" vector into a pose
@@ -107,8 +166,7 @@ public:
   */
   virtual ~vpPoseVector(){};
 
-  vpPoseVector buildFrom(const double tx, const double ty, const double tz, const double tux, const double tuy,
-                         const double tuz);
+  vpPoseVector buildFrom(double tx, double ty, double tz, double tux, double tuy, double tuz);
   // convert an homogeneous matrix in a pose
   vpPoseVector buildFrom(const vpHomogeneousMatrix &M);
   //  convert a translation and a "thetau" vector into a pose
@@ -182,7 +240,7 @@ public:
     6-by-1 column vector.
     \exception vpException::fatalError When this function is called.
     */
-  void resize(const unsigned int nrows, const unsigned int ncols, const bool flagNullify = true)
+  void resize(unsigned int nrows, unsigned int ncols, bool flagNullify = true)
   {
     (void)nrows;
     (void)ncols;
@@ -192,7 +250,7 @@ public:
 
   // Save an homogeneous matrix in a file
   void save(std::ofstream &f) const;
-  void set(const double tx, const double ty, const double tz, const double tux, const double tuy, const double tuz);
+  void set(double tx, double ty, double tz, double tux, double tuy, double tuz);
   vpRowVector t() const;
 
 #if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)

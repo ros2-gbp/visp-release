@@ -100,7 +100,7 @@ void vpMbtDistanceCircle::project(const vpHomogeneousMatrix &cMo) { circle->proj
   center of the circle we have 3 points defining the plane that contains the
   circle. \param r : Radius of the circle.
 */
-void vpMbtDistanceCircle::buildFrom(const vpPoint &_p1, const vpPoint &_p2, const vpPoint &_p3, const double r)
+void vpMbtDistanceCircle::buildFrom(const vpPoint &_p1, const vpPoint &_p2, const vpPoint &_p3, double r)
 {
   circle = new vpCircle;
   p1 = new vpPoint;
@@ -145,7 +145,7 @@ void vpMbtDistanceCircle::setMovingEdge(vpMe *_me)
   \param mask: Mask image or NULL if not wanted. Mask values that are set to true are considered in the tracking. To disable a pixel, set false.
   \return false if an error occur, true otherwise.
 */
-bool vpMbtDistanceCircle::initMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const bool doNotTrack,
+bool vpMbtDistanceCircle::initMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, bool doNotTrack,
                                          const vpImage<bool> *mask)
 {
   if (isvisible) {
@@ -270,24 +270,16 @@ void vpMbtDistanceCircle::reinitMovingEdge(const vpImage<unsigned char> &I, cons
   If false, display the circle only if visible.
 */
 void vpMbtDistanceCircle::display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo,
-                                  const vpCameraParameters &camera, const vpColor &col, const unsigned int thickness,
-                                  const bool displayFullModel)
+                                  const vpCameraParameters &camera, const vpColor &col, unsigned int thickness,
+                                  bool displayFullModel)
 {
-  if ((isvisible && isTrackedCircle) || displayFullModel) {
-    // Perspective projection
-    circle->changeFrame(cMo);
+  std::vector<double> params = getModelForDisplay(cMo, camera, displayFullModel);
 
-    try {
-      circle->projection();
-    } catch (...) {
-      std::cout << "Cannot project the circle";
-    }
-
-    vpImagePoint center;
-    double mu20_p, mu11_p, mu02_p;
-    vpMeterPixelConversion::convertEllipse(camera, *circle, center, mu20_p, mu11_p, mu02_p);
-    vpDisplay::displayEllipse(I, center, mu20_p, mu11_p, mu02_p, true, col, thickness);
-  }
+  vpImagePoint center(params[0], params[1]);
+  double mu20_p = params[2];
+  double mu11_p = params[3];
+  double mu02_p = params[4];
+  vpDisplay::displayEllipse(I, center, mu20_p, mu11_p, mu02_p, true, col, thickness);
 }
 
 /*!
@@ -302,9 +294,63 @@ void vpMbtDistanceCircle::display(const vpImage<unsigned char> &I, const vpHomog
   If false, display the circle only if visible.
 */
 void vpMbtDistanceCircle::display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo,
-                                  const vpCameraParameters &camera, const vpColor &col, const unsigned int thickness,
-                                  const bool displayFullModel)
+                                  const vpCameraParameters &camera, const vpColor &col, unsigned int thickness,
+                                  bool displayFullModel)
 {
+  std::vector<double> params = getModelForDisplay(cMo, camera, displayFullModel);
+
+  vpImagePoint center(params[1], params[2]);
+  double mu20_p = params[3];
+  double mu11_p = params[4];
+  double mu02_p = params[5];
+  vpDisplay::displayEllipse(I, center, mu20_p, mu11_p, mu02_p, true, col, thickness);
+}
+
+/*!
+  Return a list of features parameters for display.
+  - Parameters are: `<feature id (here 0 for ME)>`, `<pt.i()>`, `<pt.j()>`, `<state>`
+*/
+std::vector<std::vector<double> > vpMbtDistanceCircle::getFeaturesForDisplay()
+{
+  std::vector<std::vector<double> > features;
+
+  if (meEllipse != NULL) {
+    for (std::list<vpMeSite>::const_iterator it = meEllipse->getMeList().begin(); it != meEllipse->getMeList().end(); ++it) {
+      vpMeSite p_me = *it;
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+      std::vector<double> params = {0, //ME
+                                    p_me.get_ifloat(),
+                                    p_me.get_jfloat(),
+                                    static_cast<double>(p_me.getState())};
+#else
+      std::vector<double> params;
+      params.push_back(0); //ME
+      params.push_back(p_me.get_ifloat());
+      params.push_back(p_me.get_jfloat());
+      params.push_back(static_cast<double>(p_me.getState()));
+#endif
+      features.push_back(params);
+    }
+  }
+
+  return features;
+}
+
+/*!
+  Return a list of ellipse parameters to display the primitive at a given pose and camera parameters.
+  - Parameters are: `<primitive id (here 1 for ellipse)>`, `<pt_center.i()>`, `<pt_center.j()>`,
+  `<mu20>`, `<mu11>`, `<mu02>`
+
+  \param cMo : Pose used to project the 3D model into the image.
+  \param camera : The camera parameters.
+  \param displayFullModel : If true, the line is displayed even if it is not
+*/
+std::vector<double> vpMbtDistanceCircle::getModelForDisplay(const vpHomogeneousMatrix &cMo,
+                                                            const vpCameraParameters &camera,
+                                                            bool displayFullModel)
+{
+  std::vector<double> params;
+
   if ((isvisible && isTrackedCircle) || displayFullModel) {
     // Perspective projection
     circle->changeFrame(cMo);
@@ -318,25 +364,38 @@ void vpMbtDistanceCircle::display(const vpImage<vpRGBa> &I, const vpHomogeneousM
     vpImagePoint center;
     double mu20_p, mu11_p, mu02_p;
     vpMeterPixelConversion::convertEllipse(camera, *circle, center, mu20_p, mu11_p, mu02_p);
-    vpDisplay::displayEllipse(I, center, mu20_p, mu11_p, mu02_p, true, col, thickness);
+    params.push_back(1); //1 for ellipse parameters
+    params.push_back(center.get_i());
+    params.push_back(center.get_j());
+    params.push_back(mu20_p);
+    params.push_back(mu11_p);
+    params.push_back(mu02_p);
   }
+
+  return params;
 }
 
 /*!
-    Enable to display the points along the ellipse with a color corresponding
+   Enable to display the points along the ellipse with a color corresponding
    to their state.
 
-    - If green : The vpMeSite is a good point.
-    - If blue : The point is removed because of the vpMeSite tracking phase
-   (constrast problem).
-    - If purple : The point is removed because of the vpMeSite tracking phase
-   (threshold problem).
-    - If blue : The point is removed because of the robust method in the
-   virtual visual servoing.
+   - If green : The vpMeSite is a good point.
+   - If blue : The point is removed because of the vpMeSite tracking phase (constrast problem).
+   - If purple : The point is removed because of the vpMeSite tracking phase (threshold problem).
+   - If blue : The point is removed because of the robust method in the virtual visual servoing.
 
-    \param I : The image.
+   \param I : The image.
 */
 void vpMbtDistanceCircle::displayMovingEdges(const vpImage<unsigned char> &I)
+{
+  if (meEllipse != NULL) {
+    meEllipse->display(I); // display the me
+    if (vpDEBUG_ENABLE(3))
+      vpDisplay::flush(I);
+  }
+}
+
+void vpMbtDistanceCircle::displayMovingEdges(const vpImage<vpRGBa> &I)
 {
   if (meEllipse != NULL) {
     meEllipse->display(I); // display the me
