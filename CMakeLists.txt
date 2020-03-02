@@ -698,10 +698,13 @@ VP_CHECK_PACKAGE(Log1p)
 # Dashboards are sent to https://cdash-ci.inria.fr/index.php?project=ViSP
 #----------------------------------------------------------------------
 if(BUILD_TESTS)
-  enable_testing()
+  #enable_testing()
   mark_as_advanced(DART_ROOT)
   mark_as_advanced(BUILD_TESTING)
 endif()
+
+# Install catkin package.xml
+install(FILES package.xml DESTINATION share/visp)
 
 #----------------------------------------------------------------------
 # Try to find doxygen for documentation generation
