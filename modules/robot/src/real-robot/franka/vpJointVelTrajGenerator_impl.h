@@ -62,7 +62,7 @@ public:
     m_status(), m_delta_q(), m_delta_q_max(), m_delta_q_acc(),
     m_q_final(), m_sign(), m_q_cmd(), m_q_cmd_prev(), m_dist_AD(), m_dq_des(), m_dq_des_prev(), m_dist_to_final(),
     m_flagSpeed(),
-    m_q_min(), m_q_max(), m_dq_max(), m_ddq_max(), m_njoints(7), m_delta_t(0.001), m_flagJointLimit(false)  {}
+    m_q_min(), m_q_max(), m_dq_max(), m_ddq_max(), m_njoints(7), m_delta_t(0.001), m_flagJointLimit(false) {}
   virtual ~vpJointVelTrajGenerator() {}
 
   void applyVel(const std::array<double, 7> &dq_des,
@@ -87,7 +87,7 @@ public:
              const std::array<double, 7> &q_max,
              const std::array<double, 7> &dq_max,
              const std::array<double, 7> &ddq_max,
-             const double delta_t);
+             double delta_t);
 
   std::array<double, 7> limitRate(const std::array<double, 7>& max_derivatives,
                                   const std::array<double, 7>& desired_values,

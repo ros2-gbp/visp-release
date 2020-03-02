@@ -48,7 +48,7 @@
 
 #include <visp3/core/vpConfig.h>
 
-#if defined(VISP_HAVE_CPP11_COMPATIBILITY) && defined(VISP_HAVE_V4L2) &&                                               \
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11) && defined(VISP_HAVE_V4L2) && \
     (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GTK))
 
 #include <condition_variable>
@@ -206,7 +206,7 @@ class StorageWorker
 {
 
 public:
-  StorageWorker(FrameQueue &queue, const std::string &filename, const unsigned int width, const unsigned int height)
+  StorageWorker(FrameQueue &queue, const std::string &filename, unsigned int width, unsigned int height)
     : m_queue(queue), m_filename(filename), m_width(width), m_height(height)
   {
   }
@@ -341,8 +341,8 @@ void capture(vpV4l2Grabber *const pGrabber, ShareImage &share_image)
   }
 }
 
-void display(const unsigned int width, const unsigned int height, const int win_x, const int win_y,
-             const unsigned int deviceId, ShareImage &share_image, FrameQueue &queue, const bool save)
+void display(unsigned int width, unsigned int height, int win_x, int win_y,
+             unsigned int deviceId, ShareImage &share_image, FrameQueue &queue, bool save)
 {
   vpImage<vpRGBa> local_img(height, width);
 
@@ -353,9 +353,11 @@ void display(const unsigned int width, const unsigned int height, const int win_
 #endif
 
   // Init Display
-  std::stringstream ss;
-  ss << "Camera stream " << deviceId;
-  display.init(local_img, win_x, win_y, ss.str());
+  {
+    std::stringstream ss;
+    ss << "Camera stream " << deviceId;
+    display.init(local_img, win_x, win_y, ss.str());
+  }
 
   try {
     vpMouseButton::vpMouseButtonType button;
@@ -551,9 +553,9 @@ int main()
 #else
 int main()
 {
-  std::cout << "You do not build ViSP with C++11 compiler flag" << std::endl;
+  std::cout << "You do not build ViSP with c++11 or higher compiler flag" << std::endl;
   std::cout << "Tip:" << std::endl;
-  std::cout << "- Configure ViSP again using cmake -DUSE_CPP11=ON, and build again this example" << std::endl;
+  std::cout << "- Configure ViSP again using cmake -DUSE_CXX_STANDARD=11, and build again this example" << std::endl;
   return EXIT_SUCCESS;
 }
 #endif

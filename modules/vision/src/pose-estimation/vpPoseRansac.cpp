@@ -56,7 +56,7 @@
 #include <visp3/vision/vpPose.h>
 #include <visp3/vision/vpPoseException.h>
 
-#if defined(VISP_HAVE_CPP11_COMPATIBILITY)
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
 #include <thread>
 #endif
 
@@ -123,12 +123,8 @@ struct FindDegeneratePoint {
 bool vpPose::RansacFunctor::poseRansacImpl()
 {
   const unsigned int size = (unsigned int)m_listOfUniquePoints.size();
-  const unsigned int nbMinRandom = 4;
+  unsigned int nbMinRandom = 4;
   int nbTrials = 0;
-
-#if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
-  srand(m_initial_seed);
-#endif
 
   vpPoint p; // Point used to project using the estimated pose
 
@@ -162,20 +158,12 @@ bool vpPose::RansacFunctor::poseRansacImpl()
         break;
       }
 
-// Pick a point randomly
-#if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__)) || defined(ANDROID)
-      unsigned int r_ = (unsigned int)rand() % size;
-#else
-      unsigned int r_ = (unsigned int)rand_r(&m_initial_seed) % size;
-#endif
+      // Pick a point randomly
+      unsigned int r_ = m_uniRand.uniform(0, size);
 
       while (usedPt[r_]) {
-// If already picked, pick another point randomly
-#if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__)) || defined(ANDROID)
-        r_ = (unsigned int)rand() % size;
-#else
-        r_ = (unsigned int)rand_r(&m_initial_seed) % size;
-#endif
+        // If already picked, pick another point randomly
+        r_ = m_uniRand.uniform(0, size);
       }
       // Mark this point as already picked
       usedPt[r_] = true;
@@ -308,7 +296,7 @@ bool vpPose::RansacFunctor::poseRansacImpl()
     }
   }
 
-#ifdef VISP_HAVE_CPP11_COMPATIBILITY
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
   if (m_nbInliers >= m_ransacNbInlierConsensus)
     m_abort = true;
 #endif
@@ -393,7 +381,7 @@ bool vpPose::poseRansac(vpHomogeneousMatrix &cMo, bool (*func)(const vpHomogeneo
     throw(vpPoseException(vpPoseException::notInitializedError, "Not enough point to compute the pose"));
   }
 
-#ifdef VISP_HAVE_CPP11_COMPATIBILITY
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
   unsigned int nbThreads = 1;
   bool executeParallelVersion = useParallelRansac;
 #else
@@ -401,7 +389,7 @@ bool vpPose::poseRansac(vpHomogeneousMatrix &cMo, bool (*func)(const vpHomogeneo
 #endif
 
   if (executeParallelVersion) {
-#ifdef VISP_HAVE_CPP11_COMPATIBILITY
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
     if (nbParallelRansacThreads <= 0) {
       // Get number of CPU threads
       nbThreads = std::thread::hardware_concurrency();
@@ -416,10 +404,10 @@ bool vpPose::poseRansac(vpHomogeneousMatrix &cMo, bool (*func)(const vpHomogeneo
   bool foundSolution = false;
 
   if (executeParallelVersion) {
-#ifdef VISP_HAVE_CPP11_COMPATIBILITY
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
     std::vector<std::thread> threadpool;
     std::vector<RansacFunctor> ransacWorkers;
-    const unsigned int nthreads = std::thread::hardware_concurrency();
+    unsigned int nthreads = std::thread::hardware_concurrency();
 
     int splitTrials = ransacMaxTrials / nthreads;
     std::atomic<bool> abort{false};
@@ -461,12 +449,12 @@ bool vpPose::poseRansac(vpHomogeneousMatrix &cMo, bool (*func)(const vpHomogeneo
 #endif
   } else {
     // Sequential RANSAC
-#ifdef VISP_HAVE_CPP11_COMPATIBILITY
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
     std::atomic<bool> abort{false};
 #endif
     RansacFunctor sequentialRansac(cMo, ransacNbInlierConsensus, ransacMaxTrials, ransacThreshold, 0,
                                    checkDegeneratePoints, listOfUniquePoints, func
-                               #ifdef VISP_HAVE_CPP11_COMPATIBILITY
+                               #if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
                                    , abort
                                #endif
                                    );
@@ -480,7 +468,7 @@ bool vpPose::poseRansac(vpHomogeneousMatrix &cMo, bool (*func)(const vpHomogeneo
   }
 
   if (foundSolution) {
-    const unsigned int nbMinRandom = 4;
+    unsigned int nbMinRandom = 4;
     //    std::cout << "Nombre d'inliers " << nbInliers << std::endl ;
 
     // Display the random picked points
@@ -673,7 +661,7 @@ void vpPose::findMatch(std::vector<vpPoint> &p2D, std::vector<vpPoint> &p3D,
                        const unsigned int &numberOfInlierToReachAConsensus, const double &threshold,
                        unsigned int &ninliers, std::vector<vpPoint> &listInliers, vpHomogeneousMatrix &cMo,
                        const int &maxNbTrials,
-                       const bool useParallelRansac, const unsigned int nthreads,
+                       bool useParallelRansac, unsigned int nthreads,
                        bool (*func)(const vpHomogeneousMatrix &))
 {
   vpPose pose;
