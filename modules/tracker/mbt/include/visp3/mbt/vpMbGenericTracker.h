@@ -90,7 +90,7 @@ public:
   };
 
   vpMbGenericTracker();
-  vpMbGenericTracker(const unsigned int nbCameras, const int trackerType = EDGE_TRACKER);
+  vpMbGenericTracker(unsigned int nbCameras, int trackerType = EDGE_TRACKER);
   explicit vpMbGenericTracker(const std::vector<int> &trackerTypes);
   vpMbGenericTracker(const std::vector<std::string> &cameraNames, const std::vector<int> &trackerTypes);
 
@@ -98,32 +98,35 @@ public:
 
   virtual double computeCurrentProjectionError(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &_cMo,
                                                const vpCameraParameters &_cam);
+  virtual double computeCurrentProjectionError(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &_cMo,
+                                               const vpCameraParameters &_cam);
 
   virtual void display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-                       const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+                       const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
   virtual void display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-                       const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+                       const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
 
   virtual void display(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
                        const vpHomogeneousMatrix &c1Mo, const vpHomogeneousMatrix &c2Mo, const vpCameraParameters &cam1,
-                       const vpCameraParameters &cam2, const vpColor &color, const unsigned int thickness = 1,
-                       const bool displayFullModel = false);
+                       const vpCameraParameters &cam2, const vpColor &color, unsigned int thickness = 1,
+                       bool displayFullModel = false);
   virtual void display(const vpImage<vpRGBa> &I1, const vpImage<vpRGBa> &I2, const vpHomogeneousMatrix &c1Mo,
                        const vpHomogeneousMatrix &c2Mo, const vpCameraParameters &cam1, const vpCameraParameters &cam2,
-                       const vpColor &color, const unsigned int thickness = 1, const bool displayFullModel = false);
+                       const vpColor &color, unsigned int thickness = 1, bool displayFullModel = false);
 
   virtual void display(const std::map<std::string, const vpImage<unsigned char> *> &mapOfImages,
                        const std::map<std::string, vpHomogeneousMatrix> &mapOfCameraPoses,
                        const std::map<std::string, vpCameraParameters> &mapOfCameraParameters, const vpColor &col,
-                       const unsigned int thickness = 1, const bool displayFullModel = false);
+                       unsigned int thickness = 1, bool displayFullModel = false);
   virtual void display(const std::map<std::string, const vpImage<vpRGBa> *> &mapOfImages,
                        const std::map<std::string, vpHomogeneousMatrix> &mapOfCameraPoses,
                        const std::map<std::string, vpCameraParameters> &mapOfCameraParameters, const vpColor &col,
-                       const unsigned int thickness = 1, const bool displayFullModel = false);
+                       unsigned int thickness = 1, bool displayFullModel = false);
 
   virtual std::vector<std::string> getCameraNames() const;
 
   using vpMbTracker::getCameraParameters;
+  virtual void getCameraParameters(vpCameraParameters &camera) const;
   virtual void getCameraParameters(vpCameraParameters &cam1, vpCameraParameters &cam2) const;
   virtual void getCameraParameters(std::map<std::string, vpCameraParameters> &mapOfCameraParameters) const;
 
@@ -143,6 +146,9 @@ public:
   virtual std::list<vpMbtDistanceKltCylinder *> &getFeaturesKltCylinder();
   virtual std::list<vpMbtDistanceKltPoints *> &getFeaturesKlt();
 #endif
+
+  virtual std::vector<std::vector<double> > getFeaturesForDisplay();
+  virtual void getFeaturesForDisplay(std::map<std::string, std::vector<std::vector<double> > > &mapOfFeatures);
 
   virtual double getGoodMovingEdgesRatioThreshold() const;
 
@@ -164,39 +170,53 @@ public:
   virtual double getKltThresholdAcceptation() const;
 #endif
 
-  virtual void getLcircle(std::list<vpMbtDistanceCircle *> &circlesList, const unsigned int level = 0) const;
+  virtual void getLcircle(std::list<vpMbtDistanceCircle *> &circlesList, unsigned int level = 0) const;
   virtual void getLcircle(const std::string &cameraName, std::list<vpMbtDistanceCircle *> &circlesList,
-                          const unsigned int level = 0) const;
-  virtual void getLcylinder(std::list<vpMbtDistanceCylinder *> &cylindersList, const unsigned int level = 0) const;
+                          unsigned int level = 0) const;
+  virtual void getLcylinder(std::list<vpMbtDistanceCylinder *> &cylindersList, unsigned int level = 0) const;
   virtual void getLcylinder(const std::string &cameraName, std::list<vpMbtDistanceCylinder *> &cylindersList,
-                            const unsigned int level = 0) const;
-  virtual void getLline(std::list<vpMbtDistanceLine *> &linesList, const unsigned int level = 0) const;
+                            unsigned int level = 0) const;
+  virtual void getLline(std::list<vpMbtDistanceLine *> &linesList, unsigned int level = 0) const;
   virtual void getLline(const std::string &cameraName, std::list<vpMbtDistanceLine *> &linesList,
-                        const unsigned int level = 0) const;
+                        unsigned int level = 0) const;
+
+  virtual std::vector<std::vector<double> > getModelForDisplay(unsigned int width, unsigned int height,
+                                                               const vpHomogeneousMatrix &cMo,
+                                                               const vpCameraParameters &cam,
+                                                               bool displayFullModel=false);
+  virtual void getModelForDisplay(std::map<std::string, std::vector<std::vector<double> > > &mapOfModels,
+                                  const std::map<std::string, unsigned int> &mapOfwidths,
+                                  const std::map<std::string, unsigned int> &mapOfheights,
+                                  const std::map<std::string, vpHomogeneousMatrix> &mapOfcMos,
+                                  const std::map<std::string, vpCameraParameters> &mapOfCams,
+                                  bool displayFullModel=false);
 
   virtual vpMe getMovingEdge() const;
   virtual void getMovingEdge(vpMe &me1, vpMe &me2) const;
   virtual void getMovingEdge(std::map<std::string, vpMe> &mapOfMovingEdges) const;
 
-  virtual unsigned int getNbPoints(const unsigned int level = 0) const;
-  virtual void getNbPoints(std::map<std::string, unsigned int> &mapOfNbPoints, const unsigned int level = 0) const;
+  virtual unsigned int getNbPoints(unsigned int level = 0) const;
+  virtual void getNbPoints(std::map<std::string, unsigned int> &mapOfNbPoints, unsigned int level = 0) const;
 
-  virtual inline unsigned int getNbPolygon() const;
+  virtual unsigned int getNbPolygon() const;
   virtual void getNbPolygon(std::map<std::string, unsigned int> &mapOfNbPolygons) const;
 
-  virtual vpMbtPolygon *getPolygon(const unsigned int index);
-  virtual vpMbtPolygon *getPolygon(const std::string &cameraName, const unsigned int index);
+  virtual vpMbtPolygon *getPolygon(unsigned int index);
+  virtual vpMbtPolygon *getPolygon(const std::string &cameraName, unsigned int index);
 
   virtual std::pair<std::vector<vpPolygon>, std::vector<std::vector<vpPoint> > >
-  getPolygonFaces(const bool orderPolygons = true, const bool useVisibility = true, const bool clipPolygon = false);
+  getPolygonFaces(bool orderPolygons = true, bool useVisibility = true, bool clipPolygon = false);
   virtual void getPolygonFaces(std::map<std::string, std::vector<vpPolygon> > &mapOfPolygons,
                                std::map<std::string, std::vector<std::vector<vpPoint> > > &mapOfPoints,
-                               const bool orderPolygons = true, const bool useVisibility = true,
-                               const bool clipPolygon = false);
+                               bool orderPolygons = true, bool useVisibility = true,
+                               bool clipPolygon = false);
 
   using vpMbTracker::getPose;
+  virtual void getPose(vpHomogeneousMatrix &cMo) const;
   virtual void getPose(vpHomogeneousMatrix &c1Mo, vpHomogeneousMatrix &c2Mo) const;
   virtual void getPose(std::map<std::string, vpHomogeneousMatrix> &mapOfCameraPoses) const;
+
+  virtual std::string getReferenceCameraName() const;
 
   virtual inline vpColVector getRobustWeights() const { return m_w; }
 
@@ -207,51 +227,88 @@ public:
 #ifdef VISP_HAVE_MODULE_GUI
   using vpMbTracker::initClick;
   virtual void initClick(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
-                         const std::string &initFile1, const std::string &initFile2, const bool displayHelp = false,
+                         const std::string &initFile1, const std::string &initFile2, bool displayHelp = false,
                          const vpHomogeneousMatrix &T1=vpHomogeneousMatrix(), const vpHomogeneousMatrix &T2=vpHomogeneousMatrix());
+  virtual void initClick(const vpImage<vpRGBa> &I_color1, const vpImage<vpRGBa> &I_color2,
+                         const std::string &initFile1, const std::string &initFile2, bool displayHelp = false,
+                         const vpHomogeneousMatrix &T1=vpHomogeneousMatrix(), const vpHomogeneousMatrix &T2=vpHomogeneousMatrix());
+
   virtual void initClick(const std::map<std::string, const vpImage<unsigned char> *> &mapOfImages,
-                         const std::map<std::string, std::string> &mapOfInitFiles, const bool displayHelp = false,
+                         const std::map<std::string, std::string> &mapOfInitFiles, bool displayHelp = false,
+                         const std::map<std::string, vpHomogeneousMatrix> &mapOfT=std::map<std::string, vpHomogeneousMatrix>());
+  virtual void initClick(const std::map<std::string, const vpImage<vpRGBa> *> &mapOfImages,
+                         const std::map<std::string, std::string> &mapOfInitFiles, bool displayHelp = false,
                          const std::map<std::string, vpHomogeneousMatrix> &mapOfT=std::map<std::string, vpHomogeneousMatrix>());
 #endif
 
   using vpMbTracker::initFromPoints;
   virtual void initFromPoints(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
                               const std::string &initFile1, const std::string &initFile2);
+  virtual void initFromPoints(const vpImage<vpRGBa> &I_color1, const vpImage<vpRGBa> &I_color2,
+                              const std::string &initFile1, const std::string &initFile2);
+
   virtual void initFromPoints(const std::map<std::string, const vpImage<unsigned char> *> &mapOfImages,
+                              const std::map<std::string, std::string> &mapOfInitPoints);
+  virtual void initFromPoints(const std::map<std::string, const vpImage<vpRGBa> *> &mapOfColorImages,
                               const std::map<std::string, std::string> &mapOfInitPoints);
 
   using vpMbTracker::initFromPose;
+  virtual void initFromPose(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo);
   virtual void initFromPose(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
                             const std::string &initFile1, const std::string &initFile2);
+  virtual void initFromPose(const vpImage<vpRGBa> &I_color1, const vpImage<vpRGBa> &I_color2,
+                            const std::string &initFile1, const std::string &initFile2);
+
   virtual void initFromPose(const std::map<std::string, const vpImage<unsigned char> *> &mapOfImages,
+                            const std::map<std::string, std::string> &mapOfInitPoses);
+  virtual void initFromPose(const std::map<std::string, const vpImage<vpRGBa> *> &mapOfColorImages,
                             const std::map<std::string, std::string> &mapOfInitPoses);
 
   virtual void initFromPose(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
                             const vpHomogeneousMatrix &c1Mo, const vpHomogeneousMatrix &c2Mo);
+  virtual void initFromPose(const vpImage<vpRGBa> &I_color1, const vpImage<vpRGBa> &I_color2,
+                            const vpHomogeneousMatrix &c1Mo, const vpHomogeneousMatrix &c2Mo);
+
   virtual void initFromPose(const std::map<std::string, const vpImage<unsigned char> *> &mapOfImages,
+                            const std::map<std::string, vpHomogeneousMatrix> &mapOfCameraPoses);
+  virtual void initFromPose(const std::map<std::string, const vpImage<vpRGBa> *> &mapOfColorImages,
                             const std::map<std::string, vpHomogeneousMatrix> &mapOfCameraPoses);
 
   virtual void loadConfigFile(const std::string &configFile);
   virtual void loadConfigFile(const std::string &configFile1, const std::string &configFile2);
   virtual void loadConfigFile(const std::map<std::string, std::string> &mapOfConfigFiles);
 
-  virtual void loadModel(const std::string &modelFile, const bool verbose = false, const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
-  virtual void loadModel(const std::string &modelFile1, const std::string &modelFile2, const bool verbose = false,
+  virtual void loadModel(const std::string &modelFile, bool verbose = false, const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
+  virtual void loadModel(const std::string &modelFile1, const std::string &modelFile2, bool verbose = false,
                          const vpHomogeneousMatrix &T1=vpHomogeneousMatrix(), const vpHomogeneousMatrix &T2=vpHomogeneousMatrix());
-  virtual void loadModel(const std::map<std::string, std::string> &mapOfModelFiles, const bool verbose = false,
+  virtual void loadModel(const std::map<std::string, std::string> &mapOfModelFiles, bool verbose = false,
                          const std::map<std::string, vpHomogeneousMatrix> &mapOfT=std::map<std::string, vpHomogeneousMatrix>());
 
   virtual void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name,
-                           const vpHomogeneousMatrix &cMo_, const bool verbose = false,
+                           const vpHomogeneousMatrix &cMo, bool verbose = false,
                            const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
+  virtual void reInitModel(const vpImage<vpRGBa> &I_color, const std::string &cad_name,
+                           const vpHomogeneousMatrix &cMo, bool verbose = false,
+                           const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
+
   virtual void reInitModel(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
                            const std::string &cad_name1, const std::string &cad_name2, const vpHomogeneousMatrix &c1Mo,
-                           const vpHomogeneousMatrix &c2Mo, const bool verbose = false,
+                           const vpHomogeneousMatrix &c2Mo, bool verbose = false,
                            const vpHomogeneousMatrix &T1=vpHomogeneousMatrix(), const vpHomogeneousMatrix &T2=vpHomogeneousMatrix());
+  virtual void reInitModel(const vpImage<vpRGBa> &I_color1, const vpImage<vpRGBa> &I_color2,
+                           const std::string &cad_name1, const std::string &cad_name2, const vpHomogeneousMatrix &c1Mo,
+                           const vpHomogeneousMatrix &c2Mo, bool verbose = false,
+                           const vpHomogeneousMatrix &T1=vpHomogeneousMatrix(), const vpHomogeneousMatrix &T2=vpHomogeneousMatrix());
+
   virtual void reInitModel(const std::map<std::string, const vpImage<unsigned char> *> &mapOfImages,
                            const std::map<std::string, std::string> &mapOfModelFiles,
                            const std::map<std::string, vpHomogeneousMatrix> &mapOfCameraPoses,
-                           const bool verbose = false,
+                           bool verbose = false,
+                           const std::map<std::string, vpHomogeneousMatrix> &mapOfT=std::map<std::string, vpHomogeneousMatrix>());
+  virtual void reInitModel(const std::map<std::string, const vpImage<vpRGBa> *> &mapOfColorImages,
+                           const std::map<std::string, std::string> &mapOfModelFiles,
+                           const std::map<std::string, vpHomogeneousMatrix> &mapOfCameraPoses,
+                           bool verbose = false,
                            const std::map<std::string, vpHomogeneousMatrix> &mapOfT=std::map<std::string, vpHomogeneousMatrix>());
 
   virtual void resetTracker();
@@ -277,20 +334,20 @@ public:
   virtual void setClipping(const unsigned int &flags1, const unsigned int &flags2);
   virtual void setClipping(const std::map<std::string, unsigned int> &mapOfClippingFlags);
 
-  virtual void setDepthDenseFilteringMaxDistance(const double maxDistance);
-  virtual void setDepthDenseFilteringMethod(const int method);
-  virtual void setDepthDenseFilteringMinDistance(const double minDistance);
-  virtual void setDepthDenseFilteringOccupancyRatio(const double occupancyRatio);
-  virtual void setDepthDenseSamplingStep(const unsigned int stepX, const unsigned int stepY);
+  virtual void setDepthDenseFilteringMaxDistance(double maxDistance);
+  virtual void setDepthDenseFilteringMethod(int method);
+  virtual void setDepthDenseFilteringMinDistance(double minDistance);
+  virtual void setDepthDenseFilteringOccupancyRatio(double occupancyRatio);
+  virtual void setDepthDenseSamplingStep(unsigned int stepX, unsigned int stepY);
 
   virtual void setDepthNormalFaceCentroidMethod(const vpMbtFaceDepthNormal::vpFaceCentroidType &method);
   virtual void setDepthNormalFeatureEstimationMethod(const vpMbtFaceDepthNormal::vpFeatureEstimationType &method);
-  virtual void setDepthNormalPclPlaneEstimationMethod(const int method);
-  virtual void setDepthNormalPclPlaneEstimationRansacMaxIter(const int maxIter);
-  virtual void setDepthNormalPclPlaneEstimationRansacThreshold(const double thresold);
-  virtual void setDepthNormalSamplingStep(const unsigned int stepX, const unsigned int stepY);
+  virtual void setDepthNormalPclPlaneEstimationMethod(int method);
+  virtual void setDepthNormalPclPlaneEstimationRansacMaxIter(int maxIter);
+  virtual void setDepthNormalPclPlaneEstimationRansacThreshold(double threshold);
+  virtual void setDepthNormalSamplingStep(unsigned int stepX, unsigned int stepY);
 
-  virtual void setDisplayFeatures(const bool displayF);
+  virtual void setDisplayFeatures(bool displayF);
 
   virtual void setFarClippingDistance(const double &dist);
   virtual void setFarClippingDistance(const double &dist1, const double &dist2);
@@ -298,7 +355,7 @@ public:
 
   virtual void setFeatureFactors(const std::map<vpTrackerType, double> &mapOfFeatureFactors);
 
-  virtual void setGoodMovingEdgesRatioThreshold(const double threshold);
+  virtual void setGoodMovingEdgesRatioThreshold(double threshold);
 
 #ifdef VISP_HAVE_OGRE
   virtual void setGoodNbRayCastingAttemptsRatio(const double &ratio);
@@ -314,16 +371,16 @@ public:
   virtual void setKltOpencv(const vpKltOpencv &t1, const vpKltOpencv &t2);
   virtual void setKltOpencv(const std::map<std::string, vpKltOpencv> &mapOfKlts);
 
-  virtual void setKltThresholdAcceptation(const double th);
+  virtual void setKltThresholdAcceptation(double th);
 
 #endif
 
-  virtual void setLod(const bool useLod, const std::string &name = "");
+  virtual void setLod(bool useLod, const std::string &name = "");
 
   virtual void setMask(const vpImage<bool> &mask);
 
-  virtual void setMinLineLengthThresh(const double minLineLengthThresh, const std::string &name = "");
-  virtual void setMinPolygonAreaThresh(const double minPolygonAreaThresh, const std::string &name = "");
+  virtual void setMinLineLengthThresh(double minLineLengthThresh, const std::string &name = "");
+  virtual void setMinPolygonAreaThresh(double minPolygonAreaThresh, const std::string &name = "");
 
   virtual void setMovingEdge(const vpMe &me);
   virtual void setMovingEdge(const vpMe &me1, const vpMe &me2);
@@ -333,28 +390,35 @@ public:
   virtual void setNearClippingDistance(const double &dist1, const double &dist2);
   virtual void setNearClippingDistance(const std::map<std::string, double> &mapOfDists);
 
-  virtual void setOgreShowConfigDialog(const bool showConfigDialog);
+  virtual void setOgreShowConfigDialog(bool showConfigDialog);
   virtual void setOgreVisibilityTest(const bool &v);
 
   virtual void setOptimizationMethod(const vpMbtOptimizationMethod &opt);
 
   virtual void setPose(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cdMo);
+  virtual void setPose(const vpImage<vpRGBa> &I_color, const vpHomogeneousMatrix &cdMo);
+
   virtual void setPose(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
                        const vpHomogeneousMatrix &c1Mo, const vpHomogeneousMatrix &c2Mo);
+  virtual void setPose(const vpImage<vpRGBa> &I_color1, const vpImage<vpRGBa> &I_color2,
+                       const vpHomogeneousMatrix &c1Mo, const vpHomogeneousMatrix &c2Mo);
+
   virtual void setPose(const std::map<std::string, const vpImage<unsigned char> *> &mapOfImages,
+                       const std::map<std::string, vpHomogeneousMatrix> &mapOfCameraPoses);
+  virtual void setPose(const std::map<std::string, const vpImage<vpRGBa> *> &mapOfColorImages,
                        const std::map<std::string, vpHomogeneousMatrix> &mapOfCameraPoses);
 
   virtual void setProjectionErrorComputation(const bool &flag);
 
-  virtual void setProjectionErrorDisplay(const bool display);
-  virtual void setProjectionErrorDisplayArrowLength(const unsigned int length);
-  virtual void setProjectionErrorDisplayArrowThickness(const unsigned int thickness);
+  virtual void setProjectionErrorDisplay(bool display);
+  virtual void setProjectionErrorDisplayArrowLength(unsigned int length);
+  virtual void setProjectionErrorDisplayArrowThickness(unsigned int thickness);
 
   virtual void setReferenceCameraName(const std::string &referenceCameraName);
 
   virtual void setScanLineVisibilityTest(const bool &v);
 
-  virtual void setTrackerType(const int type);
+  virtual void setTrackerType(int type);
   virtual void setTrackerType(const std::map<std::string, int> &mapOfTrackerTypes);
 
   virtual void setUseDepthDenseTracking(const std::string &name, const bool &useDepthDenseTracking);
@@ -367,13 +431,26 @@ public:
   virtual void testTracking();
 
   virtual void track(const vpImage<unsigned char> &I);
+  virtual void track(const vpImage<vpRGBa> &I_color);
+
   virtual void track(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2);
+  virtual void track(const vpImage<vpRGBa> &I_color1, const vpImage<vpRGBa> &I_color2);
+
   virtual void track(std::map<std::string, const vpImage<unsigned char> *> &mapOfImages);
+  virtual void track(std::map<std::string, const vpImage<vpRGBa> *> &mapOfColorImages);
+
 #ifdef VISP_HAVE_PCL
   virtual void track(std::map<std::string, const vpImage<unsigned char> *> &mapOfImages,
                      std::map<std::string, pcl::PointCloud<pcl::PointXYZ>::ConstPtr> &mapOfPointClouds);
+  virtual void track(std::map<std::string, const vpImage<vpRGBa> *> &mapOfColorImages,
+                     std::map<std::string, pcl::PointCloud<pcl::PointXYZ>::ConstPtr> &mapOfPointClouds);
 #endif
+
   virtual void track(std::map<std::string, const vpImage<unsigned char> *> &mapOfImages,
+                     std::map<std::string, const std::vector<vpColVector> *> &mapOfPointClouds,
+                     std::map<std::string, unsigned int> &mapOfPointCloudWidths,
+                     std::map<std::string, unsigned int> &mapOfPointCloudHeights);
+  virtual void track(std::map<std::string, const vpImage<vpRGBa> *> &mapOfColorImages,
                      std::map<std::string, const std::vector<vpColVector> *> &mapOfPointClouds,
                      std::map<std::string, unsigned int> &mapOfPointCloudWidths,
                      std::map<std::string, unsigned int> &mapOfPointCloudHeights);
@@ -391,10 +468,10 @@ protected:
   using vpMbTracker::computeVVSWeights;
   virtual void computeVVSWeights();
 
-  virtual void initCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, const double radius,
-                          const int idFace = 0, const std::string &name = "");
+  virtual void initCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, double radius,
+                          int idFace = 0, const std::string &name = "");
 
-  virtual void initCylinder(const vpPoint &p1, const vpPoint &p2, const double radius, const int idFace = 0,
+  virtual void initCylinder(const vpPoint &p1, const vpPoint &p2, double radius, int idFace = 0,
                             const std::string &name = "");
 
   virtual void initFaceFromCorners(vpMbtPolygon &polygon);
@@ -433,7 +510,7 @@ private:
     vpColVector m_weightedError;
 
     TrackerWrapper();
-    explicit TrackerWrapper(const int trackerType);
+    explicit TrackerWrapper(int trackerType);
 
     virtual ~TrackerWrapper();
 
@@ -444,16 +521,26 @@ private:
     virtual inline int getTrackerType() const { return m_trackerType; }
 
     virtual void display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-                         const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+                         const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
     virtual void display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-                         const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+                         const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
+
+    virtual std::vector<std::vector<double> > getFeaturesForDisplay();
+
+    virtual std::vector<std::vector<double> > getModelForDisplay(unsigned int width, unsigned int height,
+                                                                 const vpHomogeneousMatrix &cMo,
+                                                                 const vpCameraParameters &cam,
+                                                                 bool displayFullModel=false);
 
     virtual void init(const vpImage<unsigned char> &I);
 
     virtual void loadConfigFile(const std::string &configFile);
 
     virtual void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name,
-                             const vpHomogeneousMatrix &cMo_, const bool verbose = false,
+                             const vpHomogeneousMatrix &cMo, bool verbose = false,
+                             const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
+    virtual void reInitModel(const vpImage<vpRGBa> &I_color, const std::string &cad_name,
+                             const vpHomogeneousMatrix &cMo, bool verbose = false,
                              const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
 
     virtual void resetTracker();
@@ -469,21 +556,28 @@ private:
     virtual void setOgreVisibilityTest(const bool &v);
 
     virtual void setPose(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cdMo);
+    virtual void setPose(const vpImage<vpRGBa> &I_color, const vpHomogeneousMatrix &cdMo);
 
     virtual void setProjectionErrorComputation(const bool &flag);
 
     virtual void setScanLineVisibilityTest(const bool &v);
 
-    virtual void setTrackerType(const int type);
+    virtual void setTrackerType(int type);
 
     virtual void testTracking();
 
     virtual void track(const vpImage<unsigned char> &I);
+    virtual void track(const vpImage<vpRGBa> &I_color);
 #ifdef VISP_HAVE_PCL
+    // Fix error: using declaration ‘using vpMbDepthDenseTracker::setPose’ conflicts with a previous
+    // using declaration that occurs with g++ 4.6.3 on Ubuntu 12.04
+#if !((__GNUC__ == 4) && (__GNUC_MINOR__ == 6))
     using vpMbDepthNormalTracker::track;
+#endif
     using vpMbDepthDenseTracker::track;
-    virtual void track(const vpImage<unsigned char> *const ptr_I = NULL,
-                       const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud = nullptr);
+    using vpMbEdgeTracker::track;
+    virtual void track(const vpImage<unsigned char> *const ptr_I,
+                       const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud);
 #endif
 
   protected:
@@ -496,10 +590,10 @@ private:
     using vpMbTracker::computeVVSWeights;
     virtual void computeVVSWeights();
 
-    virtual void initCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, const double radius,
-                            const int idFace = 0, const std::string &name = "");
+    virtual void initCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, double radius,
+                            int idFace = 0, const std::string &name = "");
 
-    virtual void initCylinder(const vpPoint &p1, const vpPoint &p2, const double radius, const int idFace = 0,
+    virtual void initCylinder(const vpPoint &p1, const vpPoint &p2, double radius, int idFace = 0,
                               const std::string &name = "");
 
     virtual void initFaceFromCorners(vpMbtPolygon &polygon);
@@ -508,16 +602,31 @@ private:
     virtual void initMbtTracking(const vpImage<unsigned char> *const ptr_I);
 
 #ifdef VISP_HAVE_PCL
-    virtual void postTracking(const vpImage<unsigned char> *const ptr_I = NULL,
-                              const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud = nullptr);
-    virtual void preTracking(const vpImage<unsigned char> *const ptr_I = NULL,
-                             const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud = nullptr);
+    virtual void postTracking(const vpImage<unsigned char> *const ptr_I,
+                              const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud);
+    virtual void preTracking(const vpImage<unsigned char> *const ptr_I,
+                             const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud);
 #endif
     virtual void postTracking(const vpImage<unsigned char> *const ptr_I = NULL, const unsigned int pointcloud_width = 0,
                               const unsigned int pointcloud_height = 0);
     virtual void preTracking(const vpImage<unsigned char> *const ptr_I = NULL,
                              const std::vector<vpColVector> *const point_cloud = NULL,
                              const unsigned int pointcloud_width = 0, const unsigned int pointcloud_height = 0);
+
+    virtual void reInitModel(const vpImage<unsigned char> * const I, const vpImage<vpRGBa> * const I_color,
+                             const std::string &cad_name, const vpHomogeneousMatrix &cMo, bool verbose = false,
+                             const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
+
+#ifdef VISP_HAVE_PCL
+    // Fix error: using declaration ‘using vpMbDepthDenseTracker::track’ conflicts with a previous
+    // using declaration that occurs with g++ 4.6.3 on Ubuntu 12.04
+#if !((__GNUC__ == 4) && (__GNUC_MINOR__ == 6))
+    using vpMbDepthNormalTracker::setPose; 
+#endif
+    using vpMbDepthDenseTracker::setPose;
+#endif
+    virtual void setPose(const vpImage<unsigned char> * const I, const vpImage<vpRGBa> * const I_color,
+                         const vpHomogeneousMatrix &cdMo);
   };
 
 protected:

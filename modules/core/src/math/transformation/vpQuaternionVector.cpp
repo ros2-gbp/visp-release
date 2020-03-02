@@ -57,7 +57,7 @@ vpQuaternionVector::vpQuaternionVector() : vpRotationVector(4) {}
 vpQuaternionVector::vpQuaternionVector(const vpQuaternionVector &q) : vpRotationVector(q) {}
 
 //! Constructor from doubles.
-vpQuaternionVector::vpQuaternionVector(const double x_, const double y_, const double z_, const double w_)
+vpQuaternionVector::vpQuaternionVector(double x_, double y_, double z_, double w_)
   : vpRotationVector(4)
 {
   set(x_, y_, z_, w_);
@@ -97,7 +97,7 @@ vpQuaternionVector::vpQuaternionVector(const vpThetaUVector &tu) : vpRotationVec
   \param qz : z quaternion parameter.
   \param qw : w quaternion parameter.
 */
-void vpQuaternionVector::set(const double qx, const double qy, const double qz, const double qw)
+void vpQuaternionVector::set(double qx, double qy, double qz, double qw)
 {
   data[0] = qx;
   data[1] = qy;
@@ -113,7 +113,7 @@ void vpQuaternionVector::set(const double qx, const double qy, const double qz, 
 
   \sa set()
 */
-vpQuaternionVector vpQuaternionVector::buildFrom(const double qx, const double qy, const double qz, const double qw)
+vpQuaternionVector vpQuaternionVector::buildFrom(double qx, double qy, double qz, double qw)
 {
   set(qx, qy, qz, qw);
   return *this;
@@ -190,7 +190,7 @@ vpQuaternionVector vpQuaternionVector::operator-(const vpQuaternionVector &q) co
 vpQuaternionVector vpQuaternionVector::operator-() const { return vpQuaternionVector(-x(), -y(), -z(), -w()); }
 
 //! Multiplication by scalar. Returns a quaternion defined by (lx,ly,lz,lw).
-vpQuaternionVector vpQuaternionVector::operator*(const double l) const
+vpQuaternionVector vpQuaternionVector::operator*(double l) const
 {
   return vpQuaternionVector(l * x(), l * y(), l * z(), l * w());
 }
@@ -205,7 +205,7 @@ vpQuaternionVector vpQuaternionVector::operator*(const vpQuaternionVector &rq) c
 }
 
 //! Division by scalar. Returns a quaternion defined by (x/l,y/l,z/l,w/l).
-vpQuaternionVector vpQuaternionVector::operator/(const double l) const
+vpQuaternionVector vpQuaternionVector::operator/(double l) const
 {
   if (vpMath::nul(l, std::numeric_limits<double>::epsilon())) {
     throw vpException(vpException::fatalError, "Division by scalar l==0 !");
@@ -320,3 +320,31 @@ double vpQuaternionVector::y() const { return data[1]; }
 double vpQuaternionVector::z() const { return data[2]; }
 //! Returns w-component of the quaternion.
 double vpQuaternionVector::w() const { return data[3]; }
+
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+/*!
+  Set vector from a list of 4 double angle values.
+  \code
+#include <visp3/core/vpQuaternionVector.cpp>
+
+int main()
+{
+  vpQuaternionVector q = {0, 0, 0, 1};
+  std::cout << "q: " << q.t() << std::endl;
+}
+  \endcode
+  It produces the following printings:
+  \code
+q: 0  0  0  1
+  \endcode
+  \sa operator<<()
+*/
+vpQuaternionVector &vpQuaternionVector::operator=(const std::initializer_list<double> &list)
+{
+  if (list.size() > size()) {
+    throw(vpException(vpException::dimensionError, "Cannot set quaternion vector out of bounds. It has only %d values while you try to initialize with %d values", size(), list.size()));
+  }
+  std::copy(list.begin(), list.end(), data);
+  return *this;
+}
+#endif

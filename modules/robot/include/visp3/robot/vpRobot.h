@@ -62,11 +62,11 @@ public:
     Robot control states.
   */
   typedef enum {
-    STATE_STOP,                /*!< Stops robot motion especially in velocity and
-                       acceleration control. */
-    STATE_VELOCITY_CONTROL,    //!< Initialize the velocity controller.
-    STATE_POSITION_CONTROL,    //!< Initialize the position controller.
-    STATE_ACCELERATION_CONTROL //!< Initialize the acceleration controller.
+    STATE_STOP,                 //!< Stops robot motion especially in velocity and acceleration control.
+    STATE_VELOCITY_CONTROL,     //!< Initialize the velocity controller.
+    STATE_POSITION_CONTROL,     //!< Initialize the position controller.
+    STATE_ACCELERATION_CONTROL, //!< Initialize the acceleration controller.
+    STATE_FORCE_TORQUE_CONTROL  //!< Initialize the force/torque controller.
   } vpRobotStateType;
 
   /*!
@@ -147,8 +147,8 @@ public:
 
   vpRobot &operator=(const vpRobot &robot);
 
-  void setMaxRotationVelocity(const double maxVr);
-  void setMaxTranslationVelocity(const double maxVt);
+  void setMaxRotationVelocity(double maxVr);
+  void setMaxTranslationVelocity(double maxVt);
   //! Set a displacement (frame has to be specified) in position control.
   virtual void setPosition(const vpRobot::vpControlFrameType frame, const vpColVector &q) = 0;
   virtual vpRobotStateType setRobotState(const vpRobot::vpRobotStateType newState);

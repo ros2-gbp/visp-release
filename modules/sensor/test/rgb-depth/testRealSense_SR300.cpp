@@ -46,7 +46,7 @@
 #include <visp3/io/vpImageIo.h>
 #include <visp3/sensor/vpRealSense.h>
 
-#if defined(VISP_HAVE_REALSENSE) && defined(VISP_HAVE_CPP11_COMPATIBILITY) &&                                          \
+#if defined(VISP_HAVE_REALSENSE) && (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11) &&                                          \
     (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI))
 #include <mutex>
 #include <thread>
@@ -68,7 +68,7 @@ bool cancelled = false, update_pointcloud = false;
 class ViewerWorker
 {
 public:
-  explicit ViewerWorker(const bool color_mode, std::mutex &mutex) : m_colorMode(color_mode), m_mutex(mutex) {}
+  explicit ViewerWorker(bool color_mode, std::mutex &mutex) : m_colorMode(color_mode), m_mutex(mutex) {}
 
   void run()
   {
@@ -141,7 +141,7 @@ private:
 
 void test_SR300(vpRealSense &rs, const std::map<rs::stream, bool> &enables,
                 const std::map<rs::stream, vpRealSense::vpRsStreamParams> &params, const std::string &title,
-                const bool depth_color_visualization = false, const rs::stream &color_stream = rs::stream::color,
+                bool depth_color_visualization = false, const rs::stream &color_stream = rs::stream::color,
                 const rs::stream &depth_stream = rs::stream::depth, bool display_pcl = false, bool pcl_color = false)
 {
   std::cout << std::endl;
@@ -502,8 +502,8 @@ int main()
 #if !defined(VISP_HAVE_REALSENSE)
   std::cout << "Install librealsense to make this test work." << std::endl;
 #endif
-#if !defined(VISP_HAVE_CPP11_COMPATIBILITY)
-  std::cout << "Build ViSP with C++11 compiler flag (cmake -DUSE_CPP11=ON) "
+#if !(VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  std::cout << "Build ViSP with c++11 or higher compiler flag (cmake -DUSE_CXX_STANDARD=11) "
                "to make this test work."
             << std::endl;
 #endif

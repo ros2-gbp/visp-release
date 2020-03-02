@@ -352,7 +352,7 @@ double vpMeSite::convolution(const vpImage<unsigned char> &I, const vpMe *me)
   is needed.
 
 */
-void vpMeSite::track(const vpImage<unsigned char> &I, const vpMe *me, const bool test_contraste)
+void vpMeSite::track(const vpImage<unsigned char> &I, const vpMe *me, bool test_contraste)
 {
   //   vpMeSite  *list_query_pixels ;
   //   int  max_rank =0 ;
@@ -598,7 +598,15 @@ VISP_EXPORT std::ostream &operator<<(std::ostream &os, vpMeSite &vpMeS)
 #endif
 }
 
-void vpMeSite::display(const vpImage<unsigned char> &I) { vpMeSite::display(I, ifloat, jfloat, state); }
+void vpMeSite::display(const vpImage<unsigned char> &I)
+{
+  vpMeSite::display(I, ifloat, jfloat, state);
+}
+
+void vpMeSite::display(const vpImage<vpRGBa> &I)
+{
+  vpMeSite::display(I, ifloat, jfloat, state);
+}
 
 // Static functions
 

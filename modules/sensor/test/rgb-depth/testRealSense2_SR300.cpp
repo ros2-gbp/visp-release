@@ -42,7 +42,7 @@
 
 #include <visp3/core/vpConfig.h>
 
-#if defined(VISP_HAVE_REALSENSE2) && defined(VISP_HAVE_CPP11_COMPATIBILITY) &&                                         \
+#if defined(VISP_HAVE_REALSENSE2) && (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11) &&                                         \
     (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI))
 
 #include <visp3/core/vpImage.h>
@@ -74,7 +74,7 @@ bool cancelled = false, update_pointcloud = false;
 class ViewerWorker
 {
 public:
-  explicit ViewerWorker(const bool color_mode, std::mutex &mutex) : m_colorMode(color_mode), m_mutex(mutex) {}
+  explicit ViewerWorker(bool color_mode, std::mutex &mutex) : m_colorMode(color_mode), m_mutex(mutex) {}
 
   void run()
   {
@@ -144,12 +144,12 @@ private:
   std::mutex &m_mutex;
 };
 
-void getPointcloud(const rs2::depth_frame &depth_frame, std::vector<vpColVector> &pointcloud)
+void getPointcloud(const rs2::depth_frame &depth_frame, std::vector<vpColVector> &point_cloud)
 {
   auto vf = depth_frame.as<rs2::video_frame>();
   const int width = vf.get_width();
   const int height = vf.get_height();
-  pointcloud.resize((size_t)(width * height));
+  point_cloud.resize((size_t)(width * height));
 
   rs2::pointcloud pc;
   rs2::points points = pc.calculate(depth_frame);
@@ -168,7 +168,7 @@ void getPointcloud(const rs2::depth_frame &depth_frame, std::vector<vpColVector>
       v[3] = 1.0;
     }
 
-    pointcloud[i] = v;
+    point_cloud[i] = v;
   }
 }
 #endif
@@ -592,8 +592,8 @@ int main()
 #if !defined(VISP_HAVE_REALSENSE2)
   std::cout << "Install librealsense2 to make this test work." << std::endl;
 #endif
-#if !defined(VISP_HAVE_CPP11_COMPATIBILITY)
-  std::cout << "Build ViSP with C++11 compiler flag (cmake -DUSE_CPP11=ON) "
+#if !(VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  std::cout << "Build ViSP with c++11 or higher compiler flag (cmake -DUSE_CXX_STANDARD=11) "
                "to make this test work"
             << std::endl;
 #endif

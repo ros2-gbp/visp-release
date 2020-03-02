@@ -111,7 +111,7 @@ int main(int argc, const char **argv)
 
     vpCameraParameters cam;
     cam.initPersProjWithoutDistortion(615.1674805, 615.1675415, I.getWidth() / 2., I.getHeight() / 2.);
-#ifdef VISP_HAVE_XML2
+#ifdef VISP_HAVE_PUGIXML
     vpXmlParserCamera parser;
     if (!intrinsic_file.empty() && !camera_name.empty())
       parser.parse(cam, intrinsic_file, camera_name, vpCameraParameters::perspectiveProjWithoutDistortion);
@@ -230,9 +230,11 @@ int main(int argc, const char **argv)
       t = vpTime::measureTimeMs() - t;
       time_vec.push_back(t);
 
-      std::stringstream ss;
-      ss << "Detection time: " << t << " ms";
-      vpDisplay::displayText(I, 40, 20, ss.str(), vpColor::red);
+      {
+        std::stringstream ss;
+        ss << "Detection time: " << t << " ms";
+        vpDisplay::displayText(I, 40, 20, ss.str(), vpColor::red);
+      }
 
       if (detector.getNbObjects() == 1) {
         if (! serial_off) {

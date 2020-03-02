@@ -52,10 +52,10 @@ public:
   virtual ~vpMbDepthNormalTracker();
 
   virtual void display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-                       const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+                       const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
 
   virtual void display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
-                       const vpColor &col, const unsigned int thickness = 1, const bool displayFullModel = false);
+                       const vpColor &col, unsigned int thickness = 1, bool displayFullModel = false);
 
   virtual inline vpMbtFaceDepthNormal::vpFeatureEstimationType getDepthFeatureEstimationMethod() const
   {
@@ -64,17 +64,22 @@ public:
 
   virtual inline vpColVector getError() const { return m_error_depthNormal; }
 
+  virtual std::vector<std::vector<double> > getModelForDisplay(unsigned int width, unsigned int height,
+                                                               const vpHomogeneousMatrix &cMo,
+                                                               const vpCameraParameters &cam,
+                                                               bool displayFullModel=false);
+
   virtual inline vpColVector getRobustWeights() const { return m_w_depthNormal; }
 
   virtual void init(const vpImage<unsigned char> &I);
 
   virtual void loadConfigFile(const std::string &configFile);
 
-  void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name, const vpHomogeneousMatrix &cMo_,
-                   const bool verbose = false);
+  void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name, const vpHomogeneousMatrix &cMo,
+                   bool verbose = false);
 #if defined(VISP_HAVE_PCL)
   void reInitModel(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud, const std::string &cad_name,
-                   const vpHomogeneousMatrix &cMo_, const bool verbose = false);
+                   const vpHomogeneousMatrix &cMo, bool verbose = false);
 #endif
 
   virtual void resetTracker();
@@ -85,19 +90,20 @@ public:
 
   virtual void setDepthNormalFeatureEstimationMethod(const vpMbtFaceDepthNormal::vpFeatureEstimationType &method);
 
-  virtual void setDepthNormalPclPlaneEstimationMethod(const int method);
+  virtual void setDepthNormalPclPlaneEstimationMethod(int method);
 
-  virtual void setDepthNormalPclPlaneEstimationRansacMaxIter(const int maxIter);
+  virtual void setDepthNormalPclPlaneEstimationRansacMaxIter(int maxIter);
 
-  virtual void setDepthNormalPclPlaneEstimationRansacThreshold(const double thresold);
+  virtual void setDepthNormalPclPlaneEstimationRansacThreshold(double thresold);
 
-  virtual void setDepthNormalSamplingStep(const unsigned int stepX, const unsigned int stepY);
+  virtual void setDepthNormalSamplingStep(unsigned int stepX, unsigned int stepY);
 
-  //  virtual void setDepthNormalUseRobust(const bool use);
+  //  virtual void setDepthNormalUseRobust(bool use);
 
   virtual void setOgreVisibilityTest(const bool &v);
 
   virtual void setPose(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cdMo);
+  virtual void setPose(const vpImage<vpRGBa> &I_color, const vpHomogeneousMatrix &cdMo);
 #if defined(VISP_HAVE_PCL)
   virtual void setPose(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud, const vpHomogeneousMatrix &cdMo);
 #endif
@@ -109,18 +115,17 @@ public:
   virtual void testTracking();
 
   virtual void track(const vpImage<unsigned char> &);
+  virtual void track(const vpImage<vpRGBa> &I_color);
 #if defined(VISP_HAVE_PCL)
   virtual void track(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud);
 #endif
-  virtual void track(const std::vector<vpColVector> &point_cloud, const unsigned int width, const unsigned int height);
+  virtual void track(const std::vector<vpColVector> &point_cloud, unsigned int width, unsigned int height);
 
 protected:
   //! Method to estimate the desired features
   vpMbtFaceDepthNormal::vpFeatureEstimationType m_depthNormalFeatureEstimationMethod;
   //! Set of faces describing the object used only for display with scan line.
   vpMbHiddenFaces<vpMbtPolygon> m_depthNormalHiddenFacesDisplay;
-  //! Dummy image used to compute the visibility
-  vpImage<unsigned char> m_depthNormalI_dummyVisibility;
   //! List of current active (visible and with features extracted) faces
   std::vector<vpMbtFaceDepthNormal *> m_depthNormalListOfActiveFaces;
   //! List of desired features
@@ -141,6 +146,8 @@ protected:
   bool m_depthNormalUseRobust;
   //! (s - s*)
   vpColVector m_error_depthNormal;
+  //! Display features
+  std::vector<std::vector<double> > m_featuresToBeDisplayedDepthNormal;
   //! Interaction matrix
   vpMatrix m_L_depthNormal;
   //! Robust
@@ -154,18 +161,20 @@ protected:
   vpImage<unsigned char> m_debugImage_depthNormal;
 #endif
 
-  void addFace(vpMbtPolygon &polygon, const bool alreadyClose);
+  void addFace(vpMbtPolygon &polygon, bool alreadyClose);
 
-  void computeVisibility(const unsigned int width, const unsigned int height);
+  void computeVisibility(unsigned int width, unsigned int height);
 
   void computeVVS();
   virtual void computeVVSInit();
   virtual void computeVVSInteractionMatrixAndResidu();
 
-  virtual void initCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, const double radius,
-                          const int idFace = 0, const std::string &name = "");
+  virtual std::vector<std::vector<double> > getFeaturesForDisplayDepthNormal();
 
-  virtual void initCylinder(const vpPoint &p1, const vpPoint &p2, const double radius, const int idFace = 0,
+  virtual void initCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, double radius,
+                          int idFace = 0, const std::string &name = "");
+
+  virtual void initCylinder(const vpPoint &p1, const vpPoint &p2, double radius, int idFace = 0,
                             const std::string &name = "");
 
   virtual void initFaceFromCorners(vpMbtPolygon &polygon);
@@ -175,7 +184,7 @@ protected:
 #ifdef VISP_HAVE_PCL
   void segmentPointCloud(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud);
 #endif
-  void segmentPointCloud(const std::vector<vpColVector> &point_cloud, const unsigned int width,
-                         const unsigned int height);
+  void segmentPointCloud(const std::vector<vpColVector> &point_cloud, unsigned int width,
+                         unsigned int height);
 };
 #endif
