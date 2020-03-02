@@ -290,7 +290,7 @@ int main(int argc, const char **argv)
     else
       ipath = vpIoTools::createFilePath(env_ipath, "mbt/cube/image%04d.pgm");
 
-#if defined(VISP_HAVE_XML2) && USE_XML
+#if defined(VISP_HAVE_PUGIXML) && USE_XML
     std::string configFile;
     if (!opt_configFile.empty())
       configFile = opt_configFile;
@@ -396,7 +396,7 @@ int main(int argc, const char **argv)
     vpCameraParameters cam1, cam2;
 
 // Initialise the tracker: camera parameters, moving edge and KLT settings
-#if defined(VISP_HAVE_XML2) && USE_XML
+#if defined(VISP_HAVE_PUGIXML) && USE_XML
     // From the xml file
     dynamic_cast<vpMbGenericTracker *>(tracker)->loadConfigFile(configFile, configFile);
 #else
@@ -524,14 +524,13 @@ int main(int argc, const char **argv)
         }
 
         tracker->resetTracker();
-#if defined(VISP_HAVE_XML2) && USE_XML
+#if defined(VISP_HAVE_PUGIXML) && USE_XML
         dynamic_cast<vpMbGenericTracker *>(tracker)->loadConfigFile(configFile, configFile);
 #else
         // By setting the parameters:
         cam1.initPersProjWithoutDistortion(547, 542, 338, 234);
         cam2.initPersProjWithoutDistortion(547, 542, 338, 234);
 
-        vpMe me;
         me.setMaskSize(5);
         me.setMaskNumber(180);
         me.setRange(7);
@@ -541,7 +540,6 @@ int main(int argc, const char **argv)
         me.setSampleStep(4);
 
 #if defined(VISP_HAVE_MODULE_KLT) && (defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100))
-        vpKltOpencv klt;
         klt.setMaxFeatures(10000);
         klt.setWindowSize(5);
         klt.setQuality(0.01);
@@ -641,12 +639,6 @@ int main(int argc, const char **argv)
 
     delete tracker;
     tracker = NULL;
-
-#if defined(VISP_HAVE_XML2) && USE_XML
-    // Cleanup memory allocated by xml library used to parse the xml config
-    // file in vpMbGenericTracker::loadConfigFile()
-    vpXmlParser::cleanup();
-#endif
 
 #if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
     // Cleanup memory allocated by Coin library used to load a vrml model in

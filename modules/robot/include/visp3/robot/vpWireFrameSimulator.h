@@ -49,7 +49,6 @@
 #include <list>
 #include <stdio.h>
 #include <string>
-#include <visp3/core/vpConfig.h>
 
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDisplay.h>
@@ -451,9 +450,9 @@ public:
     */
   void setCameraColor(const vpColor &col) { camColor = col; }
   /*!
-      Set the position of the camera relative to the object.
+      Set the transformation between the camera frame and the object frame.
 
-      \param cMo_ : The pose of the camera.
+      \param cMo_ : The pose of the object in the camera frame.
     */
   void setCameraPositionRelObj(const vpHomogeneousMatrix &cMo_)
   {
@@ -479,7 +478,7 @@ public:
 
       \param factor : The ration for the camera size.
     */
-  inline void setCameraSizeFactor(const float factor) { cameraFactor = factor; }
+  inline void setCameraSizeFactor(float factor) { cameraFactor = factor; }
 
   /*!
       Set the color used to display the camera trajectory in the external
@@ -508,9 +507,9 @@ public:
     */
   void setCurrentViewColor(const vpColor &col) { curColor = col; }
   /*!
-      Set the desired position of the camera relative to the object.
+      Set the transformation between the desired position of the camera and the object.
 
-      \param cdMo_ : The desired pose of the camera.
+      \param cdMo_ : The position of the object in the desired camera frame
     */
   void setDesiredCameraPosition(const vpHomogeneousMatrix &cdMo_) { this->cdMo = rotz * cdMo_; }
   /*!
@@ -578,7 +577,7 @@ public:
 
       \param nbPt : The desired number of position which are saved.
     */
-  inline void setNbPtTrajectory(const unsigned int nbPt) { nbrPtLimit = nbPt; }
+  inline void setNbPtTrajectory(unsigned int nbPt) { nbrPtLimit = nbPt; }
 
   /*!
       Set the pose between the object and the fixed world frame.

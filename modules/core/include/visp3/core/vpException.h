@@ -98,16 +98,20 @@ public:
     notInitialized               //!< Used to indicate that a parameter is not initialized.
   };
 
-  vpException(const int code, const char *format, va_list args);
-  vpException(const int code, const char *format, ...);
-  vpException(const int code, const std::string &msg);
-  explicit vpException(const int code);
+  vpException(int code, const char *format, va_list args);
+  vpException(int code, const char *format, ...);
+  vpException(int code, const std::string &msg);
+  explicit vpException(int code);
 
   /*!
     Basic destructor. Do nothing but implemented to fit the inheritance from
     std::exception
   */
+#if VISP_CXX_STANDARD > VISP_CXX_STANDARD_98
+  virtual ~vpException() {}
+#else
   virtual ~vpException() throw() {}
+#endif
 
   /** @name Inherited functionalities from vpException */
   //@{

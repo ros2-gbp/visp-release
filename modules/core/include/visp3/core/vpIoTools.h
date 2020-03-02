@@ -82,7 +82,7 @@ int main()
      }
      catch (...) {
        std::cout << "Cannot create " << username << " directory" << std::endl;
-       return false;
+       return EXIT_FAILURE;
      }
    }
   // Create a empty filename with name "username/file.txt"
@@ -104,6 +104,8 @@ int main()
   std::cout << "Remove: " << newfilename << std::endl;
   if (vpIoTools::remove(newfilename) == false)
     std::cout << "Unable to remove: " << newfilename << std::endl;
+
+  return EXIT_SUCCESS;
 }
   \endcode
 
@@ -160,25 +162,21 @@ public:
   static const std::string &getBuildInformation();
   static void getUserName(std::string &username);
   static std::string getUserName();
-  static std::string getenv(const char *env);
   static std::string getenv(const std::string &env);
   static std::string getViSPImagesDataPath();
   static void getVersion(const std::string &version, unsigned int &major, unsigned int &minor, unsigned int &patch);
-  static bool checkDirectory(const char *dirname);
   static bool checkDirectory(const std::string &dirname);
-  static bool checkFilename(const char *filename);
+  static bool checkFifo(const std::string &filename);
   static bool checkFilename(const std::string &filename);
-  static bool copy(const char *src, const char *dst);
   static bool copy(const std::string &src, const std::string &dst);
-  static void makeDirectory(const char *dirname);
-  static void makeDirectory(const std::string &dirname);
-  static bool remove(const char *filename);
-  static bool remove(const std::string &filename);
-  static bool rename(const char *oldfilename, const char *newfilename);
-  static bool rename(const std::string &oldfilename, const std::string &newfilename);
 
-  static std::string path(const char *pathname);
+  static void makeDirectory(const std::string &dirname);
+  static void makeFifo(const std::string &dirname);
+  static std::string makeTempDirectory(const std::string &dirname);
   static std::string path(const std::string &pathname);
+
+  static bool remove(const std::string &filename);
+  static bool rename(const std::string &oldfilename, const std::string &newfilename);
 
   /*!
          Define the directory separator character, backslash ('\') for windows
@@ -192,7 +190,7 @@ public:
 #endif
 
   static std::string getAbsolutePathname(const std::string &pathname);
-  static std::string getFileExtension(const std::string &pathname, const bool checkFile = false);
+  static std::string getFileExtension(const std::string &pathname, bool checkFile = false);
   static std::string getName(const std::string &pathname);
   static std::string getNameWE(const std::string &pathname);
   static std::string getParent(const std::string &pathname);
@@ -243,8 +241,11 @@ public:
   static void writeBinaryValueLE(std::ofstream &file, const uint16_t ushort_value);
   static void writeBinaryValueLE(std::ofstream &file, const int32_t int_value);
   static void writeBinaryValueLE(std::ofstream &file, const uint32_t int_value);
-  static void writeBinaryValueLE(std::ofstream &file, const float float_value);
-  static void writeBinaryValueLE(std::ofstream &file, const double double_value);
+  static void writeBinaryValueLE(std::ofstream &file, float float_value);
+  static void writeBinaryValueLE(std::ofstream &file, double double_value);
+
+  static bool parseBoolean(std::string input);
+  static std::string trim(std::string s);
 
 protected:
   static std::string baseName;
@@ -253,6 +254,8 @@ protected:
   static std::vector<std::string> configVars;
   static std::vector<std::string> configValues;
 
-  static int mkdir_p(const char *path, const int mode);
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+  static int mkdir_p(const char *path, int mode);
+#endif // #ifndef DOXYGEN_SHOULD_SKIP_THIS
 };
 #endif

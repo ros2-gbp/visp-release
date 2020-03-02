@@ -67,11 +67,10 @@ class vpThetaUVector;
 
   Class that consider the case of the Euler
   \f$(\varphi,\theta,\psi)\f$ angle using the x-y-z convention, where
-\f$(\varphi,\theta,\psi)\f$ are respectively the rotation angles around the
-\f$x\f$, \f$y\f$ and \f$z\f$ axis.
+  \f$(\varphi,\theta,\psi)\f$ are respectively the rotation angles around the
+  \f$x\f$, \f$y\f$ and \f$z\f$ axis.
 
-  \f[R_{xyz}(\varphi,\theta,\psi) = R_x(\varphi) \; R_y(\theta) \;
-R_z(\psi)\f]
+  \f[R_{xyz}(\varphi,\theta,\psi) = R_x(\varphi) \; R_y(\theta) \; R_z(\psi)\f]
 
   with
 
@@ -104,13 +103,41 @@ R_z(\psi)\f]
   \begin{array}{ccc}
   \cos\theta \cos\psi & -\cos\theta \sin\psi & \sin\theta \\
   \sin\varphi \sin\theta \cos\psi + \cos\varphi\sin\psi & -\sin\varphi
-\sin\theta \sin\psi +\cos\varphi\cos\psi & -\sin\varphi \cos\theta \\
+  \sin\theta \sin\psi +\cos\varphi\cos\psi & -\sin\varphi \cos\theta \\
   -\cos\varphi \sin\theta \cos\psi + \sin\varphi\sin\psi & \cos\varphi
-\sin\theta \sin\psi +\sin\varphi\cos\psi & \cos\varphi \cos\theta \end{array}
+  \sin\theta \sin\psi +\sin\varphi\cos\psi & \cos\varphi \cos\theta \end{array}
   \right)
   \f]
 
   The vpRxyzVector class is derived from vpRotationVector.
+
+  From the implementation point of view, it is nothing more than an
+  array of three doubles with values in [rad].
+
+  You can set values [rad] accessing each element:
+  \code
+  vpRxyzVector rxyz;
+  rxyz[0] = M_PI_4;
+  rxyz[1] = M_PI_2;
+  rxyz[2] = M_PI;
+  \endcode
+  You can also initialize the vector using operator<<(double):
+  \code
+  rxyz << M_PI_4, M_PI_2, M_PI;
+  \endcode
+  Or you can also initialize the vector from a list of doubles if ViSP is build with c++11 enabled:
+  \code
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  rxyz = {M_PI_4, M_PI_2, M_PI};
+#endif
+  \endcode
+
+  To get the values [rad] use:
+  \code
+  double rx = rxyz[0];
+  double ry = rxyz[1];
+  double rz = rxyz[2];
+  \endcode
 
   The code below shows first how to initialize this representation of
   Euler angles, than how to contruct a rotation matrix from a
@@ -158,7 +185,7 @@ class VISP_EXPORT vpRxyzVector : public vpRotationVector
 public:
   vpRxyzVector();
   vpRxyzVector(const vpRxyzVector &rxyz);
-  vpRxyzVector(const double phi, const double theta, const double psi);
+  vpRxyzVector(double phi, double theta, double psi);
 
   // initialize a Rxyz vector from a rotation matrix
   explicit vpRxyzVector(const vpRotationMatrix &R);
@@ -179,10 +206,14 @@ public:
   vpRxyzVector buildFrom(const vpColVector &rxyz);
   vpRxyzVector buildFrom(const std::vector<double> &rxyz);
 
-  void buildFrom(const double phi, const double theta, const double psi);
+  void buildFrom(double phi, double theta, double psi);
 
   vpRxyzVector &operator=(const vpColVector &rxyz);
   vpRxyzVector &operator=(double x);
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  vpRxyzVector &operator=(const vpRxyzVector &rxyz) = default;
+  vpRxyzVector &operator=(const std::initializer_list<double> &list);
+#endif
 };
 
 #endif

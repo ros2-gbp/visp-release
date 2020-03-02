@@ -1,11 +1,11 @@
 //! \example tutorial-export-image.cpp
-#include <visp/vpConfig.h>
-#include <visp/vpImageIo.h>
-#include <visp/vpDisplayX.h>
-#include <visp/vpDisplayGTK.h>
-#include <visp/vpDisplayGDI.h>
-#include <visp/vpDisplayD3D.h>
-#include <visp/vpDisplayOpenCV.h>
+#include <visp3/io/vpImageIo.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayGTK.h>
+#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayD3D.h>
+#include <visp3/gui/vpDisplayOpenCV.h>
+
 int main()
 {
   vpImage<unsigned char> I(240, 320, 255); // Create a black grey level image
@@ -39,7 +39,7 @@ int main()
   vpDisplay::getImage(I, Ioverlay) ;
   // Write the color image on the disk
   std::cout << "Save image in overlay.ppm" << std::endl;
-  std::string ofilename("overlay.ppm");
+  std::string ofilename("overlay.png");
   vpImageIo::write(Ioverlay, ofilename) ;
   // Wait for a click in the display window
   std::cout << "A click to quit..." << std::endl;

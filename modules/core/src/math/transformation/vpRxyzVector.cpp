@@ -60,7 +60,7 @@ vpRxyzVector::vpRxyzVector(const vpRxyzVector &rxyz) : vpRotationVector(rxyz) {}
   \param theta : \f$\theta\f$ angle around the \f$y\f$ axis.
   \param psi : \f$\psi\f$ angle around the \f$z\f$ axis.
 */
-vpRxyzVector::vpRxyzVector(const double phi, const double theta, const double psi) : vpRotationVector(3)
+vpRxyzVector::vpRxyzVector(double phi, double theta, double psi) : vpRotationVector(3)
 {
   buildFrom(phi, theta, psi);
 }
@@ -140,7 +140,7 @@ vpRxyzVector vpRxyzVector::buildFrom(const vpThetaUVector &tu)
   \param theta : \f$\theta\f$ angle around the \f$y\f$ axis.
   \param psi : \f$\psi\f$ angle around the \f$z\f$ axis.
 */
-void vpRxyzVector::buildFrom(const double phi, const double theta, const double psi)
+void vpRxyzVector::buildFrom(double phi, double theta, double psi)
 {
   data[0] = phi;
   data[1] = theta;
@@ -238,3 +238,31 @@ vpRxyzVector &vpRxyzVector::operator=(const vpColVector &rxyz)
 
   return *this;
 }
+
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+/*!
+  Set vector from a list of 3 double angle values in radians.
+  \code
+#include <visp3/core/vpRxyzVector.cpp>
+
+int main()
+{
+  vpRxyzVector rxyz = {M_PI, 0, M_PI_2};
+  std::cout << "rxyz: " << rxyz.t() << std::endl;
+}
+  \endcode
+  It produces the following printings:
+  \code
+rxyz: 3.141592654  0  1.570796327
+  \endcode
+  \sa operator<<()
+*/
+vpRxyzVector &vpRxyzVector::operator=(const std::initializer_list<double> &list)
+{
+  if (list.size() > size()) {
+    throw(vpException(vpException::dimensionError, "Cannot set Euler x-y-z vector out of bounds. It has only %d values while you try to initialize with %d values", size(), list.size()));
+  }
+  std::copy(list.begin(), list.end(), data);
+  return *this;
+}
+#endif

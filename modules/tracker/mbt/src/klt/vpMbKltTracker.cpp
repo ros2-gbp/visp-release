@@ -41,6 +41,7 @@
 #include <visp3/core/vpTrackingException.h>
 #include <visp3/core/vpVelocityTwistMatrix.h>
 #include <visp3/mbt/vpMbKltTracker.h>
+#include <visp3/mbt/vpMbtXmlGenericParser.h>
 
 #if defined(VISP_HAVE_MODULE_KLT) && (defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100))
 
@@ -57,7 +58,7 @@ vpMbKltTracker::vpMbKltTracker()
 #endif
     c0Mo(), firstInitialisation(true), maskBorder(5), threshold_outlier(0.5), percentGood(0.6), ctTc0(), tracker(),
     kltPolygons(), kltCylinders(), circles_disp(), m_nbInfos(0), m_nbFaceUsed(0), m_L_klt(), m_error_klt(), m_w_klt(),
-    m_weightedError_klt(), m_robust_klt()
+    m_weightedError_klt(), m_robust_klt(), m_featuresToBeDisplayedKlt()
 {
   tracker.setTrackerId(1);
   tracker.setUseHarris(1);
@@ -68,9 +69,6 @@ vpMbKltTracker::vpMbKltTracker()
   tracker.setHarrisFreeParameter(0.01);
   tracker.setBlockSize(3);
   tracker.setPyramidLevels(3);
-
-  angleAppears = vpMath::rad(65);
-  angleDisappears = vpMath::rad(75);
 
 #ifdef VISP_HAVE_OGRE
   faces.getOgreContext()->setWindowName("MBT Klt");
@@ -133,23 +131,23 @@ void vpMbKltTracker::init(const vpImage<unsigned char> &I)
 
   bool reInitialisation = false;
   if (!useOgre)
-    faces.setVisible(I, cam, cMo, angleAppears, angleDisappears, reInitialisation);
+    faces.setVisible(I.getWidth(), I.getHeight(), m_cam, m_cMo, angleAppears, angleDisappears, reInitialisation);
   else {
 #ifdef VISP_HAVE_OGRE
     if (!faces.isOgreInitialised()) {
       faces.setBackgroundSizeOgre(I.getHeight(), I.getWidth());
       faces.setOgreShowConfigDialog(ogreShowConfigDialog);
-      faces.initOgre(cam);
+      faces.initOgre(m_cam);
       // Turn off Ogre config dialog display for the next call to this
       // function since settings are saved in the ogre.cfg file and used
       // during the next call
       ogreShowConfigDialog = false;
     }
 
-    faces.setVisibleOgre(I, cam, cMo, angleAppears, angleDisappears, reInitialisation);
+    faces.setVisibleOgre(I.getWidth(), I.getHeight(), m_cam, m_cMo, angleAppears, angleDisappears, reInitialisation);
 
 #else
-    faces.setVisible(I, cam, cMo, angleAppears, angleDisappears, reInitialisation);
+    faces.setVisible(I.getWidth(), I.getHeight(), m_cam, m_cMo, angleAppears, angleDisappears, reInitialisation);
 #endif
   }
   reinit(I);
@@ -157,16 +155,16 @@ void vpMbKltTracker::init(const vpImage<unsigned char> &I)
 
 void vpMbKltTracker::reinit(const vpImage<unsigned char> &I)
 {
-  c0Mo = cMo;
+  c0Mo = m_cMo;
   ctTc0.eye();
 
   vpImageConvert::convert(I, cur);
 
-  cam.computeFov(I.getWidth(), I.getHeight());
+  m_cam.computeFov(I.getWidth(), I.getHeight());
 
   if (useScanLine) {
-    faces.computeClippedPolygons(cMo, cam);
-    faces.computeScanLineRender(cam, I.getWidth(), I.getHeight());
+    faces.computeClippedPolygons(m_cMo, m_cam);
+    faces.computeScanLineRender(m_cam, I.getWidth(), I.getHeight());
   }
 
 // mask
@@ -188,8 +186,8 @@ void vpMbKltTracker::reinit(const vpImage<unsigned char> &I)
       if (kltpoly->polygon->isVisible() && kltpoly->isTracked() && kltpoly->polygon->getNbPoint() > 2) {
         // need to changeFrame when reinit() is called by postTracking
         // other solution is
-        kltpoly->polygon->changeFrame(cMo);
-        kltpoly->polygon->computePolygonClipped(cam); // Might not be necessary when scanline is activated
+        kltpoly->polygon->changeFrame(m_cMo);
+        kltpoly->polygon->computePolygonClipped(m_cam); // Might not be necessary when scanline is activated
         kltpoly->updateMask(mask, val, maskBorder);
       }
     }
@@ -202,7 +200,7 @@ void vpMbKltTracker::reinit(const vpImage<unsigned char> &I)
         for (unsigned int k = 0; k < kltPolyCylinder->listIndicesCylinderBBox.size(); k++) {
           unsigned int indCylBBox = (unsigned int)kltPolyCylinder->listIndicesCylinderBBox[k];
           if (faces[indCylBBox]->isVisible() && faces[indCylBBox]->getNbPoint() > 2u) {
-            faces[indCylBBox]->computePolygonClipped(cam); // Might not be necessary when scanline is activated
+            faces[indCylBBox]->computePolygonClipped(m_cam); // Might not be necessary when scanline is activated
           }
         }
 
@@ -229,7 +227,7 @@ void vpMbKltTracker::reinit(const vpImage<unsigned char> &I)
     kltPolyCylinder = *it;
 
     if (kltPolyCylinder->isTracked())
-      kltPolyCylinder->init(tracker, cMo);
+      kltPolyCylinder->init(tracker, m_cMo);
   }
 
 #if (VISP_HAVE_OPENCV_VERSION < 0x020408)
@@ -243,7 +241,7 @@ void vpMbKltTracker::reinit(const vpImage<unsigned char> &I)
 */
 void vpMbKltTracker::resetTracker()
 {
-  cMo.eye();
+  m_cMo.eye();
 
 #if (VISP_HAVE_OPENCV_VERSION < 0x020408)
   if (cur != NULL) {
@@ -298,8 +296,8 @@ void vpMbKltTracker::resetTracker()
   tracker.setBlockSize(3);
   tracker.setPyramidLevels(3);
 
-  angleAppears = vpMath::rad(65);
-  angleDisappears = vpMath::rad(75);
+  angleAppears = vpMath::rad(89);
+  angleDisappears = vpMath::rad(89);
 
   clippingFlag = vpPolygon3D::NO_CLIPPING;
 
@@ -386,9 +384,9 @@ void vpMbKltTracker::setKltOpencv(const vpKltOpencv &t)
 /*!
   Set the camera parameters.
 
-  \param camera : the new camera parameters.
+  \param cam : the new camera parameters.
 */
-void vpMbKltTracker::setCameraParameters(const vpCameraParameters &camera)
+void vpMbKltTracker::setCameraParameters(const vpCameraParameters &cam)
 {
   //  for (unsigned int i = 0; i < faces.size(); i += 1){
   //    faces[i]->setCameraParameters(camera);
@@ -396,36 +394,36 @@ void vpMbKltTracker::setCameraParameters(const vpCameraParameters &camera)
 
   for (std::list<vpMbtDistanceKltPoints *>::const_iterator it = kltPolygons.begin(); it != kltPolygons.end(); ++it) {
     vpMbtDistanceKltPoints *kltpoly = *it;
-    kltpoly->setCameraParameters(camera);
+    kltpoly->setCameraParameters(cam);
   }
 
   for (std::list<vpMbtDistanceKltCylinder *>::const_iterator it = kltCylinders.begin(); it != kltCylinders.end();
        ++it) {
     vpMbtDistanceKltCylinder *kltPolyCylinder = *it;
-    kltPolyCylinder->setCameraParameters(camera);
+    kltPolyCylinder->setCameraParameters(cam);
   }
 
-  this->cam = camera;
+  m_cam = cam;
 }
 
-/*!
-  Set the pose to be used in entry (as guess) of the next call to the track()
-  function. This pose will be just used once.
-
-  \warning This functionnality is not available when tracking cylinders.
-
-  \param I : image corresponding to the desired pose.
-  \param cdMo : Pose to affect.
-*/
-void vpMbKltTracker::setPose(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cdMo)
+void vpMbKltTracker::setPose(const vpImage<unsigned char> * const I, const vpImage<vpRGBa> * const I_color,
+                             const vpHomogeneousMatrix &cdMo)
 {
+  if (I_color) {
+    vpImageConvert::convert(*I_color, m_I);
+  }
+
   if (!kltCylinders.empty()) {
     std::cout << "WARNING: Cannot set pose when model contains cylinder(s). "
                  "This feature is not implemented yet."
               << std::endl;
     std::cout << "Tracker will be reinitialized with the given pose." << std::endl;
-    cMo = cdMo;
-    init(I);
+    m_cMo = cdMo;
+    if (I) {
+      init(*I);
+    } else {
+      init(m_I);
+    }
   } else {
     vpMbtDistanceKltPoints *kltpoly;
 
@@ -450,7 +448,7 @@ void vpMbKltTracker::setPose(const vpImage<unsigned char> &I, const vpHomogeneou
     guess_pts = (CvPoint2D32f *)cvAlloc(tracker.getMaxFeatures() * sizeof(guess_pts[0]));
 #endif
 
-    vpHomogeneousMatrix cdMc = cdMo * cMo.inverse();
+    vpHomogeneousMatrix cdMc = cdMo * m_cMo.inverse();
     vpHomogeneousMatrix cMcd = cdMc.inverse();
 
     vpRotationMatrix cdRc;
@@ -482,7 +480,7 @@ void vpMbKltTracker::setPose(const vpImage<unsigned char> &I, const vpHomogeneou
         cdHc /= cdHc[2][2];
 
         // Create the 2D homography
-        vpMatrix cdGc = cam.get_K() * cdHc * cam.get_K_inverse();
+        vpMatrix cdGc = m_cam.get_K() * cdHc * m_cam.get_K_inverse();
 
         // Points displacement
         std::map<int, vpImagePoint>::const_iterator iter = kltpoly->getCurrentPoints().begin();
@@ -545,7 +543,11 @@ void vpMbKltTracker::setPose(const vpImage<unsigned char> &I, const vpHomogeneou
       }
     }
 
-    vpImageConvert::convert(I, cur);
+    if (I) {
+      vpImageConvert::convert(*I, cur);
+    } else {
+      vpImageConvert::convert(m_I, cur);
+    }
 
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020408)
     tracker.setInitialGuess(init_pts, guess_pts, init_ids);
@@ -566,35 +568,75 @@ void vpMbKltTracker::setPose(const vpImage<unsigned char> &I, const vpHomogeneou
 #endif
 
     bool reInitialisation = false;
-    if (!useOgre)
-      faces.setVisible(I, cam, cdMo, angleAppears, angleDisappears, reInitialisation);
-    else {
+    if (!useOgre) {
+      if (I) {
+        faces.setVisible(I->getWidth(), I->getHeight(), m_cam, cdMo, angleAppears, angleDisappears, reInitialisation);
+      } else {
+        faces.setVisible(m_I.getWidth(), m_I.getHeight(), m_cam, cdMo, angleAppears, angleDisappears, reInitialisation);
+      }
+    } else {
 #ifdef VISP_HAVE_OGRE
-      faces.setVisibleOgre(I, cam, cdMo, angleAppears, angleDisappears, reInitialisation);
+      if (I) {
+        faces.setVisibleOgre(I->getWidth(), I->getHeight(), m_cam, cdMo, angleAppears, angleDisappears, reInitialisation);
+      } else {
+        faces.setVisibleOgre(m_I.getWidth(), m_I.getHeight(), m_cam, cdMo, angleAppears, angleDisappears, reInitialisation);
+      }
 #else
-      faces.setVisible(I, cam, cdMo, angleAppears, angleDisappears, reInitialisation);
+      if (I) {
+        faces.setVisible(I->getWidth(), I->getHeight(), m_cam, cdMo, angleAppears, angleDisappears, reInitialisation);
+      } else {
+        faces.setVisible(m_I.getWidth(), m_I.getHeight(), m_cam, cdMo, angleAppears, angleDisappears, reInitialisation);
+      }
 #endif
     }
 
-    cam.computeFov(I.getWidth(), I.getHeight());
+    m_cam.computeFov(I ? I->getWidth() : m_I.getWidth(), I ? I->getHeight() : m_I.getHeight());
 
     if (useScanLine) {
-      faces.computeClippedPolygons(cdMo, cam);
-      faces.computeScanLineRender(cam, I.getWidth(), I.getHeight());
+      faces.computeClippedPolygons(cdMo, m_cam);
+      faces.computeScanLineRender(m_cam, I ? I->getWidth() : m_I.getWidth(), I ? I->getHeight() : m_I.getHeight());
     }
 
     for (std::list<vpMbtDistanceKltPoints *>::const_iterator it = kltPolygons.begin(); it != kltPolygons.end(); ++it) {
       kltpoly = *it;
       if (kltpoly->polygon->isVisible() && kltpoly->polygon->getNbPoint() > 2) {
-        kltpoly->polygon->computePolygonClipped(cam);
+        kltpoly->polygon->computePolygonClipped(m_cam);
         kltpoly->init(tracker, m_mask);
       }
     }
 
-    cMo = cdMo;
-    c0Mo = cMo;
+    m_cMo = cdMo;
+    c0Mo = m_cMo;
     ctTc0.eye();
   }
+}
+
+/*!
+  Set the pose to be used in entry (as guess) of the next call to the track()
+  function. This pose will be just used once.
+
+  \warning This functionnality is not available when tracking cylinders.
+
+  \param I : grayscale image corresponding to the desired pose.
+  \param cdMo : Pose to affect.
+*/
+void vpMbKltTracker::setPose(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cdMo)
+{
+  vpMbKltTracker::setPose(&I, NULL, cdMo);
+}
+
+/*!
+  Set the pose to be used in entry (as guess) of the next call to the track()
+  function. This pose will be just used once.
+
+  \warning This functionnality is not available when tracking cylinders.
+
+  \param I_color : color image corresponding to the desired pose.
+  \param cdMo : Pose to affect.
+*/
+void vpMbKltTracker::setPose(const vpImage<vpRGBa> &I_color, const vpHomogeneousMatrix &cdMo)
+{
+  vpMbKltTracker::setPose(NULL, &I_color, cdMo);
 }
 
 /*!
@@ -606,7 +648,7 @@ void vpMbKltTracker::setPose(const vpImage<unsigned char> &I, const vpHomogeneou
 void vpMbKltTracker::initFaceFromCorners(vpMbtPolygon &polygon)
 {
   vpMbtDistanceKltPoints *kltPoly = new vpMbtDistanceKltPoints();
-  kltPoly->setCameraParameters(cam);
+  kltPoly->setCameraParameters(m_cam);
   kltPoly->polygon = &polygon;
   kltPoly->hiddenface = &faces;
   kltPoly->useScanLine = useScanLine;
@@ -621,7 +663,7 @@ void vpMbKltTracker::initFaceFromCorners(vpMbtPolygon &polygon)
 void vpMbKltTracker::initFaceFromLines(vpMbtPolygon &polygon)
 {
   vpMbtDistanceKltPoints *kltPoly = new vpMbtDistanceKltPoints();
-  kltPoly->setCameraParameters(cam);
+  kltPoly->setCameraParameters(m_cam);
   kltPoly->polygon = &polygon;
   kltPoly->hiddenface = &faces;
   kltPoly->useScanLine = useScanLine;
@@ -724,12 +766,12 @@ bool vpMbKltTracker::postTracking(const vpImage<unsigned char> &I, vpColVector &
     reInitialisation = true;
   } else {
     if (!useOgre)
-      faces.setVisible(I, cam, cMo, angleAppears, angleDisappears, reInitialisation);
+      faces.setVisible(I.getWidth(), I.getHeight(), m_cam, m_cMo, angleAppears, angleDisappears, reInitialisation);
     else {
 #ifdef VISP_HAVE_OGRE
-      faces.setVisibleOgre(I, cam, cMo, angleAppears, angleDisappears, reInitialisation);
+      faces.setVisibleOgre(I.getWidth(), I.getHeight(), m_cam, m_cMo, angleAppears, angleDisappears, reInitialisation);
 #else
-      faces.setVisible(I, cam, cMo, angleAppears, angleDisappears, reInitialisation);
+      faces.setVisible(I.getWidth(), I.getHeight(), m_cam, m_cMo, angleAppears, angleDisappears, reInitialisation);
 #endif
     }
   }
@@ -779,7 +821,7 @@ void vpMbKltTracker::computeVVS()
         L_true = m_L_klt;
         if (!isoJoIdentity) {
           vpVelocityTwistMatrix cVo;
-          cVo.buildFrom(cMo);
+          cVo.buildFrom(m_cMo);
           LVJ_true = (m_L_klt * cVo * oJo);
         }
       }
@@ -803,10 +845,10 @@ void vpMbKltTracker::computeVVS()
       computeVVSPoseEstimation(isoJoIdentity, iter, m_L_klt, LTL, m_weightedError_klt, m_error_klt, error_prev, LTR, mu,
                                v);
 
-      cMoPrev = cMo;
+      cMoPrev = m_cMo;
       ctTc0_Prev = ctTc0;
       ctTc0 = vpExponentialMap::direct(v).inverse() * ctTc0;
-      cMo = ctTc0 * c0Mo;
+      m_cMo = ctTc0 * c0Mo;
     } // endif(!reStartFromLastIncrement)
 
     iter++;
@@ -827,7 +869,7 @@ void vpMbKltTracker::computeVVSInit()
   m_w_klt = 1;
 
   m_robust_klt.resize(nbFeatures);
-  m_robust_klt.setThreshold(2 / cam.get_px());
+  m_robust_klt.setThreshold(2 / m_cam.get_px());
 }
 
 void vpMbKltTracker::computeVVSInteractionMatrixAndResidu()
@@ -877,7 +919,7 @@ void vpMbKltTracker::computeVVSInteractionMatrixAndResidu()
 
   \throw vpException : if the tracking is supposed to have failed
 
-  \param I : the input image
+  \param I : the input grayscale image
 */
 void vpMbKltTracker::track(const vpImage<unsigned char> &I)
 {
@@ -891,15 +933,38 @@ void vpMbKltTracker::track(const vpImage<unsigned char> &I)
 
   if (postTracking(I, m_w_klt))
     reinit(I);
+
+  if (displayFeatures) {
+    m_featuresToBeDisplayedKlt = getFeaturesForDisplayKlt();
+  }
+}
+
+/*!
+  Realize the tracking of the object in the image
+
+  \throw vpException : if the tracking is supposed to have failed
+
+  \param I_color : the input color image
+*/
+void vpMbKltTracker::track(const vpImage<vpRGBa> &I_color)
+{
+  vpImageConvert::convert(I_color, m_I);
+  preTracking(m_I);
+
+  if (m_nbInfos < 4 || m_nbFaceUsed == 0) {
+    throw vpTrackingException(vpTrackingException::notEnoughPointError, "Error: not enough features");
+  }
+
+  computeVVS();
+
+  if (postTracking(m_I, m_w_klt))
+    reinit(m_I);
 }
 
 /*!
   Load the xml configuration file.
   From the configuration file initialize the parameters corresponding to the
 objects: KLT, camera.
-
-  \warning To clean up memory allocated by the xml library, the user has to
-call vpXmlParser::cleanup() before the exit().
 
   \throw vpException::ioError if the file has not been properly parsed (file
 not found or wrong format for the data).
@@ -937,25 +1002,23 @@ not found or wrong format for the data).
   </klt>
 </conf>
   \endcode
-
-  \sa vpXmlParser::cleanup()
 */
 void vpMbKltTracker::loadConfigFile(const std::string &configFile)
 {
   // Load projection error config
   vpMbTracker::loadConfigFile(configFile);
 
-#ifdef VISP_HAVE_XML2
-  vpMbtKltXmlParser xmlp;
+#ifdef VISP_HAVE_PUGIXML
+  vpMbtXmlGenericParser xmlp(vpMbtXmlGenericParser::KLT_PARSER);
 
-  xmlp.setMaxFeatures(10000);
-  xmlp.setWindowSize(5);
-  xmlp.setQuality(0.01);
-  xmlp.setMinDistance(5);
-  xmlp.setHarrisParam(0.01);
-  xmlp.setBlockSize(3);
-  xmlp.setPyramidLevels(3);
-  xmlp.setMaskBorder(maskBorder);
+  xmlp.setKltMaxFeatures(10000);
+  xmlp.setKltWindowSize(5);
+  xmlp.setKltQuality(0.01);
+  xmlp.setKltMinDistance(5);
+  xmlp.setKltHarrisParam(0.01);
+  xmlp.setKltBlockSize(3);
+  xmlp.setKltPyramidLevels(3);
+  xmlp.setKltMaskBorder(maskBorder);
   xmlp.setAngleAppear(vpMath::deg(angleAppears));
   xmlp.setAngleDisappear(vpMath::deg(angleDisappears));
 
@@ -971,14 +1034,14 @@ void vpMbKltTracker::loadConfigFile(const std::string &configFile)
   xmlp.getCameraParameters(camera);
   setCameraParameters(camera);
 
-  tracker.setMaxFeatures((int)xmlp.getMaxFeatures());
-  tracker.setWindowSize((int)xmlp.getWindowSize());
-  tracker.setQuality(xmlp.getQuality());
-  tracker.setMinDistance(xmlp.getMinDistance());
-  tracker.setHarrisFreeParameter(xmlp.getHarrisParam());
-  tracker.setBlockSize((int)xmlp.getBlockSize());
-  tracker.setPyramidLevels((int)xmlp.getPyramidLevels());
-  maskBorder = xmlp.getMaskBorder();
+  tracker.setMaxFeatures((int)xmlp.getKltMaxFeatures());
+  tracker.setWindowSize((int)xmlp.getKltWindowSize());
+  tracker.setQuality(xmlp.getKltQuality());
+  tracker.setMinDistance(xmlp.getKltMinDistance());
+  tracker.setHarrisFreeParameter(xmlp.getKltHarrisParam());
+  tracker.setBlockSize((int)xmlp.getKltBlockSize());
+  tracker.setPyramidLevels((int)xmlp.getKltPyramidLevels());
+  maskBorder = xmlp.getKltMaskBorder();
   angleAppears = vpMath::rad(xmlp.getAngleAppear());
   angleDisappears = vpMath::rad(xmlp.getAngleDisappear());
 
@@ -995,8 +1058,8 @@ void vpMbKltTracker::loadConfigFile(const std::string &configFile)
     setClipping(clippingFlag = clippingFlag | vpPolygon3D::FOV_CLIPPING);
 
   useLodGeneral = xmlp.getLodState();
-  minLineLengthThresholdGeneral = xmlp.getMinLineLengthThreshold();
-  minPolygonAreaThresholdGeneral = xmlp.getMinPolygonAreaThreshold();
+  minLineLengthThresholdGeneral = xmlp.getLodMinLineLengthThreshold();
+  minPolygonAreaThresholdGeneral = xmlp.getLodMinPolygonAreaThreshold();
 
   applyLodSettingInConfig = false;
   if (this->getNbPolygon() > 0) {
@@ -1007,7 +1070,7 @@ void vpMbKltTracker::loadConfigFile(const std::string &configFile)
   }
 
 #else
-  vpTRACE("You need the libXML2 to read the config file %s", configFile.c_str());
+  std::cerr << "pugixml third-party is not properly built to read config file: " << configFile << std::endl;
 #endif
 }
 
@@ -1015,65 +1078,51 @@ void vpMbKltTracker::loadConfigFile(const std::string &configFile)
   Display the 3D model at a given position using the given camera parameters
 
   \param I : The image.
-  \param cMo_ : Pose used to project the 3D model into the image.
-  \param camera : The camera parameters.
+  \param cMo : Pose used to project the 3D model into the image.
+  \param cam : The camera parameters.
   \param col : The desired color.
   \param thickness : The thickness of the lines.
   \param displayFullModel : Boolean to say if all the model has to be
   displayed, even the faces that are visible.
 */
-void vpMbKltTracker::display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo_,
-                             const vpCameraParameters &camera, const vpColor &col, const unsigned int thickness,
-                             const bool displayFullModel)
+void vpMbKltTracker::display(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo,
+                             const vpCameraParameters &cam, const vpColor &col, unsigned int thickness,
+                             bool displayFullModel)
 {
-  vpCameraParameters c = camera;
+  std::vector<std::vector<double> > models = vpMbKltTracker::getModelForDisplay(I.getWidth(), I.getHeight(), cMo, cam, displayFullModel);
 
-  if (clippingFlag > 3) // Contains at least one FOV constraint
-    c.computeFov(I.getWidth(), I.getHeight());
-
-  //  vpMbtDistanceKltPoints *kltpoly;
-  //  vpMbtDistanceKltCylinder *kltPolyCylinder;
-
-  // Previous version 12/08/2015
-  //  for(std::list<vpMbtDistanceKltPoints*>::const_iterator
-  //  it=kltPolygons.begin(); it!=kltPolygons.end(); ++it){
-  //    kltpoly = *it;
-  //    kltpoly->polygon->changeFrame(cMo_);
-  //    kltpoly->polygon->computePolygonClipped(c);
-  //  }
-  faces.computeClippedPolygons(cMo_, c);
-
-  if (useScanLine && !displayFullModel)
-    faces.computeScanLineRender(cam, I.getWidth(), I.getHeight());
-
-  for (std::list<vpMbtDistanceKltPoints *>::const_iterator it = kltPolygons.begin(); it != kltPolygons.end(); ++it) {
-    vpMbtDistanceKltPoints *kltpoly = *it;
-
-    kltpoly->display(I, cMo_, camera, col, thickness, displayFullModel);
-
-    if (displayFeatures && kltpoly->hasEnoughPoints() && kltpoly->polygon->isVisible() && kltpoly->isTracked()) {
-      kltpoly->displayPrimitive(I);
-      //         faces[i]->displayNormal(I);
+  for (size_t i = 0; i < models.size(); i++) {
+    if (vpMath::equal(models[i][0], 0)) {
+      vpImagePoint ip1(models[i][1], models[i][2]);
+      vpImagePoint ip2(models[i][3], models[i][4]);
+      vpDisplay::displayLine(I, ip1, ip2, col, thickness);
+    } else if (vpMath::equal(models[i][0], 1)) {
+      vpImagePoint center(models[i][1], models[i][2]);
+      double mu20 = models[i][3];
+      double mu11 = models[i][4];
+      double mu02 = models[i][5];
+      vpDisplay::displayEllipse(I, center, mu20, mu11, mu02, true, col, thickness);
     }
   }
 
-  for (std::list<vpMbtDistanceKltCylinder *>::const_iterator it = kltCylinders.begin(); it != kltCylinders.end();
-       ++it) {
-    vpMbtDistanceKltCylinder *kltPolyCylinder = *it;
+  if (displayFeatures) {
+    for (size_t i = 0; i < m_featuresToBeDisplayedKlt.size(); i++) {
+      if (vpMath::equal(m_featuresToBeDisplayedKlt[i][0], 1)) {
+        vpImagePoint ip1(m_featuresToBeDisplayedKlt[i][1], m_featuresToBeDisplayedKlt[i][2]);
+        vpDisplay::displayCross(I, ip1, 10, vpColor::red);
 
-    kltPolyCylinder->display(I, cMo_, camera, col, thickness, displayFullModel);
-
-    if (displayFeatures && kltPolyCylinder->isTracked() && kltPolyCylinder->hasEnoughPoints())
-      kltPolyCylinder->displayPrimitive(I);
-  }
-
-  for (std::list<vpMbtDistanceCircle *>::const_iterator it = circles_disp.begin(); it != circles_disp.end(); ++it) {
-    (*it)->display(I, cMo_, camera, col, thickness, displayFullModel);
+        vpImagePoint ip2(m_featuresToBeDisplayedKlt[i][3], m_featuresToBeDisplayedKlt[i][4]);
+        double id = m_featuresToBeDisplayedKlt[i][5];
+        std::stringstream ss;
+        ss << id;
+        vpDisplay::displayText(I, ip2, ss.str(), vpColor::red);
+      }
+    }
   }
 
 #ifdef VISP_HAVE_OGRE
   if (useOgre)
-    faces.displayOgre(cMo_);
+    faces.displayOgre(cMo);
 #endif
 }
 
@@ -1081,21 +1130,104 @@ void vpMbKltTracker::display(const vpImage<unsigned char> &I, const vpHomogeneou
   Display the 3D model at a given position using the given camera parameters
 
   \param I : The color image.
-  \param cMo_ : Pose used to project the 3D model into the image.
-  \param camera : The camera parameters.
+  \param cMo : Pose used to project the 3D model into the image.
+  \param cam : The camera parameters.
   \param col : The desired color.
   \param thickness : The thickness of the lines.
   \param displayFullModel : Boolean to say if all the model has to be
   displayed, even the faces that are not visible.
 */
-void vpMbKltTracker::display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo_,
-                             const vpCameraParameters &camera, const vpColor &col, const unsigned int thickness,
-                             const bool displayFullModel)
+void vpMbKltTracker::display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo,
+                             const vpCameraParameters &cam, const vpColor &col, unsigned int thickness,
+                             bool displayFullModel)
 {
-  vpCameraParameters c = camera;
+  std::vector<std::vector<double> > models = vpMbKltTracker::getModelForDisplay(I.getWidth(), I.getHeight(), cMo, cam, displayFullModel);
+
+  for (size_t i = 0; i < models.size(); i++) {
+    if (vpMath::equal(models[i][0], 0)) {
+      vpImagePoint ip1(models[i][1], models[i][2]);
+      vpImagePoint ip2(models[i][3], models[i][4]);
+      vpDisplay::displayLine(I, ip1, ip2, col, thickness);
+    } else if (vpMath::equal(models[i][0], 1)) {
+      vpImagePoint center(models[i][1], models[i][2]);
+      double mu20 = models[i][3];
+      double mu11 = models[i][4];
+      double mu02 = models[i][5];
+      vpDisplay::displayEllipse(I, center, mu20, mu11, mu02, true, col, thickness);
+    }
+  }
+
+  if (displayFeatures) {
+    for (size_t i = 0; i < m_featuresToBeDisplayedKlt.size(); i++) {
+      if (vpMath::equal(m_featuresToBeDisplayedKlt[i][0], 1)) {
+        vpImagePoint ip1(m_featuresToBeDisplayedKlt[i][1], m_featuresToBeDisplayedKlt[i][2]);
+        vpDisplay::displayCross(I, ip1, 10, vpColor::red);
+
+        vpImagePoint ip2(m_featuresToBeDisplayedKlt[i][3], m_featuresToBeDisplayedKlt[i][4]);
+        double id = m_featuresToBeDisplayedKlt[i][5];
+        std::stringstream ss;
+        ss << id;
+        vpDisplay::displayText(I, ip2, ss.str(), vpColor::red);
+      }
+    }
+  }
+
+#ifdef VISP_HAVE_OGRE
+  if (useOgre)
+    faces.displayOgre(cMo);
+#endif
+}
+
+std::vector<std::vector<double> > vpMbKltTracker::getFeaturesForDisplayKlt()
+{
+  std::vector<std::vector<double> > features;
+
+  for (std::list<vpMbtDistanceKltPoints *>::const_iterator it = kltPolygons.begin(); it != kltPolygons.end(); ++it) {
+    vpMbtDistanceKltPoints *kltpoly = *it;
+
+    if (kltpoly->hasEnoughPoints() && kltpoly->polygon->isVisible() && kltpoly->isTracked()) {
+      std::vector<std::vector<double> > currentFeatures = kltpoly->getFeaturesForDisplay();
+      features.insert(features.end(), currentFeatures.begin(), currentFeatures.end());
+    }
+  }
+
+  for (std::list<vpMbtDistanceKltCylinder *>::const_iterator it = kltCylinders.begin(); it != kltCylinders.end();
+       ++it) {
+    vpMbtDistanceKltCylinder *kltPolyCylinder = *it;
+
+    if (kltPolyCylinder->isTracked() && kltPolyCylinder->hasEnoughPoints()) {
+      std::vector<std::vector<double> > currentFeatures = kltPolyCylinder->getFeaturesForDisplay();
+      features.insert(features.end(), currentFeatures.begin(), currentFeatures.end());
+    }
+  }
+
+  return features;
+}
+
+/*!
+  Return a list of primitives parameters to display the model at a given pose and camera parameters.
+  - Line parameters are: `<primitive id (here 0 for line)>`, `<pt_start.i()>`, `<pt_start.j()>`,
+  `<pt_end.i()>`, `<pt_end.j()>`
+  - Ellipse parameters are: `<primitive id (here 1 for ellipse)>`, `<pt_center.i()>`, `<pt_center.j()>`,
+  `<mu20>`, `<mu11>`, `<mu02>`
+
+  \param width : Image width.
+  \param height : Image height.
+  \param cMo : Pose used to project the 3D model into the image.
+  \param cam : The camera parameters.
+  \param displayFullModel : If true, the line is displayed even if it is not
+*/
+std::vector<std::vector<double> > vpMbKltTracker::getModelForDisplay(unsigned int width, unsigned int height,
+                                                                     const vpHomogeneousMatrix &cMo,
+                                                                     const vpCameraParameters &cam,
+                                                                     bool displayFullModel)
+{
+  std::vector<std::vector<double> > models;
+
+  vpCameraParameters c = cam;
 
   if (clippingFlag > 3) // Contains at least one FOV constraint
-    c.computeFov(I.getWidth(), I.getHeight());
+    c.computeFov(width, height);
 
   //  vpMbtDistanceKltPoints *kltpoly;
   //  vpMbtDistanceKltCylinder *kltPolyCylinder;
@@ -1107,47 +1239,36 @@ void vpMbKltTracker::display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix
   //    kltpoly->polygon->changeFrame(cMo_);
   //    kltpoly->polygon->computePolygonClipped(c);
   //  }
-  faces.computeClippedPolygons(cMo_, c);
+  faces.computeClippedPolygons(cMo, c);
 
   if (useScanLine && !displayFullModel)
-    faces.computeScanLineRender(cam, I.getWidth(), I.getHeight());
+    faces.computeScanLineRender(m_cam, width, height);
 
   for (std::list<vpMbtDistanceKltPoints *>::const_iterator it = kltPolygons.begin(); it != kltPolygons.end(); ++it) {
     vpMbtDistanceKltPoints *kltpoly = *it;
-
-    kltpoly->display(I, cMo_, camera, col, thickness, displayFullModel);
-
-    if (displayFeatures && kltpoly->hasEnoughPoints() && kltpoly->polygon->isVisible() && kltpoly->isTracked()) {
-      kltpoly->displayPrimitive(I);
-      //         faces[i]->displayNormal(I);
-    }
+    std::vector<std::vector<double> > modelLines =  kltpoly->getModelForDisplay(cam, displayFullModel);
+    models.insert(models.end(), modelLines.begin(), modelLines.end());
   }
 
   for (std::list<vpMbtDistanceKltCylinder *>::const_iterator it = kltCylinders.begin(); it != kltCylinders.end();
        ++it) {
     vpMbtDistanceKltCylinder *kltPolyCylinder = *it;
-
-    kltPolyCylinder->display(I, cMo_, camera, col, thickness, displayFullModel);
-
-    if (displayFeatures && kltPolyCylinder->isTracked() && kltPolyCylinder->hasEnoughPoints())
-      kltPolyCylinder->displayPrimitive(I);
+    std::vector<std::vector<double> > modelLines =  kltPolyCylinder->getModelForDisplay(cMo, cam);
+    models.insert(models.end(), modelLines.begin(), modelLines.end());
   }
 
   for (std::list<vpMbtDistanceCircle *>::const_iterator it = circles_disp.begin(); it != circles_disp.end(); ++it) {
-    (*it)->display(I, cMo_, camera, col, thickness);
+    vpMbtDistanceCircle *displayCircle = *it;
+    std::vector<double> paramsCircle = displayCircle->getModelForDisplay(cMo, cam, displayFullModel);
+    models.push_back(paramsCircle);
   }
 
-#ifdef VISP_HAVE_OGRE
-  if (useOgre)
-    faces.displayOgre(cMo_);
-#endif
+  return models;
 }
 
 /*!
   Test the quality of the tracking.
   The tracking is supposed to fail if less than 10 points are tracked.
-
-  \todo Find a efficient way to test the quality.
 
   \throw vpTrackingException::fatalError  if the test fails.
 */
@@ -1187,11 +1308,11 @@ void vpMbKltTracker::testTracking()
   \param idFace : Identifier of the polygon representing the revolution axis
   of the cylinder. \param name : The optional name of the cylinder.
 */
-void vpMbKltTracker::initCylinder(const vpPoint &p1, const vpPoint &p2, const double radius, const int idFace,
+void vpMbKltTracker::initCylinder(const vpPoint &p1, const vpPoint &p2, double radius, int idFace,
                                   const std::string & /*name*/)
 {
   vpMbtDistanceKltCylinder *kltPoly = new vpMbtDistanceKltCylinder();
-  kltPoly->setCameraParameters(cam);
+  kltPoly->setCameraParameters(m_cam);
 
   kltPoly->buildFrom(p1, p2, radius);
 
@@ -1217,8 +1338,8 @@ void vpMbKltTracker::initCylinder(const vpPoint &p1, const vpPoint &p2, const do
   circle. \param radius : Radius of the circle. \param name : The optional
   name of the circle.
 */
-void vpMbKltTracker::initCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, const double radius,
-                                const int /*idFace*/, const std::string &name)
+void vpMbKltTracker::initCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, double radius,
+                                int /*idFace*/, const std::string &name)
 {
   addCircle(p1, p2, p3, radius, name);
 }
@@ -1231,7 +1352,7 @@ void vpMbKltTracker::initCircle(const vpPoint &p1, const vpPoint &p2, const vpPo
   center of the circle we have 3 points defining the plane that contains the
   circle. \param r : Radius of the circle. \param name : Name of the circle.
 */
-void vpMbKltTracker::addCircle(const vpPoint &P1, const vpPoint &P2, const vpPoint &P3, const double r,
+void vpMbKltTracker::addCircle(const vpPoint &P1, const vpPoint &P2, const vpPoint &P3, double r,
                                const std::string &name)
 {
   bool already_here = false;
@@ -1252,7 +1373,7 @@ void vpMbKltTracker::addCircle(const vpPoint &P1, const vpPoint &P2, const vpPoi
   if (!already_here) {
     vpMbtDistanceCircle *ci = new vpMbtDistanceCircle;
 
-    ci->setCameraParameters(cam);
+    ci->setCameraParameters(m_cam);
     ci->setName(name);
     ci->buildFrom(P1, P2, P3, r);
     circles_disp.push_back(ci);
@@ -1264,7 +1385,7 @@ void vpMbKltTracker::addCircle(const vpPoint &P1, const vpPoint &P2, const vpPoi
 
   \param I : The image containing the object to initialize.
   \param cad_name : Path to the file containing the 3D model description.
-  \param cMo_ : The new vpHomogeneousMatrix between the camera and the new
+  \param cMo : The new vpHomogeneousMatrix between the camera and the new
   model
   \param verbose : verbose option to print additional information when
   loading CAO model files which include other CAO model files.
@@ -1272,10 +1393,10 @@ void vpMbKltTracker::addCircle(const vpPoint &P1, const vpPoint &P2, const vpPoi
   3D points expressed in the original object frame to the desired object frame.
 */
 void vpMbKltTracker::reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name,
-                                 const vpHomogeneousMatrix &cMo_, const bool verbose,
+                                 const vpHomogeneousMatrix &cMo, bool verbose,
                                  const vpHomogeneousMatrix &T)
 {
-  this->cMo.eye();
+  m_cMo.eye();
 
 #if (VISP_HAVE_OPENCV_VERSION < 0x020408)
   if (cur != NULL) {
@@ -1318,7 +1439,7 @@ void vpMbKltTracker::reInitModel(const vpImage<unsigned char> &I, const std::str
   faces.reset();
 
   loadModel(cad_name, verbose, T);
-  initFromPose(I, cMo_);
+  initFromPose(I, cMo);
 }
 
 /*!

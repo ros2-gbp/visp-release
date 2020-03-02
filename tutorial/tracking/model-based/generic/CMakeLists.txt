@@ -11,13 +11,6 @@ set(tutorial_cpp
   tutorial-mb-generic-tracker-full.cpp
 )
 
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.mpg" )
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.cao" )
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.init" )
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.ppm" )
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.wrl" )
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.xml" )
-
 foreach(cpp ${tutorial_cpp})
   visp_add_target(${cpp})
 
@@ -27,6 +20,8 @@ foreach(cpp ${tutorial_cpp})
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-unused-parameter")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-unused-but-set-parameter")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-overloaded-virtual")
+    list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-float-equal")
+    list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-deprecated-copy")
   endif()
   if(VISP_HAVE_FLYCAPTURE)
     # Add specific build flag to turn off warnings coming from FlyCapture 3rd party
@@ -35,6 +30,7 @@ foreach(cpp ${tutorial_cpp})
   if(VISP_HAVE_REALSENSE2)
     # Add specific build flag to turn off warnings coming from librealsense 3rd party
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "/wd4244")
+    list(APPEND CXX_FLAGS_MUTE_WARNINGS "/wd4267")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-unused-function")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-sign-compare")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-reorder")
@@ -51,7 +47,5 @@ foreach(cpp ${tutorial_cpp})
   endif()
 endforeach()
 
-# Copy the data files to the same location than the target
-foreach(data ${tutorial_data})
-  visp_copy_data(tutorial-mb-generic-tracker.cpp ${data})
-endforeach()
+# Copy the data files
+visp_copy_dir(tutorial-mb-generic-tracker.cpp "${CMAKE_CURRENT_SOURCE_DIR}" model)
