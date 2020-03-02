@@ -1,4 +1,4 @@
-From f7e7903c8a86657aa18797a26d86846a5f96548f Mon Sep 17 00:00:00 2001
+From 432bbccda9158aada7295306a1dc99181e49c26b Mon Sep 17 00:00:00 2001
 From: Fabien Spindler <Fabien.Spindler@inria.fr>
 Date: Mon, 2 Mar 2020 16:31:05 +0100
 Subject: [PATCH] Add install rule for package.xml and disable testing
