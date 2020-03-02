@@ -1,3 +1,26 @@
+## visp (melodic) - 3.3.0-3
+
+The packages in the `visp` repository were released into the `melodic` distro by running `/usr/bin/bloom-release visp --ros-distro melodic --track melodic` on `Mon, 02 Mar 2020 15:39:29 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+
+- upstream repository: https://github.com/lagadic/visp.git
+- release repository: https://github.com/lagadic/visp-release.git
+- rosdistro version: `3.2.0-1`
+- old version: `3.3.0-2`
+- new version: `3.3.0-3`
+
+Versions of tools used:
+
+- bloom version: `0.9.1`
+- catkin_pkg version: `0.4.15`
+- rosdep version: `0.16.1`
+- rosdistro version: `0.8.0`
+- vcstools version: `0.1.42`
+
+
 ## visp (melodic) - 3.2.0-1
 
 The packages in the `visp` repository were released into the `melodic` distro by running `/usr/bin/bloom-release --rosdistro melodic --track melodic visp` on `Fri, 12 Apr 2019 15:51:50 -0000`
