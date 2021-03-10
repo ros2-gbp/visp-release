@@ -1,4 +1,4 @@
-From f78ead3dfdfe77485503b85d8affdb0471c1057e Mon Sep 17 00:00:00 2001
+From 3ee67db28ff04dc68e64164d0c5ca9caca513394 Mon Sep 17 00:00:00 2001
 From: Fabien Spindler <Fabien.Spindler@inria.fr>
 Date: Mon, 2 Mar 2020 16:31:05 +0100
 Subject: [PATCH] Add install rule for package.xml and disable testing
@@ -8,10 +8,10 @@ Subject: [PATCH] Add install rule for package.xml and disable testing
  1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 74280509..23518eb4 100644
+index 5339deeb..61fbc47f 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -686,11 +686,14 @@ VP_CHECK_PACKAGE(Log1p)
+@@ -698,11 +698,14 @@ VP_CHECK_PACKAGE(Log1p)
  # Dashboards are sent to https://cdash-ci.inria.fr/index.php?project=ViSP
  #----------------------------------------------------------------------
  if(BUILD_TESTS)
