@@ -96,7 +96,7 @@ public:
   virtual ~vpMbHiddenFaces();
   vpMbHiddenFaces(const vpMbHiddenFaces &copy);
   vpMbHiddenFaces &operator=(vpMbHiddenFaces other);
-  friend void swap<>(vpMbHiddenFaces &first, vpMbHiddenFaces &second);
+  friend void swap<PolygonType>(vpMbHiddenFaces &first, vpMbHiddenFaces &second);
 
   void addPolygon(PolygonType *p);
 
@@ -325,7 +325,7 @@ template <class PolygonType> vpMbHiddenFaces<PolygonType>::~vpMbHiddenFaces()
 }
 
 /*!
-  Copy constructor.
+  \relates vpMbHiddenFaces
 */
 template <class PolygonType>
 vpMbHiddenFaces<PolygonType>::vpMbHiddenFaces(const vpMbHiddenFaces<PolygonType> &copy)

@@ -92,6 +92,12 @@ const std::string vpAfma6::CONST_EMC_GENERIC_WITHOUT_DISTORTION_FILENAME =
 const std::string vpAfma6::CONST_EMC_GENERIC_WITH_DISTORTION_FILENAME =
     std::string(VISP_AFMA6_DATA_PATH) + std::string("/include/const_eMc_generic_with_distortion_Afma6.cnf");
 
+const std::string vpAfma6::CONST_EMC_INTEL_D435_WITHOUT_DISTORTION_FILENAME =
+    std::string(VISP_AFMA6_DATA_PATH) + std::string("/include/const_eMc_Intel_D435_without_distortion_Afma6.cnf");
+
+const std::string vpAfma6::CONST_EMC_INTEL_D435_WITH_DISTORTION_FILENAME =
+    std::string(VISP_AFMA6_DATA_PATH) + std::string("/include/const_eMc_Intel_D435_with_distortion_Afma6.cnf");
+
 const std::string vpAfma6::CONST_CAMERA_AFMA6_FILENAME =
     std::string(VISP_AFMA6_DATA_PATH) + std::string("/include/const_camera_Afma6.xml");
 
@@ -101,6 +107,7 @@ const char *const vpAfma6::CONST_CCMOP_CAMERA_NAME = "Dragonfly2-8mm-ccmop";
 const char *const vpAfma6::CONST_GRIPPER_CAMERA_NAME = "Dragonfly2-6mm-gripper";
 const char *const vpAfma6::CONST_VACUUM_CAMERA_NAME = "Dragonfly2-6mm-vacuum";
 const char *const vpAfma6::CONST_GENERIC_CAMERA_NAME = "Generic-camera";
+const char *const vpAfma6::CONST_INTEL_D435_CAMERA_NAME = "Intel-D435";
 
 const vpAfma6::vpAfma6ToolType vpAfma6::defaultTool = TOOL_CCMOP;
 
@@ -280,6 +287,9 @@ void vpAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::vpCameraPa
     case vpCameraParameters::perspectiveProjWithDistortion:
       filename_eMc = CONST_EMC_CCMOP_WITH_DISTORTION_FILENAME;
       break;
+    case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+      throw vpException(vpException::notImplementedError, "Feature TOOL_CCMOP is not implemented for Kannala-Brandt projection model yet.");
+      break;
     }
     break;
   }
@@ -290,6 +300,9 @@ void vpAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::vpCameraPa
       break;
     case vpCameraParameters::perspectiveProjWithDistortion:
       filename_eMc = CONST_EMC_GRIPPER_WITH_DISTORTION_FILENAME;
+      break;
+    case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+      throw vpException(vpException::notImplementedError, "Feature TOOL_GRIPPER is not implemented for Kannala-Brandt projection model yet.");
       break;
     }
     break;
@@ -302,6 +315,23 @@ void vpAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::vpCameraPa
     case vpCameraParameters::perspectiveProjWithDistortion:
       filename_eMc = CONST_EMC_VACUUM_WITH_DISTORTION_FILENAME;
       break;
+    case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+      throw vpException(vpException::notImplementedError, "Feature TOOL_VACUUM is not implemented for Kannala-Brandt projection model yet.");
+      break;
+    }
+    break;
+  }
+  case vpAfma6::TOOL_INTEL_D435_CAMERA: {
+    switch (projModel) {
+    case vpCameraParameters::perspectiveProjWithoutDistortion:
+      filename_eMc = CONST_EMC_INTEL_D435_WITHOUT_DISTORTION_FILENAME;
+      break;
+    case vpCameraParameters::perspectiveProjWithDistortion:
+      filename_eMc = CONST_EMC_INTEL_D435_WITH_DISTORTION_FILENAME;
+      break;
+    case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+      throw vpException(vpException::notImplementedError, "Feature TOOL_INTEL_D435_CAMERA is not implemented for Kannala-Brandt projection model yet.");
+      break;
     }
     break;
   }
@@ -312,6 +342,9 @@ void vpAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::vpCameraPa
       break;
     case vpCameraParameters::perspectiveProjWithDistortion:
       filename_eMc = CONST_EMC_GENERIC_WITH_DISTORTION_FILENAME;
+      break;
+    case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+      throw vpException(vpException::notImplementedError, "Feature TOOL_GENERIC_CAMERA is not implemented for Kannala-Brandt projection model yet.");
       break;
     }
     break;
@@ -354,6 +387,9 @@ void vpAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::vpCameraPa
       _etc[1] = 0.0024;             // ty
       _etc[2] = 0.2286;             // tz
       break;
+    case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+      throw vpException(vpException::notImplementedError, "Feature TOOL_CCMOP is not implemented for Kannala-Brandt projection model yet.");
+      break;
     }
     break;
   }
@@ -374,6 +410,9 @@ void vpAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::vpCameraPa
       _etc[0] = 0.1034;             // tx
       _etc[1] = 0.1142;             // ty
       _etc[2] = 0.1642;             // tz
+      break;
+    case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+      throw vpException(vpException::notImplementedError, "Feature TOOL_GRIPPER is not implemented for Kannala-Brandt projection model yet.");
       break;
     }
     break;
@@ -396,6 +435,33 @@ void vpAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::vpCameraPa
       _etc[1] = 0.1162;             // ty
       _etc[2] = 0.1658;             // tz
       break;
+    case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+      throw vpException(vpException::notImplementedError, "Feature TOOL_VACUUM is not implemented for Kannala-Brandt projection model yet.");
+      break;
+    }
+    break;
+  }
+  case vpAfma6::TOOL_INTEL_D435_CAMERA: {
+    switch (projModel) {
+    case vpCameraParameters::perspectiveProjWithoutDistortion:
+      _erc[0] = vpMath::rad(-71.41); // rx
+      _erc[1] = vpMath::rad(89.49);  // ry
+      _erc[2] = vpMath::rad(162.07); // rz
+      _etc[0] = 0.0038;              // tx
+      _etc[1] = 0.1281;              // ty
+      _etc[2] = 0.1658;              // tz
+      break;
+    case vpCameraParameters::perspectiveProjWithDistortion:
+      _erc[0] = vpMath::rad(-52.79); // rx
+      _erc[1] = vpMath::rad(89.55);  // ry
+      _erc[2] = vpMath::rad(143.34); // rz
+      _etc[0] = 0.0693;              // tx
+      _etc[1] = -0.0297;             // ty
+      _etc[2] = 0.1357;              // tz
+      break;
+    case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+      throw vpException(vpException::notImplementedError, "Feature TOOL_INTEL_D435_CAMERA is not implemented for Kannala-Brandt projection model yet.");
+      break;
     }
     break;
   }
@@ -411,6 +477,9 @@ void vpAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::vpCameraPa
       _etc[0] = 0; // tx
       _etc[1] = 0; // ty
       _etc[2] = 0; // tz
+      break;
+    case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+      throw vpException(vpException::notImplementedError, "Feature TOOL_GENERIC_CAMERA is not implemented for Kannala-Brandt projection model yet.");
       break;
     }
     break;
@@ -1129,18 +1198,16 @@ void vpAfma6::set_eMc(const vpHomogeneousMatrix &eMc)
 
   \warning This method needs XML library to parse the file defined in
   vpAfma6::CONST_CAMERA_AFMA6_FILENAME and containing the camera
-  parameters. If XML is detected by ViSP, VISP_HAVE_PUGIXML macro is
-  defined in include/visp3/core/vpConfig.h file.
+  parameters.
 
   \warning Thid method needs also an access to the files containing the
   camera parameters in XML format. This access is available if
   VISP_HAVE_AFMA6_DATA macro is defined in include/visp3/core/vpConfig.h file.
 
-  - If VISP_HAVE_AFMA6_DATA and VISP_HAVE_PUGIXML macros are defined,
-  this method gets the camera parameters from const_camera_Afma6.xml
-  config file.
+  - If VISP_HAVE_AFMA6_DATA is defined, this method gets the camera parameters
+  from const_camera_Afma6.xml config file.
 
-  - If these two macros are not defined, this method set the camera parameters
+  - If this macro is not defined, this method sets the camera parameters
   to default one.
 
   \param cam : In output, camera parameters to fill.
@@ -1170,7 +1237,7 @@ int main()
   // Get the intrinsic camera parameters depending on the image size
   // Camera parameters are read from
   // /udd/fspindle/robot/Afma6/current/include/const_camera_Afma6.xml
-  // if VISP_HAVE_AFMA6_DATA and VISP_HAVE_PUGIXML macros are defined in vpConfig.h file
+  // if VISP_HAVE_AFMA6_DATA macro is defined in vpConfig.h file
   try {
     robot.getCameraParameters (cam, I.getWidth(), I.getHeight());
   }
@@ -1189,7 +1256,7 @@ parameters are not found.
 void vpAfma6::getCameraParameters(vpCameraParameters &cam, const unsigned int &image_width,
                                   const unsigned int &image_height) const
 {
-#if defined(VISP_HAVE_PUGIXML) && defined(VISP_HAVE_AFMA6_DATA)
+#if defined(VISP_HAVE_AFMA6_DATA)
   vpXmlParserCamera parser;
   switch (getToolType()) {
   case vpAfma6::TOOL_CCMOP: {
@@ -1212,6 +1279,15 @@ void vpAfma6::getCameraParameters(vpCameraParameters &cam, const unsigned int &i
   }
   case vpAfma6::TOOL_VACUUM: {
     std::cout << "Get camera parameters for camera \"" << vpAfma6::CONST_VACUUM_CAMERA_NAME << "\"" << std::endl
+              << "from the XML file: \"" << vpAfma6::CONST_CAMERA_AFMA6_FILENAME << "\"" << std::endl;
+    if (parser.parse(cam, vpAfma6::CONST_CAMERA_AFMA6_FILENAME, vpAfma6::CONST_VACUUM_CAMERA_NAME, projModel,
+                     image_width, image_height) != vpXmlParserCamera::SEQUENCE_OK) {
+      throw vpRobotException(vpRobotException::readingParametersError, "Impossible to read the camera parameters.");
+    }
+    break;
+  }
+  case vpAfma6::TOOL_INTEL_D435_CAMERA: {
+    std::cout << "Get camera parameters for camera \"" << vpAfma6::CONST_INTEL_D435_CAMERA_NAME << "\"" << std::endl
               << "from the XML file: \"" << vpAfma6::CONST_CAMERA_AFMA6_FILENAME << "\"" << std::endl;
     if (parser.parse(cam, vpAfma6::CONST_CAMERA_AFMA6_FILENAME, vpAfma6::CONST_VACUUM_CAMERA_NAME, projModel,
                      image_width, image_height) != vpXmlParserCamera::SEQUENCE_OK) {
@@ -1256,6 +1332,9 @@ void vpAfma6::getCameraParameters(vpCameraParameters &cam, const unsigned int &i
       case vpCameraParameters::perspectiveProjWithDistortion:
         cam.initPersProjWithDistortion(1090.6, 1090.0, 310.1, 260.8, -0.2114, 0.2217);
         break;
+      case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+        throw vpException(vpException::notImplementedError, "Feature getCameraParameters is not implemented for Kannala-Brandt projection model yet.");
+        break;
       }
     } else {
       vpTRACE("Cannot get default intrinsic camera parameters for this image "
@@ -1275,6 +1354,9 @@ void vpAfma6::getCameraParameters(vpCameraParameters &cam, const unsigned int &i
         break;
       case vpCameraParameters::perspectiveProjWithDistortion:
         cam.initPersProjWithDistortion(837.0, 837.5, 308.7, 251.6, -0.1455, 0.1511);
+        break;
+      case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+        throw vpException(vpException::notImplementedError, "Feature getCameraParameters is not implemented for Kannala-Brandt projection model yet.");
         break;
       }
     } else {
@@ -1296,6 +1378,32 @@ void vpAfma6::getCameraParameters(vpCameraParameters &cam, const unsigned int &i
       case vpCameraParameters::perspectiveProjWithDistortion:
         cam.initPersProjWithDistortion(828.5, 829.0, 322.5, 232.9, -0.1921, 0.2057);
         break;
+      case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+        throw vpException(vpException::notImplementedError, "Feature getCameraParameters is not implemented for Kannala-Brandt projection model yet.");
+        break;
+      }
+    } else {
+      vpTRACE("Cannot get default intrinsic camera parameters for this image "
+              "resolution");
+      throw vpRobotException(vpRobotException::readingParametersError, "Impossible to read the camera parameters.");
+    }
+    break;
+  }
+  case vpAfma6::TOOL_INTEL_D435_CAMERA: {
+    // Set default intrinsic camera parameters for 640x480 images
+    if (image_width == 640 && image_height == 480) {
+      std::cout << "Get default camera parameters for camera \"" << vpAfma6::CONST_INTEL_D435_CAMERA_NAME << "\""
+                << std::endl;
+      switch (this->projModel) {
+      case vpCameraParameters::perspectiveProjWithoutDistortion:
+        cam.initPersProjWithoutDistortion(605.4, 605.6, 328.6, 241.0);
+        break;
+      case vpCameraParameters::perspectiveProjWithDistortion:
+        cam.initPersProjWithDistortion(611.8, 612.6, 327.8, 241.7, 0.0436, -0.04265);
+        break;
+      case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+        throw vpException(vpException::notImplementedError, "Feature getCameraParameters is not implemented for Kannala-Brandt projection model yet.");
+        break;
       }
     } else {
       vpTRACE("Cannot get default intrinsic camera parameters for this image "
@@ -1315,6 +1423,9 @@ void vpAfma6::getCameraParameters(vpCameraParameters &cam, const unsigned int &i
         break;
       case vpCameraParameters::perspectiveProjWithDistortion:
         cam.initPersProjWithDistortion(828.5, 829.0, 322.5, 232.9, -0.1921, 0.2057);
+        break;
+      case vpCameraParameters::ProjWithKannalaBrandtDistortion:
+        throw vpException(vpException::notImplementedError, "Feature getCameraParameters is not implemented for Kannala-Brandt projection model yet.");
         break;
       }
     } else {

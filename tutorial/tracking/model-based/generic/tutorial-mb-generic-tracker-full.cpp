@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 #if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100)
 
   try {
-    std::string opt_videoname = "model/teabox/teabox.mpg";
+    std::string opt_videoname = "model/teabox/teabox.mp4";
     std::string opt_modelname = "model/teabox/teabox.cao";
     int opt_tracker = 0;
 
@@ -25,10 +25,10 @@ int main(int argc, char **argv)
         opt_modelname = std::string(argv[i + 1]);
       else if (std::string(argv[i]) == "--tracker")
         opt_tracker = atoi(argv[i + 1]);
-      else if (std::string(argv[i]) == "--help") {
+      else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
         std::cout << "\nUsage: " << argv[0]
                   << " [--video <video name>] [--model <model name>] "
-                     "[--tracker <0=egde|1=keypoint|2=hybrid>] [--help]\n"
+                     "[--tracker <0=egde|1=keypoint|2=hybrid>] [--help] [-h]\n"
                   << std::endl;
         return 0;
       }
@@ -41,9 +41,7 @@ int main(int argc, char **argv)
 
     std::cout << "Video name: " << opt_videoname << std::endl;
     std::cout << "Tracker requested config files: " << objectname << ".[init,"
-#ifdef VISP_HAVE_PUGIXML
               << "xml,"
-#endif
               << "cao or wrl]" << std::endl;
     std::cout << "Tracker optional config files: " << objectname << ".[ppm]" << std::endl;
 
@@ -90,12 +88,10 @@ int main(int argc, char **argv)
 
     bool usexml = false;
     //! [Load xml]
-#ifdef VISP_HAVE_PUGIXML
     if (vpIoTools::checkFilename(objectname + ".xml")) {
       tracker.loadConfigFile(objectname + ".xml");
       usexml = true;
     }
-#endif
     //! [Load xml]
 
     if (!usexml) {
@@ -190,16 +186,18 @@ int main(int argc, char **argv)
       //! [Display]
       vpDisplay::displayFrame(I, cMo, cam, 0.025, vpColor::none, 3);
       vpDisplay::displayText(I, 10, 10, "A click to exit...", vpColor::red);
+      {
+        std::stringstream ss;
+        ss << "Features: edges " << tracker.getNbFeaturesEdge() << ", klt " << tracker.getNbFeaturesKlt();
+        vpDisplay::displayText(I, 30, 10, ss.str(), vpColor::red);
+      }
       vpDisplay::flush(I);
 
       if (vpDisplay::getClick(I, false))
         break;
     }
     vpDisplay::getClick(I);
-//! [Cleanup]
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
-    SoDB::finish();
-#endif
+    //! [Cleanup]
     delete display;
     //! [Cleanup]
   } catch (const vpException &e) {

@@ -49,6 +49,65 @@
 #include <TargetConditionals.h>             // To detect OSX or IOS using TARGET_OS_IPHONE or TARGET_OS_IOS macro
 #endif
 
+namespace {
+/*!
+ * Transform an homography from calibrated domain to pixel space.
+ *
+ * Given homography \f$\bf H\f$ in the Euclidian space or in the calibrated domain,
+ * compute the homography \f$\bf G\f$ corresponding to the collineation matrix in the pixel space using:
+ * \f[ {\bf G} = {\bf K} {\bf H} {\bf K}^{-1} \f]
+ * \param[in] H : Homography in the calibrated domain.
+ * \param[in] cam : Camera parameters used to fill \f${\bf K}\f$ matrix such as
+ * \f[{\bf K} =
+ * \left[ \begin{array}{ccc}
+ * p_x & 0   & u_0  \\
+ * 0   & p_y & v_0 \\
+ * 0   & 0   & 1
+ * \end{array}\right]
+ * \f]
+ * \return The corresponding collineation matrix \f$\bf G\f$ in the pixel space.
+ *
+ * \sa vpHomography::homography2collineation()
+ */
+vpMatrix homography2collineation(const vpMatrix &H, const vpCameraParameters &cam)
+{
+  vpMatrix G(3, 3);
+  double px = cam.get_px();
+  double py = cam.get_py();
+  double u0 = cam.get_u0();
+  double v0 = cam.get_v0();
+  double one_over_px = cam.get_px_inverse();
+  double one_over_py = cam.get_py_inverse();
+  double h00 = H[0][0], h01 = H[0][1], h02 = H[0][2];
+  double h10 = H[1][0], h11 = H[1][1], h12 = H[1][2];
+  double h20 = H[2][0], h21 = H[2][1], h22 = H[2][2];
+
+  double A = h00 * px + u0 * h20;
+  double B = h01 * px + u0 * h21;
+  double C = h02 * px + u0 * h22;
+  double D = h10 * py + v0 * h20;
+  double E = h11 * py + v0 * h21;
+  double F = h12 * py + v0 * h22;
+
+  G[0][0] = A * one_over_px;
+  G[1][0] = D * one_over_px;
+  G[2][0] = h20 * one_over_px;
+
+  G[0][1] = B * one_over_py;
+  G[1][1] = E * one_over_py;
+  G[2][1] = h21 * one_over_py;
+
+  double u0_one_over_px = u0 * one_over_px;
+  double v0_one_over_py = v0 * one_over_py;
+
+  G[0][2] = -A * u0_one_over_px - B * v0_one_over_py + C;
+  G[1][2] = -D * u0_one_over_px - E * v0_one_over_py + F;
+  G[2][2] = - h20 * u0_one_over_px - h21 * v0_one_over_py + h22;
+
+  return G;
+}
+}
+
 vpMbKltTracker::vpMbKltTracker()
   :
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020408)
@@ -479,8 +538,8 @@ void vpMbKltTracker::setPose(const vpImage<unsigned char> * const I, const vpIma
         vpGEMM(cdtc, Nc, -invDc, cdRc, 1.0, cdHc, VP_GEMM_B_T);
         cdHc /= cdHc[2][2];
 
-        // Create the 2D homography
-        vpMatrix cdGc = m_cam.get_K() * cdHc * m_cam.get_K_inverse();
+        // Compute homography in the pixel space cdGc = K * cdHc * K^{-1}
+        vpMatrix cdGc = homography2collineation(cdHc, m_cam);
 
         // Points displacement
         std::map<int, vpImagePoint>::const_iterator iter = kltpoly->getCurrentPoints().begin();
@@ -868,8 +927,7 @@ void vpMbKltTracker::computeVVSInit()
   m_w_klt.resize(nbFeatures, false);
   m_w_klt = 1;
 
-  m_robust_klt.resize(nbFeatures);
-  m_robust_klt.setThreshold(2 / m_cam.get_px());
+  m_robust_klt.setMinMedianAbsoluteDeviation(2 / m_cam.get_px());
 }
 
 void vpMbKltTracker::computeVVSInteractionMatrixAndResidu()
@@ -964,12 +1022,13 @@ void vpMbKltTracker::track(const vpImage<vpRGBa> &I_color)
 /*!
   Load the xml configuration file.
   From the configuration file initialize the parameters corresponding to the
-objects: KLT, camera.
+  objects: KLT, camera.
 
   \throw vpException::ioError if the file has not been properly parsed (file
-not found or wrong format for the data).
+  not found or wrong format for the data).
 
   \param configFile : full name of the xml file.
+  \param verbose : Set true to activate the verbose mode, false otherwise.
 
   The XML configuration file has the following form:
   \code
@@ -1003,14 +1062,13 @@ not found or wrong format for the data).
 </conf>
   \endcode
 */
-void vpMbKltTracker::loadConfigFile(const std::string &configFile)
+void vpMbKltTracker::loadConfigFile(const std::string &configFile, bool verbose)
 {
   // Load projection error config
-  vpMbTracker::loadConfigFile(configFile);
+  vpMbTracker::loadConfigFile(configFile, verbose);
 
-#ifdef VISP_HAVE_PUGIXML
   vpMbtXmlGenericParser xmlp(vpMbtXmlGenericParser::KLT_PARSER);
-
+  xmlp.setVerbose(verbose);
   xmlp.setKltMaxFeatures(10000);
   xmlp.setKltWindowSize(5);
   xmlp.setKltQuality(0.01);
@@ -1023,7 +1081,9 @@ void vpMbKltTracker::loadConfigFile(const std::string &configFile)
   xmlp.setAngleDisappear(vpMath::deg(angleDisappears));
 
   try {
-    std::cout << " *********** Parsing XML for MBT KLT Tracker ************ " << std::endl;
+    if (verbose) {
+      std::cout << " *********** Parsing XML for MBT KLT Tracker ************ " << std::endl;
+    }
     xmlp.parse(configFile.c_str());
   } catch (...) {
     vpERROR_TRACE("Can't open XML file \"%s\"\n ", configFile.c_str());
@@ -1068,10 +1128,6 @@ void vpMbKltTracker::loadConfigFile(const std::string &configFile)
     setMinLineLengthThresh(minLineLengthThresholdGeneral);
     setMinPolygonAreaThresh(minPolygonAreaThresholdGeneral);
   }
-
-#else
-  std::cerr << "pugixml third-party is not properly built to read config file: " << configFile << std::endl;
-#endif
 }
 
 /*!
@@ -1098,10 +1154,10 @@ void vpMbKltTracker::display(const vpImage<unsigned char> &I, const vpHomogeneou
       vpDisplay::displayLine(I, ip1, ip2, col, thickness);
     } else if (vpMath::equal(models[i][0], 1)) {
       vpImagePoint center(models[i][1], models[i][2]);
-      double mu20 = models[i][3];
-      double mu11 = models[i][4];
-      double mu02 = models[i][5];
-      vpDisplay::displayEllipse(I, center, mu20, mu11, mu02, true, col, thickness);
+      double n20 = models[i][3];
+      double n11 = models[i][4];
+      double n02 = models[i][5];
+      vpDisplay::displayEllipse(I, center, n20, n11, n02, true, col, thickness);
     }
   }
 
@@ -1150,10 +1206,10 @@ void vpMbKltTracker::display(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix
       vpDisplay::displayLine(I, ip1, ip2, col, thickness);
     } else if (vpMath::equal(models[i][0], 1)) {
       vpImagePoint center(models[i][1], models[i][2]);
-      double mu20 = models[i][3];
-      double mu11 = models[i][4];
-      double mu02 = models[i][5];
-      vpDisplay::displayEllipse(I, center, mu20, mu11, mu02, true, col, thickness);
+      double n20 = models[i][3];
+      double n11 = models[i][4];
+      double n02 = models[i][5];
+      vpDisplay::displayEllipse(I, center, n20, n11, n02, true, col, thickness);
     }
   }
 
@@ -1209,7 +1265,8 @@ std::vector<std::vector<double> > vpMbKltTracker::getFeaturesForDisplayKlt()
   - Line parameters are: `<primitive id (here 0 for line)>`, `<pt_start.i()>`, `<pt_start.j()>`,
   `<pt_end.i()>`, `<pt_end.j()>`
   - Ellipse parameters are: `<primitive id (here 1 for ellipse)>`, `<pt_center.i()>`, `<pt_center.j()>`,
-  `<mu20>`, `<mu11>`, `<mu02>`
+  `<n_20>`, `<n_11>`, `<n_02>` where `<n_ij>` are the second order centered moments of the ellipse
+  normalized by its area (i.e., such that \f$n_{ij} = \mu_{ij}/a\f$ where \f$\mu_{ij}\f$ are the centered moments and a the area).
 
   \param width : Image width.
   \param height : Image height.
@@ -1260,7 +1317,9 @@ std::vector<std::vector<double> > vpMbKltTracker::getModelForDisplay(unsigned in
   for (std::list<vpMbtDistanceCircle *>::const_iterator it = circles_disp.begin(); it != circles_disp.end(); ++it) {
     vpMbtDistanceCircle *displayCircle = *it;
     std::vector<double> paramsCircle = displayCircle->getModelForDisplay(cMo, cam, displayFullModel);
-    models.push_back(paramsCircle);
+    if (!paramsCircle.empty()) {
+      models.push_back(paramsCircle);
+    }
   }
 
   return models;

@@ -1,6 +1,6 @@
 project(tutorial-tracking-keypoint)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12.2)
 
 find_package(VISP REQUIRED visp_core visp_vision visp_klt visp_io visp_gui visp_sensor)
 
@@ -10,7 +10,7 @@ set(tutorial_cpp
   tutorial-klt-tracker-live-v4l2.cpp
   tutorial-klt-tracker-with-reinit.cpp)
 
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/video-postcard.mpeg" )
+list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/video-postcard.mp4" )
 
 foreach(cpp ${tutorial_cpp})
   visp_add_target(${cpp})

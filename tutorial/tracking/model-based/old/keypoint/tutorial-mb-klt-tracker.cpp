@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 #if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100)
 
   try {
-    std::string videoname = "teabox.mpg";
+    std::string videoname = "teabox.mp4";
 
     for (int i = 0; i < argc; i++) {
       if (std::string(argv[i]) == "--name")
@@ -30,9 +30,7 @@ int main(int argc, char **argv)
 
     std::cout << "Video name: " << videoname << std::endl;
     std::cout << "Tracker requested config files: " << objectname << ".[init,"
-#ifdef VISP_HAVE_PUGIXML
               << "xml,"
-#endif
               << "cao or wrl]" << std::endl;
     std::cout << "Tracker optional config files: " << objectname << ".[ppm]" << std::endl;
     vpImage<unsigned char> I;
@@ -58,13 +56,11 @@ int main(int argc, char **argv)
 
     vpMbKltTracker tracker;
     bool usexml = false;
-//! [Load xml]
-#ifdef VISP_HAVE_PUGIXML
+    //! [Load xml]
     if (vpIoTools::checkFilename(objectname + ".xml")) {
       tracker.loadConfigFile(objectname + ".xml");
       usexml = true;
     }
-#endif
     //! [Load xml]
     if (!usexml) {
       //! [Set parameters]
@@ -108,10 +104,6 @@ int main(int argc, char **argv)
         break;
     }
     vpDisplay::getClick(I);
-
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
-    SoDB::finish();
-#endif
   } catch (const vpException &e) {
     std::cout << "Catch a ViSP exception: " << e << std::endl;
   }
