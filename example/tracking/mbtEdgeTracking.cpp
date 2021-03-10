@@ -48,7 +48,8 @@
 #include <iostream>
 #include <visp3/core/vpConfig.h>
 
-#if defined(VISP_HAVE_MODULE_MBT) && defined(VISP_HAVE_DISPLAY)
+#if (defined(VISP_HAVE_MODULE_MBT) && defined(VISP_HAVE_DISPLAY)) \
+  && (defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV))
 
 #include <visp3/core/vpDebug.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
@@ -378,10 +379,10 @@ int main(int argc, const char **argv)
 
     // Initialise the tracker: camera parameters, moving edge and KLT settings
     vpCameraParameters cam;
-#if defined(VISP_HAVE_PUGIXML)
     // From the xml file
     tracker.loadConfigFile(configFile);
-#else
+#if 0
+    // Corresponding parameters manually set to have an example code
     // By setting the parameters:
     cam.initPersProjWithoutDistortion(547, 542, 338, 234);
 
@@ -475,9 +476,9 @@ int main(int argc, const char **argv)
         if (opt_display)
           vpDisplay::display(I);
         tracker.resetTracker();
-#if defined(VISP_HAVE_PUGIXML)
         tracker.loadConfigFile(configFile);
-#else
+#if 0
+        // Corresponding parameters manually set to have an example code
         // By setting the parameters:
         cam.initPersProjWithoutDistortion(547, 542, 338, 234);
 
@@ -567,13 +568,6 @@ int main(int argc, const char **argv)
     }
     reader.close();
 
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
-    // Cleanup memory allocated by Coin library used to load a vrml model in
-    // vpMbEdgeTracker::loadModel() We clean only if Coin was used.
-    if (!cao3DModel)
-      SoDB::finish();
-#endif
-
     return EXIT_SUCCESS;
   } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
@@ -581,12 +575,17 @@ int main(int argc, const char **argv)
   }
 }
 
-#else
-
+#elif !(defined(VISP_HAVE_MODULE_MBT) && defined(VISP_HAVE_DISPLAY))
 int main()
 {
-  std::cout << "visp_mbt module is required to run this example." << std::endl;
+  std::cout << "Cannot run this example: visp_mbt, visp_gui modules are required."
+            << std::endl;
   return EXIT_SUCCESS;
 }
-
+#else
+int main()
+{
+  std::cout << "Cannot run this example: install Lapack, Eigen3 or OpenCV" << std::endl;
+  return EXIT_SUCCESS;
+}
 #endif

@@ -38,7 +38,7 @@
 
 project(demo-wireframe-simulator)
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12.2)
 
 find_package(VISP REQUIRED visp_core visp_robot visp_vs visp_io visp_gui)
 
@@ -65,6 +65,6 @@ endforeach()
 # environment variable to the ViSP test sequences location.
 # To get these sequence download ViSP-images.tar.gz from
 # https://visp.inria.fr/download/
-add_test(servoSimu4Points servoSimu4Points -d)
-add_test(servoSimuCylinder servoSimuCylinder -d)
-add_test(servoSimuSphere servoSimuSphere -d)
+add_test(servoSimu4Points servoSimu4Points -d -p)
+add_test(servoSimuCylinder servoSimuCylinder -d -p)
+add_test(servoSimuSphere servoSimuSphere -d -p)

@@ -9,7 +9,7 @@
 #include <visp3/gui/vpDisplayOpenCV.h>
 #include <visp3/mbt/vpMbGenericTracker.h>
 
-#if (VISP_HAVE_OPENCV_VERSION >= 0x020403) && defined(VISP_HAVE_PUGIXML)
+#if (VISP_HAVE_OPENCV_VERSION >= 0x020403)
 namespace {
 bool read_data(unsigned int cpt, const std::string &input_directory, vpImage<unsigned char> &I,
                vpImage<uint16_t> &I_depth_raw, unsigned int &depth_width, unsigned int &depth_height,
@@ -216,8 +216,9 @@ int main(int argc, char *argv[])
           mapOfPointCloudWidths["Camera2"] = depth_width;
           mapOfPointCloudHeights["Camera2"] = depth_height;
           tracker.track(mapOfImages, mapOfPointClouds, mapOfPointCloudWidths, mapOfPointCloudHeights);
-        } else
+        } else {
           tracker.track(I);
+        }
       }
 
       vpHomogeneousMatrix cMo = tracker.getPose();
@@ -229,8 +230,9 @@ int main(int argc, char *argv[])
         tracker.display(I, I_depth, cMo, depthMcolor*cMo, cam_color, cam_depth, vpColor::red, 2);
         vpDisplay::displayFrame(I_depth, depthMcolor*cMo, cam_depth, 0.05, vpColor::none, 2);
       }
-      else
+      else {
         tracker.display(I, cMo, cam_color, vpColor::red, 2);
+      }
 
       vpDisplay::displayFrame(I, cMo, cam_color, 0.05, vpColor::none, 2);
       std::ostringstream oss;
@@ -238,9 +240,18 @@ int main(int argc, char *argv[])
       vpDisplay::displayText(I, 20, 20, oss.str(), vpColor::red);
 
       if (!display_ground_truth) {
-        oss.str("");
-        oss << "Nb features: " << tracker.getError().getRows();
-        vpDisplay::displayText(I, 40, 20, oss.str(), vpColor::red);
+        {
+          std::stringstream ss;
+          ss << "Nb features: " << tracker.getError().size();
+          vpDisplay::displayText(I, I.getHeight() - 50, 20, ss.str(), vpColor::red);
+        }
+        {
+          std::stringstream ss;
+          ss << "Features: edges " << tracker.getNbFeaturesEdge()
+             << ", klt " << tracker.getNbFeaturesKlt()
+             << ", depth " << tracker.getNbFeaturesDepthDense();
+          vpDisplay::displayText(I, I.getHeight() - 30, 20, ss.str(), vpColor::red);
+        }
       }
 
       vpDisplay::flush(I);
@@ -264,7 +275,7 @@ int main(int argc, char *argv[])
       frame_cpt++;
     }
 
-    vpDisplay::displayText(I, 20, 20, "Click to quit.", vpColor::red);
+    vpDisplay::displayText(I, 40, 20, "Click to quit.", vpColor::red);
     vpDisplay::flush(I);
     vpDisplay::getClick(I);
   } catch (std::exception& e) {

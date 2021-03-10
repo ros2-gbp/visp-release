@@ -209,14 +209,14 @@ if(USE_MKL)
 endif()
 if(USE_OPENBLAS)
   list(APPEND opt_incs ${OpenBLAS_INCLUDE_DIR})
-  list(APPEND opt_libs ${OpenBLAS_LIB})
+  list(APPEND opt_libs ${OpenBLAS_LIBRARIES})
 endif()
 if(USE_ATLAS)
   list(APPEND opt_incs ${Atlas_INCLUDE_DIR})
   list(APPEND opt_libs ${Atlas_LIBRARIES})
 endif()
-if(USE_LAPACK_NETLIB)
-  list(APPEND opt_libs ${LAPACK_C_LIBRARIES})
+if(USE_NETLIB)
+  list(APPEND opt_libs ${NETLIB_LIBRARIES})
 endif()
 
 # Misc: xml, pthread, zlib
@@ -232,16 +232,23 @@ if(USE_ZLIB)
   list(APPEND opt_incs ${ZLIB_INCLUDE_DIRS})
   list(APPEND opt_libs ${ZLIB_LIBRARIES})
 endif()
-
-if(WITH_PUGIXML)
-  # pugixml is private
-  include_directories(${PUGIXML_INCLUDE_DIRS})
+if(USE_OPENMP)
+  list(APPEND opt_incs ${OpenMP_CXX_INCLUDE_DIRS})
+  list(APPEND opt_libs ${OpenMP_CXX_LIBRARIES})
 endif()
+
+# pugixml is always enabled to provide default XML I/O capabilities
+# pugixml is private
+include_directories(${PUGIXML_INCLUDE_DIRS})
 
 if(WITH_CATCH2)
   # catch2 is private
   include_directories(${CATCH2_INCLUDE_DIRS})
 endif()
+
+# simdlib is always enabled since it contains fallback code to plain C++ code
+# Simd lib is private
+include_directories(${SIMDLIB_INCLUDE_DIRS})
 
 if(MSVC)
   # Disable Visual C++ C4996 warning
@@ -249,13 +256,13 @@ if(MSVC)
   # warning C4996: 'inet_ntoa': Use inet_ntop() or InetNtop() instead
   # warning C4996: 'inet_addr': Use inet_pton() or InetPton() instead
   if(BUILD_SHARED_LIBS)
-    vp_set_source_file_compile_flag(src/tools/network/vpClient.cpp /wd"4996")
-    vp_set_source_file_compile_flag(src/tools/network/vpServer.cpp /wd"4996")
-    vp_set_source_file_compile_flag(src/tools/network/vpNetwork.cpp /wd"4996")
-    vp_set_source_file_compile_flag(src/math/random-generator/vpUniRand.cpp /wd"4146")
+    vp_set_source_file_compile_flag(src/tools/network/vpClient.cpp /wd4996)
+    vp_set_source_file_compile_flag(src/tools/network/vpServer.cpp /wd4996)
+    vp_set_source_file_compile_flag(src/tools/network/vpNetwork.cpp /wd4996)
+    vp_set_source_file_compile_flag(src/math/random-generator/vpUniRand.cpp /wd4146)
     if(BUILD_TESTS)
-      vp_set_source_file_compile_flag(test/network/testClient.cpp /wd"4996")
-      vp_set_source_file_compile_flag(test/network/testServer.cpp /wd"4996")
+      vp_set_source_file_compile_flag(test/network/testClient.cpp /wd4996)
+      vp_set_source_file_compile_flag(test/network/testServer.cpp /wd4996)
     endif()
   else()
     vp_warnings_disable(CMAKE_CXX_FLAGS /wd4996)
@@ -288,15 +295,15 @@ endif()
 
 if(USE_XML2)
   if(MSVC)
-    vp_set_source_file_compile_flag(src/tools/xml/vpXmlParser.cpp /wd"4996")
-    vp_set_source_file_compile_flag(test/tools/xml/testXmlParser.cpp /wd"4996")
+    vp_set_source_file_compile_flag(src/tools/xml/vpXmlParser.cpp /wd4996)
+    vp_set_source_file_compile_flag(test/tools/xml/testXmlParser.cpp /wd4996)
   else()
     vp_set_source_file_compile_flag(src/tools/xml/vpXmlParser.cpp -Wno-deprecated-declarations)
     vp_set_source_file_compile_flag(test/tools/xml/testXmlParser.cpp -Wno-deprecated-declarations)
   endif()
 endif()
 
-vp_add_module(core PRIVATE_OPTIONAL ${LAPACK_LIBRARIES} ${PUGIXML_LIBRARIES} WRAP java)
+vp_add_module(core PRIVATE_OPTIONAL ${LAPACK_LIBRARIES} ${PUGIXML_LIBRARIES} ${SIMDLIB_LIBRARIES} WRAP java)
 
 vp_source_group("Src" FILES "${VISP_MODULE_visp_core_BINARY_DIR}/version_string.inc")
 

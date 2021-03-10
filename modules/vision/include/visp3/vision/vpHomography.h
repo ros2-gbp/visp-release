@@ -74,8 +74,8 @@ some tools for homography computation.
   points set.  These 2 sets are the only data needed to compute the
   homography.  One method used is the one introduced by Ezio Malis during his
   PhD \cite TheseMalis. A normalization is carried out on this points in order
-to improve the conditioning of the problem, what leads to improve the
-stability of the result.
+  to improve the conditioning of the problem, what leads to improve the
+  stability of the result.
 
   Store and compute the homography such that
   \f[
@@ -220,16 +220,22 @@ public:
   void buildFrom(const vpPoseVector &arb, const vpPlane &bP);
   //! Construction from homogeneous matrix and a plane
   void buildFrom(const vpHomogeneousMatrix &aMb, const vpPlane &bP);
+
+  vpHomography collineation2homography(const vpCameraParameters &cam) const;
+
   vpMatrix convert() const;
 
   void computeDisplacement(vpRotationMatrix &aRb, vpTranslationVector &atb, vpColVector &n);
 
   void computeDisplacement(const vpColVector &nd, vpRotationMatrix &aRb, vpTranslationVector &atb, vpColVector &n);
 
+  double det() const;
   void eye();
 
+  vpHomography homography2collineation(const vpCameraParameters &cam) const;
+
   //! invert the homography
-  vpHomography inverse() const;
+  vpHomography inverse(double sv_threshold = 1e-16, unsigned int *rank=NULL) const;
   //! invert the homography
   void inverse(vpHomography &Hi) const;
 

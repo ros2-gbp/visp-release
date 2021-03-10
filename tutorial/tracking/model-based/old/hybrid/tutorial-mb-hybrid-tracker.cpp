@@ -12,13 +12,13 @@ int main(int argc, char **argv)
 #if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100)
 
   try {
-    std::string videoname = "teabox.mpg";
+    std::string videoname = "teabox.mp4";
 
     for (int i = 0; i < argc; i++) {
       if (std::string(argv[i]) == "--name")
         videoname = std::string(argv[i + 1]);
-      else if (std::string(argv[i]) == "--help") {
-        std::cout << "\nUsage: " << argv[0] << " [--name <video name>] [--help]\n" << std::endl;
+      else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
+        std::cout << "\nUsage: " << argv[0] << " [--name <video name>] [--help] [-h]\n" << std::endl;
         return 0;
       }
     }
@@ -30,9 +30,7 @@ int main(int argc, char **argv)
 
     std::cout << "Video name: " << videoname << std::endl;
     std::cout << "Tracker requested config files: " << objectname << ".[init,"
-#ifdef VISP_HAVE_PUGIXML
               << "xml,"
-#endif
               << "cao or wrl]" << std::endl;
     std::cout << "Tracker optional config files: " << objectname << ".[ppm]" << std::endl;
 
@@ -46,25 +44,20 @@ int main(int argc, char **argv)
 
 #if defined(VISP_HAVE_X11)
     vpDisplayX display(I, 100, 100, "Model-based hybrid tracker");
-    ;
 #elif defined(VISP_HAVE_GDI)
     vpDisplayGDI display(I, 100, 100, "Model-based hybrid tracker");
-    ;
 #elif defined(VISP_HAVE_OPENCV)
     vpDisplayOpenCV display(I, 100, 100, "Model-based hybrid tracker");
-    ;
 #else
     std::cout << "No image viewer is available..." << std::endl;
 #endif
 
     vpMbEdgeKltTracker tracker;
     bool usexml = false;
-#ifdef VISP_HAVE_PUGIXML
     if (vpIoTools::checkFilename(objectname + ".xml")) {
       tracker.loadConfigFile(objectname + ".xml");
       usexml = true;
     }
-#endif
     if (!usexml) {
       vpMe me;
       me.setMaskSize(5);
@@ -114,10 +107,6 @@ int main(int argc, char **argv)
         break;
     }
     vpDisplay::getClick(I);
-
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
-    SoDB::finish();
-#endif
   } catch (const vpException &e) {
     std::cout << "Catch a ViSP exception: " << e << std::endl;
   }

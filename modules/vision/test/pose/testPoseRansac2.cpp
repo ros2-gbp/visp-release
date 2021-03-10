@@ -238,7 +238,11 @@ bool testRansac(const std::vector<vpPoint> &bunnyModelPoints_original,
   for (size_t i = 0; i < vectorOfIndex.size(); i++) {
     vectorOfIndex[i] = i;
   }
-  std::random_shuffle(vectorOfIndex.begin(), vectorOfIndex.end());
+
+  //std::random_shuffle(vectorOfIndex.begin(), vectorOfIndex.end()); // std::random_shuffle is deprecated in C++14
+  std::random_device rng;
+  std::mt19937 urng(rng());
+  std::shuffle(vectorOfIndex.begin(), vectorOfIndex.end(), urng);
 
   std::vector<vpPoint> bunnyModelPoints_noisy_tmp = bunnyModelPoints_noisy;
   bunnyModelPoints_noisy.clear();
@@ -538,6 +542,8 @@ int main(int argc, char* argv[])
   return EXIT_SUCCESS;
 #endif
 
+#if (defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV))
+
   Catch::Session session; // There must be exactly one instance
 
   // Let Catch (using Clara) parse the command line
@@ -549,6 +555,10 @@ int main(int argc, char* argv[])
   // This clamping has already been applied, so just return it here
   // You can also do any post run clean-up here
   return numFailed;
+#else
+  std::cout << "Cannot run this example: install Lapack, Eigen3 or OpenCV" << std::endl;
+  return EXIT_SUCCESS;
+#endif
 }
 #else
 int main()
