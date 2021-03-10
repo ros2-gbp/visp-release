@@ -127,9 +127,7 @@ int main()
   display.init(I,100,100,"Mb Edge Tracker");
 #endif
 
-#if defined VISP_HAVE_PUGIXML
   tracker.loadConfigFile("cube.xml"); // Load the configuration of the tracker
-#endif
   tracker.getCameraParameters(cam);   // Get the camera parameters used by the tracker (from the configuration file).
   tracker.loadModel("cube.cao");      // Load the 3d model in cao format. No 3rd party library is required
   // Initialise manually the pose by clicking on the image points associated to the 3d points contained in the
@@ -190,9 +188,7 @@ int main()
   //acquire an image
   vpImageIo::read(I, "cube.pgm"); // Example of acquisition
 
-#if defined VISP_HAVE_PUGIXML
   tracker.loadConfigFile("cube.xml"); // Load the configuration of the tracker
-#endif
   // load the 3d model, to read .wrl model coin is required, if coin is not installed .cao file can be used.
   tracker.loadModel("cube.cao");
   tracker.initFromPose(I, cMo); // initialize the tracker with the given pose.
@@ -233,9 +229,7 @@ int main()
   display.init(I,100,100,"Mb Edge Tracker");
 #endif
 
-#if defined VISP_HAVE_PUGIXML
   tracker.loadConfigFile("cube.xml"); // Load the configuration of the tracker
-#endif
   tracker.getCameraParameters(cam); // Get the camera parameters used by the tracker (from the configuration file).
   // load the 3d model, to read .wrl model coin is required, if coin is not installed
   // .cao file can be used.
@@ -257,9 +251,6 @@ int main()
 
 class VISP_EXPORT vpMbEdgeTracker : public virtual vpMbTracker
 {
-  friend class vpMbEdgeMultiTracker;
-  friend class vpMbEdgeKltMultiTracker;
-
 protected:
   //! The moving edges parameters.
   vpMe me;
@@ -390,7 +381,7 @@ public:
 
   virtual inline vpColVector getRobustWeights() const { return m_w_edge; }
 
-  void loadConfigFile(const std::string &configFile);
+  virtual void loadConfigFile(const std::string &configFile, bool verbose=true);
 
   virtual void reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name,
                            const vpHomogeneousMatrix &cMo, bool verbose = false,

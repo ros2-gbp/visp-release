@@ -376,11 +376,12 @@ int main(int argc, const char **argv)
     vpHomogeneousMatrix cMo;
     vpCameraParameters cam;
 
-// Initialise the tracker: camera parameters, moving edge and KLT settings
-#if defined(VISP_HAVE_PUGIXML)
+  // Initialise the tracker: camera parameters, moving edge and KLT settings
     // From the xml file
     tracker.loadConfigFile(configFile);
-#else
+
+#if 0
+    // Corresponding parameters manually set to have an example code
     // By setting the parameters:
     cam.initPersProjWithoutDistortion(547, 542, 338, 234);
 
@@ -487,9 +488,10 @@ int main(int argc, const char **argv)
         if (opt_display)
           vpDisplay::display(I);
         tracker.resetTracker();
-#if defined(VISP_HAVE_PUGIXML)
         tracker.loadConfigFile(configFile);
-#else
+
+#if 0
+        // Corresponding parameters manually set to have an example code
         // By setting the parameters:
         cam.initPersProjWithoutDistortion(547, 542, 338, 234);
 
@@ -591,13 +593,6 @@ int main(int argc, const char **argv)
       vpDisplay::getClick(I);
     }
     reader.close();
-
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
-    // Cleanup memory allocated by Coin library used to load a vrml model in
-    // vpMbEdgeKltTracker::loadModel() We clean only if Coin was used.
-    if (!cao3DModel)
-      SoDB::finish();
-#endif
 
     return EXIT_SUCCESS;
   } catch (const vpException &e) {
