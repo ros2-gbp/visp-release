@@ -200,7 +200,7 @@ public:
   }
 
 #if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
-  vpArray2D<Type>(vpArray2D<Type> &&A)
+  vpArray2D<Type>(vpArray2D<Type> &&A) noexcept
   {
     rowNum = A.rowNum;
     colNum = A.colNum;
@@ -299,8 +299,7 @@ public:
   after resize. If false, the initial values from the common part of the
   array (common part between old and new version of the array) are kept.
   Default value is true.
-  \param recopy_ : if true, will perform an explicit recopy of the old data
-  if needed and if flagNullify is set to false.
+  \param recopy_ : if true, will perform an explicit recopy of the old data.
   */
   void resize(unsigned int nrows, unsigned int ncols, bool flagNullify = true, bool recopy_ = true)
   {
@@ -430,7 +429,7 @@ public:
   }
 
 #if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
-  vpArray2D<Type> &operator=(vpArray2D<Type> &&other)
+  vpArray2D<Type> &operator=(vpArray2D<Type> &&other) noexcept
   {
     if (this != &other) {
       free(data);
@@ -961,6 +960,9 @@ template <class Type> bool vpArray2D<Type>::operator==(const vpArray2D<Type>& A)
   return true;
 }
 
+/*!
+ * \relates vpArray2D
+ */
 template <> inline bool vpArray2D<double>::operator==(const vpArray2D<double>& A) const
 {
   if (A.rowNum != rowNum || A.colNum != colNum) {

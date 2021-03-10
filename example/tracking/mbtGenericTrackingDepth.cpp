@@ -43,7 +43,8 @@
 #include <iostream>
 #include <visp3/core/vpConfig.h>
 
-#if defined(VISP_HAVE_MODULE_MBT) && defined(VISP_HAVE_DISPLAY)
+#if (defined(VISP_HAVE_MODULE_MBT) && defined(VISP_HAVE_DISPLAY)) \
+  && (defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV))
 
 #include <visp3/core/vpDebug.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
@@ -346,17 +347,17 @@ bool read_data(unsigned int cpt, const std::string &input_directory, vpImage<uns
 
 void loadConfiguration(vpMbTracker *const tracker,
                        const std::string &
-#if defined(VISP_HAVE_PUGIXML) && USE_XML
+#if USE_XML
                            configFile
 #endif
                        ,
                        const std::string &
-#if defined(VISP_HAVE_PUGIXML) && USE_XML
+#if USE_XML
                            configFile_depth
 #endif
 )
 {
-#if defined(VISP_HAVE_PUGIXML) && USE_XML
+#if USE_XML
   // From the xml file
   dynamic_cast<vpMbGenericTracker *>(tracker)->loadConfigFile(configFile, configFile_depth);
 #else
@@ -418,45 +419,6 @@ void loadConfiguration(vpMbTracker *const tracker,
 
 int main(int argc, const char **argv)
 {
-  {
-    // Test TukeyEstimator
-    {
-      vpMbtTukeyEstimator<double> tukey_estimator;
-      std::vector<double> residues;
-      residues.push_back(0.5);
-      residues.push_back(0.1);
-      residues.push_back(0.15);
-      residues.push_back(0.14);
-      residues.push_back(0.12);
-      std::vector<double> weights(5, 1);
-
-      tukey_estimator.MEstimator(residues, weights, 1e-3);
-
-      for (size_t i = 0; i < weights.size(); i++) {
-        std::cout << "residues[" << i << "]=" << residues[i] << " ; weights[i" << i << "]=" << weights[i] << std::endl;
-      }
-      std::cout << std::endl;
-    }
-
-    {
-      vpMbtTukeyEstimator<float> tukey_estimator;
-      std::vector<float> residues;
-      residues.push_back(0.5f);
-      residues.push_back(0.1f);
-      residues.push_back(0.15f);
-      residues.push_back(0.14f);
-      residues.push_back(0.12f);
-      std::vector<float> weights(5, 1);
-
-      tukey_estimator.MEstimator(residues, weights, (float)1e-3);
-
-      for (size_t i = 0; i < weights.size(); i++) {
-        std::cout << "residues[" << i << "]=" << residues[i] << " ; weights[i" << i << "]=" << weights[i] << std::endl;
-      }
-      std::cout << std::endl;
-    }
-  }
-
   try {
     std::string env_ipath;
     std::string opt_ipath;
@@ -797,6 +759,13 @@ int main(int argc, const char **argv)
           ss.str("");
           ss << "nb features: " << tracker->getError().getRows();
           vpDisplay::displayText(I_depth, 80, 20, ss.str(), vpColor::red);
+          {
+            std::stringstream ss;
+            ss << "Features: edges " << dynamic_cast<vpMbGenericTracker *>(tracker)->getNbFeaturesEdge()
+               << ", klt " << dynamic_cast<vpMbGenericTracker *>(tracker)->getNbFeaturesKlt()
+               << ", depth " << dynamic_cast<vpMbGenericTracker *>(tracker)->getNbFeaturesDepthDense();
+            vpDisplay::displayText(I, I.getHeight() - 30, 20, ss.str(), vpColor::red);
+          }
         }
       }
 
@@ -847,13 +816,6 @@ int main(int argc, const char **argv)
     delete tracker;
     tracker = NULL;
 
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
-    // Cleanup memory allocated by Coin library used to load a vrml model in
-    // vpMbGenericTracker::loadModel() We clean only if Coin was used.
-    if (use_vrml)
-      SoDB::finish();
-#endif
-
     return EXIT_SUCCESS;
   } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
@@ -861,12 +823,18 @@ int main(int argc, const char **argv)
   }
 }
 
-#else
+#elif !(defined(VISP_HAVE_MODULE_MBT) && defined(VISP_HAVE_DISPLAY))
 int main()
 {
-  std::cerr << "visp_mbt, visp_gui modules and OpenCV are required to run "
-               "this example."
+  std::cout << "Cannot run this example: visp_mbt, visp_gui modules are required."
             << std::endl;
   return EXIT_SUCCESS;
 }
+#else
+int main()
+{
+  std::cout << "Cannot run this example: install Lapack, Eigen3 or OpenCV" << std::endl;
+  return EXIT_SUCCESS;
+}
 #endif
+

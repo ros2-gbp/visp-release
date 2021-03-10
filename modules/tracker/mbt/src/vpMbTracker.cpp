@@ -47,6 +47,8 @@
 #include <iostream>
 #include <limits>
 
+#include <Simd/SimdLib.hpp>
+
 #include <visp3/core/vpColVector.h>
 #include <visp3/core/vpDisplay.h>
 #include <visp3/core/vpMath.h>
@@ -92,11 +94,6 @@
 #include <Inventor/nodes/SoSeparator.h>
 #endif
 
-#if defined __SSE2__ || defined _M_X64 || (defined _M_IX86_FP && _M_IX86_FP >= 2)
-#include <emmintrin.h>
-#define VISP_HAVE_SSE2 1
-#endif
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 namespace
@@ -129,6 +126,48 @@ struct PolygonFaceInfo {
   vpPolygon polygon;
   std::vector<vpPoint> faceCorners;
 };
+
+/*!
+  Reference: https://stackoverflow.com/a/6089413
+  To replace the following old code:
+      char buffer[256];
+      fileId.getline(buffer, 256);
+  This should take care of the different line ending styles.
+ */
+std::istream& safeGetline(std::istream& is, std::string& t)
+{
+  t.clear();
+
+  // The characters in the stream are read one-by-one using a std::streambuf.
+  // That is faster than reading them one-by-one using the std::istream.
+  // Code that uses streambuf this way must be guarded by a sentry object.
+  // The sentry object performs various tasks,
+  // such as thread synchronization and updating the stream state.
+
+  std::istream::sentry se(is, true);
+  std::streambuf* sb = is.rdbuf();
+
+  for(;;) {
+    int c = sb->sbumpc();
+    if (c == '\n') {
+      return is;
+    }
+    else if (c == '\r') {
+      if(sb->sgetc() == '\n')
+        sb->sbumpc();
+      return is;
+    }
+    else if (c == std::streambuf::traits_type::eof()) {
+      // Also handle the case when the last line has no line ending
+      if(t.empty())
+        is.setstate(std::ios::eofbit);
+      return is;
+    }
+    else { // default case
+      t += (char)c;
+    }
+  }
+}
 }
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -150,7 +189,7 @@ vpMbTracker::vpMbTracker()
     m_projectionErrorFaces(), m_projectionErrorOgreShowConfigDialog(false),
     m_projectionErrorMe(), m_projectionErrorKernelSize(2), m_SobelX(5,5), m_SobelY(5,5),
     m_projectionErrorDisplay(false), m_projectionErrorDisplayLength(20), m_projectionErrorDisplayThickness(1),
-    m_projectionErrorCam(), m_mask(NULL), m_I()
+    m_projectionErrorCam(), m_mask(NULL), m_I(), m_sodb_init_called(false), m_rand()
 {
   oJo.eye();
   // Map used to parse additional information in CAO model files,
@@ -185,6 +224,12 @@ vpMbTracker::~vpMbTracker() {
       delete ci;
     ci = NULL;
   }
+#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
+  if (m_sodb_init_called) {
+    // Cleanup memory allocated by Coin library used to load a vrml model
+    SoDB::finish();
+  }
+#endif
 }
 
 #ifdef VISP_HAVE_MODULE_GUI
@@ -536,7 +581,7 @@ void vpMbTracker::initClick(const vpImage<unsigned char> * const I, const vpImag
   the user has to click in the image. This file should have .init extension
   (ie teabox.init).
   \param displayHelp : Optionnal display of an image (.ppm, .pgm, .jpg, .jpeg, .png) that
-  should have the same generic name as the init file (ie teabox.ppm). This
+  should have the same generic name as the init file (ie teabox.ppm or teabox.png). This
   image may be used to show where to click. This functionality is only
   available if visp_io module is used.
   \param T : optional transformation matrix to transform
@@ -573,7 +618,7 @@ void vpMbTracker::initClick(const vpImage<unsigned char> &I, const std::string &
   the user has to click in the image. This file should have .init extension
   (ie teabox.init).
   \param displayHelp : Optionnal display of an image (.ppm, .pgm, .jpg, .jpeg, .png) that
-  should have the same generic name as the init file (ie teabox.ppm). This
+  should have the same generic name as the init file (ie teabox.ppm or teabox.png). This
   image may be used to show where to click. This functionality is only
   available if visp_io module is used.
   \param T : optional transformation matrix to transform
@@ -1441,25 +1486,13 @@ void vpMbTracker::addPolygon(const std::vector<std::vector<vpPoint> > &listFaces
   file (.wrl) or a CAO file (.cao). CAO format is described in the
   loadCAOModel() method.
 
-  \warning When this class is called to load a vrml model, remember that you
-  have to call Call SoDD::finish() before ending the program.
-  \code
-int main()
-{
-    ...
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
-  SoDB::finish();
-#endif
-}
-  \endcode
-
   \throw vpException::ioError if the file cannot be open, or if its extension
-is not wrl or cao.
+  is not wrl or cao.
 
   \param modelFile : the file containing the the 3D model description.
   The extension of this file is either .wrl or .cao.
   \param verbose : verbose option to print additional information when loading
-CAO model files which include other CAO model files.
+  CAO model files which include other CAO model files.
   \param odTo : optional transformation matrix (currently only for .cao) to transform
   3D points expressed in the original object frame to the desired object frame.
 */
@@ -1496,25 +1529,13 @@ void vpMbTracker::loadModel(const std::string &modelFile, bool verbose, const vp
 
 /*!
   Load the 3D model of the object from a vrml file. Only LineSet and FaceSet
-are extracted from the vrml file.
-
-  \warning When this class is called, remember that you have to call Call
-  SoDD::finish() before ending the program.
-  \code
-int main()
-{
-    ...
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
-  SoDB::finish();
-#endif
-}
-  \endcode
+  are extracted from the vrml file.
 
   \warning The cylinders extracted using this method do not use the Cylinder
   keyword of vrml since vrml exporter such as Blender or AC3D consider a
   cylinder as an IndexedFaceSet. To test whether an indexedFaceSet is a
-cylinder or not, the name of the geometry is read. If the name begins with
-"cyl" then the faceset is supposed to be a cylinder. For example, the line
+  cylinder or not, the name of the geometry is read. If the name begins with
+  "cyl" then the faceset is supposed to be a cylinder. For example, the line
   \code
 geometry DEF cyl_cylinder1 IndexedFaceSet
   \endcode
@@ -1527,6 +1548,7 @@ geometry DEF cyl_cylinder1 IndexedFaceSet
 void vpMbTracker::loadVRMLModel(const std::string &modelFile)
 {
 #ifdef VISP_HAVE_COIN3D
+  m_sodb_init_called = true;
   SoDB::init(); // Call SoDB::finish() before ending the program.
 
   SoInput in;
@@ -1576,7 +1598,7 @@ void vpMbTracker::removeComment(std::ifstream &fileId)
 
   fileId.get(c);
   while (!fileId.fail() && (c == '#')) {
-    fileId.ignore(256, '\n');
+    fileId.ignore(std::numeric_limits<std::streamsize>::max(), fileId.widen('\n'));
     fileId.get(c);
   }
   if (fileId.fail()) {
@@ -1715,7 +1737,7 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
     fileId.get(c);
     if (c == 'V') {
       fileId >> caoVersion;
-      fileId.ignore(256, '\n'); // skip the rest of the line
+      fileId.ignore(std::numeric_limits<std::streamsize>::max(), fileId.widen('\n'));  // skip the rest of the line
     } else {
       std::cout << "in vpMbTracker::loadCAOModel() -> Bad parameter header "
                    "file : use V0, V1, ...";
@@ -1843,7 +1865,7 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
     //////////////////////////Read the point declaration part//////////////////////////
     unsigned int caoNbrPoint;
     fileId >> caoNbrPoint;
-    fileId.ignore(256, '\n'); // skip the rest of the line
+    fileId.ignore(std::numeric_limits<std::streamsize>::max(), fileId.widen('\n')); // skip the rest of the line
 
     nbPoints += caoNbrPoint;
     if (verbose || (parent && !header)) {
@@ -1875,7 +1897,7 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
         fileId >> j;
       }
 
-      fileId.ignore(256, '\n'); // skip the rest of the line
+      fileId.ignore(std::numeric_limits<std::streamsize>::max(), fileId.widen('\n')); // skip the rest of the line
 
       vpColVector pt_3d_tf = odTo*pt_3d;
       caoPoints[k].setWorldCoordinates(pt_3d_tf[0], pt_3d_tf[1], pt_3d_tf[2]);
@@ -1888,7 +1910,7 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
     std::map<std::pair<unsigned int, unsigned int>, SegmentInfo> segmentTemporaryMap;
     unsigned int caoNbrLine;
     fileId >> caoNbrLine;
-    fileId.ignore(256, '\n'); // skip the rest of the line
+    fileId.ignore(std::numeric_limits<std::streamsize>::max(), fileId.widen('\n')); // skip the rest of the line
 
     nbLines += caoNbrLine;
     unsigned int *caoLinePoints = NULL;
@@ -1917,43 +1939,43 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
 
       //////////////////////////Read the parameter value if present//////////////////////////
       // Get the end of the line
-      char buffer[256];
-      fileId.getline(buffer, 256);
-      std::string endLine(buffer);
-      std::map<std::string, std::string> mapOfParams = parseParameters(endLine);
+      std::string endLine = "";
+      if (safeGetline(fileId, endLine).good()) {
+        std::map<std::string, std::string> mapOfParams = parseParameters(endLine);
 
-      std::string segmentName = "";
-      double minLineLengthThresh = !applyLodSettingInConfig ? minLineLengthThresholdGeneral : 50.0;
-      bool useLod = !applyLodSettingInConfig ? useLodGeneral : false;
-      if (mapOfParams.find("name") != mapOfParams.end()) {
-        segmentName = mapOfParams["name"];
-      }
-      if (mapOfParams.find("minLineLengthThreshold") != mapOfParams.end()) {
-        minLineLengthThresh = std::atof(mapOfParams["minLineLengthThreshold"].c_str());
-      }
-      if (mapOfParams.find("useLod") != mapOfParams.end()) {
-        useLod = vpIoTools::parseBoolean(mapOfParams["useLod"]);
-      }
+        std::string segmentName = "";
+        double minLineLengthThresh = !applyLodSettingInConfig ? minLineLengthThresholdGeneral : 50.0;
+        bool useLod = !applyLodSettingInConfig ? useLodGeneral : false;
+        if (mapOfParams.find("name") != mapOfParams.end()) {
+          segmentName = mapOfParams["name"];
+        }
+        if (mapOfParams.find("minLineLengthThreshold") != mapOfParams.end()) {
+          minLineLengthThresh = std::atof(mapOfParams["minLineLengthThreshold"].c_str());
+        }
+        if (mapOfParams.find("useLod") != mapOfParams.end()) {
+          useLod = vpIoTools::parseBoolean(mapOfParams["useLod"]);
+        }
 
-      SegmentInfo segmentInfo;
-      segmentInfo.name = segmentName;
-      segmentInfo.useLod = useLod;
-      segmentInfo.minLineLengthThresh = minLineLengthThresh;
+        SegmentInfo segmentInfo;
+        segmentInfo.name = segmentName;
+        segmentInfo.useLod = useLod;
+        segmentInfo.minLineLengthThresh = minLineLengthThresh;
 
-      caoLinePoints[2 * k] = index1;
-      caoLinePoints[2 * k + 1] = index2;
+        caoLinePoints[2 * k] = index1;
+        caoLinePoints[2 * k + 1] = index2;
 
-      if (index1 < caoNbrPoint && index2 < caoNbrPoint) {
-        std::vector<vpPoint> extremities;
-        extremities.push_back(caoPoints[index1]);
-        extremities.push_back(caoPoints[index2]);
-        segmentInfo.extremities = extremities;
+        if (index1 < caoNbrPoint && index2 < caoNbrPoint) {
+          std::vector<vpPoint> extremities;
+          extremities.push_back(caoPoints[index1]);
+          extremities.push_back(caoPoints[index2]);
+          segmentInfo.extremities = extremities;
 
-        std::pair<unsigned int, unsigned int> key(index1, index2);
+          std::pair<unsigned int, unsigned int> key(index1, index2);
 
-        segmentTemporaryMap[key] = segmentInfo;
-      } else {
-        vpTRACE(" line %d has wrong coordinates.", k);
+          segmentTemporaryMap[key] = segmentInfo;
+        } else {
+          vpTRACE(" line %d has wrong coordinates.", k);
+        }
       }
     }
 
@@ -1967,7 +1989,7 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
     std::vector<std::pair<unsigned int, unsigned int> > faceSegmentKeyVector;
     unsigned int caoNbrPolygonLine;
     fileId >> caoNbrPolygonLine;
-    fileId.ignore(256, '\n'); // skip the rest of the line
+    fileId.ignore(std::numeric_limits<std::streamsize>::max(), fileId.widen('\n')); // skip the rest of the line
 
     nbPolygonLines += caoNbrPolygonLine;
     if (verbose || (parent && !header)) {
@@ -2006,29 +2028,29 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
 
       //////////////////////////Read the parameter value if present//////////////////////////
       // Get the end of the line
-      char buffer[256];
-      fileId.getline(buffer, 256);
-      std::string endLine(buffer);
-      std::map<std::string, std::string> mapOfParams = parseParameters(endLine);
+      std::string endLine = "";
+      if (safeGetline(fileId, endLine).good()) {
+        std::map<std::string, std::string> mapOfParams = parseParameters(endLine);
 
-      std::string polygonName = "";
-      bool useLod = !applyLodSettingInConfig ? useLodGeneral : false;
-      double minPolygonAreaThreshold = !applyLodSettingInConfig ? minPolygonAreaThresholdGeneral : 2500.0;
-      if (mapOfParams.find("name") != mapOfParams.end()) {
-        polygonName = mapOfParams["name"];
-      }
-      if (mapOfParams.find("minPolygonAreaThreshold") != mapOfParams.end()) {
-        minPolygonAreaThreshold = std::atof(mapOfParams["minPolygonAreaThreshold"].c_str());
-      }
-      if (mapOfParams.find("useLod") != mapOfParams.end()) {
-        useLod = vpIoTools::parseBoolean(mapOfParams["useLod"]);
-      }
+        std::string polygonName = "";
+        bool useLod = !applyLodSettingInConfig ? useLodGeneral : false;
+        double minPolygonAreaThreshold = !applyLodSettingInConfig ? minPolygonAreaThresholdGeneral : 2500.0;
+        if (mapOfParams.find("name") != mapOfParams.end()) {
+          polygonName = mapOfParams["name"];
+        }
+        if (mapOfParams.find("minPolygonAreaThreshold") != mapOfParams.end()) {
+          minPolygonAreaThreshold = std::atof(mapOfParams["minPolygonAreaThreshold"].c_str());
+        }
+        if (mapOfParams.find("useLod") != mapOfParams.end()) {
+          useLod = vpIoTools::parseBoolean(mapOfParams["useLod"]);
+        }
 
-      addPolygon(corners, idFace, polygonName, useLod, minPolygonAreaThreshold, minLineLengthThresholdGeneral);
-      initFaceFromLines(*(faces.getPolygon().back())); // Init from the last polygon that was added
+        addPolygon(corners, idFace, polygonName, useLod, minPolygonAreaThreshold, minLineLengthThresholdGeneral);
+        initFaceFromLines(*(faces.getPolygon().back())); // Init from the last polygon that was added
 
-      addProjectionErrorPolygon(corners, idFace++, polygonName, useLod, minPolygonAreaThreshold, minLineLengthThresholdGeneral);
-      initProjectionErrorFaceFromLines(*(m_projectionErrorFaces.getPolygon().back()));
+        addProjectionErrorPolygon(corners, idFace++, polygonName, useLod, minPolygonAreaThreshold, minLineLengthThresholdGeneral);
+        initProjectionErrorFaceFromLines(*(m_projectionErrorFaces.getPolygon().back()));
+      }
     }
 
     // Add the segments which were not already added in the face segment case
@@ -2052,7 +2074,7 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
     /* Extract the polygon using the point coordinates (top of the file) */
     unsigned int caoNbrPolygonPoint;
     fileId >> caoNbrPolygonPoint;
-    fileId.ignore(256, '\n'); // skip the rest of the line
+    fileId.ignore(std::numeric_limits<std::streamsize>::max(), fileId.widen('\n')); // skip the rest of the line
 
     nbPolygonPoints += caoNbrPolygonPoint;
     if (verbose || (parent && !header)) {
@@ -2082,29 +2104,29 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
 
       //////////////////////////Read the parameter value if present//////////////////////////
       // Get the end of the line
-      char buffer[256];
-      fileId.getline(buffer, 256);
-      std::string endLine(buffer);
-      std::map<std::string, std::string> mapOfParams = parseParameters(endLine);
+      std::string endLine = "";
+      if (safeGetline(fileId, endLine).good()) {
+        std::map<std::string, std::string> mapOfParams = parseParameters(endLine);
 
-      std::string polygonName = "";
-      bool useLod = !applyLodSettingInConfig ? useLodGeneral : false;
-      double minPolygonAreaThreshold = !applyLodSettingInConfig ? minPolygonAreaThresholdGeneral : 2500.0;
-      if (mapOfParams.find("name") != mapOfParams.end()) {
-        polygonName = mapOfParams["name"];
-      }
-      if (mapOfParams.find("minPolygonAreaThreshold") != mapOfParams.end()) {
-        minPolygonAreaThreshold = std::atof(mapOfParams["minPolygonAreaThreshold"].c_str());
-      }
-      if (mapOfParams.find("useLod") != mapOfParams.end()) {
-        useLod = vpIoTools::parseBoolean(mapOfParams["useLod"]);
-      }
+        std::string polygonName = "";
+        bool useLod = !applyLodSettingInConfig ? useLodGeneral : false;
+        double minPolygonAreaThreshold = !applyLodSettingInConfig ? minPolygonAreaThresholdGeneral : 2500.0;
+        if (mapOfParams.find("name") != mapOfParams.end()) {
+          polygonName = mapOfParams["name"];
+        }
+        if (mapOfParams.find("minPolygonAreaThreshold") != mapOfParams.end()) {
+          minPolygonAreaThreshold = std::atof(mapOfParams["minPolygonAreaThreshold"].c_str());
+        }
+        if (mapOfParams.find("useLod") != mapOfParams.end()) {
+          useLod = vpIoTools::parseBoolean(mapOfParams["useLod"]);
+        }
 
-      addPolygon(corners, idFace, polygonName, useLod, minPolygonAreaThreshold, minLineLengthThresholdGeneral);
-      initFaceFromCorners(*(faces.getPolygon().back())); // Init from the last polygon that was added
+        addPolygon(corners, idFace, polygonName, useLod, minPolygonAreaThreshold, minLineLengthThresholdGeneral);
+        initFaceFromCorners(*(faces.getPolygon().back())); // Init from the last polygon that was added
 
-      addProjectionErrorPolygon(corners, idFace++, polygonName, useLod, minPolygonAreaThreshold, minLineLengthThresholdGeneral);
-      initProjectionErrorFaceFromCorners(*(m_projectionErrorFaces.getPolygon().back()));
+        addProjectionErrorPolygon(corners, idFace++, polygonName, useLod, minPolygonAreaThreshold, minLineLengthThresholdGeneral);
+        initProjectionErrorFaceFromCorners(*(m_projectionErrorFaces.getPolygon().back()));
+      }
     }
 
     //////////////////////////Read the cylinder declaration part//////////////////////////
@@ -2121,7 +2143,7 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
 
       /* Extract the cylinders */
       fileId >> caoNbCylinder;
-      fileId.ignore(256, '\n'); // skip the rest of the line
+      fileId.ignore(std::numeric_limits<std::streamsize>::max(), fileId.widen('\n')); // skip the rest of the line
 
       nbCylinders += caoNbCylinder;
       if (verbose || (parent && !header)) {
@@ -2143,43 +2165,44 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
 
         //////////////////////////Read the parameter value if present//////////////////////////
         // Get the end of the line
-        char buffer[256];
-        fileId.getline(buffer, 256);
-        std::string endLine(buffer);
-        std::map<std::string, std::string> mapOfParams = parseParameters(endLine);
+        std::string endLine = "";
+        if (safeGetline(fileId, endLine).good()) {
+          std::map<std::string, std::string> mapOfParams = parseParameters(endLine);
 
-        std::string polygonName = "";
-        bool useLod = !applyLodSettingInConfig ? useLodGeneral : false;
-        double minLineLengthThreshold = !applyLodSettingInConfig ? minLineLengthThresholdGeneral : 50.0;
-        if (mapOfParams.find("name") != mapOfParams.end()) {
-          polygonName = mapOfParams["name"];
+          std::string polygonName = "";
+          bool useLod = !applyLodSettingInConfig ? useLodGeneral : false;
+          double minLineLengthThreshold = !applyLodSettingInConfig ? minLineLengthThresholdGeneral : 50.0;
+          if (mapOfParams.find("name") != mapOfParams.end()) {
+            polygonName = mapOfParams["name"];
+          }
+          if (mapOfParams.find("minLineLengthThreshold") != mapOfParams.end()) {
+            minLineLengthThreshold = std::atof(mapOfParams["minLineLengthThreshold"].c_str());
+          }
+          if (mapOfParams.find("useLod") != mapOfParams.end()) {
+            useLod = vpIoTools::parseBoolean(mapOfParams["useLod"]);
+          }
+
+          int idRevolutionAxis = idFace;
+          addPolygon(caoPoints[indexP1], caoPoints[indexP2], idFace, polygonName, useLod, minLineLengthThreshold);
+
+          addProjectionErrorPolygon(caoPoints[indexP1], caoPoints[indexP2], idFace++, polygonName, useLod, minLineLengthThreshold);
+
+          std::vector<std::vector<vpPoint> > listFaces;
+          createCylinderBBox(caoPoints[indexP1], caoPoints[indexP2], radius, listFaces);
+          addPolygon(listFaces, idFace, polygonName, useLod, minLineLengthThreshold);
+
+          initCylinder(caoPoints[indexP1], caoPoints[indexP2], radius, idRevolutionAxis, polygonName);
+
+          addProjectionErrorPolygon(listFaces, idFace, polygonName, useLod, minLineLengthThreshold);
+          initProjectionErrorCylinder(caoPoints[indexP1], caoPoints[indexP2], radius, idRevolutionAxis, polygonName);
+
+          idFace += 4;
         }
-        if (mapOfParams.find("minLineLengthThreshold") != mapOfParams.end()) {
-          minLineLengthThreshold = std::atof(mapOfParams["minLineLengthThreshold"].c_str());
-        }
-        if (mapOfParams.find("useLod") != mapOfParams.end()) {
-          useLod = vpIoTools::parseBoolean(mapOfParams["useLod"]);
-        }
-
-        int idRevolutionAxis = idFace;
-        addPolygon(caoPoints[indexP1], caoPoints[indexP2], idFace, polygonName, useLod, minLineLengthThreshold);
-
-        addProjectionErrorPolygon(caoPoints[indexP1], caoPoints[indexP2], idFace++, polygonName, useLod, minLineLengthThreshold);
-
-        std::vector<std::vector<vpPoint> > listFaces;
-        createCylinderBBox(caoPoints[indexP1], caoPoints[indexP2], radius, listFaces);
-        addPolygon(listFaces, idFace, polygonName, useLod, minLineLengthThreshold);
-
-        initCylinder(caoPoints[indexP1], caoPoints[indexP2], radius, idRevolutionAxis, polygonName);
-
-        addProjectionErrorPolygon(listFaces, idFace, polygonName, useLod, minLineLengthThreshold);
-        initProjectionErrorCylinder(caoPoints[indexP1], caoPoints[indexP2], radius, idRevolutionAxis, polygonName);
-
-        idFace += 4;
       }
 
-    } catch (...) {
+    } catch (const std::exception& e) {
       std::cerr << "Cannot get the number of cylinders. Defaulting to zero." << std::endl;
+      std::cerr << "Exception: " << e.what() << std::endl;
       caoNbCylinder = 0;
     }
 
@@ -2197,7 +2220,7 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
 
       /* Extract the circles */
       fileId >> caoNbCircle;
-      fileId.ignore(256, '\n'); // skip the rest of the line
+      fileId.ignore(std::numeric_limits<std::streamsize>::max(), fileId.widen('\n'));  // skip the rest of the line
 
       nbCircles += caoNbCircle;
       if (verbose || (parent && !header)) {
@@ -2220,36 +2243,37 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
 
         //////////////////////////Read the parameter value if present//////////////////////////
         // Get the end of the line
-        char buffer[256];
-        fileId.getline(buffer, 256);
-        std::string endLine(buffer);
-        std::map<std::string, std::string> mapOfParams = parseParameters(endLine);
+        std::string endLine = "";
+        if (safeGetline(fileId, endLine).good()) {
+          std::map<std::string, std::string> mapOfParams = parseParameters(endLine);
 
-        std::string polygonName = "";
-        bool useLod = !applyLodSettingInConfig ? useLodGeneral : false;
-        double minPolygonAreaThreshold = !applyLodSettingInConfig ? minPolygonAreaThresholdGeneral : 2500.0;
-        if (mapOfParams.find("name") != mapOfParams.end()) {
-          polygonName = mapOfParams["name"];
+          std::string polygonName = "";
+          bool useLod = !applyLodSettingInConfig ? useLodGeneral : false;
+          double minPolygonAreaThreshold = !applyLodSettingInConfig ? minPolygonAreaThresholdGeneral : 2500.0;
+          if (mapOfParams.find("name") != mapOfParams.end()) {
+            polygonName = mapOfParams["name"];
+          }
+          if (mapOfParams.find("minPolygonAreaThreshold") != mapOfParams.end()) {
+            minPolygonAreaThreshold = std::atof(mapOfParams["minPolygonAreaThreshold"].c_str());
+          }
+          if (mapOfParams.find("useLod") != mapOfParams.end()) {
+            useLod = vpIoTools::parseBoolean(mapOfParams["useLod"]);
+          }
+
+          addPolygon(caoPoints[indexP1], caoPoints[indexP2], caoPoints[indexP3], radius, idFace, polygonName, useLod,
+                     minPolygonAreaThreshold);
+
+          initCircle(caoPoints[indexP1], caoPoints[indexP2], caoPoints[indexP3], radius, idFace, polygonName);
+
+          addProjectionErrorPolygon(caoPoints[indexP1], caoPoints[indexP2], caoPoints[indexP3], radius, idFace, polygonName, useLod,
+                                    minPolygonAreaThreshold);
+          initProjectionErrorCircle(caoPoints[indexP1], caoPoints[indexP2], caoPoints[indexP3], radius, idFace++, polygonName);
         }
-        if (mapOfParams.find("minPolygonAreaThreshold") != mapOfParams.end()) {
-          minPolygonAreaThreshold = std::atof(mapOfParams["minPolygonAreaThreshold"].c_str());
-        }
-        if (mapOfParams.find("useLod") != mapOfParams.end()) {
-          useLod = vpIoTools::parseBoolean(mapOfParams["useLod"]);
-        }
-
-        addPolygon(caoPoints[indexP1], caoPoints[indexP2], caoPoints[indexP3], radius, idFace, polygonName, useLod,
-                   minPolygonAreaThreshold);
-
-        initCircle(caoPoints[indexP1], caoPoints[indexP2], caoPoints[indexP3], radius, idFace, polygonName);
-
-        addProjectionErrorPolygon(caoPoints[indexP1], caoPoints[indexP2], caoPoints[indexP3], radius, idFace, polygonName, useLod,
-                                  minPolygonAreaThreshold);
-        initProjectionErrorCircle(caoPoints[indexP1], caoPoints[indexP2], caoPoints[indexP3], radius, idFace++, polygonName);
       }
 
-    } catch (...) {
+    } catch (const std::exception& e) {
       std::cerr << "Cannot get the number of circles. Defaulting to zero." << std::endl;
+      std::cerr << "Exception: " << e.what() << std::endl;
       caoNbCircle = 0;
     }
 
@@ -2279,8 +2303,9 @@ void vpMbTracker::loadCAOModel(const std::string &modelFile, std::vector<std::st
 
     //Go up: remove current model
     vectorOfModelFilename.pop_back();
-  } catch (...) {
+  } catch (const std::exception& e) {
     std::cerr << "Cannot read line!" << std::endl;
+    std::cerr << "Exception: " << e.what() << std::endl;
     throw vpException(vpException::ioError, "cannot read line");
   }
 }
@@ -2859,45 +2884,7 @@ void vpMbTracker::computeJTR(const vpMatrix &interaction, const vpColVector &err
 
   JTR.resize(6, false);
 
-  bool checkSSE2 = vpCPUFeatures::checkSSE2();
-#if !VISP_HAVE_SSE2
-  checkSSE2 = false;
-#endif
-
-  if (checkSSE2) {
-#if VISP_HAVE_SSE2
-    __m128d v_JTR_0_1 = _mm_setzero_pd();
-    __m128d v_JTR_2_3 = _mm_setzero_pd();
-    __m128d v_JTR_4_5 = _mm_setzero_pd();
-
-    for (unsigned int i = 0; i < interaction.getRows(); i++) {
-      const __m128d v_error = _mm_set1_pd(error[i]);
-
-      __m128d v_interaction = _mm_loadu_pd(&interaction[i][0]);
-      v_JTR_0_1 = _mm_add_pd(v_JTR_0_1, _mm_mul_pd(v_interaction, v_error));
-
-      v_interaction = _mm_loadu_pd(&interaction[i][2]);
-      v_JTR_2_3 = _mm_add_pd(v_JTR_2_3, _mm_mul_pd(v_interaction, v_error));
-
-      v_interaction = _mm_loadu_pd(&interaction[i][4]);
-      v_JTR_4_5 = _mm_add_pd(v_JTR_4_5, _mm_mul_pd(v_interaction, v_error));
-    }
-
-    _mm_storeu_pd(JTR.data, v_JTR_0_1);
-    _mm_storeu_pd(JTR.data + 2, v_JTR_2_3);
-    _mm_storeu_pd(JTR.data + 4, v_JTR_4_5);
-#endif
-  } else {
-    const unsigned int N = interaction.getRows();
-
-    for (unsigned int i = 0; i < 6; i += 1) {
-      double ssum = 0;
-      for (unsigned int j = 0; j < N; j += 1) {
-        ssum += interaction[j][i] * error[j];
-      }
-      JTR[i] = ssum;
-    }
-  }
+  SimdComputeJtR(interaction.data, interaction.getRows(), error.data, JTR.data);
 }
 
 void vpMbTracker::computeVVSCheckLevenbergMarquardt(unsigned int iter, vpColVector &error,
@@ -3354,7 +3341,7 @@ void vpMbTracker::addProjectionErrorLine(vpPoint &P1, vpPoint &P2, int polygon, 
     l = new vpMbtDistanceLine;
 
     l->setCameraParameters(m_cam);
-    l->buildFrom(P1, P2);
+    l->buildFrom(P1, P2, m_rand);
     l->addPolygon(polygon);
     l->setMovingEdge(&m_projectionErrorMe);
     l->hiddenface = &m_projectionErrorFaces;
@@ -3782,15 +3769,17 @@ void vpMbTracker::projectionErrorInitMovingEdge(const vpImage<unsigned char> &I,
   }
 }
 
-void vpMbTracker::loadConfigFile(const std::string &configFile)
+void vpMbTracker::loadConfigFile(const std::string &configFile, bool verbose)
 {
-#ifdef VISP_HAVE_PUGIXML
   vpMbtXmlGenericParser xmlp(vpMbtXmlGenericParser::PROJECTION_ERROR_PARSER);
+  xmlp.setVerbose(verbose);
   xmlp.setProjectionErrorMe(m_projectionErrorMe);
   xmlp.setProjectionErrorKernelSize(m_projectionErrorKernelSize);
 
   try {
-    std::cout << " *********** Parsing XML for ME projection error ************ " << std::endl;
+    if (verbose) {
+      std::cout << " *********** Parsing XML for ME projection error ************ " << std::endl;
+    }
     xmlp.parse(configFile);
   } catch (...) {
     throw vpException(vpException::ioError, "Cannot open XML file \"%s\"", configFile.c_str());
@@ -3801,10 +3790,6 @@ void vpMbTracker::loadConfigFile(const std::string &configFile)
 
   setProjectionErrorMovingEdge(meParser);
   setProjectionErrorKernelSize(xmlp.getProjectionErrorKernelSize());
-
-#else
-  std::cerr << "pugixml third-party is not properly built to read config file: " << configFile << std::endl;
-#endif
 }
 
 /*!

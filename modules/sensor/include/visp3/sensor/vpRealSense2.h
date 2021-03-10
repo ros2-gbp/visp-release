@@ -59,9 +59,10 @@
   library https://github.com/IntelRealSense/librealsense. It allows to capture
   data from the Intel RealSense cameras.
 
-  \note Supported devices for Intel® RealSense™ SDK 2.0 (build 2.8.3):
-    - Intel® RealSense™ Camera D400-Series (not tested)
-    - Intel® RealSense™ Developer Kit SR300 (vpRealSense2 is ok)
+  \note Supported devices for Intel® RealSense™ SDK 2.0:
+    - Intel® RealSense™ Camera D400-Series
+    - Intel® RealSense™ Developer Kit SR300
+    - Intel® RealSense™ Tracking Camera T265 (librealsense2 version > 2.31.0)
 
   The usage of vpRealSense2 class is enabled when librealsense2 3rd party is
   successfully installed.
@@ -78,7 +79,7 @@
 
   \code
 project(sample)
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12.2)
 
 find_package(VISP REQUIRED)
 include_directories(${VISP_INCLUDE_DIRS})
@@ -172,7 +173,7 @@ int main()
 
   If you want to change the default stream parameters, refer to the
   librealsense2 `rs2::config` documentation. The following code allows to
-  capture the color stream in 1920x1080:
+  capture the color stream in 1920x1080 at 30 Hz:
 
 \code
 #include <visp3/gui/vpDisplayGDI.h>
@@ -212,7 +213,7 @@ int main() {
 }
   \endcode
 
-  This example shows how to get depth stream aligned on color stream:
+  This other example shows how to get depth stream aligned on color stream:
   \code
 #include <visp3/core/vpImageConvert.h>
 #include <visp3/gui/vpDisplayGDI.h>
@@ -257,7 +258,8 @@ int main() {
   References to `rs2::pipeline_profile` and `rs2::pipeline` can be retrieved
   with (`rs.open() must be called before`):
   \code
-rs2::pipeline_profile& profile = rs.getPipelineProfile(); rs2::pipeline& pipeline = rs.getPipeline();
+  rs2::pipeline_profile& profile = rs.getPipelineProfile();
+  rs2::pipeline& pipeline = rs.getPipeline();
   \endcode
 
   Information about the sensor can be printed with:
@@ -267,17 +269,19 @@ rs2::pipeline_profile& profile = rs.getPipelineProfile(); rs2::pipeline& pipelin
 int main() {
   vpRealSense2 rs;
   rs.open();
-    std::cout << "RealSense sensor characteristics: \n" << rs << std::endl;
+  std::cout << "RealSense sensor characteristics: \n" << rs << std::endl;
 
   return 0;
 }
   \endcode
 
-  \note This class has been tested with the Intel RealSense SR300
-  (Firmware: 3.21.0.0) using librealsense (API version: 2.8.3). Refer to the
-  librealsense2 documentation or [API how
-  to](https://github.com/IntelRealSense/librealsense/wiki/API-How-To) for
-  additional information.
+  It is also possible to use several RealSense sensors at the same time. In that case, you need to create a
+  vpRealSense2 object for each device and use vpRealSense2::enable_device(const std::string &serial_number)
+  to select the device explicitly by its serial number. An example is provided
+  in tutorial-grabber-multiple-realsense.cpp.
+
+  \note Additional information can be found in the
+  [librealsense wiki](https://github.com/IntelRealSense/librealsense/wiki/).
 */
 class VISP_EXPORT vpRealSense2
 {
@@ -285,40 +289,54 @@ public:
   vpRealSense2();
   virtual ~vpRealSense2();
 
-  void acquire(vpImage<unsigned char> &grey);
-  void acquire(vpImage<vpRGBa> &color);
+  void acquire(vpImage<unsigned char> &grey, double *ts=NULL);
+  void acquire(vpImage<vpRGBa> &color, double *ts=NULL);
   void acquire(unsigned char *const data_image, unsigned char *const data_depth,
                std::vector<vpColVector> *const data_pointCloud, unsigned char *const data_infrared,
-               rs2::align *const align_to = NULL);
+               rs2::align *const align_to = NULL, double *ts=NULL);
   void acquire(unsigned char *const data_image, unsigned char *const data_depth,
                std::vector<vpColVector> *const data_pointCloud, unsigned char *const data_infrared1,
-               unsigned char *const data_infrared2, rs2::align *const align_to);
+               unsigned char *const data_infrared2, rs2::align *const align_to, double *ts=NULL);
+#if (RS2_API_VERSION > ((2 * 10000) + (31 * 100) + 0))
+  void acquire(vpImage<unsigned char> *left, vpImage<unsigned char> *right, double *ts = NULL);
+  void acquire(vpImage<unsigned char> *left, vpImage<unsigned char> *right, vpHomogeneousMatrix *cMw,
+               vpColVector *odo_vel, vpColVector *odo_acc, unsigned int *confidence = NULL, double *ts = NULL);
+  void acquire(vpImage<unsigned char> *left, vpImage<unsigned char> *right, vpHomogeneousMatrix *cMw,
+               vpColVector *odo_vel, vpColVector *odo_acc, vpColVector *imu_vel, vpColVector *imu_acc,
+               unsigned int *tracker_confidence = NULL, double *ts = NULL);
+#endif
 
 #ifdef VISP_HAVE_PCL
   void acquire(unsigned char *const data_image, unsigned char *const data_depth,
                std::vector<vpColVector> *const data_pointCloud, pcl::PointCloud<pcl::PointXYZ>::Ptr &pointcloud,
-               unsigned char *const data_infrared = NULL, rs2::align *const align_to = NULL);
+               unsigned char *const data_infrared = NULL, rs2::align *const align_to = NULL, double *ts=NULL);
   void acquire(unsigned char *const data_image, unsigned char *const data_depth,
                std::vector<vpColVector> *const data_pointCloud, pcl::PointCloud<pcl::PointXYZ>::Ptr &pointcloud,
-               unsigned char *const data_infrared1, unsigned char *const data_infrared2, rs2::align *const align_to);
+               unsigned char *const data_infrared1, unsigned char *const data_infrared2, rs2::align *const align_to, double *ts=NULL);
 
   void acquire(unsigned char *const data_image, unsigned char *const data_depth,
                std::vector<vpColVector> *const data_pointCloud, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &pointcloud,
-               unsigned char *const data_infrared = NULL, rs2::align *const align_to = NULL);
+               unsigned char *const data_infrared = NULL, rs2::align *const align_to = NULL, double *ts=NULL);
   void acquire(unsigned char *const data_image, unsigned char *const data_depth,
                std::vector<vpColVector> *const data_pointCloud, pcl::PointCloud<pcl::PointXYZRGB>::Ptr &pointcloud,
-               unsigned char *const data_infrared1, unsigned char *const data_infrared2, rs2::align *const align_to);
+               unsigned char *const data_infrared1, unsigned char *const data_infrared2, rs2::align *const align_to, double *ts=NULL);
 #endif
 
   void close();
 
-  vpCameraParameters getCameraParameters(
-      const rs2_stream &stream,
-      vpCameraParameters::vpCameraParametersProjType type = vpCameraParameters::perspectiveProjWithDistortion) const;
+  vpCameraParameters getCameraParameters( const rs2_stream &stream,
+      vpCameraParameters::vpCameraParametersProjType type = vpCameraParameters::perspectiveProjWithDistortion,
+      int index = -1) const;
 
   float getDepthScale();
 
-  rs2_intrinsics getIntrinsics(const rs2_stream &stream) const;
+#if (RS2_API_VERSION > ((2 * 10000) + (31 * 100) + 0))
+  void getIMUAcceleration(vpColVector *imu_acc, double *ts);
+  void getIMUData(vpColVector *imu_vel, vpColVector *imu_acc, double *ts);
+  void getIMUVelocity(vpColVector *imu_vel, double *ts);
+#endif
+
+  rs2_intrinsics getIntrinsics(const rs2_stream &stream, int index = -1) const;
 
   //! Get the value used when the pixel value (u, v) in the depth map is
   //! invalid for the point cloud. For instance, the Point Cloud Library (PCL)
@@ -329,15 +347,22 @@ public:
   //! pointcloud).
   inline float getMaxZ() const { return m_max_Z; }
 
+#if (RS2_API_VERSION > ((2 * 10000) + (31 * 100) + 0))
+  unsigned int getOdometryData(vpHomogeneousMatrix *cMw, vpColVector *odo_vel, vpColVector *odo_acc, double *ts = NULL);
+#endif
+
   //! Get a reference to `rs2::pipeline`.
   rs2::pipeline &getPipeline() { return m_pipe; }
 
   //! Get a reference to `rs2::pipeline_profile`.
   rs2::pipeline_profile &getPipelineProfile() { return m_pipelineProfile; }
 
-  vpHomogeneousMatrix getTransformation(const rs2_stream &from, const rs2_stream &to) const;
+  std::string getProductLine();
 
-  void open(const rs2::config &cfg = rs2::config());
+  vpHomogeneousMatrix getTransformation(const rs2_stream &from, const rs2_stream &to, int from_index = -1) const;
+
+  bool open(const rs2::config &cfg = rs2::config());
+  bool open(const rs2::config &cfg, std::function<void(rs2::frame)> &callback);
 
   friend VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpRealSense2 &rs);
 
@@ -358,6 +383,11 @@ protected:
   rs2::pipeline_profile m_pipelineProfile;
   rs2::pointcloud m_pointcloud;
   rs2::points m_points;
+  vpTranslationVector m_pos;
+  vpQuaternionVector m_quat;
+  vpRotationMatrix m_rot;
+  std::string m_product_line;
+  bool m_init;
 
   void getColorFrame(const rs2::frame &frame, vpImage<vpRGBa> &color);
   void getGreyFrame(const rs2::frame &frame, vpImage<unsigned char> &grey);

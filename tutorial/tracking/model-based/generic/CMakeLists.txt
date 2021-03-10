@@ -1,6 +1,6 @@
 project(tutorial-tracking-mb)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12.2)
 
 find_package(VISP REQUIRED visp_core visp_mbt visp_io visp_gui visp_sensor)
 
@@ -35,6 +35,7 @@ foreach(cpp ${tutorial_cpp})
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-sign-compare")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-reorder")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-overloaded-virtual")
+    list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-ignored-qualifiers")
   endif()
 
   if(CXX_FLAGS_MUTE_WARNINGS)

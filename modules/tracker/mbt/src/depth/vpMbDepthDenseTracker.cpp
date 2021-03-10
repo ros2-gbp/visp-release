@@ -105,13 +105,13 @@ void vpMbDepthDenseTracker::addFace(vpMbtPolygon &polygon, bool alreadyClose)
   unsigned int nbpt = polygon.getNbPoint();
   if (nbpt > 0) {
     for (unsigned int i = 0; i < nbpt - 1; i++) {
-      normal_face->addLine(polygon.p[i], polygon.p[i + 1], &m_depthDenseHiddenFacesDisplay, polygon.getIndex(),
+      normal_face->addLine(polygon.p[i], polygon.p[i + 1], &m_depthDenseHiddenFacesDisplay, m_rand, polygon.getIndex(),
                            polygon.getName());
     }
 
     if (!alreadyClose) {
       // Add last line that closes the face
-      normal_face->addLine(polygon.p[nbpt - 1], polygon.p[0], &m_depthDenseHiddenFacesDisplay, polygon.getIndex(),
+      normal_face->addLine(polygon.p[nbpt - 1], polygon.p[0], &m_depthDenseHiddenFacesDisplay, m_rand, polygon.getIndex(),
                            polygon.getName());
     }
   }
@@ -317,7 +317,8 @@ void vpMbDepthDenseTracker::display(const vpImage<vpRGBa> &I, const vpHomogeneou
   - Line parameters are: `<primitive id (here 0 for line)>`, `<pt_start.i()>`, `<pt_start.j()>`,
   `<pt_end.i()>`, `<pt_end.j()>`
   - Ellipse parameters are: `<primitive id (here 1 for ellipse)>`, `<pt_center.i()>`, `<pt_center.j()>`,
-  `<mu20>`, `<mu11>`, `<mu02>`
+  `<n_20>`, `<n_11>`, `<n_02>` where `<n_ij>` are the second order centered moments of the ellipse
+  normalized by its area (i.e., such that \f$n_{ij} = \mu_{ij}/a\f$ where \f$\mu_{ij}\f$ are the centered moments and a the area).
 
   \param width : Image width.
   \param height : Image height.
@@ -387,11 +388,10 @@ void vpMbDepthDenseTracker::init(const vpImage<unsigned char> &I)
   computeVisibility(I.getWidth(), I.getHeight());
 }
 
-void vpMbDepthDenseTracker::loadConfigFile(const std::string &configFile)
+void vpMbDepthDenseTracker::loadConfigFile(const std::string &configFile, bool verbose)
 {
-#ifdef VISP_HAVE_PUGIXML
   vpMbtXmlGenericParser xmlp(vpMbtXmlGenericParser::DEPTH_DENSE_PARSER);
-
+  xmlp.setVerbose(verbose);
   xmlp.setCameraParameters(m_cam);
   xmlp.setAngleAppear(vpMath::deg(angleAppears));
   xmlp.setAngleDisappear(vpMath::deg(angleDisappears));
@@ -400,7 +400,9 @@ void vpMbDepthDenseTracker::loadConfigFile(const std::string &configFile)
   xmlp.setDepthDenseSamplingStepY(m_depthDenseSamplingStepY);
 
   try {
-    std::cout << " *********** Parsing XML for Mb Depth Dense Tracker ************ " << std::endl;
+    if (verbose) {
+      std::cout << " *********** Parsing XML for Mb Depth Dense Tracker ************ " << std::endl;
+    }
     xmlp.parse(configFile);
   } catch (const vpException &e) {
     std::cerr << "Exception: " << e.what() << std::endl;
@@ -424,9 +426,6 @@ void vpMbDepthDenseTracker::loadConfigFile(const std::string &configFile)
     setClipping(clippingFlag | vpPolygon3D::FOV_CLIPPING);
 
   setDepthDenseSamplingStep(xmlp.getDepthDenseSamplingStepX(), xmlp.getDepthDenseSamplingStepY());
-#else
-  std::cerr << "pugixml third-party is not properly built to read config file: " << configFile << std::endl;
-#endif
 }
 
 void vpMbDepthDenseTracker::reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name,
@@ -742,13 +741,13 @@ void vpMbDepthDenseTracker::track(const std::vector<vpColVector> &point_cloud, u
 }
 
 void vpMbDepthDenseTracker::initCircle(const vpPoint & /*p1*/, const vpPoint & /*p2*/, const vpPoint & /*p3*/,
-                                       const double /*radius*/, const int /*idFace*/, const std::string & /*name*/)
+                                       double /*radius*/, int /*idFace*/, const std::string & /*name*/)
 {
   throw vpException(vpException::fatalError, "vpMbDepthDenseTracker::initCircle() should not be called!");
 }
 
-void vpMbDepthDenseTracker::initCylinder(const vpPoint & /*p1*/, const vpPoint & /*p2*/, const double /*radius*/,
-                                         const int /*idFace*/, const std::string & /*name*/)
+void vpMbDepthDenseTracker::initCylinder(const vpPoint & /*p1*/, const vpPoint & /*p2*/, double /*radius*/,
+                                         int /*idFace*/, const std::string & /*name*/)
 {
   throw vpException(vpException::fatalError, "vpMbDepthDenseTracker::initCylinder() should not be called!");
 }

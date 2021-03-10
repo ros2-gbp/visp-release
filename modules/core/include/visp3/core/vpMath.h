@@ -80,6 +80,8 @@
 
 #endif
 
+#include <visp3/core/vpImagePoint.h>
+
 /*!
   \class vpMath
   \ingroup group_core_math_tools
@@ -182,6 +184,8 @@ public:
   static bool isNaN(double value);
   static bool isInf(double value);
 
+  static double lineFitting(const std::vector<vpImagePoint>& imPts, double& a, double& b, double& c);
+
   template <typename _Tp> static inline _Tp saturate(unsigned char v) { return _Tp(v); }
   template <typename _Tp> static inline _Tp saturate(char v) { return _Tp(v); }
   template <typename _Tp> static inline _Tp saturate(unsigned short v) { return _Tp(v); }
@@ -254,18 +258,11 @@ int vpMath::round(double x)
 /*!
   Return the sign of x.
 
+  \param x : Value to test.
   \return -1 if x is negative, +1 if positive and 0 if zero.
 
 */
-int
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-    (
-#endif
-        vpMath::sign
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-        )
-#endif
-        (double x)
+int ( vpMath::sign ) (double x)
 {
   if (fabs(x) < std::numeric_limits<double>::epsilon())
     return 0;
@@ -307,8 +304,10 @@ bool vpMath::greater(double x, double y, double s) { return (x > (y - s)); }
 /*!
 
  Sigmoid function between [x0,x1] with \f$ s(x)=0 if x\le x0\f$ and \f$ s(x)=1
-if x \ge x1 \f$ \param x : Value of x. \param x0 : Lower bound (default 0).
- \param x1 : Upper bound (default 1).
+if x \ge x1 \f$
+  \param x : Value of x.
+  \param x0 : Lower bound (default 0).
+  \param x1 : Upper bound (default 1).
   \param n : Degree of the exponential (default 12).
 
 \return Sigmoid value \f$1/(1+exp(-n*((x-x0)/(x1-x0)-0.5)))\f$

@@ -3,12 +3,12 @@
 #include <visp3/gui/vpDisplayX.h>
 #include <visp3/gui/vpDisplayOpenCV.h>
 #include <visp3/sensor/vp1394TwoGrabber.h>
+#include <visp3/io/vpImageStorageWorker.h>
 
-#include "record_helper.h"
 
 int main(int argc, char **argv)
 {
-#ifdef VISP_HAVE_DC1394
+#if defined(VISP_HAVE_DC1394) && (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
   try {
     std::string opt_seqname;
     int opt_record_mode = 0;
@@ -80,6 +80,10 @@ int main(int argc, char **argv)
     std::cout << "No image viewer is available..." << std::endl;
 #endif
 
+    vpImageQueue<unsigned char> image_queue(opt_seqname, opt_record_mode);
+    vpImageStorageWorker<unsigned char> image_storage_worker(std::ref(image_queue));
+    std::thread image_storage_thread(&vpImageStorageWorker<unsigned char>::run, &image_storage_worker);
+
     bool quit = false;
     while (! quit) {
       double t = vpTime::measureTimeMs();
@@ -88,19 +92,26 @@ int main(int argc, char **argv)
       //! [vp1394TwoGrabber acquire]
       vpDisplay::display(I);
       //! [vp1394TwoGrabber click to exit]
-      quit = record_helper(opt_seqname, opt_record_mode, I);
+      quit = image_queue.record(I);
       //! [vp1394TwoGrabber click to exit]
       std::stringstream ss;
       ss << "Acquisition time: " << std::setprecision(3) << vpTime::measureTimeMs() - t << " ms";
       vpDisplay::displayText(I, I.getHeight() - 20, 10, ss.str(), vpColor::red);
       vpDisplay::flush(I);
     }
+    image_queue.cancel();
+    image_storage_thread.join();
   } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }
 #else
   (void) argc;
   (void) argv;
+#ifndef VISP_HAVE_DC1394
   std::cout << "Install libdc1394, configure and build ViSP again to use this example" << std::endl;
+#endif
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+  std::cout << "This turorial should be built with c++11 support" << std::endl;
+#endif
 #endif
 }

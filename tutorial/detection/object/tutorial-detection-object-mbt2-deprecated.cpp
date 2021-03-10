@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 #if (VISP_HAVE_OPENCV_VERSION >= 0x020400)
   //! [MBT code]
   try {
-    std::string videoname = "cube.mpeg";
+    std::string videoname = "cube.mp4";
 
     for (int i = 0; i < argc; i++) {
       if (std::string(argv[i]) == "--name")
@@ -67,9 +67,7 @@ int main(int argc, char **argv)
 
     std::cout << "Video name: " << videoname << std::endl;
     std::cout << "Tracker requested config files: " << objectname << ".[init,"
-#ifdef VISP_HAVE_PUGIXML
               << "xml,"
-#endif
               << "cao or wrl]" << std::endl;
     std::cout << "Tracker optional config files: " << objectname << ".[ppm]" << std::endl;
 
@@ -79,13 +77,11 @@ int main(int argc, char **argv)
 
     vpMbEdgeTracker tracker;
     bool usexml = false;
-#ifdef VISP_HAVE_PUGIXML
     if (vpIoTools::checkFilename(objectname + ".xml")) {
       tracker.loadConfigFile(objectname + ".xml");
       tracker.getCameraParameters(cam);
       usexml = true;
     }
-#endif
     if (!usexml) {
       vpMe me;
       me.setMaskSize(5);
@@ -314,10 +310,6 @@ int main(int argc, char **argv)
 
     if (!click_done)
       vpDisplay::getClick(IMatching);
-
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
-    SoDB::finish();
-#endif
   } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }

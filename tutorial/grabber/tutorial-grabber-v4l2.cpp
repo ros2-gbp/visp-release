@@ -3,8 +3,9 @@
 #include <visp3/gui/vpDisplayX.h>
 #include <visp3/gui/vpDisplayOpenCV.h>
 #include <visp3/sensor/vpV4l2Grabber.h>
+#include <visp3/io/vpImageStorageWorker.h>
 
-#include "record_helper.h"
+//#define USE_COLOR // Comment to acquire gray level images
 
 /*!
   Usage :
@@ -14,7 +15,7 @@
  */
 int main(int argc, const char *argv[])
 {
-#ifdef VISP_HAVE_V4L2
+#if defined(VISP_HAVE_V4L2) && (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
   try {
     int opt_device = 0;
     unsigned int opt_scale = 1; // Default value is 2 in the constructor. Turn
@@ -61,7 +62,11 @@ int main(int argc, const char *argv[])
       std::cout << "Record name: " << opt_seqname << std::endl;
     }
 
-    vpImage<unsigned char> I;
+#ifdef USE_COLOR
+    vpImage<vpRGBa> I;        // To acquire color images
+#else
+    vpImage<unsigned char> I; // To acquire gray images
+#endif
 
     vpV4l2Grabber g;
     std::ostringstream device;
@@ -80,6 +85,16 @@ int main(int argc, const char *argv[])
     std::cout << "No image viewer is available..." << std::endl;
 #endif
 
+#ifdef USE_COLOR
+    vpImageQueue<vpRGBa> image_queue(opt_seqname, opt_record_mode);
+    vpImageStorageWorker<vpRGBa> image_storage_worker(std::ref(image_queue));
+    std::thread image_storage_thread(&vpImageStorageWorker<vpRGBa>::run, &image_storage_worker);
+#else
+    vpImageQueue<unsigned char> image_queue(opt_seqname, opt_record_mode);
+    vpImageStorageWorker<unsigned char> image_storage_worker(std::ref(image_queue));
+    std::thread image_storage_thread(&vpImageStorageWorker<unsigned char>::run, &image_storage_worker);
+#endif
+
     bool quit = false;
     while (! quit) {
       double t = vpTime::measureTimeMs();
@@ -87,19 +102,26 @@ int main(int argc, const char *argv[])
 
       vpDisplay::display(I);
 
-      quit = record_helper(opt_seqname, opt_record_mode, I);
+      quit = image_queue.record(I);
 
       std::stringstream ss;
       ss << "Acquisition time: " << std::setprecision(3) << vpTime::measureTimeMs() - t << " ms";
       vpDisplay::displayText(I, I.getHeight() - 20, 10, ss.str(), vpColor::red);
       vpDisplay::flush(I);
     }
+    image_queue.cancel();
+    image_storage_thread.join();
   } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }
 #else
   (void) argc;
   (void) argv;
+#ifndef VISP_HAVE_V4L2
   std::cout << "Install Video 4 Linux 2 (v4l2), configure and build ViSP again to use this example" << std::endl;
+#endif
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+  std::cout << "This turorial should be built with c++11 support" << std::endl;
+#endif
 #endif
 }

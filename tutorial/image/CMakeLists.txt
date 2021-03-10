@@ -1,6 +1,6 @@
 project(tutorial-image)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12.2)
 
 find_package(VISP REQUIRED visp_core visp_io visp_gui)
 
@@ -28,7 +28,7 @@ list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/monkey.ppm" )
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/monkey.pgm" )
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/monkey.jpeg" )
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/monkey.png" )
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/chessboard.pgm" )
+list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/chessboard.jpg" )
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/camera.xml" )
 
 foreach(cpp ${tutorial_cpp})

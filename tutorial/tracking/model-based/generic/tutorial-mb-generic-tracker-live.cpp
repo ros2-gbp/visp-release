@@ -130,11 +130,9 @@ int main(int argc, char **argv)
     vpCameraParameters cam;
     cam.initPersProjWithoutDistortion(839, 839, 325, 243);
     //! [Set camera parameters]
-#ifdef VISP_HAVE_PUGIXML
     vpXmlParserCamera parser;
     if (!opt_intrinsic_file.empty() && !opt_camera_name.empty())
       parser.parse(cam, opt_intrinsic_file, opt_camera_name, vpCameraParameters::perspectiveProjWithoutDistortion);
-#endif
 
     //! [cMo]
     vpHomogeneousMatrix cMo;
@@ -245,12 +243,10 @@ int main(int argc, char **argv)
 
     bool usexml = false;
     //! [Load xml]
-#ifdef VISP_HAVE_PUGIXML
     if (vpIoTools::checkFilename(objectname + ".xml")) {
       tracker.loadConfigFile(objectname + ".xml");
       usexml = true;
     }
-#endif
     //! [Load xml]
 
     if (!usexml) {
@@ -305,7 +301,8 @@ int main(int argc, char **argv)
     tracker.setProjectionErrorDisplay(opt_display_projection_error);
     //! [Set projection error computation]
 
-#if (defined(VISP_HAVE_OPENCV_NONFREE) || defined(VISP_HAVE_OPENCV_XFEATURES2D))
+#if (defined(VISP_HAVE_OPENCV_NONFREE) || defined(VISP_HAVE_OPENCV_XFEATURES2D)) || \
+    (VISP_HAVE_OPENCV_VERSION >= 0x030411 && CV_MAJOR_VERSION < 4) || (VISP_HAVE_OPENCV_VERSION >= 0x040400)
     std::string detectorName = "SIFT";
     std::string extractorName = "SIFT";
     std::string matcherName = "BruteForce";
@@ -438,6 +435,11 @@ int main(int argc, char **argv)
           ss.str(""); // erase ss
           ss << "Rotation tu: " << std::setprecision(4) << vpMath::deg(pose[3]) << " " << vpMath::deg(pose[4]) << " " << vpMath::deg(pose[5]) << " [deg]";
           vpDisplay::displayText(I, 100, 20, ss.str(), vpColor::green);
+        }
+        {
+          std::stringstream ss;
+          ss << "Features: edges " << tracker.getNbFeaturesEdge() << ", klt " << tracker.getNbFeaturesKlt();
+          vpDisplay::displayText(I, 120, 20, ss.str(), vpColor::red);
         }
       }
 

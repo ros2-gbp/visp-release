@@ -44,8 +44,6 @@
 */
 #include <visp3/core/vpXmlParserHomogeneousMatrix.h>
 
-#ifdef VISP_HAVE_PUGIXML
-
 #include <pugixml.hpp>
 
 /* ----------------------------- LABEL XML ----------------------------- */
@@ -222,8 +220,8 @@ public:
   /*!
     Read homogeneous matrix fields from a XML file.
 
-    \param node : XML tree, pointing on a marker equipement.
-    \param M_tmp : homogeneous matrix to fill with read data (output).
+    \param node_ : XML tree, pointing on a marker equipement.
+    \param M : Homogeneous matrix to fill with read data (output).
 
     \return error code.
    */
@@ -356,7 +354,7 @@ public:
     Read homogeneous matrix names from a XML file and read if there is already a
     homogeneous matrix with the same name.
 
-    \param node : XML tree, pointing on a marker equipement.
+    \param node_ : XML tree, pointing on a marker equipement.
     \param name : name of the homogeneous matrix.
 
     \return 1 if there is an homogeneous matrix corresponding with the input
@@ -549,8 +547,3 @@ void vpXmlParserHomogeneousMatrix::setHomogeneousMatrixName(const std::string &n
 {
   m_impl->setHomogeneousMatrixName(name);
 }
-#elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning:
-// libvisp_core.a(vpXmlParserHomogeneousMatrix.cpp.o) has no symbols
-void dummy_vpXmlParserHomogeneousMatrix(){};
-#endif //VISP_HAVE_PUGIXML
