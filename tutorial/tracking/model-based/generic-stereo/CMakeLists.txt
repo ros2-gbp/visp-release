@@ -1,6 +1,6 @@
 project(tutorial-tracking-mb-generic-stereo)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12.2)
 
 find_package(VISP REQUIRED visp_core visp_mbt visp_io visp_gui)
 
@@ -9,22 +9,22 @@ set(tutorial_cpp
   tutorial-mb-generic-tracker-stereo.cpp
   tutorial-mb-generic-tracker-stereo-mono.cpp)
 
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.mpg")
+list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.mp4")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.xml")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.cao")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.init")
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.ppm")
+list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.png")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/cRightMcLeft.txt")
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_left.mpg")
+list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_left.mp4")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_left.xml")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_left.cao")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_left.init")
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_left.ppm")
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_right.mpg")
+list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_left.png")
+list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_right.mp4")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_right.xml")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_right.cao")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_right.init")
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_right.ppm")
+list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox_right.png")
 
 foreach(cpp ${tutorial_cpp})
   visp_add_target(${cpp})

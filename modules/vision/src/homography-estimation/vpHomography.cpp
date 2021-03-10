@@ -158,15 +158,24 @@ void vpHomography::insert(const vpTranslationVector &atb) { aMb.insert(atb); }
 void vpHomography::insert(const vpPlane &p) { this->bP = p; }
 
 /*!
-  \brief Invert the homography
+  Return inverted homography.
+
+  \param[in] sv_threshold : Threshold used to test the singular values. If
+  a singular value is lower than this threshold we consider that the
+  homography is not full rank.
+
+  \param[out] rank : Rank of the homography that should be 3.
 
   \return  \f$\bf H^{-1}\f$
 */
-vpHomography vpHomography::inverse() const
+vpHomography vpHomography::inverse(double sv_threshold, unsigned int *rank) const
 {
   vpMatrix M = (*this).convert();
   vpMatrix Minv;
-  M.pseudoInverse(Minv, 1e-16);
+  unsigned int r = M.pseudoInverse(Minv, sv_threshold);
+  if (rank != NULL) {
+    *rank = r;
+  }
 
   vpHomography H;
 
@@ -462,6 +471,16 @@ void vpHomography::build(vpHomography &aHb, const vpHomogeneousMatrix &aMb, cons
 }
 
 /*!
+ * Return homography determinant.
+ */
+double vpHomography::det() const
+{
+  return ((*this)[0][0] * ((*this)[1][1] * (*this)[2][2] - (*this)[1][2] * (*this)[2][1]) -
+          (*this)[0][1] * ((*this)[1][0] * (*this)[2][2] - (*this)[1][2] * (*this)[2][0]) +
+          (*this)[0][2] * ((*this)[1][0] * (*this)[2][1] - (*this)[1][1] * (*this)[2][0]));
+}
+
+/*!
   Set the homography as identity transformation by setting the diagonal to 1
   and all other values to 0.
 */
@@ -486,9 +505,9 @@ void vpHomography::setIdentity() { eye(); }
 #endif // #if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
 
 /*!
-  Given \c iPa a point with coordinates \f$(u_a,v_a)\f$ expressed in pixel in
-  image a, and the homography \c bHa that links image a and b, computes the
-  coordinates of the point \f$(u_b,v_b)\f$ in the image b using the camera
+  Given `iPa` a pixel with coordinates \f$(u_a,v_a)\f$ in
+  image a, and the homography `bHa` in the Euclidian space or calibrated domain that links image a and b, computes the
+  coordinates of the pixel \f$(u_b,v_b)\f$ in the image b using the camera
   parameters matrix \f$\bf K\f$.
 
   Compute \f$^b{\bf p} = {\bf K} \; {^b}{\bf H}_a \; {\bf K}^{-1} {^a}{\bf
@@ -501,10 +520,10 @@ vpImagePoint vpHomography::project(const vpCameraParameters &cam, const vpHomogr
 {
   double xa = iPa.get_u();
   double ya = iPa.get_v();
-  vpMatrix H = cam.get_K() * bHa.convert() * cam.get_K_inverse();
-  double z = xa * H[2][0] + ya * H[2][1] + H[2][2];
-  double xb = (xa * H[0][0] + ya * H[0][1] + H[0][2]) / z;
-  double yb = (xa * H[1][0] + ya * H[1][1] + H[1][2]) / z;
+  vpHomography bGa = bHa.homography2collineation(cam);
+  double z = xa * bGa[2][0] + ya * bGa[2][1] + bGa[2][2];
+  double xb = (xa * bGa[0][0] + ya * bGa[0][1] + bGa[0][2]) / z;
+  double yb = (xa * bGa[1][0] + ya * bGa[1][1] + bGa[1][2]) / z;
 
   vpImagePoint iPb(yb, xb);
 
@@ -512,8 +531,8 @@ vpImagePoint vpHomography::project(const vpCameraParameters &cam, const vpHomogr
 }
 
 /*!
-  Given \c Pa a point with normalized coordinates \f$(x_a,y_a,1)\f$ in the
-  image plane a, and the homography \c bHa that links image a and b, computes
+  Given `Pa` a point with normalized coordinates \f$(x_a,y_a,1)\f$ in the
+  image plane a, and the homography `bHa` in the Euclidian space that links image a and b, computes
   the normalized coordinates of the point \f$(x_b,y_b,1)\f$ in the image plane
   b.
 
@@ -550,21 +569,24 @@ vpPoint vpHomography::project(const vpHomography &bHa, const vpPoint &Pa)
   At least 4 couples of points are needed.
 
   \param xb, yb : Coordinates vector of matched points in image b. These
-  coordinates are expressed in meters. \param xa, ya : Coordinates vector of
-  matched points in image a. These coordinates are expressed in meters. \param
-  aHb : Estimated homography that relies the transformation from image a to
-  image b. \param inliers : Vector that indicates if a matched point is an
-  inlier (true) or an outlier (false). \param residual : Global residual
-  computed as \f$r = \sqrt{1/n \sum_{inliers} {\| {^a{\bf p} - {\hat{^a{\bf
-  H}_b}} {^b{\bf p}}} \|}^{2}}\f$ with \f$n\f$ the number of inliers. \param
-  weights_threshold : Threshold applied on the weights updated during the
+  coordinates are expressed in meters.
+  \param xa, ya : Coordinates vector of
+  matched points in image a. These coordinates are expressed in meters.
+  \param aHb : Estimated homography that relies the transformation from image a to
+  image b.
+  \param inliers : Vector that indicates if a matched point is an
+  inlier (true) or an outlier (false).
+  \param residual : Global residual computed as
+  \f$r = \sqrt{1/n \sum_{inliers} {\| {^a{\bf p} - {\hat{^a{\bf H}_b}} {^b{\bf p}}} \|}^{2}}\f$
+  with \f$n\f$ the number of inliers.
+  \param weights_threshold : Threshold applied on the weights updated during the
   robust estimation and used to consider if a point is an outlier or an
   inlier. Values should be in [0:1]. A couple of matched points that have a
   weight lower than this threshold is considered as an outlier. A value equal
-  to zero indicates that all the points are inliers. \param niter : Number of
-  iterations of the estimation process. \param normalization : When set to
-  true, the coordinates of the points are normalized. The normalization
-  carried out is the one preconized by Hartley.
+  to zero indicates that all the points are inliers.
+  \param niter : Number of iterations of the estimation process.
+  \param normalization : When set to true, the coordinates of the points are normalized.
+  The normalization carried out is the one preconized by Hartley.
 
   \sa DLT(), ransac()
  */
@@ -601,7 +623,7 @@ void vpHomography::robust(const std::vector<double> &xb, const std::vector<doubl
     vpMatrix A(nbLinesA * n, 8);
     vpColVector X(8);
     vpColVector Y(nbLinesA * n);
-    vpMatrix W(nbLinesA * n, nbLinesA * n); // Weight matrix
+    vpMatrix W(nbLinesA * n, nbLinesA * n, 0); // Weight matrix
 
     vpColVector w(nbLinesA * n);
 
@@ -640,7 +662,7 @@ void vpHomography::robust(const std::vector<double> &xb, const std::vector<doubl
     vpMatrix WA;
     vpMatrix WAp;
     unsigned int iter = 0;
-    vpRobust r(nbLinesA * n); // M-Estimator
+    vpRobust r; // M-Estimator
 
     while (iter < niter) {
       WA = W * A;
@@ -650,7 +672,6 @@ void vpHomography::robust(const std::vector<double> &xb, const std::vector<doubl
       residu = Y - A * X;
 
       // Compute the weights using the Tukey biweight M-Estimator
-      r.setIteration(iter);
       r.MEstimator(vpRobust::TUKEY, residu, w);
 
       // Update the weights matrix
@@ -661,10 +682,6 @@ void vpHomography::robust(const std::vector<double> &xb, const std::vector<doubl
       for (unsigned int i = 0; i < 8; i++)
         aHbn.data[i] = X[i];
       aHbn[2][2] = 1;
-      {
-        vpMatrix aHbnorm = aHbn.convert();
-        aHbnorm /= aHbnorm[2][2];
-      }
 
       iter++;
     }
@@ -746,4 +763,116 @@ vpMatrix vpHomography::convert() const
       M[i][j] = (*this)[i][j];
 
   return M;
+}
+
+/*!
+ * Transform an homography from pixel space to calibrated domain.
+ *
+ * Given homography \f$\bf G\f$ corresponding to the collineation matrix in the pixel space,
+ * compute the homography matrix \f$\bf H\f$ in the Euclidian space or calibrated domain using:
+ * \f[ {\bf H} = {\bf K}^{-1} {\bf G} {\bf K} \f]
+ * \param[in] cam : Camera parameters used to fill \f${\bf K}\f$ matrix such as
+ * \f[{\bf K} =
+ * \left[ \begin{array}{ccc}
+ * p_x & 0   & u_0  \\
+ * 0   & p_y & v_0 \\
+ * 0   & 0   & 1
+ * \end{array}\right]
+ * \f]
+ * \return The corresponding homography matrix \f$\bf H\f$ in the Euclidian space or calibrated domain.
+ *
+ * \sa homography2collineation()
+ */
+vpHomography vpHomography::collineation2homography(const vpCameraParameters &cam) const
+{
+  vpHomography H;
+  double px = cam.get_px();
+  double py = cam.get_py();
+  double u0 = cam.get_u0();
+  double v0 = cam.get_v0();
+  double one_over_px = cam.get_px_inverse();
+  double one_over_py = cam.get_py_inverse();
+  double h00 = (*this)[0][0], h01 = (*this)[0][1], h02 = (*this)[0][2];
+  double h10 = (*this)[1][0], h11 = (*this)[1][1], h12 = (*this)[1][2];
+  double h20 = (*this)[2][0], h21 = (*this)[2][1], h22 = (*this)[2][2];
+
+  double u0_one_over_px = u0 * one_over_px;
+  double v0_one_over_py = v0 * one_over_py;
+
+  double A = h00 * one_over_px - h20 * u0_one_over_px;
+  double B = h01 * one_over_px - h21 * u0_one_over_px;
+  double C = h02 * one_over_px - h22 * u0_one_over_px;
+  double D = h10 * one_over_py - h20 * v0_one_over_py;
+  double E = h11 * one_over_py - h21 * v0_one_over_py;
+  double F = h12 * one_over_py - h22 * v0_one_over_py;
+
+  H[0][0] = A * px;
+  H[1][0] = D * px;
+  H[2][0] = h20 * px;
+
+  H[0][1] = B * py;
+  H[1][1] = E * py;
+  H[2][1] = h21 * py;
+
+  H[0][2] = A * u0 + B * v0 + C;
+  H[1][2] = D * u0 + E * v0 + F;
+  H[2][2] = h20 * u0 + h21 * v0 + h22;
+
+  return H;
+}
+
+/*!
+ * Transform an homography from calibrated domain to pixel space.
+ *
+ * Given homography \f$\bf H\f$ in the Euclidian space or in the calibrated domain,
+ * compute the homography \f$\bf G\f$ corresponding to the collineation matrix in the pixel space using:
+ * \f[ {\bf G} = {\bf K} {\bf H} {\bf K}^{-1} \f]
+ * \param[in] cam : Camera parameters used to fill \f${\bf K}\f$ matrix such as
+ * \f[{\bf K} =
+ * \left[ \begin{array}{ccc}
+ * p_x & 0   & u_0  \\
+ * 0   & p_y & v_0 \\
+ * 0   & 0   & 1
+ * \end{array}\right]
+ * \f]
+ * \return The corresponding collineation matrix \f$\bf G\f$ in the pixel space.
+ *
+ * \sa collineation2homography()
+ */
+vpHomography vpHomography::homography2collineation(const vpCameraParameters &cam) const
+{
+  vpHomography H;
+  double px = cam.get_px();
+  double py = cam.get_py();
+  double u0 = cam.get_u0();
+  double v0 = cam.get_v0();
+  double one_over_px = cam.get_px_inverse();
+  double one_over_py = cam.get_py_inverse();
+  double h00 = (*this)[0][0], h01 = (*this)[0][1], h02 = (*this)[0][2];
+  double h10 = (*this)[1][0], h11 = (*this)[1][1], h12 = (*this)[1][2];
+  double h20 = (*this)[2][0], h21 = (*this)[2][1], h22 = (*this)[2][2];
+
+  double A = h00 * px + u0 * h20;
+  double B = h01 * px + u0 * h21;
+  double C = h02 * px + u0 * h22;
+  double D = h10 * py + v0 * h20;
+  double E = h11 * py + v0 * h21;
+  double F = h12 * py + v0 * h22;
+
+  H[0][0] = A * one_over_px;
+  H[1][0] = D * one_over_px;
+  H[2][0] = h20 * one_over_px;
+
+  H[0][1] = B * one_over_py;
+  H[1][1] = E * one_over_py;
+  H[2][1] = h21 * one_over_py;
+
+  double u0_one_over_px = u0 * one_over_px;
+  double v0_one_over_py = v0 * one_over_py;
+
+  H[0][2] = -A * u0_one_over_px - B * v0_one_over_py + C;
+  H[1][2] = -D * u0_one_over_px - E * v0_one_over_py + F;
+  H[2][2] = - h20 * u0_one_over_px - h21 * v0_one_over_py + h22;
+
+  return H;
 }

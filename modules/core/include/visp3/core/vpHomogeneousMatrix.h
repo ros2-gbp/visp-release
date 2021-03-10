@@ -139,8 +139,16 @@ int main()
 int main()
 {
 #if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
-  vpHomogeneousMatrix M( vpTranslationVector(0.1, 0.2, 0.3), vpRotationMatrix( {0, 0, -1, 0, -1, 0, -1, 0, 0} ) );
-  std::cout << "M:\n" << M << std::endl;
+  {
+    vpHomogeneousMatrix M( vpTranslationVector(0.1, 0.2, 0.3), vpRotationMatrix( {0, 0, -1, 0, -1, 0, -1, 0, 0} ) );
+    std::cout << "M:\n" << M << std::endl;
+  }
+  {
+    vpHomogeneousMatrix M { 0,  0, -1, 0.1,
+                            0, -1,  0, 0.2,
+                           -1,  0,  0, 0.3 };
+    std::cout << "M:\n" << M << std::endl;
+  }
 #endif
 }
   \endcode
@@ -158,6 +166,9 @@ public:
   explicit vpHomogeneousMatrix(const std::vector<float> &v);
   explicit vpHomogeneousMatrix(const std::vector<double> &v);
   vpHomogeneousMatrix(double tx, double ty, double tz, double tux, double tuy, double tuz);
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  vpHomogeneousMatrix(const std::initializer_list<double> &list);
+#endif
   /*!
     Destructor.
   */
@@ -215,6 +226,9 @@ public:
   // Multiply by a point
   vpPoint operator*(const vpPoint &bP) const;
 
+  vpHomogeneousMatrix& operator<<(double val);
+  vpHomogeneousMatrix& operator,(double val);
+
   void print() const;
 
   /*!
@@ -248,6 +262,9 @@ public:
   vp_deprecated void setIdentity();
 //@}
 #endif
+
+protected:
+  unsigned int m_index;
 };
 
 #endif

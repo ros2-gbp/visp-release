@@ -20,11 +20,11 @@ int main(int argc, const char **argv)
 #if defined(VISP_HAVE_MODULE_IMGPROC) && (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI) || defined(VISP_HAVE_OPENCV))
   //! [Macro defined]
   //!
-  std::string input_filename = "Crayfish-low-contrast.ppm";
+  std::string input_filename = "Crayfish-low-contrast.png";
   int blockRadius = 150;
   int bins = 256;
   float slope = 3.0f;
-  unsigned int size = 11;
+  float sigma = 2.0f;
   double weight = 0.5;
 
   for (int i = 1; i < argc; i++) {
@@ -36,18 +36,17 @@ int main(int argc, const char **argv)
       bins = atoi(argv[i + 1]);
     } else if (std::string(argv[i]) == "--slope" && i + 1 < argc) {
       slope = (float)atof(argv[i + 1]);
-    } else if (std::string(argv[i]) == "--size" && i + 1 < argc) {
-      size = (unsigned int)atoi(argv[i + 1]);
+    } else if (std::string(argv[i]) == "--sigma" && i + 1 < argc) {
+      sigma = (float)atof(argv[i + 1]);
     } else if (std::string(argv[i]) == "--weight" && i + 1 < argc) {
       weight = atof(argv[i + 1]);
     } else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
       std::cout << "Usage: " << argv[0]
                 << " [--input <input image>]"
-                   " [--blockRadius <block radius for CLAHE>] [--bins <nb "
-                   "histogram bins for CLAHE>] [--slope <slope for CLAHE>]"
-                   " [--size <Gaussian kernel size>] [--weight <unsharp mask "
-                   "weighting>]"
-                   " [--help]"
+                   " [--blockRadius <block radius for CLAHE>] "
+                   " [--bins <nb histogram bins for CLAHE>] [--slope <slope for CLAHE>]"
+                   " [--sigma <Gaussian kernel standard deviation>] [--weight <unsharp mask weighting>]"
+                   " [--help] [-h]"
                 << std::endl;
       return EXIT_SUCCESS;
     }
@@ -89,11 +88,11 @@ int main(int argc, const char **argv)
   vpImage<vpRGBa> I_clahe;
   vp::clahe(I_color, I_clahe, blockRadius, bins, slope);
   //! [CLAHE]
-  d5.init(I_clahe, 0, 2 * I_color.getHeight() + 80, "Histogram equalization");
+  d5.init(I_clahe, 0, 2 * I_color.getHeight() + 80, "CLAHE");
 
   //! [Unsharp mask]
   vpImage<vpRGBa> I_unsharp;
-  vp::unsharpMask(I_clahe, I_unsharp, size, weight);
+  vp::unsharpMask(I_clahe, I_unsharp, sigma, weight);
   //! [Unsharp mask]
   d6.init(I_unsharp, I_color.getWidth(), 2 * I_color.getHeight() + 80, "Unsharp mask");
 

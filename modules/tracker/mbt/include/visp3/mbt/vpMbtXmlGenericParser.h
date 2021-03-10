@@ -44,8 +44,6 @@
 
 #include <visp3/core/vpConfig.h>
 
-#ifdef VISP_HAVE_PUGIXML
-
 #include <visp3/core/vpCameraParameters.h>
 #include <visp3/mbt/vpMbtFaceDepthNormal.h>
 #include <visp3/me/vpMe.h>
@@ -154,6 +152,8 @@ public:
   void setProjectionErrorMe(const vpMe &me);
   void setProjectionErrorKernelSize(const unsigned int &size);
 
+  void setVerbose(bool verbose);
+
 private:
   vpMbtXmlGenericParser(const vpMbtXmlGenericParser &);            // noncopyable
   vpMbtXmlGenericParser &operator=(const vpMbtXmlGenericParser &); //
@@ -162,7 +162,5 @@ private:
   class Impl;
   Impl *m_impl;
 };
-
-#endif
 
 #endif

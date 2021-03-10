@@ -42,6 +42,7 @@
 
 #include <sstream>
 #include <string>
+#include <list>
 
 #include <visp3/core/vpCameraParameters.h>
 #include <visp3/core/vpColor.h>
@@ -67,6 +68,11 @@
 
   The \ref tutorial-getting-started is a good starting point to know
   how to use this class to display an image in a window.
+
+  \warning Since ViSP 3.3.1 or higher we introduce the alpha channel support for color
+  transparency. This new feature is only supported yet using vpDisplayOpenCV. See vpColor
+  header documentation and displayOpenCV.cpp example for usage when displaying filled
+  transparent circles and rectangles.
 
   The example below shows how to use this class.
 
@@ -300,7 +306,7 @@ public:
     \param center : Circle center position.
     \param radius : Circle radius.
     \param color : Circle color.
-    \param fill : When set to true fill the rectangle.
+    \param fill : When set to true fill the circle.
     \param thickness : Thickness of the circle. This parameter is only useful
     when \e fill is set to false.
   */
@@ -587,7 +593,7 @@ public:
   /*!
     Initialize the display (size, position and title) of a gray level image.
 
-    \param I : Image to be displayed (not that image has to be initialized)
+    \param I : Image to be displayed (not that image has to be initialized).
     \param x : Horizontal position of the upper/left window corner.
     \param y : Vertical position of the upper/left window corner.
     \param title : Window title.
@@ -597,7 +603,7 @@ public:
     Initialize the display (size, position and title) of a color
     image in RGBa format.
 
-    \param I : Image to be displayed (not that image has to be initialized)
+    \param I : Image to be displayed (not that image has to be initialized).
     \param x : Horizontal position of the upper/left window corner.
     \param y : Vertical position of the upper/left window corner.
     \param title : Window title.
@@ -615,53 +621,53 @@ public:
 
     The following example shows how to use this function
     \code
-#include <visp3/gui/vpDisplayD3D.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
-#include <visp3/io/vpImageIo.h>
+    #include <visp3/gui/vpDisplayD3D.h>
+    #include <visp3/gui/vpDisplayGDI.h>
+    #include <visp3/gui/vpDisplayGTK.h>
+    #include <visp3/gui/vpDisplayOpenCV.h>
+    #include <visp3/gui/vpDisplayX.h>
+    #include <visp3/io/vpImageIo.h>
 
-int main()
-{
-#ifdef VISP_HAVE_DISPLAY
-  vpImage<unsigned char> I;
-  vpImageIo::read(I, "lena.pgm");
+    int main()
+    {
+    #ifdef VISP_HAVE_DISPLAY
+      vpImage<unsigned char> I;
+      vpImageIo::read(I, "lena.pgm");
 
-  vpDisplay *d;
+      vpDisplay *d;
 
-#if defined(VISP_HAVE_X11)
-  d = new vpDisplayX;
-#elif defined(VISP_HAVE_GTK)
-  d = new vpDisplayGTK;
-#elif defined(VISP_HAVE_GDI)
-  d = new vpDisplayGDI;
-#elif defined(VISP_HAVE_D3D9)
-  d = new vpDisplayD3D;
-#elif defined(VISP_HAVE_OPENCV)
-  d = new vpDisplayOpenCV;
-#else
-  std::cout << "Sorry, no video device is available" << std::endl;
-  return -1;
-#endif
+    #if defined(VISP_HAVE_X11)
+      d = new vpDisplayX;
+    #elif defined(VISP_HAVE_GTK)
+      d = new vpDisplayGTK;
+    #elif defined(VISP_HAVE_GDI)
+      d = new vpDisplayGDI;
+    #elif defined(VISP_HAVE_D3D9)
+      d = new vpDisplayD3D;
+    #elif defined(VISP_HAVE_OPENCV)
+      d = new vpDisplayOpenCV;
+    #else
+      std::cout << "Sorry, no video device is available" << std::endl;
+      return -1;
+    #endif
 
-  d->init(I.getWidth(), I.getHeight(), 10, 20, "viewer");
+      d->init(I.getWidth(), I.getHeight(), 10, 20, "viewer");
 
-  // Now associate the display to the image
-  I.display = d;
+      // Now associate the display to the image
+      I.display = d;
 
-  // Set the display background with image I content
-  vpDisplay::display(I);
+      // Set the display background with image I content
+      vpDisplay::display(I);
 
-  // Flush the foreground and background display
-  vpDisplay::flush(I);
+      // Flush the foreground and background display
+      vpDisplay::flush(I);
 
-  // wait for a mouse clink in the display to exit
-  vpDisplay::getClick(I);
+      // wait for a mouse clink in the display to exit
+      vpDisplay::getClick(I);
 
-  delete d;
-#endif
-}
+      delete d;
+    #endif
+    }
     \endcode
   */
   virtual void init(unsigned int width, unsigned int height, int x = -1, int y = -1, const std::string &title = "") = 0;
@@ -728,12 +734,15 @@ int main()
                              unsigned int thickness = 1);
   static void displayDotLine(const vpImage<unsigned char> &I, const std::vector<vpImagePoint> &ips,
                              bool closeTheShape, const vpColor &color, unsigned int thickness = 1);
+  static void displayDotLine(const vpImage<unsigned char> &I, const std::list<vpImagePoint> &ips,
+                             bool closeTheShape, const vpColor &color, unsigned int thickness = 1);
   static void displayEllipse(const vpImage<unsigned char> &I, const vpImagePoint &center, const double &coef1,
-                             const double &coef2, const double &coef3, bool use_centered_moments, const vpColor &color,
-                             unsigned int thickness = 1);
+                             const double &coef2, const double &coef3, bool use_normalized_centered_moments, const vpColor &color,
+                             unsigned int thickness = 1, bool display_center = false, bool display_arc = false);
   static void displayEllipse(const vpImage<unsigned char> &I, const vpImagePoint &center, const double &coef1,
-                             const double &coef2, const double &coef3, const double &theta1, const double &theta2,
-                             bool use_centered_moments, const vpColor &color, unsigned int thickness = 1);
+                             const double &coef2, const double &coef3, const double &smallalpha, const double &highalpha,
+                             bool use_normalized_centered_moments, const vpColor &color, unsigned int thickness = 1,
+                             bool display_center = false, bool display_arc = false);
   static void displayFrame(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo,
                            const vpCameraParameters &cam, double size, const vpColor &color = vpColor::none,
                            unsigned int thickness = 1, const vpImagePoint &offset = vpImagePoint(0, 0));
@@ -742,6 +751,8 @@ int main()
   static void displayLine(const vpImage<unsigned char> &I, int i1, int j1, int i2, int j2, const vpColor &color,
                           unsigned int thickness = 1, bool segment = true);
   static void displayLine(const vpImage<unsigned char> &I, const std::vector<vpImagePoint> &ips,
+                          bool closeTheShape, const vpColor &color, unsigned int thickness = 1);
+  static void displayLine(const vpImage<unsigned char> &I, const std::list<vpImagePoint> &ips,
                           bool closeTheShape, const vpColor &color, unsigned int thickness = 1);
   static void displayPoint(const vpImage<unsigned char> &I, const vpImagePoint &ip, const vpColor &color,
                            unsigned int thickness = 1);
@@ -827,12 +838,15 @@ int main()
                              unsigned int thickness = 1);
   static void displayDotLine(const vpImage<vpRGBa> &I, const std::vector<vpImagePoint> &ips, bool closeTheShape,
                              const vpColor &color, unsigned int thickness = 1);
+  static void displayDotLine(const vpImage<vpRGBa> &I, const std::list<vpImagePoint> &ips, bool closeTheShape,
+                             const vpColor &color, unsigned int thickness = 1);
   static void displayEllipse(const vpImage<vpRGBa> &I, const vpImagePoint &center, const double &coef1,
                              const double &coef2, const double &coef3, bool use_centered_moments, const vpColor &color,
-                             unsigned int thickness = 1);
+                             unsigned int thickness = 1, bool display_center = false, bool display_arc = false);
   static void displayEllipse(const vpImage<vpRGBa> &I, const vpImagePoint &center, const double &coef1,
                              const double &coef2, const double &coef3, const double &theta1, const double &theta2,
-                             bool use_centered_moments, const vpColor &color, unsigned int thickness = 1);
+                             bool use_centered_moments, const vpColor &color, unsigned int thickness = 1,
+                             bool display_center = false, bool display_arc = false);
   static void displayFrame(const vpImage<vpRGBa> &I, const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
                            double size, const vpColor &color = vpColor::none, unsigned int thickness = 1,
                            const vpImagePoint &offset = vpImagePoint(0, 0));
@@ -841,6 +855,8 @@ int main()
   static void displayLine(const vpImage<vpRGBa> &I, int i1, int j1, int i2, int j2, const vpColor &color,
                           unsigned int thickness = 1, bool segment = true);
   static void displayLine(const vpImage<vpRGBa> &I, const std::vector<vpImagePoint> &ips, bool closeTheShape,
+                          const vpColor &color, unsigned int thickness = 1);
+  static void displayLine(const vpImage<vpRGBa> &I, const std::list<vpImagePoint> &ips, bool closeTheShape,
                           const vpColor &color, unsigned int thickness = 1);
   static void displayPoint(const vpImage<vpRGBa> &I, const vpImagePoint &ip, const vpColor &color,
                            unsigned int thickness = 1);

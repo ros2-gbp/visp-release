@@ -43,7 +43,8 @@
 #include <iostream>
 #include <visp3/core/vpConfig.h>
 
-#if defined(VISP_HAVE_MODULE_MBT)
+#if defined(VISP_HAVE_MODULE_MBT) \
+  && (defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV))
 
 #if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
 #include <type_traits>
@@ -248,9 +249,9 @@ namespace
     std::vector<int> tracker_type;
     tracker_type.push_back(vpMbGenericTracker::DEPTH_DENSE_TRACKER);
     vpMbGenericTracker tracker(tracker_type);
-#if defined(VISP_HAVE_PUGIXML)
     tracker.loadConfigFile(input_directory + "/Config/chateau_depth.xml");
-#else
+#if 0
+    // Corresponding parameters manually set to have an example code
     {
       vpCameraParameters cam_depth;
       cam_depth.initPersProjWithoutDistortion(700.0, 700.0, 320.0, 240.0);
@@ -326,7 +327,7 @@ namespace
     depth_M_color[0][3] = -0.05;
     tracker.initFromPose(I, depth_M_color*cMo_truth);
 
-    bool click = false, quit = false;
+    bool click = false, quit = false, correct_accuracy = true;
     std::vector<double> vec_err_t, vec_err_tu;
     std::vector<double> time_vec;
     while (read_data(input_directory, cpt_frame, cam_depth, I, I_depth_raw, pointcloud, cMo_truth) && !quit
@@ -381,10 +382,9 @@ namespace
       const double t_thresh = useScanline ? 0.003 : 0.002;
       const double tu_thresh = useScanline ? 0.5 : 0.4;
       if ( !use_mask && (t_err2 > t_thresh || tu_err2 > tu_thresh) ) { //no accuracy test with mask
-        std::cerr << "Pose estimated exceeds the threshold (t_thresh = 0.003, tu_thresh = 0.5)!" << std::endl;
-        std::cout << "t_err: " << sqrt(t_err.sumSquare()) << " ; tu_err: " << vpMath::deg(sqrt(tu_err.sumSquare())) << std::endl;
-        //TODO: fix MBT to make tests deterministic
-//        return EXIT_FAILURE;
+        std::cerr << "Pose estimated exceeds the threshold (t_thresh = " << t_thresh << ", tu_thresh = " << tu_thresh << ")!" << std::endl;
+        std::cout << "t_err: " << t_err2 << " ; tu_err: " << tu_err2 << std::endl;
+        correct_accuracy = false;
       }
 
       if (opt_display) {
@@ -429,7 +429,7 @@ namespace
     if (!vec_err_tu.empty())
       std::cout << "Max thetau error: " << *std::max_element(vec_err_tu.begin(), vec_err_tu.end()) << std::endl;
 
-    return EXIT_SUCCESS;
+    return correct_accuracy ? EXIT_SUCCESS : EXIT_FAILURE;
   }
 }
 
@@ -494,9 +494,14 @@ int main(int argc, const char *argv[])
     return EXIT_FAILURE;
   }
 }
+#elif !(defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV))
+int main() {
+  std::cout << "Cannot run this example: install Lapack, Eigen3 or OpenCV" << std::endl;
+  return EXIT_SUCCESS;
+}
 #else
 int main() {
   std::cout << "Enable MBT module (VISP_HAVE_MODULE_MBT) to launch this test." << std::endl;
-  return 0;
+  return EXIT_SUCCESS;
 }
 #endif

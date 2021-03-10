@@ -1,6 +1,6 @@
 project(tutorial-detection-object)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12.2)
 
 find_package(VISP REQUIRED visp_core visp_vision visp_mbt visp_io visp_gui)
 
@@ -18,14 +18,14 @@ list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.xml")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.cao")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.wrl")
 list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.init")
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.ppm")
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.mpg")
+list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.png")
+list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/teabox.mp4")
 
 list(APPEND tutorial_data2 "${CMAKE_CURRENT_SOURCE_DIR}/cube.xml")
 list(APPEND tutorial_data2 "${CMAKE_CURRENT_SOURCE_DIR}/cube.cao")
 list(APPEND tutorial_data2 "${CMAKE_CURRENT_SOURCE_DIR}/cube.wrl")
 list(APPEND tutorial_data2 "${CMAKE_CURRENT_SOURCE_DIR}/cube.init")
-list(APPEND tutorial_data2 "${CMAKE_CURRENT_SOURCE_DIR}/cube.mpeg")
+list(APPEND tutorial_data2 "${CMAKE_CURRENT_SOURCE_DIR}/cube.mp4")
 list(APPEND tutorial_data2 "${CMAKE_CURRENT_SOURCE_DIR}/cube0001.png")
 list(APPEND tutorial_data2 "${CMAKE_CURRENT_SOURCE_DIR}/cube0150.png")
 list(APPEND tutorial_data2 "${CMAKE_CURRENT_SOURCE_DIR}/cube0200.png")

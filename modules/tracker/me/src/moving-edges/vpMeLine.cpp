@@ -268,15 +268,11 @@ void vpMeLine::leastSquare()
   vpColVector x(2), x_1(2);
   x_1 = 0;
 
-  unsigned int i;
-
-  vpRobust r(numberOfSignal());
-  r.setThreshold(2);
-  r.setIteration(0);
+  vpRobust r;
+  r.setMinMedianAbsoluteDeviation(2);
   vpMatrix D(numberOfSignal(), numberOfSignal());
   D.eye();
-  vpMatrix DA, DAmemory;
-  vpColVector DAx;
+  vpMatrix DA(numberOfSignal(), 2);
   vpColVector w(numberOfSignal());
   vpColVector B(numberOfSignal());
   w = 1;
@@ -308,16 +304,20 @@ void vpMeLine::leastSquare()
     }
 
     while (iter < 4 && distance > 0.05) {
-      DA = D * A;
+      for (unsigned int i = 0; i < k ; i++) {
+        for (unsigned int j = 0; j < 2 ; j++) {
+          DA[i][j] = w[i] * A[i][j];
+        }
+      }
+
       x = DA.pseudoInverse(1e-26) * D * B;
 
       vpColVector residu(nos_1);
       residu = B - A * x;
-      r.setIteration(iter);
       r.MEstimator(vpRobust::TUKEY, residu, w);
 
       k = 0;
-      for (i = 0; i < nos_1; i++) {
+      for (unsigned int i = 0; i < nos_1; i++) {
         D[k][k] = w[k];
         k++;
       }
@@ -372,11 +372,10 @@ void vpMeLine::leastSquare()
 
       vpColVector residu(nos_1);
       residu = B - A * x;
-      r.setIteration(iter);
       r.MEstimator(vpRobust::TUKEY, residu, w);
 
       k = 0;
-      for (i = 0; i < nos_1; i++) {
+      for (unsigned int i = 0; i < nos_1; i++) {
         D[k][k] = w[k];
         k++;
       }
