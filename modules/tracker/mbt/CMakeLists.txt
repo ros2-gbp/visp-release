@@ -130,6 +130,9 @@ if(USE_PCL)
     if(TARGET ${lib_})
       # This is a VTK library
       list(APPEND PCL_VTK_LIBRARIES ${lib_})
+      if(lib_ MATCHES "^FLANN")
+        mark_as_advanced(flann_DIR)
+      endif()
     else()
       # Other libraries sqlite3, boost..., optimized, debug
       if(EXISTS ${lib_} OR ${lib_} MATCHES "optimized" OR ${lib_} MATCHES "debug")
@@ -140,7 +143,11 @@ if(USE_PCL)
         if(${lib_}_LIBRARY)
           list(APPEND opt_libs ${${lib_}_LIBRARY})
         else()
-          list(APPEND opt_libs ${lib_})
+          # Here on OSX with PCL 1.11.1, ${lib_} may contain
+          # /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/usr/lib/libz.tbd
+          # /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/usr/lib/libexpat.tbd
+          # that doesn't exists. That's why next line was removed.
+          #list(APPEND opt_libs ${lib_})
         endif()
       endif()
     endif()
@@ -185,6 +192,11 @@ if(USE_PCL)
           if(lib_LOCATION)
             set(lib_ ${lib_LOCATION})
           endif()
+        elseif(TARGET ${lib_})
+          find_library(lib_LOCATION NAMES ${lib_})
+          if(lib_LOCATION)
+            set(lib_ ${lib_LOCATION})
+          endif()
         endif()
 
         list(APPEND PCL_VTK_LIBS ${lib_})
@@ -223,6 +235,11 @@ if(USE_PCL)
     set(config_ "NONE" "RELEASE" "DEBUG" "RELEASEWITHDEBINFO" "RELWITHDEBINFO")
     foreach(lib_ ${PCL_VTK_LIBS})
       if(TARGET ${lib_})
+        get_target_property(target_type_ ${lib_} TYPE)
+        if(target_type_ STREQUAL "INTERFACE_LIBRARY")
+          list(APPEND opt_libs "${lib_}")
+          continue()
+        endif()
         foreach(imp_config_ ${config_})
           get_target_property(lib_property_${imp_config_}_ ${lib_} IMPORTED_IMPLIB_${imp_config_})
           if(NOT EXISTS ${lib_property_${imp_config_}_})
@@ -244,11 +261,23 @@ if(USE_PCL)
         find_library(lib_LOCATION ${lib_})
         if(lib_LOCATION)
           list(APPEND opt_libs ${lib_LOCATION})
-        else()
+        elseif(lib_ MATCHES "^-framework")
+          # Here ${lib_} may contain "-framework ApplicationServices -framework CoreServices"
+          # "-framework Cocoa"
           list(APPEND opt_libs ${lib_})
+        else()
+          # Here ${lib_} may contain "/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/usr/lib/libz.tbd"
+          # that doesn't exists. We don't add it.
+          #list(APPEND opt_libs ${lib_})
         endif()
       endif()
     endforeach()
+
+    # On win10 + msvc 15 2017 with pcl 1.9.1 opengl32.lib needde by vtkRenderingOpenGL-8.1-gd.lib is not found
+    # Here we explicitely add opengl
+    if(OPENGL_LIBRARIES)
+      list(APPEND opt_libs ${OPENGL_LIBRARIES})
+    endif()
   endif()
   mark_as_advanced(Qt5Core_DIR Qt5Gui_DIR Qt5Network_DIR Qt5WebKit_DIR Qt5Widgets_DIR Qt5Sql_DIR)
   mark_as_advanced(DAVIDSDK_INCLUDE_DIR DAVIDSDK_LIBRARY RSSDK_DIR DSSDK_DIR VTK_DIR)
@@ -258,6 +287,7 @@ if(USE_PCL)
   mark_as_advanced(pkgcfg_lib_PC_FLANN_flann pkgcfg_lib_PC_FLANN_flann_cpp)
   mark_as_advanced(pkgcfg_lib_PC_OPENNI2_OpenNI2 pkgcfg_lib_PC_OPENNI2_OpenNI2 pkgcfg_lib_PC_OPENNI_OpenNI)
   mark_as_advanced(lib_LOCATION)
+  mark_as_advanced(Boost_THREAD_LIBRARY_RELEASE)
 endif()
 
 if(WITH_CLIPPER)
@@ -265,24 +295,29 @@ if(WITH_CLIPPER)
   include_directories(${CLIPPER_INCLUDE_DIRS})
 endif()
 
-if(WITH_PUGIXML)
-  # pugixml is private
-  include_directories(${PUGIXML_INCLUDE_DIRS})
+# pugixml is always enabled to provide default XML I/O capabilities
+# pugixml is private
+include_directories(${PUGIXML_INCLUDE_DIRS})
+
+if(WITH_CATCH2)
+  # catch2 is private
+  include_directories(${CATCH2_INCLUDE_DIRS})
 endif()
 
-vp_add_module(mbt visp_vision visp_core visp_me visp_visual_features OPTIONAL visp_ar visp_klt visp_gui PRIVATE_OPTIONAL ${CLIPPER_LIBRARIES} ${PUGIXML_LIBRARIES} WRAP java)
+# simdlib is always enabled since it contains fallback code to plain C++ code
+# Simd lib is private
+include_directories(${SIMDLIB_INCLUDE_DIRS})
+
+vp_add_module(mbt visp_vision visp_core visp_me visp_visual_features OPTIONAL visp_ar visp_klt visp_gui PRIVATE_OPTIONAL ${CLIPPER_LIBRARIES} ${PUGIXML_LIBRARIES} ${SIMDLIB_LIBRARIES} WRAP java)
 vp_glob_module_sources()
 
 if(USE_OGRE)
   # Add specific build flag to turn off warnings coming from libogre and libois 3rd party
-  vp_set_source_file_compile_flag(src/edge/vpMbEdgeMultiTracker.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
   vp_set_source_file_compile_flag(src/edge/vpMbEdgeTracker.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-deprecated-declarations -Wno-float-equal  -Wno-deprecated-copy)
   vp_set_source_file_compile_flag(src/edge/vpMbtDistanceCircle.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
   vp_set_source_file_compile_flag(src/edge/vpMbtDistanceCylinder.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
   vp_set_source_file_compile_flag(src/edge/vpMbtDistanceLine.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
-  vp_set_source_file_compile_flag(src/hybrid/vpMbEdgeKltMultiTracker.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
   vp_set_source_file_compile_flag(src/hybrid/vpMbEdgeKltTracker.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
-  vp_set_source_file_compile_flag(src/klt/vpMbKltMultiTracker.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
   vp_set_source_file_compile_flag(src/klt/vpMbKltTracker.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-strict-overflow -Wno-float-equal -Wno-deprecated-copy)
   vp_set_source_file_compile_flag(src/klt/vpMbtDistanceKltCylinder.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
   vp_set_source_file_compile_flag(src/klt/vpMbtDistanceKltPoints.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
@@ -302,12 +337,6 @@ endif()
 if(MSVC)
   if(BUILD_SHARED_LIBS)
     vp_set_source_file_compile_flag(src/depth/vpMbtTukeyEstimator.cpp /wd4244)
-    if(BUILD_DEPRECATED_FUNCTIONS)
-      # Disable Visual C++ C4996 warning for MBT multi deprecation
-      vp_set_source_file_compile_flag(src/edge/vpMbEdgeMultiTracker.cpp /wd4996)
-      vp_set_source_file_compile_flag(src/klt/vpMbKltMultiTracker.cpp /wd4996)
-      vp_set_source_file_compile_flag(src/hybrid/vpMbEdgeKltMultiTracker.cpp /wd4996)
-    endif()
   else()
     if(BUILD_DEPRECATED_FUNCTIONS)
       vp_warnings_disable(CMAKE_CXX_FLAGS /wd4244 /wd4996)
@@ -322,17 +351,17 @@ vp_create_module(${opt_libs})
 
 if(BUILD_TESTS)
   if(USE_OGRE)
+    vp_set_source_file_compile_flag(test/perfGenericTracker.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
     vp_set_source_file_compile_flag(test/testGenericTracker.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
+    vp_set_source_file_compile_flag(test/testGenericTrackerCAOParsing.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
     vp_set_source_file_compile_flag(test/testGenericTrackerDepth.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
+    vp_set_source_file_compile_flag(test/testGenericTrackerDeterminist.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
     vp_set_source_file_compile_flag(test/testMbtXmlGenericParser.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
   endif()
 endif()
 
-# Improvement: remove hack to glob the test folder with vp_add_tests
-# TODO: re-enable tests after PR #365 (make MBT edges deterministic)
 vp_add_tests(DEPENDS_ON visp_core visp_gui visp_io)
 
-# TODO: re-enable tests after PR #365 (make MBT edges deterministic)
 #add_test(testGenericTracker-edge                            testGenericTracker -c ${OPTION_TO_DESACTIVE_DISPLAY} -t 1) #already added by vp_add_tests
 add_test(testGenericTracker-edge-scanline                           testGenericTracker -c ${OPTION_TO_DESACTIVE_DISPLAY} -t 1 -l)
 add_test(testGenericTracker-KLT                                     testGenericTracker -c ${OPTION_TO_DESACTIVE_DISPLAY} -t 2)

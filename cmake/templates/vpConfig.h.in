@@ -143,8 +143,8 @@
 // Defined if X11 library available.
 #cmakedefine VISP_HAVE_X11
 
-// Defined if pugixml is build and available.
-#cmakedefine VISP_HAVE_PUGIXML
+// Always define pugixml for compatibility.
+#define VISP_HAVE_PUGIXML
 
 // Defined if XML2 library available.
 #cmakedefine VISP_HAVE_XML2
@@ -164,12 +164,18 @@
 // Defined if OpenCV xfeatures2d module available. Only since OpenCV >= 3.0.0
 #cmakedefine VISP_HAVE_OPENCV_XFEATURES2D
 
+// Defined if OpenCV dnn module available.
+#cmakedefine VISP_HAVE_OPENCV_DNN
+
+// Defined if OpenCV objdetect module available.
+#cmakedefine VISP_HAVE_OPENCV_OBJDETECT
+
 // OpenCV version in hexadecimal (for example 2.1.0 gives 0x020100).
 #ifdef VISP_HAVE_OPENCV
 #  define VISP_HAVE_OPENCV_VERSION ${VISP_HAVE_OPENCV_VERSION}
 #endif
 
-// Defined if GTK2 library available
+// Defined if gtk+-2.0 library available
 #cmakedefine VISP_HAVE_GTK
 
 // Defined if GDI (Graphics Device Interface) library available
@@ -191,23 +197,38 @@
 
 // Defined if Intel MKL library available
 #cmakedefine VISP_HAVE_MKL
+#ifdef VISP_HAVE_MKL
+#define VISP_HAVE_LAPACK_MKL
+#endif
 
 // Defined if OpenBLAS library available
 #cmakedefine VISP_HAVE_OPENBLAS
+#ifdef VISP_HAVE_OPENBLAS
+#define VISP_HAVE_LAPACK_OPENBLAS
+#endif
 
 // Defined if Atlas library available
 #cmakedefine VISP_HAVE_ATLAS
+#ifdef VISP_HAVE_ATLAS
+#define VISP_HAVE_LAPACK_ATLAS
+#endif
 
-// Defined if LAPACK Netlib library available (-lblas -llapack)
-#cmakedefine VISP_HAVE_LAPACK_NETLIB
+// Defined if Netlib library available (-lblas -llapack)
+#cmakedefine VISP_HAVE_NETLIB
+#ifdef VISP_HAVE_NETLIB
+#define VISP_HAVE_LAPACK_NETLIB
+#endif
 
 // Defined if GSL library available (-lgsl -lgslcblas)
 #cmakedefine VISP_HAVE_GSL
+#ifdef VISP_HAVE_GSL
+#define VISP_HAVE_LAPACK_GSL
+#endif
 
 // Defined if lapack/blas libraries are available (MKL, OpenBLAS, Atlas, Netlib or built-in)
 #cmakedefine VISP_HAVE_LAPACK
 // To keep compat with previous versions
-#ifdef VISP_HAVE_LAPACK
+#ifdef VISP_HAVE_NETLIB
 #  define VISP_HAVE_LAPACK_C
 #endif
 
@@ -333,11 +354,14 @@
 // Defined if DirectShow library is available (only under Windows).
 #cmakedefine VISP_HAVE_DIRECTSHOW
 
-// Defined if PointGrey FlyCapture SDK available.
+// Defined if FLIR FlyCapture SDK available.
 #cmakedefine VISP_HAVE_FLYCAPTURE
 
 // Defined if Basler Pylon SDK available.
 #cmakedefine VISP_HAVE_PYLON
+
+// Defined if IDS uEye SDK available.
+#cmakedefine VISP_HAVE_UEYE
 
 // Defined if Comedi (linux control and measurement cdevice interface) available.
 #cmakedefine VISP_HAVE_COMEDI
@@ -390,6 +414,9 @@
 #  define VISP_HAVE_FRANKA_VERSION ${VISP_HAVE_FRANKA_VERSION}
 #endif
 
+// Defined if Kinova Jaco SDK is available to control Kinova robot.
+#cmakedefine VISP_HAVE_JACOSDK
+
 // Defined if the Aria library and (pthread, rt, dl libraries under Unix) is found.
 // These libraries are used to control Pioneer mobile robots.
 #cmakedefine VISP_HAVE_PIONEER
@@ -405,6 +432,9 @@
 
 // Defined if qbdevice api from qb-robotics available.
 #cmakedefine VISP_HAVE_QBDEVICE
+
+// Defined if takktile2 api from Right Hand Robotics available.
+#cmakedefine VISP_HAVE_TAKKTILE2
 
 // Defined if linux/parport.h is available for parallel port usage.
 #cmakedefine VISP_HAVE_PARPORT

@@ -217,12 +217,13 @@ unsigned int vpMbEdgeKltTracker::initMbtTracking(unsigned int lvl)
 /*!
   Load the xml configuration file.
   From the configuration file initialize the parameters corresponding to the
-objects: moving-edges, KLT, camera.
+  objects: moving-edges, KLT, camera.
 
   \throw vpException::ioError if the file has not been properly parsed (file
-not found or wrong format for the data).
+  not found or wrong format for the data).
 
   \param configFile : full name of the xml file.
+  \param verbose : Set true to activate the verbose mode, false otherwise.
 
   The XML configuration file has the following form:
   \code
@@ -273,14 +274,13 @@ not found or wrong format for the data).
 </conf>
   \endcode
 */
-void vpMbEdgeKltTracker::loadConfigFile(const std::string &configFile)
+void vpMbEdgeKltTracker::loadConfigFile(const std::string &configFile, bool verbose)
 {
   // Load projection error config
-  vpMbTracker::loadConfigFile(configFile);
+  vpMbTracker::loadConfigFile(configFile, verbose);
 
-#ifdef VISP_HAVE_PUGIXML
   vpMbtXmlGenericParser xmlp(vpMbtXmlGenericParser::EDGE_PARSER | vpMbtXmlGenericParser::KLT_PARSER);
-
+  xmlp.setVerbose(verbose);
   xmlp.setCameraParameters(m_cam);
   xmlp.setAngleAppear(vpMath::deg(angleAppears));
   xmlp.setAngleDisappear(vpMath::deg(angleDisappears));
@@ -297,7 +297,9 @@ void vpMbEdgeKltTracker::loadConfigFile(const std::string &configFile)
   xmlp.setKltMaskBorder(maskBorder);
 
   try {
-    std::cout << " *********** Parsing XML for Mb Edge KLT Tracker ************ " << std::endl;
+    if (verbose) {
+      std::cout << " *********** Parsing XML for Mb Edge KLT Tracker ************ " << std::endl;
+    }
     xmlp.parse(configFile.c_str());
   } catch (...) {
     vpERROR_TRACE("Can't open XML file \"%s\"\n ", configFile.c_str());
@@ -348,10 +350,6 @@ void vpMbEdgeKltTracker::loadConfigFile(const std::string &configFile)
 
   // if(useScanLine)
   faces.getMbScanLineRenderer().setMaskBorder(maskBorder);
-
-#else
-  std::cerr << "pugixml third-party is not properly built to read config file: " << configFile << std::endl;
-#endif
 }
 
 /*!
@@ -671,7 +669,7 @@ void vpMbEdgeKltTracker::computeVVS(const vpImage<unsigned char> &I, const unsig
   }
 
   vpColVector v; // "speed" for VVS
-  vpRobust robust_mbt(0), robust_klt(0);
+  vpRobust robust_mbt, robust_klt;
   vpHomography H;
 
   vpMatrix LTL;
@@ -706,13 +704,11 @@ void vpMbEdgeKltTracker::computeVVS(const vpImage<unsigned char> &I, const unsig
   if (nbrow != 0) {
     m_w_mbt.resize(nbrow, false);
     m_w_mbt = 1; // needed in vpRobust::psiTukey()
-    robust_mbt.resize(nbrow);
   }
 
   if (nbInfos != 0) {
     m_w_klt.resize(2 * nbInfos, false);
     m_w_klt = 1; // needed in vpRobust::psiTukey()
-    robust_klt.resize(2 * nbInfos);
   }
 
   double mu = m_initialMu;
@@ -788,7 +784,7 @@ void vpMbEdgeKltTracker::computeVVS(const vpImage<unsigned char> &I, const unsig
           residuMBT += fabs(R_mbt[i]);
         residuMBT /= R_mbt.getRows();
 
-        robust_mbt.setThreshold(m_thresholdMBT / m_cam.get_px());
+        robust_mbt.setMinMedianAbsoluteDeviation(m_thresholdMBT / m_cam.get_px());
         robust_mbt.MEstimator(vpRobust::TUKEY, R_mbt, m_w_mbt);
 
         L.insert(L_mbt, 0, 0);
@@ -800,7 +796,7 @@ void vpMbEdgeKltTracker::computeVVS(const vpImage<unsigned char> &I, const unsig
           residuKLT += fabs(R_klt[i]);
         residuKLT /= R_klt.getRows();
 
-        robust_klt.setThreshold(m_thresholdKLT / m_cam.get_px());
+        robust_klt.setMinMedianAbsoluteDeviation(m_thresholdKLT / m_cam.get_px());
         robust_klt.MEstimator(vpRobust::TUKEY, R_klt, m_w_klt);
 
         L.insert(L_klt, nbrow, 0);
@@ -1247,10 +1243,10 @@ void vpMbEdgeKltTracker::display(const vpImage<unsigned char> &I, const vpHomoge
       vpDisplay::displayLine(I, ip1, ip2, col, thickness);
     } else if (vpMath::equal(models[i][0], 1)) {
       vpImagePoint center(models[i][1], models[i][2]);
-      double mu20 = models[i][3];
-      double mu11 = models[i][4];
-      double mu02 = models[i][5];
-      vpDisplay::displayEllipse(I, center, mu20, mu11, mu02, true, col, thickness);
+      double n20 = models[i][3];
+      double n11 = models[i][4];
+      double n02 = models[i][5];
+      vpDisplay::displayEllipse(I, center, n20, n11, n02, true, col, thickness);
     }
   }
 
@@ -1299,10 +1295,10 @@ void vpMbEdgeKltTracker::display(const vpImage<vpRGBa> &I, const vpHomogeneousMa
       vpDisplay::displayLine(I, ip1, ip2, col, thickness);
     } else if (vpMath::equal(models[i][0], 1)) {
       vpImagePoint center(models[i][1], models[i][2]);
-      double mu20 = models[i][3];
-      double mu11 = models[i][4];
-      double mu02 = models[i][5];
-      vpDisplay::displayEllipse(I, center, mu20, mu11, mu02, true, col, thickness);
+      double n20 = models[i][3];
+      double n11 = models[i][4];
+      double n02 = models[i][5];
+      vpDisplay::displayEllipse(I, center, n20, n11, n02, true, col, thickness);
     }
   }
 

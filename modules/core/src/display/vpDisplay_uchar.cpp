@@ -143,7 +143,9 @@ void vpDisplay::displayCharString(const vpImage<unsigned char> &I, int i, int j,
   \param center : Circle center position.
   \param radius : Circle radius.
   \param color : Circle color.
-  \param fill : When set to true fill the rectangle.
+  \param fill : When set to true fill the circle. When vpDisplayOpenCV is used,
+  and color alpha channel is set, filling feature can handle transparency. See vpColor
+  header class documentation.
   \param thickness : Thickness of the circle. This parameter is only useful
   when \e fill is set to false.
 */
@@ -159,7 +161,9 @@ void vpDisplay::displayCircle(const vpImage<unsigned char> &I, const vpImagePoin
   \param i,j : Circle center position.
   \param radius : Circle radius.
   \param color : Circle color.
-  \param fill : When set to true fill the rectangle.
+  \param fill : When set to true fill the circle. When vpDisplayOpenCV is used,
+  and color alpha channel is set, filling feature can handle transparency. See vpColor
+  header class documentation.
   \param thickness : Thickness of the circle. This parameter is only useful
   when \e fill is set to false.
 */
@@ -227,7 +231,7 @@ void vpDisplay::displayDotLine(const vpImage<unsigned char> &I, int i1, int j1, 
 /*!
   Display dashed lines for the list of image points.
   \param I : The image associated to the display.
-  \param ips : List of image points.
+  \param ips : Vector of image points.
   \param closeTheShape : If true, display a dashed line from the first and
   last image points.
   \param color : Line color.
@@ -247,61 +251,33 @@ void vpDisplay::displayDotLine(const vpImage<unsigned char> &I, const std::vecto
 }
 
 /*!
-  Display an ellipse from its parameters expressed in pixels.
-  \param I : Image to consider.
-  \param center : Center \f$(u_c, v_c)\f$ of the ellipse.
-  \param coef1, coef2, coef3 : Depending on the parameter \e
-  use_centered_moments these parameters are:
-  - the centered moments expressed in pixels: \f$\mu_{20}, \mu_{11},
-  \mu_{02}\f$;
-  - the major and minor axis lenght in pixels and the excentricity of the
-  ellipse in radians: \f$a, b, e\f$.
-  \param use_centered_moments : When false, the parameters coef1, coef2, coef3
-  are the parameters \f$a, b, e\f$. When true, the parameters coef1, coef2,
-  coef3 are rather the centered moments \f$\mu_{20}, \mu_{11}, \mu_{02}\f$
-  expressed in pixels. In that case, we compute the parameters \e a, \e b and
-  \e e from the centered moments.
-  \param color : Ellipse color.
-  \param thickness : Ellipse thickness.
-
-  All the points \f$(u_\theta,v_\theta)\f$ on the ellipse are drawn thanks to
-  its parametric representation:
-
-  \f[ \left(\begin{array}{c}
-  u_\theta \\
-  v_\theta
-  \end{array} \right) = \left(\begin{array}{c}
-  u_c \\
-  v_c
-  \end{array} \right) + \left(\begin{array}{cc}
-  \cos(e) & -\sin(e) \\
-  \sin(e) & \cos(e)
-  \end{array} \right) \left(\begin{array}{c}
-  a \cos(\theta) \\
-  b \sin(\theta)
-  \end{array} \right) \f]
-
-  with \f$0 \leq \theta \leq 2\pi\f$.
-
-  The following example shows how to use for example this function to display
-  the result of a tracking.
-  \code
-    vpMeEllipse ellipse;
-    ...
-    vpDisplay::display(I);
-    ellipse.track(I);
-
-    vpDisplay::displayEllipse(I, ellipse.getCenter(), ellipse.get_mu20(),
-                              ellipse.get_mu11(), ellipse.get_mu02(), true, vpColor::orange, 1);
-    vpDisplay::flush(I);
-  \endcode
+  Display dashed lines for the list of image points.
+  \param I : The image associated to the display.
+  \param ips : List of image points.
+  \param closeTheShape : If true, display a dashed line from the first and
+  last image points.
+  \param color : Line color.
+  \param thickness : Dashed line thickness.
 */
-void vpDisplay::displayEllipse(const vpImage<unsigned char> &I, const vpImagePoint &center, const double &coef1,
-                               const double &coef2, const double &coef3, bool use_centered_moments,
-                               const vpColor &color, unsigned int thickness)
+void vpDisplay::displayDotLine(const vpImage<unsigned char> &I, const std::list<vpImagePoint> &ips,
+                               bool closeTheShape, const vpColor &color, unsigned int thickness)
 {
-  vpDisplay::displayEllipse(I, center, coef1, coef2, coef3, 0., vpMath::rad(360), use_centered_moments, color,
-                            thickness);
+  if (ips.size() <= 1)
+    return;
+
+  std::list<vpImagePoint>::const_iterator it = ips.begin();
+
+  vpImagePoint ip_prev = *(it++);
+  for (; it != ips.end(); ++it) {
+    if (vpImagePoint::distance(ip_prev, *it) > 1) {
+      vp_display_display_dot_line(I, ip_prev, *it, color, thickness);
+      ip_prev = *it;
+    }
+  }
+
+  if (closeTheShape) {
+    vp_display_display_dot_line(I, ips.front(), ips.back(), color, thickness);
+  }
 }
 
 /*!
@@ -309,41 +285,22 @@ void vpDisplay::displayEllipse(const vpImage<unsigned char> &I, const vpImagePoi
   \param I : Image to consider.
   \param center : Center \f$(u_c, v_c)\f$ of the ellipse.
   \param coef1, coef2, coef3 : Depending on the parameter \e
-  use_centered_moments these parameters are:
-  - the centered moments expressed in pixels: \f$\mu_{20}, \mu_{11},
-  \mu_{02}\f$;
+  use_normalized_centered_moments these parameters are:
+  - second order centered moments of the ellipse normalized by its area
+    (i.e., such that \f$n_{ij} = \mu_{ij}/a\f$ where \f$\mu_{ij}\f$ are the
+    centered moments and a the area) expressed in pixels.
   - the major and minor axis lenght in pixels and the excentricity of the
   ellipse in radians: \f$a, b, e\f$.
-  \param theta1, theta2 : Angles
-  \f$(\theta_1, \theta_2)\f$ in radians used to select a portion of the
-  ellipse. If theta1=0 and theta2=vpMath::rad(360) all the ellipse is
-  displayed.
-  \param use_centered_moments : When false, the parameters coef1,
-  coef2, coef3 are the parameters \f$a, b, e\f$. When true, the parameters
-  coef1, coef2, coef3 are rather the centered moments \f$\mu_{20}, \mu_{11},
-  \mu_{02}\f$ expressed in pixels. In that case, we compute the parameters \e
-  a, \e b and \e e from the centered moments.
+  \param use_normalized_centered_moments : When false, the parameters coef1, coef2, coef3
+  are the parameters \f$a, b, e\f$. When true, the parameters coef1, coef2,
+  coef3 are rather the normalized centered moments \f$n_{20}, n_{11}, n_{02}\f$
+  expressed in pixels. In that case, we compute the parameters \e a, \e b and
+  \e e from the centered moments.
   \param color : Ellipse color.
   \param thickness : Ellipse thickness.
-
-  All the points \f$(u_\theta,v_\theta)\f$ on the ellipse are drawn thanks to
-  its parametric representation:
-
-  \f[ \left(\begin{array}{c}
-  u_\theta \\
-  v_\theta
-  \end{array} \right) = \left(\begin{array}{c}
-  u_c \\
-  v_c
-  \end{array} \right) + \left(\begin{array}{cc}
-  \cos(e) & -\sin(e) \\
-  \sin(e) & \cos(e)
-  \end{array} \right) \left(\begin{array}{c}
-  a \cos(\theta) \\
-  b \sin(\theta)
-  \end{array} \right) \f]
-
-  with \f$\theta_1 \leq \theta \leq \theta_2\f$.
+  \param display_center : Display a cross at the center of the ellipse.
+  \param display_arc : Display a line between the center and the first arc extremity
+  and a line between the center and the second arc extremity.
 
   The following example shows how to use for example this function to display
   the result of a tracking.
@@ -353,17 +310,66 @@ void vpDisplay::displayEllipse(const vpImage<unsigned char> &I, const vpImagePoi
     vpDisplay::display(I);
     ellipse.track(I);
 
-    vpDisplay::displayEllipse(I, ellipse.getCenter(), ellipse.get_mu20(),
-                              ellipse.get_mu11(), ellipse.get_mu02(),
-                              ellipse.getSmallestAngle(),
-    ellipse.getHighestAngle(), true, vpColor::orange, 1); vpDisplay::flush(I);
+    vpDisplay::displayEllipse(I, ellipse.getCenter(),
+                              ellipse.get_nij()[0], ellipse.get_nij()[1], ellipse.get_nij()[2],
+                              true, vpColor::orange, 1);
+    vpDisplay::flush(I);
   \endcode
 */
 void vpDisplay::displayEllipse(const vpImage<unsigned char> &I, const vpImagePoint &center, const double &coef1,
-                               const double &coef2, const double &coef3, const double &theta1, const double &theta2,
-                               bool use_centered_moments, const vpColor &color, unsigned int thickness)
+                               const double &coef2, const double &coef3, bool use_normalized_centered_moments,
+                               const vpColor &color, unsigned int thickness, bool display_center, bool display_arc)
 {
-  vp_display_display_ellipse(I, center, coef1, coef2, coef3, theta1, theta2, use_centered_moments, color, thickness);
+  vpDisplay::displayEllipse(I, center, coef1, coef2, coef3, 0., 2 * M_PI, use_normalized_centered_moments, color,
+                            thickness, display_center, display_arc);
+}
+
+/*!
+  Display an ellipse from its parameters expressed in pixels.
+  \param I : Image to consider.
+  \param center : Center \f$(u_c, v_c)\f$ of the ellipse.
+  \param coef1, coef2, coef3 : Depending on the parameter \e
+  use_normalized_centered_moments these parameters are:
+  - second order centered moments of the ellipse normalized by its area
+    (i.e., such that \f$n_{ij} = \mu_{ij}/a\f$ where \f$\mu_{ij}\f$ are the
+    centered moments and a the area) expressed in pixels.
+  - the major and minor axis lenght in pixels and the excentricity of the
+  ellipse in radians: \f$a, b, e\f$.
+  \param smallalpha : Smallest \f$ alpha \f$ angle in rad (0 for a complete ellipse).
+  \param highalpha : Highest \f$ alpha \f$ angle in rad (2 \f$ \Pi \f$ for a complete ellipse).
+  \param use_normalized_centered_moments : When false, the parameters coef1,
+  coef2, coef3 are the parameters \f$a, b, e\f$. When true, the parameters
+  coef1, coef2, coef3 are rather the normalized centered moments \f$n_{20}, n_{11},
+  n_{02}\f$ expressed in pixels. In that case, we compute the parameters \e
+  a, \e b and \e e from the centered moments.
+  \param color : Ellipse color.
+  \param thickness : Ellipse thickness.
+  \param display_center : Display a cross at the center of the ellipse.
+  \param display_arc : Display a line between the center and the first arc extremity
+  and a line between the center and the second arc extremity.
+
+  The following example shows how to use for example this function to display
+  the result of a tracking.
+  \code
+    vpMeEllipse ellipse;
+    ...
+    vpDisplay::display(I);
+    ellipse.track(I);
+
+    vpDisplay::displayEllipse(I, ellipse.getCenter(),
+                              ellipse.get_nij()[0], ellipse.get_nij()[1], ellipse.get_nij()[2],
+                              ellipse.getSmallestAngle(), ellipse.getHighestAngle(),
+                              true, vpColor::orange, 1);
+    vpDisplay::flush(I);
+  \endcode
+*/
+void vpDisplay::displayEllipse(const vpImage<unsigned char> &I, const vpImagePoint &center, const double &coef1,
+                               const double &coef2, const double &coef3, const double &smallalpha, const double &highalpha,
+                               bool use_normalized_centered_moments, const vpColor &color, unsigned int thickness,
+                               bool display_center, bool display_arc)
+{
+  vp_display_display_ellipse(I, center, coef1, coef2, coef3, smallalpha, highalpha, use_normalized_centered_moments, color,
+                             thickness, display_center, display_arc);
 }
 
 /*!
@@ -474,9 +480,10 @@ void vpDisplay::displayLine(const vpImage<unsigned char> &I, int i1, int j1, int
 /*!
   Display the lines formed by the list of image points.
   \param I : The image associated to the display.
-  \param ips : List of image points.
-  \param closeTheShape : If true, display a line from the first and last image
-  points. \param color : Line color. \param thickness : Line thickness.
+  \param ips : Vector of image points.
+  \param closeTheShape : If true, display a line from the first and last image points.
+  \param color : Line color.
+  \param thickness : Line thickness.
 */
 void vpDisplay::displayLine(const vpImage<unsigned char> &I, const std::vector<vpImagePoint> &ips,
                             bool closeTheShape, const vpColor &color, unsigned int thickness)
@@ -489,6 +496,35 @@ void vpDisplay::displayLine(const vpImage<unsigned char> &I, const std::vector<v
 
   if (closeTheShape)
     vp_display_display_line(I, ips.front(), ips.back(), color, thickness);
+}
+
+/*!
+  Display the lines formed by the list of image points.
+  \param I : The image associated to the display.
+  \param ips : List of image points.
+  \param closeTheShape : If true, display a line from the first and last image points.
+  \param color : Line color.
+  \param thickness : Line thickness.
+*/
+void vpDisplay::displayLine(const vpImage<unsigned char> &I, const std::list<vpImagePoint> &ips,
+                            bool closeTheShape, const vpColor &color, unsigned int thickness)
+{
+  if (ips.size() <= 1)
+    return;
+
+  std::list<vpImagePoint>::const_iterator it = ips.begin();
+
+  vpImagePoint ip_prev = *(it++);
+  for (; it != ips.end(); ++it) {
+    if (vpImagePoint::distance(ip_prev, *it) > 1) {
+      vp_display_display_line(I, ip_prev, *it, color, thickness);
+      ip_prev = *it;
+    }
+  }
+
+  if (closeTheShape) {
+    vp_display_display_line(I, ips.front(), ips.back(), color, thickness);
+  }
 }
 
 /*!
@@ -539,7 +575,9 @@ void vpDisplay::displayPolygon(const vpImage<unsigned char> &I, const std::vecto
   \param topLeft : Top-left corner of the rectangle.
   \param width,height : Rectangle size.
   \param color : Rectangle color.
-  \param fill : When set to true fill the rectangle.
+  \param fill : When set to true fill the rectangle. When vpDisplayOpenCV is used,
+  and color alpha channel is set, filling feature can handle transparency. See vpColor
+  header class documentation.
 
   \param thickness : Thickness of the four lines used to display the
   rectangle. This parameter is only useful when \e fill is set to
@@ -578,7 +616,9 @@ void vpDisplay::displayRectangle(const vpImage<unsigned char> &I, int i, int j, 
   \param I : The image associated to the display.
   \param rectangle : Rectangle characteristics.
   \param color : Rectangle color.
-  \param fill : When set to true fill the rectangle.
+  \param fill : When set to true fill the rectangle. When vpDisplayOpenCV is used,
+  and color alpha channel is set, filling feature can handle transparency. See vpColor
+  header class documentation.
 
   \param thickness : Thickness of the four lines used to display the
   rectangle. This parameter is only useful when \e fill is set to
@@ -617,7 +657,9 @@ void vpDisplay::displayRectangle(const vpImage<unsigned char> &I, const vpImageP
   \param topLeft : Top-left corner of the rectangle.
   \param bottomRight : Bottom-right corner of the rectangle.
   \param color : Rectangle color.
-  \param fill : When set to true fill the rectangle.
+  \param fill : When set to true fill the rectangle. When vpDisplayOpenCV is used,
+  and color alpha channel is set, filling feature can handle transparency. See vpColor
+  header class documentation.
 
   \param thickness : Thickness of the four lines used to display the
   rectangle. This parameter is only useful when \e fill is set to

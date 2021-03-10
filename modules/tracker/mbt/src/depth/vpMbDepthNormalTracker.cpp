@@ -108,13 +108,13 @@ void vpMbDepthNormalTracker::addFace(vpMbtPolygon &polygon, bool alreadyClose)
   unsigned int nbpt = polygon.getNbPoint();
   if (nbpt > 0) {
     for (unsigned int i = 0; i < nbpt - 1; i++) {
-      normal_face->addLine(polygon.p[i], polygon.p[i + 1], &m_depthNormalHiddenFacesDisplay, polygon.getIndex(),
+      normal_face->addLine(polygon.p[i], polygon.p[i + 1], &m_depthNormalHiddenFacesDisplay, m_rand, polygon.getIndex(),
                            polygon.getName());
     }
 
     if (!alreadyClose) {
       // Add last line that closes the face
-      normal_face->addLine(polygon.p[nbpt - 1], polygon.p[0], &m_depthNormalHiddenFacesDisplay, polygon.getIndex(),
+      normal_face->addLine(polygon.p[nbpt - 1], polygon.p[0], &m_depthNormalHiddenFacesDisplay, m_rand, polygon.getIndex(),
                            polygon.getName());
     }
   }
@@ -256,8 +256,7 @@ void vpMbDepthNormalTracker::computeVVSInit()
   m_w_depthNormal.resize(nb_features, false);
   m_w_depthNormal = 1;
 
-  m_robust_depthNormal.resize(nb_features);
-  m_robust_depthNormal.setThreshold(1e-3);
+  m_robust_depthNormal.setMinMedianAbsoluteDeviation(1e-3);
 }
 
 void vpMbDepthNormalTracker::computeVVSInteractionMatrixAndResidu()
@@ -346,7 +345,8 @@ std::vector<std::vector<double> > vpMbDepthNormalTracker::getFeaturesForDisplayD
   - Line parameters are: `<primitive id (here 0 for line)>`, `<pt_start.i()>`, `<pt_start.j()>`,
   `<pt_end.i()>`, `<pt_end.j()>`.
   - Ellipse parameters are: `<primitive id (here 1 for ellipse)>`, `<pt_center.i()>`, `<pt_center.j()>`,
-  `<mu20>`, `<mu11>`, `<mu02>`.
+  `<n_20>`, `<n_11>`, `<n_02>` where `<n_ij>` are the second order centered moments of the ellipse
+  normalized by its area (i.e., such that \f$n_{ij} = \mu_{ij}/a\f$ where \f$\mu_{ij}\f$ are the centered moments and a the area).
 
   \param width : Image width.
   \param height : Image height.
@@ -416,11 +416,10 @@ void vpMbDepthNormalTracker::init(const vpImage<unsigned char> &I)
   computeVisibility(I.getWidth(), I.getHeight());
 }
 
-void vpMbDepthNormalTracker::loadConfigFile(const std::string &configFile)
+void vpMbDepthNormalTracker::loadConfigFile(const std::string &configFile, bool verbose)
 {
-#ifdef VISP_HAVE_PUGIXML
   vpMbtXmlGenericParser xmlp(vpMbtXmlGenericParser::DEPTH_NORMAL_PARSER);
-
+  xmlp.setVerbose(verbose);
   xmlp.setCameraParameters(m_cam);
   xmlp.setAngleAppear(vpMath::deg(angleAppears));
   xmlp.setAngleDisappear(vpMath::deg(angleDisappears));
@@ -433,7 +432,9 @@ void vpMbDepthNormalTracker::loadConfigFile(const std::string &configFile)
   xmlp.setDepthNormalSamplingStepY(m_depthNormalSamplingStepY);
 
   try {
-    std::cout << " *********** Parsing XML for Mb Depth Tracker ************ " << std::endl;
+    if (verbose) {
+      std::cout << " *********** Parsing XML for Mb Depth Tracker ************ " << std::endl;
+    }
     xmlp.parse(configFile);
   } catch (const vpException &e) {
     std::cerr << "Exception: " << e.what() << std::endl;
@@ -461,9 +462,6 @@ void vpMbDepthNormalTracker::loadConfigFile(const std::string &configFile)
   setDepthNormalPclPlaneEstimationRansacMaxIter(xmlp.getDepthNormalPclPlaneEstimationRansacMaxIter());
   setDepthNormalPclPlaneEstimationRansacThreshold(xmlp.getDepthNormalPclPlaneEstimationRansacThreshold());
   setDepthNormalSamplingStep(xmlp.getDepthNormalSamplingStepX(), xmlp.getDepthNormalSamplingStepY());
-#else
-  std::cerr << "pugixml third-party is not properly built to read config file: " << configFile << std::endl;
-#endif
 }
 
 void vpMbDepthNormalTracker::reInitModel(const vpImage<unsigned char> &I, const std::string &cad_name,
@@ -816,13 +814,13 @@ void vpMbDepthNormalTracker::track(const std::vector<vpColVector> &point_cloud, 
 }
 
 void vpMbDepthNormalTracker::initCircle(const vpPoint & /*p1*/, const vpPoint & /*p2*/, const vpPoint & /*p3*/,
-                                        const double /*radius*/, const int /*idFace*/, const std::string & /*name*/)
+                                        double /*radius*/, int /*idFace*/, const std::string & /*name*/)
 {
   throw vpException(vpException::fatalError, "vpMbDepthNormalTracker::initCircle() should not be called!");
 }
 
-void vpMbDepthNormalTracker::initCylinder(const vpPoint & /*p1*/, const vpPoint & /*p2*/, const double /*radius*/,
-                                          const int /*idFace*/, const std::string & /*name*/)
+void vpMbDepthNormalTracker::initCylinder(const vpPoint & /*p1*/, const vpPoint & /*p2*/, double /*radius*/,
+                                          int /*idFace*/, const std::string & /*name*/)
 {
   throw vpException(vpException::fatalError, "vpMbDepthNormalTracker::initCylinder() should not be called!");
 }

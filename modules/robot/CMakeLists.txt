@@ -98,6 +98,11 @@ if(USE_PTU46)
   list(APPEND opt_libs ${PTU46_LIBRARIES})
 endif()
 
+if(USE_JACOSDK)
+  list(APPEND opt_incs ${JACOSDK_INCLUDE_DIRS})
+  list(APPEND opt_libs ${JACOSDK_LIBRARIES})
+endif()
+
 if(USE_FLIRPTUSDK)
   list(APPEND opt_incs ${FLIRPTUSDK_INCLUDE_DIRS})
   list(APPEND opt_libs ${FLIRPTUSDK_LIBRARIES})
@@ -164,7 +169,12 @@ if(WITH_QBDEVICE)
   include_directories(${QBDEVICE_INCLUDE_DIRS})
 endif()
 
-vp_add_module(robot visp_core OPTIONAL visp_io visp_gui visp_sensor PRIVATE_OPTIONAL ${QBDEVICE_LIBRARIES})
+if(WITH_TAKKTILE2)
+  # reflex-takktile2 is private
+  include_directories(${TAKKTILE2_INCLUDE_DIRS})
+endif()
+
+vp_add_module(robot visp_core OPTIONAL visp_io visp_gui visp_sensor PRIVATE_OPTIONAL ${QBDEVICE_LIBRARIES} ${TAKKTILE2_LIBRARIES})
 vp_glob_module_sources()
 
 vp_set_source_file_compile_flag(src/wireframe-simulator/vpKeyword.cpp -Wno-sign-conversion)

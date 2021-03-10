@@ -38,7 +38,7 @@
 
 project(ViSP-examples)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12.2)
 
 find_package(VISP)
 
@@ -82,6 +82,7 @@ visp_add_subdirectory(moments/polygon          REQUIRED_DEPS visp_core visp_vs v
 visp_add_subdirectory(ogre-simulator           REQUIRED_DEPS visp_core visp_vision visp_ar visp_blob visp_io visp_gui)
 visp_add_subdirectory(parse-argv               REQUIRED_DEPS visp_core visp_io)
 visp_add_subdirectory(pose-estimation          REQUIRED_DEPS visp_core visp_blob visp_vision visp_io visp_gui)
+visp_add_subdirectory(reflex-takktile          REQUIRED_DEPS visp_core visp_robot)
 visp_add_subdirectory(robot-simulator/afma6    REQUIRED_DEPS visp_core visp_vs visp_robot visp_io visp_gui)
 visp_add_subdirectory(robot-simulator/camera   REQUIRED_DEPS visp_core visp_vs visp_robot visp_io visp_gui)
 visp_add_subdirectory(robot-simulator/viper850 REQUIRED_DEPS visp_core visp_vs visp_robot visp_io visp_gui)
@@ -91,6 +92,7 @@ visp_add_subdirectory(servo-biclops            REQUIRED_DEPS visp_core visp_blob
 visp_add_subdirectory(servo-bebop2             REQUIRED_DEPS visp_core visp_vs visp_robot  visp_gui visp_detection)
 visp_add_subdirectory(servo-flir-ptu           REQUIRED_DEPS visp_core visp_robot visp_vision visp_gui visp_vs visp_visual_features visp_detection visp_sensor)
 visp_add_subdirectory(servo-franka             REQUIRED_DEPS visp_core visp_robot visp_vision visp_io visp_gui visp_vs visp_visual_features visp_detection)
+visp_add_subdirectory(servo-kinova             REQUIRED_DEPS visp_core visp_robot visp_vision visp_io visp_gui visp_vs visp_visual_features visp_detection)
 visp_add_subdirectory(servo-pioneer            REQUIRED_DEPS visp_core visp_blob visp_vs visp_robot visp_sensor visp_gui)
 visp_add_subdirectory(servo-ptu46              REQUIRED_DEPS visp_core visp_blob visp_vs visp_robot visp_sensor visp_gui)
 visp_add_subdirectory(servo-viper650           REQUIRED_DEPS visp_core visp_blob visp_vs visp_robot visp_sensor visp_vision visp_gui)

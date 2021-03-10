@@ -247,7 +247,8 @@ int main(int argc, char *argv[])
   tracker.setProjectionErrorComputation(true);
   tracker.setProjectionErrorDisplay(display_projection_error);
 
-#if (defined(VISP_HAVE_OPENCV_NONFREE) || defined(VISP_HAVE_OPENCV_XFEATURES2D))
+#if (defined(VISP_HAVE_OPENCV_NONFREE) || defined(VISP_HAVE_OPENCV_XFEATURES2D)) || \
+    (VISP_HAVE_OPENCV_VERSION >= 0x030411 && CV_MAJOR_VERSION < 4) || (VISP_HAVE_OPENCV_VERSION >= 0x040400)
   std::string detectorName = "SIFT";
   std::string extractorName = "SIFT";
   std::string matcherName = "BruteForce";
@@ -419,14 +420,17 @@ int main(int argc, char *argv[])
           vpDisplay::displayFrame(I_depth, cMo, cam_depth, 0.05, vpColor::none, 3);
         }
 
-        if (use_edges || use_klt) {
+        {
           std::stringstream ss;
-          ss << "Nb features: " << tracker.getError().getRows();
-          vpDisplay::displayText(I_gray, 20, I_gray.getWidth() - 150, ss.str(), vpColor::red);
-        } else if (use_depth) {
+          ss << "Nb features: " << tracker.getError().size();
+          vpDisplay::displayText(I_gray, I_gray.getHeight() - 50, 20, ss.str(), vpColor::red);
+        }
+        {
           std::stringstream ss;
-          ss << "Nb features: " << tracker.getError().getRows();
-          vpDisplay::displayText(I_depth, 20, I_depth.getWidth() - 150, ss.str(), vpColor::red);
+          ss << "Features: edges " << tracker.getNbFeaturesEdge()
+             << ", klt " << tracker.getNbFeaturesKlt()
+             << ", depth " << tracker.getNbFeaturesDepthDense();
+          vpDisplay::displayText(I_gray, I_gray.getHeight() - 30, 20, ss.str(), vpColor::red);
         }
       }
 

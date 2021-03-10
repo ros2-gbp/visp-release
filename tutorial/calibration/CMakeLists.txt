@@ -1,6 +1,6 @@
 project(tutorial-calibration)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12.2)
 
 find_package(VISP REQUIRED visp_robot visp_vision visp_io visp_gui)
 
@@ -10,7 +10,7 @@ set(tutorial_cpp
   tutorial-hand-eye-calibration.cpp
 )
 
-file(GLOB tutorial_data "*.yaml")
+file(GLOB tutorial_data "*.yaml" "*.py")
 
 foreach(cpp ${tutorial_cpp})
   visp_add_target(${cpp})
@@ -21,7 +21,7 @@ endforeach()
 
 if(VISP_HAVE_REALSENSE2)
   if(UNIX)
-    visp_set_source_file_compile_flag(tutorial-franka-acquire-calib-data.cpp -Wno-reorder -Wno-unused-function -Wno-sign-compare -Wno-pessimizing-move -Wno-unused-parameter -Wno-overloaded-virtual)
+    visp_set_source_file_compile_flag(tutorial-franka-acquire-calib-data.cpp -Wno-reorder -Wno-unused-function -Wno-sign-compare -Wno-pessimizing-move -Wno-unused-parameter -Wno-overloaded-virtual -Wno-ignored-qualifiers)
   else()
     visp_set_source_file_compile_flag(tutorial-franka-acquire-calib-data.cpp /wd4244 /wd4267)
   endif()

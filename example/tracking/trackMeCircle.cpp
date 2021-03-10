@@ -170,6 +170,7 @@ bool getOptions(int argc, const char **argv, std::string &ipath, bool &click_all
 
 int main(int argc, const char **argv)
 {
+#if defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV)
   try {
     std::string env_ipath;
     std::string opt_ipath;
@@ -279,7 +280,6 @@ int main(int argc, const char **argv)
     vpMe me;
     me.setRange(20);
     me.setSampleStep(2);
-    me.setPointsToTrack(60);
     me.setThreshold(15000);
 
     E1.setMe(&me);
@@ -291,11 +291,11 @@ int main(int argc, const char **argv)
     } else {
       // Create a list of points to automate the test
       std::vector<vpImagePoint> ip;
-      ip.push_back(vpImagePoint(39, 136));
-      ip.push_back(vpImagePoint(42, 83));
-      ip.push_back(vpImagePoint(86, 55));
-      ip.push_back(vpImagePoint(132, 72));
-      ip.push_back(vpImagePoint(145, 134));
+      ip.push_back(vpImagePoint(78, 203));
+      ip.push_back(vpImagePoint(62, 125));
+      ip.push_back(vpImagePoint(128, 101));
+      ip.push_back(vpImagePoint(167, 147));
+      ip.push_back(vpImagePoint(147, 200));
 
       E1.initTracking(I, ip);
     }
@@ -322,6 +322,11 @@ int main(int argc, const char **argv)
     std::cout << "Catch an exception: " << e << std::endl;
     return EXIT_FAILURE;
   }
+#else
+  (void)argc;
+  (void)argv;
+  std::cout << "Cannot run this example: install Lapack, Eigen3 or OpenCV" << std::endl;
+#endif
 }
 #else
 #include <iostream>
