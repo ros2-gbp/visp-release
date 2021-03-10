@@ -376,7 +376,6 @@ void run_test(const std::string &env_ipath, const std::string &opath,  vpImage<T
                                                  "binary without train images !");
     }
 
-#if defined(VISP_HAVE_PUGIXML)
     // Save in xml with training images
     filename = vpIoTools::createFilePath(opath, "xml_with_img");
     vpIoTools::makeDirectory(filename);
@@ -438,14 +437,14 @@ void run_test(const std::string &env_ipath, const std::string &opath,  vpImage<T
                                                  "learning file saved in "
                                                  "xml without train images saved !");
     }
-#endif
 
     std::cout << "Saving / loading learning files with binary descriptor are ok !" << std::endl;
   }
 
 // Test with floating point descriptor
 #if defined(VISP_HAVE_OPENCV_NONFREE) ||                                                                               \
-  ((VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(VISP_HAVE_OPENCV_XFEATURES2D))
+  ((VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(VISP_HAVE_OPENCV_XFEATURES2D) || \
+   (VISP_HAVE_OPENCV_VERSION >= 0x030411 && CV_MAJOR_VERSION < 4) || (VISP_HAVE_OPENCV_VERSION >= 0x040400))
   {
     std::string keypointName = "SIFT";
     keyPoints.setDetector(keypointName);
@@ -523,7 +522,6 @@ void run_test(const std::string &env_ipath, const std::string &opath,  vpImage<T
                                                  "binary without train images saved !");
     }
 
-#if defined(VISP_HAVE_PUGIXML)
     // Save in xml with training images
     filename = vpIoTools::createFilePath(opath, "xml_with_img");
     vpIoTools::makeDirectory(filename);
@@ -585,7 +583,6 @@ void run_test(const std::string &env_ipath, const std::string &opath,  vpImage<T
                                                  "learning file saved in "
                                                  "xml without train images saved !");
     }
-#endif
 
     std::cout << "Saving / loading learning files with floating point "
                  "descriptor are ok !"

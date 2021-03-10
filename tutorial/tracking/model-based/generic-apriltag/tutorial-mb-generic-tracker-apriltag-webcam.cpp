@@ -104,6 +104,11 @@ state_t track(const vpImage<unsigned char> &I, vpMbGenericTracker &tracker,
   tracker.display(I, cMo, cam, vpColor::red, 2);
   vpDisplay::displayFrame(I, cMo, cam, 0.025, vpColor::none, 3);
   vpDisplay::displayText(I, 40, 20, "State: tracking in progress", vpColor::red);
+  {
+    std::stringstream ss;
+    ss << "Features: edges " << tracker.getNbFeaturesEdge() << ", klt " << tracker.getNbFeaturesKlt();
+    vpDisplay::displayText(I, 60, 20, ss.str(), vpColor::red);
+  }
 
   return state_tracking;
 }
@@ -177,13 +182,11 @@ int main(int argc, const char **argv)
 
   vpCameraParameters cam;
   bool camIsInit = false;
-#ifdef VISP_HAVE_PUGIXML
   vpXmlParserCamera parser;
   if (!opt_intrinsic_file.empty() && !opt_camera_name.empty()) {
     parser.parse(cam, opt_intrinsic_file, opt_camera_name, vpCameraParameters::perspectiveProjWithoutDistortion);
     camIsInit = true;
   }
-#endif
 
   try {
     vpImage<unsigned char> I;
@@ -308,7 +311,9 @@ int main(int argc, const char **argv)
 
         // Initialize the tracker with the result of the detection
         if (state == state_tracking) {
+          //! [Init]
           tracker.initFromPose(I, cMo);
+          //! [Init]
         }
       }
 

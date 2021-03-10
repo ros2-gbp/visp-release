@@ -43,7 +43,8 @@
 #include <iostream>
 #include <visp3/core/vpConfig.h>
 
-#if defined(VISP_HAVE_MODULE_MBT)
+#if defined(VISP_HAVE_MODULE_MBT) \
+  && (defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV))
 
 #if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
 #include <type_traits>
@@ -281,9 +282,13 @@ namespace
     tracker_type[0] = trackerType_image;
     tracker_type[1] = vpMbGenericTracker::DEPTH_DENSE_TRACKER;
     vpMbGenericTracker tracker(tracker_type);
-#if defined(VISP_HAVE_PUGIXML)
-    tracker.loadConfigFile(input_directory + "/Config/chateau.xml", input_directory + "/Config/chateau_depth.xml");
-#else
+    std::string configFileCam1 = input_directory + std::string("/Config/chateau.xml");
+    std::string configFileCam2 = input_directory + std::string("/Config/chateau_depth.xml");
+    std::cout << "Load config file for camera 1: " << configFileCam1 << std::endl;
+    std::cout << "Load config file for camera 2: " << configFileCam2 << std::endl;
+    tracker.loadConfigFile(configFileCam1, configFileCam2);
+#if 0
+    // Corresponding parameters manually set to have an example code
     {
       vpCameraParameters cam_color, cam_depth;
       cam_color.initPersProjWithoutDistortion(700.0, 700.0, 320.0, 240.0);
@@ -357,12 +362,12 @@ namespace
     //Take the highest thresholds between all CI machines
 #ifdef VISP_HAVE_COIN3D
     map_thresh[vpMbGenericTracker::EDGE_TRACKER]
-        = useScanline ? std::pair<double, double>(0.005, 3.9) : std::pair<double, double>(0.007, 2.9);
+        = useScanline ? std::pair<double, double>(0.005, 3.9) : std::pair<double, double>(0.007, 3.7);
 #if defined(VISP_HAVE_MODULE_KLT) && (defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100))
     map_thresh[vpMbGenericTracker::KLT_TRACKER]
-        = useScanline ? std::pair<double, double>(0.006, 1.9) : std::pair<double, double>(0.005, 1.3);
+        = useScanline ? std::pair<double, double>(0.007, 1.9) : std::pair<double, double>(0.005, 1.8);
     map_thresh[vpMbGenericTracker::EDGE_TRACKER | vpMbGenericTracker::KLT_TRACKER]
-        = useScanline ? std::pair<double, double>(0.005, 3.2) : std::pair<double, double>(0.006, 2.8);
+        = useScanline ? std::pair<double, double>(0.005, 3.5) : std::pair<double, double>(0.006, 3.4);
 #endif
     map_thresh[vpMbGenericTracker::EDGE_TRACKER | vpMbGenericTracker::DEPTH_DENSE_TRACKER]
         = useScanline ? std::pair<double, double>(0.003, 1.7) : std::pair<double, double>(0.002, 0.8);
@@ -379,7 +384,7 @@ namespace
     map_thresh[vpMbGenericTracker::KLT_TRACKER]
         = useScanline ? std::pair<double, double>(0.006, 1.7) : std::pair<double, double>(0.005, 1.4);
     map_thresh[vpMbGenericTracker::EDGE_TRACKER | vpMbGenericTracker::KLT_TRACKER]
-        = useScanline ? std::pair<double, double>(0.004, 1.2) : std::pair<double, double>(0.004, 1.0);
+        = useScanline ? std::pair<double, double>(0.004, 1.2) : std::pair<double, double>(0.004, 1.2);
 #endif
     map_thresh[vpMbGenericTracker::EDGE_TRACKER | vpMbGenericTracker::DEPTH_DENSE_TRACKER]
         = useScanline ? std::pair<double, double>(0.002, 0.7) : std::pair<double, double>(0.001, 0.4);
@@ -435,7 +440,7 @@ namespace
     tracker.initFromPose(I, cMo_truth);
 
     vpFont font(24);
-    bool click = false, quit = false;
+    bool click = false, quit = false, correct_accuracy = true;
     std::vector<double> vec_err_t, vec_err_tu;
     std::vector<double> time_vec;
     while (read_data(input_directory, cpt_frame, cam_depth, I, I_depth_raw, pointcloud, cMo_truth) && !quit
@@ -481,7 +486,7 @@ namespace
         ss << "Nb features: " << tracker.getError().getRows();
         vpDisplay::displayText(I_depth, 40, 20, ss.str(), vpColor::red);
       } else if (save) {
-        //Models
+        //! [Draw CAD model]
         std::map<std::string, std::vector<std::vector<double> > > mapOfModels;
         std::map<std::string, unsigned int> mapOfW;
         mapOfW["Camera1"] = I.getWidth();
@@ -506,8 +511,9 @@ namespace
             }
           }
         }
+        //! [Draw CAD model]
 
-        //Features
+        //! [Draw features]
         std::map<std::string, std::vector<std::vector<double> > > mapOfFeatures;
         tracker.getFeaturesForDisplay(mapOfFeatures);
         for (std::map<std::string, std::vector<std::vector<double> > >::const_iterator it = mapOfFeatures.begin();
@@ -534,6 +540,7 @@ namespace
             }
           }
         }
+        //! [Draw features]
 
         //Computation time
         std::ostringstream oss;
@@ -561,8 +568,7 @@ namespace
       if ( !use_mask && (t_err2 > t_thresh || tu_err2 > tu_thresh) ) { //no accuracy test with mask
         std::cerr << "Pose estimated exceeds the threshold (t_thresh = " << t_thresh << " ; tu_thresh = " << tu_thresh << ")!" << std::endl;
         std::cout << "t_err: " << t_err2 << " ; tu_err: " << tu_err2 << std::endl;
-        //TODO: fix MBT to make tests deterministic
-//        return EXIT_FAILURE;
+        correct_accuracy = false;
       }
 
       if (opt_display) {
@@ -576,6 +582,7 @@ namespace
         vpDisplay::flush(I);
         vpDisplay::flush(I_depth);
       } else if (save) {
+        //! [Save drawings]
         char buffer[256];
         std::ostringstream oss;
         oss << "results/image_%04d.png";
@@ -585,6 +592,7 @@ namespace
         results.insert(resultsDepth, vpImagePoint(0, resultsColor.getWidth()));
 
         vpImageIo::write(results, buffer);
+        //! [Save drawings]
       }
 
       if (opt_display && opt_click_allowed) {
@@ -618,12 +626,7 @@ namespace
     if (!vec_err_tu.empty())
       std::cout << "Max thetau error: " << *std::max_element(vec_err_tu.begin(), vec_err_tu.end()) << std::endl;
 
-#if defined(VISP_HAVE_COIN3D) && (COIN_MAJOR_VERSION >= 2)
-    // Cleanup memory allocated by Coin library used to load a vrml model. We clean only if Coin was used.
-    SoDB::finish();
-#endif
-
-    return EXIT_SUCCESS;
+    return correct_accuracy ? EXIT_SUCCESS : EXIT_FAILURE;
   }
 }
 
@@ -706,9 +709,15 @@ int main(int argc, const char *argv[])
     return EXIT_FAILURE;
   }
 }
+#elif !(defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV))
+int main()
+{
+  std::cout << "Cannot run this example: install Lapack, Eigen3 or OpenCV" << std::endl;
+  return EXIT_SUCCESS;
+}
 #else
 int main() {
   std::cout << "Enable MBT module (VISP_HAVE_MODULE_MBT) to launch this test." << std::endl;
-  return 0;
+  return EXIT_SUCCESS;
 }
 #endif

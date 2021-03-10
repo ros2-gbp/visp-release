@@ -8,12 +8,11 @@ int main()
   try {
     //! [Load image]
     vpImage<unsigned char> I;
-    vpImageIo::read(I, "chessboard.pgm");
+    vpImageIo::read(I, "chessboard.jpg");
     //! [Load image]
 
     //! [Load camera parameters from xml]
     vpCameraParameters cam;
-#ifdef VISP_HAVE_PUGIXML
     vpXmlParserCamera p;
     vpCameraParameters::vpCameraParametersProjType projModel;
     projModel = vpCameraParameters::perspectiveProjWithDistortion;
@@ -23,7 +22,7 @@ int main()
     }
 //! [Load camera parameters from xml]
 //! [Set camera parameters]
-#else
+#if 0
     cam.initPersProjWithDistortion(582.7, 580.6, 326.6, 215.0, -0.3372, 0.4021);
 #endif
     //! [Set camera parameters]
@@ -33,7 +32,7 @@ int main()
     //! [Create image without distorsion]
     vpImage<unsigned char> Iud;
     vpImageTools::undistort(I, cam, Iud);
-    vpImageIo::write(Iud, "chessboard-undistort.pgm");
+    vpImageIo::write(Iud, "chessboard-undistort.jpg");
     //! [Create image without distorsion]
   } catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;

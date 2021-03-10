@@ -746,12 +746,9 @@ void vpMbEdgeTracker::computeVVSInit()
   m_factor.resize(nbrow, false);
   m_factor = 1;
 
-  m_robustLines.resize(nberrors_lines);
-  m_robustCylinders.resize(nberrors_cylinders);
-  m_robustCircles.resize(nberrors_circles);
-  m_robustLines.setThreshold(2.0 / m_cam.get_px());
-  m_robustCylinders.setThreshold(2.0 / m_cam.get_px());
-  m_robustCircles.setThreshold(vpMath::sqr(2.0 / m_cam.get_px()));
+  m_robustLines.setMinMedianAbsoluteDeviation(2.0 / m_cam.get_px());
+  m_robustCylinders.setMinMedianAbsoluteDeviation(2.0 / m_cam.get_px());
+  m_robustCircles.setMinMedianAbsoluteDeviation(vpMath::sqr(2.0 / m_cam.get_px()));
 
   m_wLines.resize(nberrors_lines, false);
   m_wLines = 1;
@@ -1218,24 +1215,26 @@ void vpMbEdgeTracker::setPose(const vpImage<vpRGBa> &I_color, const vpHomogeneou
   and visibility angles.
 
   \param configFile : full name of the xml file.
+  \param verbose : verbose flag.
 
   \sa loadConfigFile(const char*)
 */
-void vpMbEdgeTracker::loadConfigFile(const std::string &configFile)
+void vpMbEdgeTracker::loadConfigFile(const std::string &configFile, bool verbose)
 {
   // Load projection error config
-  vpMbTracker::loadConfigFile(configFile);
+  vpMbTracker::loadConfigFile(configFile, verbose);
 
-#ifdef VISP_HAVE_PUGIXML
   vpMbtXmlGenericParser xmlp(vpMbtXmlGenericParser::EDGE_PARSER);
-
+  xmlp.setVerbose(verbose);
   xmlp.setCameraParameters(m_cam);
   xmlp.setAngleAppear(vpMath::deg(angleAppears));
   xmlp.setAngleDisappear(vpMath::deg(angleDisappears));
   xmlp.setEdgeMe(me);
 
   try {
-    std::cout << " *********** Parsing XML for Mb Edge Tracker ************ " << std::endl;
+    if (verbose) {
+      std::cout << " *********** Parsing XML for Mb Edge Tracker ************ " << std::endl;
+    }
     xmlp.parse(configFile);
   } catch (...) {
     throw vpException(vpException::ioError, "Cannot open XML file \"%s\"", configFile.c_str());
@@ -1271,10 +1270,6 @@ void vpMbEdgeTracker::loadConfigFile(const std::string &configFile)
     setMinLineLengthThresh(minLineLengthThresholdGeneral);
     setMinPolygonAreaThresh(minPolygonAreaThresholdGeneral);
   }
-
-#else
-  std::cerr << "pugixml third-party is not properly built to read config file: " << configFile << std::endl;
-#endif
 }
 
 /*!
@@ -1306,10 +1301,10 @@ void vpMbEdgeTracker::display(const vpImage<unsigned char> &I, const vpHomogeneo
       vpDisplay::displayLine(I, ip1, ip2, col, thickness);
     } else if (vpMath::equal(models[i][0], 1)) {
       vpImagePoint center(models[i][1], models[i][2]);
-      double mu20 = models[i][3];
-      double mu11 = models[i][4];
-      double mu02 = models[i][5];
-      vpDisplay::displayEllipse(I, center, mu20, mu11, mu02, true, col, thickness);
+      double n20 = models[i][3];
+      double n11 = models[i][4];
+      double n02 = models[i][5];
+      vpDisplay::displayEllipse(I, center, n20, n11, n02, true, col, thickness);
     }
   }
 
@@ -1348,10 +1343,10 @@ void vpMbEdgeTracker::display(const vpImage<vpRGBa> &I, const vpHomogeneousMatri
       vpDisplay::displayLine(I, ip1, ip2, col, thickness);
     } else if (vpMath::equal(models[i][0], 1)) {
       vpImagePoint center(models[i][1], models[i][2]);
-      double mu20 = models[i][3];
-      double mu11 = models[i][4];
-      double mu02 = models[i][5];
-      vpDisplay::displayEllipse(I, center, mu20, mu11, mu02, true, col, thickness);
+      double n20 = models[i][3];
+      double n11 = models[i][4];
+      double n02 = models[i][5];
+      vpDisplay::displayEllipse(I, center, n20, n11, n02, true, col, thickness);
     }
   }
 
@@ -1399,7 +1394,8 @@ std::vector<std::vector<double> > vpMbEdgeTracker::getFeaturesForDisplayEdge()
   - Line parameters are: `<primitive id (here 0 for line)>`, `<pt_start.i()>`, `<pt_start.j()>`,
   `<pt_end.i()>`, `<pt_end.j()>`
   - Ellipse parameters are: `<primitive id (here 1 for ellipse)>`, `<pt_center.i()>`, `<pt_center.j()>`,
-  `<mu20>`, `<mu11>`, `<mu02>`
+  `<n_20>`, `<n_11>`, `<n_02>` where `<n_ij>` are the second order centered moments of the ellipse
+  normalized by its area (i.e., such that \f$n_{ij} = \mu_{ij}/a\f$ where \f$\mu_{ij}\f$ are the centered moments and a the area).
 
   \param width : Image width.
   \param height : Image height.
@@ -1433,7 +1429,9 @@ std::vector<std::vector<double> > vpMbEdgeTracker::getModelForDisplay(unsigned i
       for (std::list<vpMbtDistanceCircle *>::const_iterator it = circles[scaleLevel].begin();
            it != circles[scaleLevel].end(); ++it) {
         std::vector<double> paramsCircle = (*it)->getModelForDisplay(cMo, cam, displayFullModel);
-        models.push_back(paramsCircle);
+        if (!paramsCircle.empty()) {
+          models.push_back(paramsCircle);
+        }
       }
       break; // displaying model on one scale only
     }
@@ -1911,6 +1909,9 @@ void vpMbEdgeTracker::reinitMovingEdge(const vpImage<unsigned char> &I, const vp
 
 void vpMbEdgeTracker::resetMovingEdge()
 {
+  // Clear ME to be displayed
+  m_featuresToBeDisplayedEdge.clear();
+
   for (unsigned int i = 0; i < scales.size(); i += 1) {
     if (scales[i]) {
       for (std::list<vpMbtDistanceLine *>::const_iterator it = lines[i].begin(); it != lines[i].end(); ++it) {
@@ -1989,7 +1990,7 @@ void vpMbEdgeTracker::addLine(vpPoint &P1, vpPoint &P2, int polygon, std::string
           l = new vpMbtDistanceLine;
 
           l->setCameraParameters(m_cam);
-          l->buildFrom(P1, P2);
+          l->buildFrom(P1, P2, m_rand);
           l->addPolygon(polygon);
           l->setMovingEdge(&me);
           l->hiddenface = &faces;
