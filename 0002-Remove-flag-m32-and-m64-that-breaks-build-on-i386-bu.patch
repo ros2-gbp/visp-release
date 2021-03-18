@@ -1,4 +1,4 @@
-From 470bcd839a7c306c61a071006acbd1a8d6f61b32 Mon Sep 17 00:00:00 2001
+From f6eaae1668dc91405bf67ae941aabc48c776ff3e Mon Sep 17 00:00:00 2001
 From: Fabien Spindler <Fabien.Spindler@inria.fr>
 Date: Thu, 18 Mar 2021 08:56:13 +0100
 Subject: [PATCH 2/2] Remove flag -m32 and -m64 that breaks build on i386
