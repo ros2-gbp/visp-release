@@ -1,0 +1,31 @@
+From 470bcd839a7c306c61a071006acbd1a8d6f61b32 Mon Sep 17 00:00:00 2001
+From: Fabien Spindler <Fabien.Spindler@inria.fr>
+Date: Thu, 18 Mar 2021 08:56:13 +0100
+Subject: [PATCH 2/2] Remove flag -m32 and -m64 that breaks build on i386
+ buildbot
+
+---
+ 3rdparty/simdlib/CMakeLists.txt | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/3rdparty/simdlib/CMakeLists.txt b/3rdparty/simdlib/CMakeLists.txt
+index ef6693f4..e6880b38 100644
+--- a/3rdparty/simdlib/CMakeLists.txt
++++ b/3rdparty/simdlib/CMakeLists.txt
+@@ -19,13 +19,6 @@ file(GLOB_RECURSE SIMD_BASE_HDR ${CMAKE_CURRENT_SOURCE_DIR}/Simd/*.h ${CMAKE_CUR
+ # but here we use vars set in VISPDetectPlatform.cmake
+ if(X86 OR X86_64)
+ 
+-    # Is it needed?
+-    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "i686")
+-        set(COMMON_CXX_FLAGS "${COMMON_CXX_FLAGS} -m32")
+-    elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+-        set(COMMON_CXX_FLAGS "${COMMON_CXX_FLAGS} -m64")
+-    endif()
+-
+     # Flags check
+     set(SSE_FLAG    "")
+     set(SSE2_FLAG   "")
+-- 
+2.17.1
+
