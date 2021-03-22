@@ -1,3 +1,26 @@
+## visp (noetic) - 3.4.0-5
+
+The packages in the `visp` repository were released into the `noetic` distro by running `/usr/bin/bloom-release --rosdistro noetic --track noetic visp` on `Mon, 22 Mar 2021 09:05:29 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+
+- upstream repository: https://github.com/lagadic/visp.git
+- release repository: unknown
+- rosdistro version: `null`
+- old version: `3.4.0-4`
+- new version: `3.4.0-5`
+
+Versions of tools used:
+
+- bloom version: `0.10.2`
+- catkin_pkg version: `0.4.23`
+- rosdep version: `0.20.0`
+- rosdistro version: `0.8.3`
+- vcstools version: `0.1.42`
+
+
 ## visp (kinetic) - 3.4.0-7
 
 The packages in the `visp` repository were released into the `kinetic` distro by running `/usr/bin/bloom-release visp --ros-distro kinetic --track kinetic` on `Thu, 18 Mar 2021 08:41:39 -0000`
