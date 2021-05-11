@@ -1,4 +1,4 @@
-From f6eaae1668dc91405bf67ae941aabc48c776ff3e Mon Sep 17 00:00:00 2001
+From 58f7fd58fa9591d9b3cf754dcbefbb4095a672d3 Mon Sep 17 00:00:00 2001
 From: Fabien Spindler <Fabien.Spindler@inria.fr>
 Date: Thu, 18 Mar 2021 08:56:13 +0100
 Subject: [PATCH 2/2] Remove flag -m32 and -m64 that breaks build on i386
@@ -27,5 +27,5 @@ index ef6693f4..e6880b38 100644
      set(SSE_FLAG    "")
      set(SSE2_FLAG   "")
 -- 
-2.17.1
+2.25.1
 
