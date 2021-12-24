@@ -1,3 +1,26 @@
+## visp (foxy) - 3.4.0-2
+
+The packages in the `visp` repository were released into the `foxy` distro by running `/usr/bin/bloom-release --rosdistro foxy --track foxy visp` on `Fri, 24 Dec 2021 14:28:27 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+
+- upstream repository: https://github.com/lagadic/visp.git
+- release repository: unknown
+- rosdistro version: `null`
+- old version: `3.4.0-1`
+- new version: `3.4.0-2`
+
+Versions of tools used:
+
+- bloom version: `0.10.7`
+- catkin_pkg version: `0.4.24`
+- rosdep version: `0.21.0`
+- rosdistro version: `0.8.3`
+- vcstools version: `0.1.42`
+
+
 ## visp (foxy) - 3.4.0-1
 
 The packages in the `visp` repository were released into the `foxy` distro by running `/usr/bin/bloom-release --rosdistro foxy --track foxy visp` on `Fri, 24 Dec 2021 13:40:51 -0000`
