@@ -28,31 +28,21 @@
   <build_depend>doxygen</build_depend>
   <build_depend>libopencv-dev</build_depend>
   <build_depend>liblapack-dev</build_depend>
-  <build_depend>libcoin80-dev</build_depend>
-  <build_depend>libogre-dev</build_depend>
-  <build_depend>libdc1394-dev</build_depend>
   <build_depend>libxml2</build_depend>
   <build_depend>libjpeg</build_depend>
   <build_depend>libpng-dev</build_depend>
   <build_depend>bzip2</build_depend>
   <build_depend>libx11-dev</build_depend>
   <build_depend>libv4l-dev</build_depend>
-  <build_depend>libois-dev</build_depend>
-  <build_depend>libdmtx-dev</build_depend>
   <build_depend>eigen</build_depend>
 
   <exec_depend>libopencv-dev</exec_depend>
   <exec_depend>liblapack-dev</exec_depend>
-  <exec_depend>libcoin80-dev</exec_depend>
-  <exec_depend>libogre-dev</exec_depend>
-  <exec_depend>libdc1394-dev</exec_depend>
   <exec_depend>libxml2</exec_depend>
   <exec_depend>libjpeg</exec_depend>
   <exec_depend>libpng-dev</exec_depend>
   <exec_depend>libx11-dev</exec_depend>
   <exec_depend>libv4l-dev</exec_depend>
-  <exec_depend>libois-dev</exec_depend>
-  <exec_depend>libdmtx-dev</exec_depend>
   <exec_depend>eigen</exec_depend>
 
   <export>
