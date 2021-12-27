@@ -39,7 +39,6 @@
   <build_depend>libv4l-dev</build_depend>
   <build_depend>libois-dev</build_depend>
   <build_depend>libdmtx-dev</build_depend>
-  <build_depend>zbar</build_depend>
   <build_depend>eigen</build_depend>
 
   <exec_depend>libopencv-dev</exec_depend>
@@ -54,7 +53,6 @@
   <exec_depend>libv4l-dev</exec_depend>
   <exec_depend>libois-dev</exec_depend>
   <exec_depend>libdmtx-dev</exec_depend>
-  <exec_depend>zbar</exec_depend>
   <exec_depend>eigen</exec_depend>
 
   <export>
