@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>visp</name>
+  <version>3.4.0</version>
+  <description>
+    ViSP standing for Visual Servoing Platform is a modular cross
+    platform library that allows prototyping and developing applications
+    using visual tracking and visual servoing technics at the heart of the
+    researches done by Inria Lagadic team. ViSP is able to compute control
+    laws that can be applied to robotic systems. It provides a set of visual
+    features that can be tracked using real time image processing or computer
+    vision algorithms. ViSP provides also simulation capabilities.
+
+    ViSP can be useful in robotics, computer vision, augmented reality
+    and computer animation.
+  </description>
+
+  <author>Fabien Spindler</author>
+  <maintainer email="Fabien.Spindler@inria.fr">Fabien Spindler</maintainer>
+  <license>GPLv2</license>
+
+  <url type="website">http://www.ros.org/wiki/visp</url>
+  <url type="bugtracker">https://github.com/lagadic/visp-release/issues</url>
+  <url type="repository">https://github.com/lagadic/visp-release</url>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <build_depend>doxygen</build_depend>
+  <build_depend>libopencv-dev</build_depend>
+  <build_depend>liblapack-dev</build_depend>
+  <build_depend>libxml2</build_depend>
+  <build_depend>libjpeg</build_depend>
+  <build_depend>libpng-dev</build_depend>
+  <build_depend>bzip2</build_depend>
+  <build_depend>libx11-dev</build_depend>
+  <build_depend>libv4l-dev</build_depend>
+  <build_depend>eigen</build_depend>
+
+  <exec_depend>libopencv-dev</exec_depend>
+  <exec_depend>liblapack-dev</exec_depend>
+  <exec_depend>libxml2</exec_depend>
+  <exec_depend>libjpeg</exec_depend>
+  <exec_depend>libpng-dev</exec_depend>
+  <exec_depend>libx11-dev</exec_depend>
+  <exec_depend>libv4l-dev</exec_depend>
+  <exec_depend>eigen</exec_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>
