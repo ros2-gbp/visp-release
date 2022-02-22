@@ -1,3 +1,26 @@
+## visp (rolling) - 3.5.0-1
+
+The packages in the `visp` repository were released into the `rolling` distro by running `/usr/bin/bloom-release visp --ros-distro rolling --track rolling` on `Tue, 22 Feb 2022 11:32:08 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+
+- upstream repository: https://github.com/lagadic/visp.git
+- release repository: https://github.com/ros2-gbp/visp-release.git
+- rosdistro version: `3.4.0-3`
+- old version: `3.4.0-3`
+- new version: `3.5.0-1`
+
+Versions of tools used:
+
+- bloom version: `0.10.7`
+- catkin_pkg version: `0.4.24`
+- rosdep version: `0.21.0`
+- rosdistro version: `0.8.3`
+- vcstools version: `0.1.42`
+
+
 ## visp (rolling) - 3.4.0-2
 
 The packages in the `visp` repository were released into the `rolling` distro by running `/usr/bin/bloom-release --rosdistro rolling --track rolling visp` on `Mon, 27 Dec 2021 10:13:44 -0000`
