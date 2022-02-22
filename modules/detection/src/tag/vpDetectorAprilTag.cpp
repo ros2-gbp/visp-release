@@ -121,7 +121,7 @@ public:
       break;
 
     default:
-      throw vpException(vpException::fatalError, "Unknow Tag family!");
+      throw vpException(vpException::fatalError, "Unknown Tag family!");
     }
 
     if (m_tagFamily != TAG_36ARTOOLKIT && m_tf) {
@@ -190,7 +190,7 @@ public:
       break;
 
     default:
-      throw vpException(vpException::fatalError, "Unknow Tag family!");
+      throw vpException(vpException::fatalError, "Unknown Tag family!");
     }
 
     if (m_tagFamily != TAG_36ARTOOLKIT && m_tf) {
@@ -800,6 +800,10 @@ bool vpDetectorAprilTag::detect(const vpImage<unsigned char> &I, double tagSize,
   m_polygon.clear();
   m_nb_objects = 0;
 
+  cMo_vec.clear();
+  if (cMo_vec2) {
+    cMo_vec2->clear();
+  }
   bool detected = m_impl->detect(I, tagSize, cam, m_polygon, m_message, m_displayTag,
                                  m_displayTagColor, m_displayTagThickness,
                                  &cMo_vec, cMo_vec2, projErrors, projErrors2);

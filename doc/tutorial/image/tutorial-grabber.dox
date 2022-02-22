@@ -12,9 +12,9 @@ Grabbing images from a real camera is only possible if you have installed the co
 
 All the material (source code and videos) described in this tutorial is part of ViSP source code and could be downloaded using the following command:
 
-\code
+\verbatim
 $ svn export https://github.com/lagadic/visp.git/trunk/tutorial/grabber
-\endcode
+\endverbatim
 
 \section grabber-camera-flycap Frame grabbing using FlyCapture SDK
 
@@ -224,6 +224,46 @@ Intel RealSense T265          11622110409         0.2.0.951
     Usb Type Descriptor           : 	3.1
     Product Line                  : 	T200
 \endverbatim
+
+\section grabber-camera-structure Frame grabbing using Occipital Structure SDK
+
+If you have a Structure Core RGB-D camera, it is also possible to grab images using `libStructure` the cross-platform library that comes with Occipital Structure SDK. You may find an example in tutorial-grabber-structure-core.cpp. It allows to save visible and depth images.
+
+\subsection grabber-camera-structure-use How to acquire images
+
+Once tutorial-grabber-structure-core.cpp is built, the binary usage is given by:
+\code
+./tutorial-grabber-structure-core --help
+\endcode
+To just view images, run:
+\code
+./tutorial-grabber-structure-core
+\endcode
+To grab single shot images (for camera calibration for example), you may use:
+\code
+./tutorial-grabber-structure-core --record 1
+\endcode
+To grab a sequence of images, you may rather use:
+\code
+./tutorial-grabber-structure-core --record 0
+\endcode
+
+\section grabber-rgbd-D435-structurecore RGBD frame grabbing from RealSense D435 and Structure Core
+
+If you have both Intel RealSense D435 and Occipital Structure Core, you can acquire color and depth frames simultaneously from both sensors.
+
+Once tutorial-grabber-rgbd-D435-structurecore.cpp is built, you just need to run:
+\code
+./tutorial-grabber-rgbd-D435-structurecore
+\endcode
+
+You should see something similar to the following:
+
+\htmlonly
+<p align="center">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/ddUNX-hkwqg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</p>
+\endhtmlonly
 
 \section grabber-camera-opencv Frame grabbing using OpenCV
 

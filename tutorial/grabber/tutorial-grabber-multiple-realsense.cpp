@@ -12,7 +12,7 @@
 
 int main(int argc, char **argv)
 {
-#if defined(VISP_HAVE_REALSENSE) || defined(VISP_HAVE_REALSENSE2) && (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+#if defined(VISP_HAVE_REALSENSE2) && (RS2_API_VERSION > ((2 * 10000) + (31 * 100) + 0)) && (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
   std::vector<std::pair<std::string, std::string> > type_serial_nb;
   std::vector<bool> cam_found;
 
@@ -41,15 +41,15 @@ int main(int argc, char **argv)
   }
 
   rs2::config T265_cfg, D435_cfg;
-  vpRealSense2 g[type_serial_nb.size()];
-  vpImage<unsigned char> I[type_serial_nb.size()];
+  std::vector< vpRealSense2 > g(type_serial_nb.size());
+  std::vector< vpImage<unsigned char> > I(type_serial_nb.size());
 
 #ifdef VISP_HAVE_X11
-  vpDisplayX d[type_serial_nb.size()];
+  std::vector< vpDisplayX > d(type_serial_nb.size());
 #elif defined(VISP_HAVE_GDI)
-  vpDisplayGDI d[type_serial_nb.size()];
+  std::vector< vpDisplayGDI > d(type_serial_nb.size());
 #elif defined(VISP_HAVE_OPENCV)
-  vpDisplayOpenCV d[type_serial_nb.size()];
+  std::vector< vpDisplayOpenCV > d(type_serial_nb.size());
 #else
   std::cout << "No image viewer is available..." << std::endl;
 #endif
@@ -84,17 +84,22 @@ int main(int argc, char **argv)
       if (cam_found[i]) {
         if (type_serial_nb[i].first == "T265") { // T265.
           g[i].acquire(&I[i], NULL, NULL);
+
+#if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI) || defined(VISP_HAVE_OPENCV)
           if (!d[i].isInitialised()) {
-            d[i].init(I[i], 100*i, 100*i, "T265 left image");
+            d[i].init(I[i], static_cast<int>(100*i), static_cast<int>(100*i), "T265 left image");
           }
+#endif
         }
 
         else { // D435.
           g[i].acquire(I[i]);
 
+#if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI) || defined(VISP_HAVE_OPENCV)
           if (!d[i].isInitialised()) {
-            d[i].init(I[i], 100*i, 100*i, type_serial_nb[i].first.c_str());
+            d[i].init(I[i], static_cast<int>(100*i), static_cast<int>(100*i), type_serial_nb[i].first.c_str());
           }
+#endif
         }
 
         vpDisplay::display(I[i]);
@@ -115,8 +120,11 @@ int main(int argc, char **argv)
 #else
   (void) argc;
   (void) argv;
-#if !(defined(VISP_HAVE_REALSENSE) || defined(VISP_HAVE_REALSENSE2))
+#if !(defined(VISP_HAVE_REALSENSE2))
   std::cout << "Install librealsense version > 2.31.0, configure and build ViSP again to use this example" << std::endl;
+#endif
+#if !(RS2_API_VERSION > ((2 * 10000) + (31 * 100) + 0))
+  std::cout << "librealsense is detected but its version is too old. Install librealsense version > 2.31.0, configure and build ViSP again to use this example" << std::endl;
 #endif
 #if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
   std::cout << "This turorial should be built with c++11 support" << std::endl;

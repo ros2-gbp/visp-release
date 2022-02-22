@@ -29,7 +29,7 @@
 # WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
 # Description:
-# ViSP configuration file. 
+# ViSP configuration file.
 #
 # Authors:
 # Fabien Spindler
@@ -38,7 +38,7 @@
 
 project(example-ogre-simulator)
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.0)
 
 find_package(VISP REQUIRED visp_core visp_vision visp_ar visp_blob visp_io visp_gui)
 
@@ -52,7 +52,7 @@ foreach(cpp ${example_cpp})
 
   if(VISP_HAVE_OGRE)
     # Add specific build flag to turn off warnings coming from libogre and libois 3rd party
-    visp_set_source_file_compile_flag(${cpp} -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
+    visp_set_source_file_compile_flag(${cpp} -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
   endif()
 
   if(COMMAND visp_add_dependency)

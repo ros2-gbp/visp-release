@@ -29,7 +29,7 @@
 # WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
 # Description:
-# ViSP manual examples build. 
+# ViSP manual examples build.
 #
 # Authors:
 # Fabien Spindler
@@ -38,7 +38,7 @@
 
 project(example-manual)
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.0)
 
 find_package(VISP REQUIRED visp_core visp_sensor visp_vs visp_robot visp_ar visp_vision visp_io visp_gui)
 
@@ -60,8 +60,8 @@ set(example_cpp
 
 if(VISP_HAVE_OGRE)
   # Add specific build flag to turn off warnings coming from libogre and libois 3rd party
-  visp_set_source_file_compile_flag(ogre/HelloWorldOgre.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
-  visp_set_source_file_compile_flag(ogre/HelloWorldOgreAdvanced.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
+  visp_set_source_file_compile_flag(ogre/HelloWorldOgre.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
+  visp_set_source_file_compile_flag(ogre/HelloWorldOgreAdvanced.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
 endif()
 
 foreach(cpp ${example_cpp})

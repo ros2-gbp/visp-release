@@ -55,7 +55,13 @@
 class VISP_EXPORT vpFont
 {
 public:
-  vpFont(unsigned int height = 16);
+  enum vpFontFamily
+  {
+    GENERIC_MONOSPACE,
+    TRUETYPE_FILE
+  };
+
+  vpFont(unsigned int height = 16, const vpFontFamily & fontFamily = TRUETYPE_FILE, const std::string & ttfFilename = std::string(VISP_RUBIK_REGULAR_FONT_RESOURCES));
   ~vpFont();
 
   bool drawText(vpImage<unsigned char> & I, const std::string & text, const vpImagePoint & position, unsigned char color) const;
@@ -65,6 +71,7 @@ public:
   bool drawText(vpImage<vpRGBa> & I, const std::string & text, const vpImagePoint & position, const vpColor & color, const vpColor & background) const;
 
   unsigned int getHeight() const;
+  vpImagePoint getMeasure(const std::string & text) const;
   bool setHeight(unsigned int height);
 
 private:
