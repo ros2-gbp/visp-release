@@ -58,8 +58,18 @@
 */
 
 #include <visp3/core/vpFont.h>
+#include <visp3/core/vpIoException.h>
+#include <visp3/core/vpIoTools.h>
+#include <visp3/core/vpMath.h>
+#if (VISP_CXX_STANDARD > VISP_CXX_STANDARD_98)
+#include <iterator>
+#else
+#include <stdio.h>
+#endif
 #include "private/Font.hpp"
-#include <stdint.h>
+
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "private/stb_truetype.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 class vpFont::Impl
@@ -79,10 +89,45 @@ public:
 
     \param [in] height - initial height value. By default it is equal to 16.
   */
-  Impl(unsigned int height = 16)
+  Impl(unsigned int height = 16, const vpFontFamily & fontFamily = TRUETYPE_FILE,
+       const std::string & ttfFilename = std::string(VISP_RUBIK_REGULAR_FONT_RESOURCES))
   {
-    LoadDefault();
-    Resize(height);
+    _fontHeight = height;
+    _ttfFamily = fontFamily;
+
+    switch (_ttfFamily) {
+    case GENERIC_MONOSPACE: {
+      LoadDefault();
+      Resize(height);
+      break;
+    }
+    case TRUETYPE_FILE: {
+      std::vector<std::string> ttfs = vpIoTools::splitChain(ttfFilename, ";");
+      std::string ttf_file = "";
+      for (size_t i=0; i < ttfs.size(); i++) {
+        if (vpIoTools::checkFilename(ttfs[i])) {
+          ttf_file = ttfs[i];
+          break;
+        }
+      }
+      if (ttf_file.empty()) {
+        throw(vpException(vpException::fatalError, "True type font file doesn't exist in %s", ttfFilename.c_str()));
+      }
+
+      LoadTTF(ttf_file);
+
+      /* calculate font scaling */
+      _fontScale = stbtt_ScaleForPixelHeight(&_info, static_cast<float>(_fontHeight));
+
+      int lineGap = 0;
+      stbtt_GetFontVMetrics(&_info, &_fontAscent, &_fontDescent, &lineGap);
+
+      _fontAscent = vpMath::round(_fontAscent * _fontScale);
+      _fontDescent = vpMath::round(_fontDescent * _fontScale);
+
+      break;
+    }
+    }
   }
 
   /*!
@@ -94,27 +139,39 @@ public:
   */
   bool Resize(unsigned int height)
   {
-    if (height == static_cast<unsigned int>(_currentSize.y)) {
-      return true;
+    _fontHeight = height;
+
+    switch (_ttfFamily) {
+    case GENERIC_MONOSPACE:
+    {
+      if (height == static_cast<unsigned int>(_currentSize.y)) {
+        return true;
+      }
+
+      if (height < 4u || height > static_cast<unsigned int>(_originalSize.y*4)) {
+        return false;
+      }
+
+      _currentSize.y = static_cast<int>(height);
+      _currentSize.x = static_cast<int>(height)*_originalSize.x / _originalSize.y;
+      _currentIndent.x = static_cast<int>(height)*_originalIndent.x / _originalSize.y;
+      _currentIndent.y = static_cast<int>(height)*_originalIndent.y / _originalSize.y;
+
+      size_t level = 0;
+      for (; (height << (level + 1)) < static_cast<size_t>(_originalSize.y); level++);
+
+      _currentSymbols.resize(_originalSymbols.size());
+      for (size_t i = 0; i < _originalSymbols.size(); i++) {
+        _currentSymbols[i].value = _originalSymbols[i].value;
+        _currentSymbols[i].image.resize(static_cast<unsigned int>(_currentSize.y), static_cast<unsigned int>(_currentSize.x));
+        vpImageTools::resize(_originalSymbols[i].image, _currentSymbols[i].image, vpImageTools::INTERPOLATION_LINEAR);
+      }
+
+      break;
     }
 
-    if (height < 4u || height > static_cast<unsigned int>(_originalSize.y*4)) {
-      return false;
-    }
-
-    _currentSize.y = static_cast<int>(height);
-    _currentSize.x = static_cast<int>(height)*_originalSize.x / _originalSize.y;
-    _currentIndent.x = static_cast<int>(height)*_originalIndent.x / _originalSize.y;
-    _currentIndent.y = static_cast<int>(height)*_originalIndent.y / _originalSize.y;
-
-    size_t level = 0;
-    for (; (height << (level + 1)) < static_cast<size_t>(_originalSize.y); level++);
-
-    _currentSymbols.resize(_originalSymbols.size());
-    for (size_t i = 0; i < _originalSymbols.size(); i++) {
-      _currentSymbols[i].value = _originalSymbols[i].value;
-      _currentSymbols[i].image.resize(static_cast<unsigned int>(_currentSize.y), static_cast<unsigned int>(_currentSize.x));
-      vpImageTools::resize(_originalSymbols[i].image, _currentSymbols[i].image, vpImageTools::INTERPOLATION_LINEAR);
+    case TRUETYPE_FILE:
+      break;
     }
 
     return true;
@@ -127,7 +184,7 @@ public:
   */
   int Height() const
   {
-    return _currentSize.y;
+    return _fontHeight;
   }
 
   /*!
@@ -137,20 +194,94 @@ public:
 
     \return measured size.
   */
-  Point Measure(const String & text) const
+  Point Measure(const String & text)
   {
-    Point size, curr;
-    for (size_t i = 0; i < text.size(); i++) {
-      if (text[i] >= _symbolMin && text[i] <= _symbolMax) {
-        curr.x += _currentSize.x;
-        size.x = std::max(size.x, curr.x);
-        size.y = std::max(size.y, curr.y + _currentSize.y);
-      } else if (text[i] == '\n') {
-        curr.x = 0;
-        curr.y += _currentSize.y;
+    switch (_ttfFamily) {
+    case GENERIC_MONOSPACE:
+    {
+      Point size, curr;
+      for (size_t i = 0; i < text.size(); i++) {
+        if (text[i] >= _symbolMin && text[i] <= _symbolMax) {
+          curr.x += _currentSize.x;
+          size.x = std::max(size.x, curr.x);
+          size.y = std::max(size.y, curr.y + _currentSize.y);
+        } else if (text[i] == '\n') {
+          curr.x = 0;
+          curr.y += _currentSize.y;
+        }
       }
+      return size.x ? size + 2 * _currentIndent : Point();
     }
-    return size.x ? size + 2 * _currentIndent : Point();
+
+    case TRUETYPE_FILE:
+    {
+      ToUTF32(text, _wordUTF32);
+
+      _bb = vpRect(std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), -1, -1);
+      _ax_vec.clear();
+      _lsb_vec.clear();
+      _bb_vec.clear();
+      _y_vec.clear();
+
+      int wordUTF32_size = static_cast<int>(_wordUTF32.size());
+
+      for (int i = 0, x = 0; i < wordUTF32_size; i++) {
+        /* how wide is this character */
+        int ax = 0;
+        int lsb = 0;
+        stbtt_GetCodepointHMetrics(&_info, _wordUTF32[i], &ax, &lsb);
+        _ax_vec.push_back(ax);
+        _lsb_vec.push_back(lsb);
+        /* (Note that each Codepoint call has an alternative Glyph version which caches the work required to lookup the character word[i].) */
+
+        /* get bounding box for character (may be offset to account for chars that dip above or below the line */
+        int c_x1 = 0, c_y1 = 0, c_x2 = 0, c_y2 = 0;
+        stbtt_GetCodepointBitmapBox(&_info, _wordUTF32[i], _fontScale, _fontScale, &c_x1, &c_y1, &c_x2, &c_y2);
+        _bb_vec.push_back(vpRect(c_x1, c_y1, c_x2-c_x1, c_y2-c_y1));
+
+        /* compute y (different characters have different heights */
+        int y = _fontAscent + c_y1;
+        _y_vec.push_back(y);
+
+        int d_x = x + vpMath::round(lsb * _fontScale);
+        int d_y = y;
+        int d_w = (c_x2 - c_x1);
+        int d_h = (c_y2 - c_y1);
+        _bb.setLeft(_bb.getLeft() > d_x ? d_x : _bb.getLeft());
+        _bb.setTop(_bb.getTop() > d_y ? d_y : _bb.getTop());
+
+        _bb.setWidth(d_x+d_w - _bb.getLeft());
+        _bb.setBottom(_bb.getBottom() < d_y+d_h ? d_y+d_h : _bb.getBottom());
+
+        /* advance x */
+        x += vpMath::round(ax * _fontScale);
+
+        /* add kerning */
+        int kern = 0;
+        if (i < wordUTF32_size - 1) {
+          kern = stbtt_GetCodepointKernAdvance(&_info, _wordUTF32[i], _wordUTF32[i + 1]);
+          x += vpMath::round(kern * _fontScale);
+        }
+      }
+
+      Point bb;
+      bb.x = static_cast<int>(_bb.getWidth());
+      bb.y = static_cast<int>(_bb.getHeight());
+
+      return bb;
+    }
+    }
+
+    return Point();
+  }
+
+  /*!
+    (For ViSP type compatibility) Measures a size of region is need to draw given text.
+  */
+  vpImagePoint Measure2(const String & text)
+  {
+    Point mes = Measure(text);
+    return vpImagePoint(mes.y, mes.x);
   }
 
   /*!
@@ -163,24 +294,75 @@ public:
 
     \return a result of the operation.
   */
-  bool Draw(vpImage<unsigned char> & canvas, const String & text, const vpImagePoint & position, unsigned char color) const
+  bool Draw(vpImage<unsigned char> & canvas, const String & text, const vpImagePoint & position, unsigned char color)
   {
-    vpImage<unsigned char> alpha;
-    Rect canvasRect, alphaRect;
-    CreateAlpha(text, Rect(0, 0, canvas.getWidth(), canvas.getHeight()), Point(position.get_u(), position.get_v()), alpha, canvasRect, alphaRect);
+    switch (_ttfFamily) {
+    case GENERIC_MONOSPACE:
+    {
+      Rect canvasRect, alphaRect;
+      CreateAlpha(text, Rect(0, 0, canvas.getWidth(), canvas.getHeight()), Point(position.get_u(), position.get_v()), _alpha, canvasRect, alphaRect);
 
-    if (alpha.getSize()) {
-      for (int i = 0; i < alphaRect.Height(); i++) {
-        int dstY = canvasRect.Top() + i;
-        for (int j = 0; j < alphaRect.Width(); j++) {
-          unsigned int dstX = static_cast<unsigned int>(canvasRect.Left() + j);
+      if (_alpha.getSize()) {
+        for (int i = 0; i < alphaRect.Height(); i++) {
+          int dstY = canvasRect.Top() + i;
+          for (int j = 0; j < alphaRect.Width(); j++) {
+            unsigned int dstX = static_cast<unsigned int>(canvasRect.Left() + j);
 
-          //dst[x, y, c] = (pixel[c]*alpha[x, y] + dst[x, y, c]*(255 - alpha[x, y]))/255;
-          int coeff = 255-alpha[i][j];
-          unsigned char gray = static_cast<unsigned char>((color*alpha[i][j] + coeff*canvas[dstY][dstX]) / 255);
-          canvas[dstY][dstX] = gray;
+            //dst[x, y, c] = (pixel[c]*_alpha[x, y] + dst[x, y, c]*(255 - _alpha[x, y]))/255;
+            int coeff = 255-_alpha[i][j];
+            unsigned char gray = static_cast<unsigned char>((color*_alpha[i][j] + coeff*canvas[dstY][dstX]) / 255);
+            canvas[dstY][dstX] = gray;
+          }
         }
       }
+
+      break;
+    }
+
+    case TRUETYPE_FILE:
+    {
+      Measure(text);
+      // Try to resize only if new size is bigger
+      _fontBuffer.resize(std::max(_fontBuffer.getHeight(), static_cast<unsigned int>(_bb.getBottom()+1)),
+                         std::max(_fontBuffer.getWidth(), static_cast<unsigned int>(_bb.getRight()+1)));
+
+      int wordUTF32_size = static_cast<int>(_wordUTF32.size());
+
+      for (int i = 0, x = 0; i < wordUTF32_size; i++) {
+        /* render character (stride and offset is important here) */
+        int byteOffset = x + vpMath::round(_lsb_vec[i] * _fontScale) + (_y_vec[i] * _fontBuffer.getWidth());
+        stbtt_MakeCodepointBitmap(&_info, _fontBuffer.bitmap + byteOffset, static_cast<int>(_bb_vec[i].getWidth()), static_cast<int>(_bb_vec[i].getHeight()),
+                                  _fontBuffer.getWidth(), _fontScale, _fontScale, _wordUTF32[i]);
+
+        int d_x = x + vpMath::round(_lsb_vec[i] * _fontScale);
+        int d_y = _y_vec[i];
+        int d_w = static_cast<int>(_bb_vec[i].getWidth());
+        int d_h = static_cast<int>(_bb_vec[i].getHeight());
+
+        for (int y = d_y; y < d_y+d_h; y++) {
+          int dstY = static_cast<int>(position.get_v() + y - _bb.getTop());
+
+          for (int x = d_x; x < d_x+d_w; x++) {
+            unsigned int dstX = static_cast<unsigned int>(position.get_u() + x - _bb.getLeft());
+
+            int coeff = 255 - _fontBuffer[y][x];
+            unsigned char gray = static_cast<unsigned char>((color*_fontBuffer[y][x] + coeff*canvas[dstY][dstX]) / 255);
+            canvas[dstY][dstX] = gray;
+          }
+        }
+
+        /* advance x */
+        x += vpMath::round(_ax_vec[i] * _fontScale);
+
+        /* add kerning */
+        if (i < wordUTF32_size - 1) {
+          int kern = stbtt_GetCodepointKernAdvance(&_info, _wordUTF32[i], _wordUTF32[i + 1]);
+          x += vpMath::round(kern * _fontScale);
+        }
+      }
+
+      break;
+    }
     }
 
     return true;
@@ -197,7 +379,7 @@ public:
 
     \return a result of the operation.
   */
-  bool Draw(vpImage<unsigned char> & canvas, const String & text, const vpImagePoint & position, unsigned char color, unsigned char background) const
+  bool Draw(vpImage<unsigned char> & canvas, const String & text, const vpImagePoint & position, unsigned char color, unsigned char background)
   {
     Rect canvasRect = Rect(Measure(text)).Shifted(position.get_u(), position.get_v());
     for (int i = canvasRect.Top(); i < canvasRect.Bottom(); i++) {
@@ -218,26 +400,80 @@ public:
 
     \return a result of the operation.
   */
-  bool Draw(vpImage<vpRGBa> & canvas, const String & text, const vpImagePoint & position, const vpColor & color) const
+  bool Draw(vpImage<vpRGBa> & canvas, const String & text, const vpImagePoint & position, const vpColor & color)
   {
-    vpImage<unsigned char> alpha;
-    Rect canvasRect, alphaRect;
-    CreateAlpha(text, Rect(0, 0, canvas.getWidth(), canvas.getHeight()), Point(position.get_u(), position.get_v()), alpha, canvasRect, alphaRect);
+    switch (_ttfFamily) {
+    case GENERIC_MONOSPACE:
+    {
+      Rect canvasRect, alphaRect;
+      CreateAlpha(text, Rect(0, 0, canvas.getWidth(), canvas.getHeight()), Point(position.get_u(), position.get_v()), _alpha, canvasRect, alphaRect);
 
-    if (alpha.getSize()) {
-      for (int i = 0; i < alphaRect.Height(); i++) {
-        int dstY = canvasRect.Top() + i;
-        for (int j = 0; j < alphaRect.Width(); j++) {
-          unsigned int dstX = static_cast<unsigned int>(canvasRect.Left() + j);
+      if (_alpha.getSize()) {
+        for (int i = 0; i < alphaRect.Height(); i++) {
+          int dstY = canvasRect.Top() + i;
+          for (int j = 0; j < alphaRect.Width(); j++) {
+            unsigned int dstX = static_cast<unsigned int>(canvasRect.Left() + j);
 
-          //dst[x, y, c] = (pixel[c]*alpha[x, y] + dst[x, y, c]*(255 - alpha[x, y]))/255;
-          int coeff = 255-alpha[i][j];
-          int R = (color.R*alpha[i][j] + coeff*canvas[dstY][dstX].R) / 255;
-          int G = (color.G*alpha[i][j] + coeff*canvas[dstY][dstX].G) / 255;
-          int B = (color.B*alpha[i][j] + coeff*canvas[dstY][dstX].B) / 255;
-          canvas[dstY][dstX] = vpRGBa(static_cast<unsigned char>(R), static_cast<unsigned char>(G), static_cast<unsigned char>(B));
+            //dst[x, y, c] = (pixel[c]*_alpha[x, y] + dst[x, y, c]*(255 - _alpha[x, y]))/255;
+            int coeff = 255-_alpha[i][j];
+            int R = (color.R*_alpha[i][j] + coeff*canvas[dstY][dstX].R) / 255;
+            int G = (color.G*_alpha[i][j] + coeff*canvas[dstY][dstX].G) / 255;
+            int B = (color.B*_alpha[i][j] + coeff*canvas[dstY][dstX].B) / 255;
+            canvas[dstY][dstX] = vpRGBa(static_cast<unsigned char>(R), static_cast<unsigned char>(G), static_cast<unsigned char>(B));
+          }
         }
       }
+
+      break;
+    }
+
+    case TRUETYPE_FILE:
+    {
+      Measure(text);
+      // Try to resize only if new size is bigger
+      _fontBuffer.resize(std::max(_fontBuffer.getHeight(), static_cast<unsigned int>(_bb.getBottom()+1)),
+                         std::max(_fontBuffer.getWidth(), static_cast<unsigned int>(_bb.getRight()+1)));
+
+      int wordUTF32_size = static_cast<int>(_wordUTF32.size());
+
+      for (int i = 0, x = 0; i < wordUTF32_size; i++) {
+        /* render character (stride and offset is important here) */
+        int byteOffset = x + vpMath::round(_lsb_vec[i] * _fontScale) + (_y_vec[i] * _fontBuffer.getWidth());
+        stbtt_MakeCodepointBitmap(&_info, _fontBuffer.bitmap + byteOffset, static_cast<int>(_bb_vec[i].getWidth()), static_cast<int>(_bb_vec[i].getHeight()),
+                                  _fontBuffer.getWidth(), _fontScale, _fontScale, _wordUTF32[i]);
+
+        int d_x = x + vpMath::round(_lsb_vec[i] * _fontScale);
+        int d_y = _y_vec[i];
+        int d_w = static_cast<int>(_bb_vec[i].getWidth());
+        int d_h = static_cast<int>(_bb_vec[i].getHeight());
+
+        for (int y = d_y; y < d_y+d_h; y++) {
+          int dstY = static_cast<int>(position.get_v() + y - _bb.getTop());
+
+          for (int x = d_x; x < d_x+d_w; x++) {
+            unsigned int dstX = static_cast<unsigned int>(position.get_u() + x - _bb.getLeft());
+
+            int coeff = 255 - _fontBuffer[y][x];
+            int R = (color.R*_fontBuffer[y][x] + coeff*canvas[dstY][dstX].R) / 255;
+            int G = (color.G*_fontBuffer[y][x] + coeff*canvas[dstY][dstX].G) / 255;
+            int B = (color.B*_fontBuffer[y][x] + coeff*canvas[dstY][dstX].B) / 255;
+            canvas[dstY][dstX] =
+                    vpRGBa(static_cast<unsigned char>(R), static_cast<unsigned char>(G), static_cast<unsigned char>(B));
+          }
+        }
+
+        /* advance x */
+        x += vpMath::round(_ax_vec[i] * _fontScale);
+
+        /* add kerning */
+        if (i < wordUTF32_size - 1) {
+          int kern = stbtt_GetCodepointKernAdvance(&_info, _wordUTF32[i], _wordUTF32[i + 1]);
+          x += vpMath::round(kern * _fontScale);
+        }
+      }
+
+      break;
+    }
     }
 
     return true;
@@ -254,7 +490,7 @@ public:
 
     \return a result of the operation.
   */
-  bool Draw(vpImage<vpRGBa> & canvas, const String & text, const vpImagePoint & position, const vpColor & color, const vpColor & background) const
+  bool Draw(vpImage<vpRGBa> & canvas, const String & text, const vpImagePoint & position, const vpColor & color, const vpColor & background)
   {
     Rect canvasRect = Rect(Measure(text)).Shifted(position.get_u(), position.get_v());
     for (int i = canvasRect.Top(); i < canvasRect.Bottom(); i++) {
@@ -276,6 +512,23 @@ private:
   Symbols _originalSymbols, _currentSymbols;
   Point _originalSize, _currentSize, _originalIndent, _currentIndent;
   char _symbolMin, _symbolMax;
+  vpImage<unsigned char> _alpha;
+
+  // For font drawing using stb_truetype interface
+  std::vector<unsigned char> fontBuffer;
+  unsigned int _fontHeight;
+  float _fontScale;
+  int _fontAscent;
+  int _fontDescent;
+  vpFontFamily _ttfFamily;
+  stbtt_fontinfo _info;
+  vpImage<unsigned char> _fontBuffer;
+  std::vector<unsigned int> _wordUTF32;
+  vpRect _bb;
+  std::vector<int> _ax_vec;
+  std::vector<int> _lsb_vec;
+  std::vector<vpRect> _bb_vec;
+  std::vector<int> _y_vec;
 
   void CreateAlpha(const String & text, const Rect & canvas, const Point & shift, vpImage<unsigned char> & alpha, Rect & canvasRect, Rect & alphaRect) const
   {
@@ -1926,18 +2179,94 @@ private:
 
     return Load(data, sizeof(data));
   }
+
+  void LoadTTF(const std::string & filename)
+  {
+#if (VISP_CXX_STANDARD > VISP_CXX_STANDARD_98)
+    std::ifstream fontFile(filename.c_str(), std::ios::binary |std::ios::ate);
+    fontFile >> std::noskipws;
+
+    std::streampos fileSize = fontFile.tellg();
+    fontFile.seekg(0, std::ios::beg);
+
+    fontBuffer.clear();
+    fontBuffer.reserve(fileSize);
+
+    std::copy(std::istream_iterator<unsigned char>(fontFile),
+              std::istream_iterator<unsigned char>(),
+              std::back_inserter(fontBuffer));
+#else
+    // for compatibility with old platform (e.g. Ubuntu 12.04)
+    FILE* fontFile = fopen(filename.c_str(), "rb");
+    if (!fontFile) {
+      fclose(fontFile);
+      throw vpIoException(vpIoException::ioError, "Cannot open TTF file: %s", filename.c_str());
+    }
+
+    fseek(fontFile, 0, SEEK_END);
+    size_t fileSize = ftell(fontFile);  /* how long is the file? */
+    fseek(fontFile, 0, SEEK_SET);       /* reset */
+
+    fontBuffer.resize(fileSize);
+    if (fread(&fontBuffer[0], sizeof(unsigned char), fontBuffer.size(), fontFile) != fontBuffer.size()) {
+      fclose(fontFile);
+      throw vpIoException(vpIoException::ioError, "Error when reading the font file.");
+    }
+    fclose(fontFile);
+#endif
+
+    /* prepare font */
+    if (!stbtt_InitFont(&_info, fontBuffer.data(), 0)) {
+      throw vpIoException(vpIoException::ioError, "Error when initializing the font data.");
+    }
+  }
+
+  void ToUTF32(const std::string & str, std::vector<unsigned int> & utf32)
+  {
+    // convert UTF8 to UTF32
+    utf32.clear();
+    for (size_t i = 0; i < str.size(); i++) {
+      unsigned char ch = (unsigned char)str[i];
+      unsigned int charcode;
+      if ( ch <= 127 ) {
+        charcode = ch;
+      } else if (ch <= 223 && i+1 < str.size() && (str[i+1] & 0xc0) == 0x80) {
+        charcode = ((ch & 31) << 6) | (str[i+1] & 63);
+        i++;
+      } else if (ch <= 239 && i+2 < str.size() && (str[i+1] & 0xc0) == 0x80 && (str[i+2] & 0xc0) == 0x80) {
+        charcode = ((ch & 15) << 12) | ((str[i+1] & 63) << 6) | (str[i+2] & 63);
+        i += 2;
+      } else if (ch <= 247 && i+3 < str.size() && (str[i+1] & 0xc0) == 0x80 && (str[i+2] & 0xc0) == 0x80 && (str[i+3] & 0xc0) == 0x80) {
+        int val = (int)(((ch & 15) << 18) | ((str[i+1] & 63) << 12) | ((str[i+2] & 63) << 6) | (str[i+3] & 63));
+        if (val > 1114111) {
+          val = 65533;
+        }
+        charcode = val;
+        i += 3;
+      } else {
+        charcode = 65533;
+        while (i+1 < str.size() && (str[i+1] & 0xc0) == 0x80) {
+          i++;
+        }
+      }
+      utf32.push_back(charcode);
+    }
+  }
 };
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 
 /*!
-  Creates a new Font class with given height.
+  Creates a new font class with given height.
 
-  \note The font supports ASCII characters only. It was generated on the base of the generic monospace font from Gdiplus.
+  \note The vpFontFamily::GENERIC_MONOSPACE font supports ASCII characters only. It was generated on the base of the generic monospace font from Gdiplus.
 
   \param [in] height : Initial font height value in pixels. By default it is equal to 16 pixels.
+  \param [in] fontFamily : Font family in TTF format.
+  \param [in] ttfFilename : Path to the TTF file if needed. Can contain multiple paths separated by `;`character. The first valid path that is found is used.
 */
-vpFont::vpFont(unsigned int height) : m_impl(new Impl(height))
+vpFont::vpFont(unsigned int height, const vpFontFamily & fontFamily, const std::string & ttfFilename)
+  : m_impl(new Impl(height, fontFamily, ttfFilename))
 {
 }
 
@@ -2023,6 +2352,16 @@ bool vpFont::drawText(vpImage<vpRGBa> & I, const std::string & text, const vpIma
 unsigned int vpFont::getHeight() const
 {
   return static_cast<unsigned int>(m_impl->Height());
+}
+
+/*!
+  Gets text bounding box size.
+
+  \return The width (\e j) and height (\e i) of the text bounding box.
+*/
+vpImagePoint vpFont::getMeasure(const std::string & text) const
+{
+  return m_impl->Measure2(text);
 }
 
 /*!

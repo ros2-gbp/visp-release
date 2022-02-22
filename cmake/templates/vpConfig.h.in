@@ -1,7 +1,7 @@
 /****************************************************************************
  *
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2021 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -235,6 +235,9 @@
 // Defined if clapack built-in
 #cmakedefine VISP_HAVE_LAPACK_BUILT_IN
 
+// Defined the path to the Rubik-Regular.ttf used by vpFont
+#cmakedefine VISP_RUBIK_REGULAR_FONT_RESOURCES "${VISP_RUBIK_REGULAR_FONT_RESOURCES}"
+
 // Defined the path to the basic scenes used by the simulator
 #cmakedefine VISP_SCENES_DIR "${VISP_SCENES_DIR}"
 
@@ -322,6 +325,9 @@
 
 // Defined if librealSense2 library is available.
 #cmakedefine VISP_HAVE_REALSENSE2
+
+// Defined if libStructure library is available.
+#cmakedefine VISP_HAVE_OCCIPITAL_STRUCTURE
 
 // Defined if raw1394 and dc1394-2.x libraries available.
 #cmakedefine VISP_HAVE_DC1394
@@ -513,6 +519,9 @@
 
 // Defined if xrandr program available
 #cmakedefine VISP_HAVE_XRANDR
+
+// Defined if TensorRT available
+#cmakedefine VISP_HAVE_TENSORRT
 
 // Handle portable symbol export.
 // Defining manually which symbol should be exported is required

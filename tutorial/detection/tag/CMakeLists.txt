@@ -1,6 +1,6 @@
 project(tutorial-apriltag)
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.0)
 
 find_package(VISP REQUIRED visp_core visp_detection visp_io visp_gui visp_sensor)
 
@@ -8,6 +8,7 @@ set(tutorial_cpp
   tutorial-apriltag-detector.cpp
   tutorial-apriltag-detector-live.cpp
   tutorial-apriltag-detector-live-rgbd-realsense.cpp
+  tutorial-apriltag-detector-live-rgbd-structure-core.cpp
   tutorial-apriltag-detector-live-T265-realsense.cpp
 )
 
@@ -38,10 +39,17 @@ if(VISP_HAVE_REALSENSE2)
   list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-reorder")
   list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-overloaded-virtual")
   list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-ignored-qualifiers")
+  list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-deprecated-copy")
+endif()
+if(VISP_HAVE_OCCIPITAL_STRUCTURE)
+  # Add specific build flag to turn off warnings coming from libStructure 3rd party
+  list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-unused-parameter")
+  list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-maybe-uninitialized")
 endif()
 
 if(CXX_FLAGS_MUTE_WARNINGS)
   visp_set_source_file_compile_flag(tutorial-apriltag-detector-live.cpp ${CXX_FLAGS_MUTE_WARNINGS})
   visp_set_source_file_compile_flag(tutorial-apriltag-detector-live-rgbd-realsense.cpp ${CXX_FLAGS_MUTE_WARNINGS})
+  visp_set_source_file_compile_flag(tutorial-apriltag-detector-live-rgbd-structure-core.cpp ${CXX_FLAGS_MUTE_WARNINGS})
   visp_set_source_file_compile_flag(tutorial-apriltag-detector-live-T265-realsense.cpp ${CXX_FLAGS_MUTE_WARNINGS})
 endif()

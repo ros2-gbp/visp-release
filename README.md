@@ -1,12 +1,33 @@
-### ViSP: Open source Visual Servoing Platform
+<h1>ViSP: Open source Visual Servoing Platform</h1>
+
+[![Github Releases](https://img.shields.io/github/release/lagadic/visp.svg)](https://github.com/lagadic/visp/releases)
+[![License](https://img.shields.io/badge/License-GPLv2-bright)](https://opensource.org/licenses/GPL-2.0)
 
 Platform | Build Status |
 -------- | ------------ |
-Linux and OS X | [![Build Status](https://travis-ci.org/lagadic/visp.png)](https://travis-ci.org/lagadic/visp) |
-Windows | [![Build status](https://ci.appveyor.com/api/projects/status/121dscdkryf5dbn0/branch/master?svg=true)](https://ci.appveyor.com/project/fspindle/visp/branch/master) |
-ARM | [![Build Status](https://cloud.drone.io/api/badges/lagadic/visp/status.svg)](https://cloud.drone.io/lagadic/visp) |
+Ubuntu | [![ubuntu dep apt workflow](https://github.com/lagadic/visp/actions/workflows/ubuntu-dep-apt.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/ubuntu-dep-apt.yml) [![ubuntu dep src workflow](https://github.com/lagadic/visp/actions/workflows/ubuntu-dep-src.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/ubuntu-dep-src.yml)
+macOS | [![macos workflow](https://github.com/lagadic/visp/actions/workflows/macos.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/macos.yml)
+iOS | [![ios workflow](https://github.com/lagadic/visp/actions/workflows/ios.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/ios.yml)
+Windows | [![Build status](https://ci.appveyor.com/api/projects/status/121dscdkryf5dbn0/branch/master?svg=true)](https://ci.appveyor.com/project/fspindle/visp/branch/master)
+ARM | [![Build Status](https://cloud.drone.io/api/badges/lagadic/visp/status.svg)](https://cloud.drone.io/lagadic/visp)
+Other arch | [![other arch workflow](https://github.com/lagadic/visp/actions/workflows/other-arch.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/other-arch.yml)
+ROS2 Foxy | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Fdev__visp__ubuntu_focal_amd64)](https://build.ros2.org/job/Fdev__visp__ubuntu_focal_amd64/)
+ROS2 Galactic | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Gdev__visp__ubuntu_focal_amd64)](https://build.ros2.org/job/Gdev__visp__ubuntu_focal_amd64/)
+ROS2 Rolling | [![Build Status](https://build.ros2.org/buildStatus/icon?job=Rdev__visp__ubuntu_focal_amd64)](https://build.ros2.org/job/Rdev__visp__ubuntu_focal_amd64)
+Valgrind | [![valgrind workflow](https://github.com/lagadic/visp/actions/workflows/valgrind.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/valgrind.yml)
+Sanitizer | [![sanitizers workflow](https://github.com/lagadic/visp/actions/workflows/sanitizers.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/sanitizers.yml)
+Code coverage | [![Code coverage](https://codecov.io/gh/lagadic/visp/branch/master/graph/badge.svg?token=GQIiKbA3BC)](https://codecov.io/gh/lagadic/visp)
 
-This project is a cross-platform library (Linux, Windows, Mac) that allows prototyping and developing applications using visual tracking and visual servoing technics at the heart of the researches done now by Inria <a href="http://team.inria.fr/rainbow">Rainbow team</a> and before 2018 by <a href="http://team.inria.fr/lagadic">Lagadic team</a>. ViSP is able to compute control laws that can be applied to robotic systems. It provides a set of visual features that can be tracked using real time image processing or computer vision algorithms. ViSP provides also simulation capabilities. ViSP can be useful in robotics, computer vision, augmented reality and computer animation. Our <a href="https://www.youtube.com/user/VispTeam">YouTube channel</a> gives an overview of the applications that could be tackled.
+Other projects | Build Status |
+-------------- | ------------ |
+[UsTK](https://github.com/lagadic/ustk) | [![macOS](https://github.com/lagadic/visp/actions/workflows/macos-ustk.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/macos-ustk.yml) [![Ubuntu](https://github.com/lagadic/visp/actions/workflows/ubuntu-ustk.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/ubuntu-ustk.yml)
+[visp_contrib](https://github.com/lagadic/visp_contrib) | [![Ubuntu](https://github.com/lagadic/visp/actions/workflows/ubuntu-contrib.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/ubuntu-contrib.yml)
+[visp_sample](https://github.com/lagadic/visp_sample) | [![macos workflow](https://github.com/lagadic/visp/actions/workflows/macos.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/macos.yml) [![ubuntu dep apt workflow](https://github.com/lagadic/visp/actions/workflows/ubuntu-dep-apt.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/ubuntu-dep-apt.yml)
+[camera_localization](https://github.com/lagadic/camera_localization) | [![ubuntu_3rdparty_workflow](https://github.com/lagadic/visp/actions/workflows/ubuntu-3rdparty.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/ubuntu-3rdparty.yml)
+[visp_started](https://github.com/lagadic/visp_started) | [![ubuntu_3rdparty_workflow](https://github.com/lagadic/visp/actions/workflows/ubuntu-3rdparty.yml/badge.svg)](https://github.com/lagadic/visp/actions/workflows/ubuntu-3rdparty.yml)
+
+
+ViSP is a cross-platform library (Linux, Windows, MacOS, iOS, Android) that allows prototyping and developing applications using visual tracking and visual servoing technics at the heart of the researches done now by Inria <a href="http://team.inria.fr/rainbow">Rainbow team</a> and before 2018 by <a href="http://team.inria.fr/lagadic">Lagadic team</a>. ViSP is able to compute control laws that can be applied to robotic systems. It provides a set of visual features that can be tracked using real time image processing or computer vision algorithms. ViSP provides also simulation capabilities. ViSP can be useful in robotics, computer vision, augmented reality and computer animation. Our <a href="https://www.youtube.com/user/VispTeam">YouTube channel</a> gives an overview of the applications that could be tackled.
 
 #### Citing ViSP
 Please cite ViSP in your publications if it helps your research:
@@ -46,4 +67,3 @@ To cite the generic model-based tracker:
 #### Contributing
 
 Please read before starting work on a pull request: http://visp.inria.fr/contributing-code/
-
