@@ -1,6 +1,6 @@
 project(tutorial-tracking-mb-generic-rgbd-blender)
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.0)
 
 find_package(VISP REQUIRED visp_core visp_mbt visp_io visp_gui)
 
@@ -30,6 +30,7 @@ foreach(cpp ${tutorial_cpp})
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-overloaded-virtual")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-float-equal")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-deprecated-copy")
+    list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-register")
   endif()
 
   if(CXX_FLAGS_MUTE_WARNINGS)

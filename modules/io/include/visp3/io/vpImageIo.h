@@ -103,7 +103,6 @@ int main()
 
 class VISP_EXPORT vpImageIo
 {
-
 private:
   typedef enum {
     FORMAT_PGM,
@@ -124,11 +123,20 @@ private:
   static std::string getExtension(const std::string &filename);
 
 public:
-  static void read(vpImage<unsigned char> &I, const std::string &filename);
-  static void read(vpImage<vpRGBa> &I, const std::string &filename);
+  //! Image IO backend for only jpeg and png formats image loading and saving
+  enum vpImageIoBackendType {
+    IO_DEFAULT_BACKEND,    //!< Default backend
+    IO_SYSTEM_LIB_BACKEND, //!< Use system libraries like libpng or libjpeg
+    IO_OPENCV_BACKEND,     //!< Use OpenCV
+    IO_SIMDLIB_BACKEND,    //!< Use embedded simd library
+    IO_STB_IMAGE_BACKEND   //!< Use embedded stb_image library
+  };
 
-  static void write(const vpImage<unsigned char> &I, const std::string &filename);
-  static void write(const vpImage<vpRGBa> &I, const std::string &filename);
+  static void read(vpImage<unsigned char> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND);
+  static void read(vpImage<vpRGBa> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND);
+
+  static void write(const vpImage<unsigned char> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND);
+  static void write(const vpImage<vpRGBa> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND);
 
   static void readPFM(vpImage<float> &I, const std::string &filename);
 
@@ -138,11 +146,11 @@ public:
   static void readPPM(vpImage<unsigned char> &I, const std::string &filename);
   static void readPPM(vpImage<vpRGBa> &I, const std::string &filename);
 
-  static void readJPEG(vpImage<unsigned char> &I, const std::string &filename);
-  static void readJPEG(vpImage<vpRGBa> &I, const std::string &filename);
+  static void readJPEG(vpImage<unsigned char> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND);
+  static void readJPEG(vpImage<vpRGBa> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND);
 
-  static void readPNG(vpImage<unsigned char> &I, const std::string &filename);
-  static void readPNG(vpImage<vpRGBa> &I, const std::string &filename);
+  static void readPNG(vpImage<unsigned char> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND);
+  static void readPNG(vpImage<vpRGBa> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND);
 
   static void writePFM(const vpImage<float> &I, const std::string &filename);
 
@@ -153,10 +161,10 @@ public:
   static void writePPM(const vpImage<unsigned char> &I, const std::string &filename);
   static void writePPM(const vpImage<vpRGBa> &I, const std::string &filename);
 
-  static void writeJPEG(const vpImage<unsigned char> &I, const std::string &filename);
-  static void writeJPEG(const vpImage<vpRGBa> &I, const std::string &filename);
+  static void writeJPEG(const vpImage<unsigned char> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND, int quality=90);
+  static void writeJPEG(const vpImage<vpRGBa> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND, int quality=90);
 
-  static void writePNG(const vpImage<unsigned char> &I, const std::string &filename);
-  static void writePNG(const vpImage<vpRGBa> &I, const std::string &filename);
+  static void writePNG(const vpImage<unsigned char> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND);
+  static void writePNG(const vpImage<vpRGBa> &I, const std::string &filename, int backend=IO_DEFAULT_BACKEND);
 };
 #endif

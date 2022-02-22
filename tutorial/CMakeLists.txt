@@ -1,6 +1,6 @@
 project(ViSP-tutorial)
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.0)
 
 find_package(VISP REQUIRED)
 
@@ -27,7 +27,7 @@ endif()
 
 visp_add_subdirectory(bridge/opencv                        REQUIRED_DEPS visp_core visp_io)
 visp_add_subdirectory(calibration                          REQUIRED_DEPS visp_core visp_robot visp_vision visp_io visp_gui)
-visp_add_subdirectory(computer-vision                      REQUIRED_DEPS visp_core visp_blob visp_vision visp_io visp_gui visp_sensor)
+visp_add_subdirectory(computer-vision                      REQUIRED_DEPS visp_core visp_blob visp_vision visp_io visp_gui visp_detection visp_sensor)
 visp_add_subdirectory(grabber                              REQUIRED_DEPS visp_core visp_sensor visp_io visp_gui)
 visp_add_subdirectory(detection/barcode                    REQUIRED_DEPS visp_core visp_detection visp_io visp_gui visp_sensor)
 visp_add_subdirectory(detection/dnn                        REQUIRED_DEPS visp_core visp_detection visp_io visp_gui visp_sensor)
@@ -43,6 +43,7 @@ visp_add_subdirectory(imgproc/contour                      REQUIRED_DEPS visp_co
 visp_add_subdirectory(imgproc/contrast-sharpening          REQUIRED_DEPS visp_core visp_io visp_gui visp_imgproc)
 visp_add_subdirectory(imgproc/count-coins                  REQUIRED_DEPS visp_core visp_io visp_gui visp_imgproc)
 visp_add_subdirectory(imgproc/flood-fill                   REQUIRED_DEPS visp_core visp_io visp_gui visp_imgproc)
+visp_add_subdirectory(munkres                              REQUIRED_DEPS visp_core visp_gui)
 visp_add_subdirectory(robot/flir-ptu                       REQUIRED_DEPS visp_core visp_robot visp_sensor visp_vision visp_gui visp_vs visp_visual_features visp_detection)
 visp_add_subdirectory(robot/pioneer                        REQUIRED_DEPS visp_core visp_robot visp_vs visp_gui)
 visp_add_subdirectory(robot/mbot/raspberry/visp            REQUIRED_DEPS visp_core visp_detection visp_io visp_gui visp_sensor visp_vs)

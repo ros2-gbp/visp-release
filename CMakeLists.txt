@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2022 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
-cmake_minimum_required(VERSION 2.8.12.2) # needs to be before project() for policy CMP0025
+cmake_minimum_required(VERSION 3.0) # needs to be before project() for policy CMP0025
 
 # Detect if the toolchain is for Aldebaran naoqi
 if(CMAKE_TOOLCHAIN_FILE AND I_AM_A_ROBOT)
@@ -103,6 +103,9 @@ endif()
 if(POLICY CMP0054)
   cmake_policy(SET CMP0054 NEW) # To turn off a warning in native FindOpenMP with cmake 3.9.2
 endif()
+if(POLICY CMP0068)
+  cmake_policy(SET CMP0068 NEW)  # CMake 3.9+: `RPATH` settings on macOS do not affect `install_name`.
+endif()
 if(POLICY CMP0072)
   cmake_policy(SET CMP0072 NEW) # To use legacy GL library with FindOpenGL and cmake 3.12.0
 endif()
@@ -111,6 +114,15 @@ if(POLICY CMP0074)
 endif()
 if(POLICY CMP0075)
   cmake_policy(SET CMP0075 NEW) # For check_include_file and cmake 3.12.0
+endif()
+
+if(APPLE)
+  # Fix following errors for libpng and libjpeg detection:
+  # - Application built with libpng-1.4.12 but running with 1.6.37,
+  # - Wrong JPEG library version: library is 90, caller expects 80.
+  # The reason is that headers were found in /Library/Frameworks/Mono.framework/Headers
+  # while libraries in /usr/local/lib
+  set(CMAKE_FIND_FRAMEWORK LAST)
 endif()
 
 project(VISP C CXX)
@@ -127,9 +139,10 @@ endif()
 #-----------------------------------------------------------------------------
 # VISP version number.  An even minor number corresponds to releases.
 set(VISP_VERSION_MAJOR "3")
-set(VISP_VERSION_MINOR "4")
+set(VISP_VERSION_MINOR "5")
 set(VISP_VERSION_PATCH "0")
 set(VISP_VERSION "${VISP_VERSION_MAJOR}.${VISP_VERSION_MINOR}.${VISP_VERSION_PATCH}")
+set(VISP_SOVERSION "${VISP_VERSION_MAJOR}.${VISP_VERSION_MINOR}")
 # Package revision number
 set(VISP_REVISION "1")
 
@@ -150,6 +163,12 @@ if(GNU_INSTALL_DIRS_FROM_CMAKE)
 else()
   include(cmake/GNUInstallDirs.cmake)
 endif()
+
+#----------------------------------------------------------------------
+# Tool specific
+#----------------------------------------------------------------------
+# PCL tools
+include(cmake/PCLTools.cmake)
 
 #----------------------------------------------------------------------
 # Platform specific
@@ -201,9 +220,7 @@ elseif(WIN32 AND CMAKE_HOST_SYSTEM_NAME MATCHES Windows)
   vp_update(VISP_JAR_INSTALL_PATH         java)
   vp_update(VISP_INC_INSTALL_PATH         "${CMAKE_INSTALL_INCLUDEDIR}")
   vp_update(VISP_BIN_INSTALL_PATH         "${VISP_INSTALL_BINARIES_PREFIX}bin")
-  vp_update(VISP_INSTALL_DATAROOTDIR       "")
-  # where to install the data (share for linux)
-  # set(VISP_INSTALL_DATAROOTDIR "${CMAKE_INSTALL_DATAROOTDIR}/visp-${VISP_VERSION}")
+  vp_update(VISP_INSTALL_DATAROOTDIR      "${CMAKE_INSTALL_DATAROOTDIR}/visp-${VISP_VERSION}")
   vp_update(VISP_CONFIG_INSTALL_PATH      ".")
 
 else() # UNIX
@@ -278,33 +295,10 @@ if(NOT WINRT AND NOT IOS)
 endif()
 
 # ----------------------------------------------------------------------------
-# Handle always full RPATH
-# http://www.cmake.org/Wiki/CMake_RPATH_handling
+# Handle RPATH
 # ----------------------------------------------------------------------------
-
-# avoid CMP0042 warning
-if(APPLE)
-  set(CMAKE_MACOSX_RPATH ON)
-endif()
-
-# use, i.e. don't skip the full RPATH for the build tree
-set(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-# when building, don't use the install RPATH already
-# (but later on when installing)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${VISP_LIB_INSTALL_PATH}")
-
-# add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-# the RPATH to be used when installing, but only if it's not a system directory
-list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${VISP_LIB_INSTALL_PATH}" isSystemDir)
-if("${isSystemDir}" STREQUAL "-1")
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${VISP_LIB_INSTALL_PATH}")
-endif("${isSystemDir}" STREQUAL "-1")
 
 if(ANDROID)
   vp_update(VISP_JNI_INSTALL_PATH "${VISP_LIB_INSTALL_PATH}")
@@ -382,6 +376,12 @@ if(WIN32)
   if(HAVE_LIBWINMM)
     list(APPEND VISP_LINKER_LIBS "winmm.lib")
   endif()
+
+  # rpcrt4.lib for timeGetTime() under windows
+  check_library_exists("rpcrt4.lib" getch "" HAVE_LIBRPCRT4) # for UuidToString()
+  if(HAVE_LIBRPCRT4)
+    list(APPEND VISP_LINKER_LIBS "rpcrt4.lib")
+  endif()
 endif()
 
 # Add library ws2_32.a or ws2_32.lib for vpNetwork class
@@ -428,7 +428,7 @@ VP_OPTION(BUILD_SHARED_LIBS  "" "" "Build ViSP shared libraries (.dll/.so) inste
 VP_OPTION(BUILD_EXAMPLES  "" "" "Build ViSP examples" "" ON)
 # Build examples as an option.
 VP_OPTION(BUILD_TESTS  "" "" "Build ViSP tests" "" ON)
-VP_OPTION(BUILD_COVERAGE "" "" "Enables test coverage" "" OFF IF (BUILD_TESTS AND CMAKE_COMPILER_IS_GNUCXX AND CMAKE_BUILD_TYPE MATCHES "Debug"))
+VP_OPTION(BUILD_COVERAGE "" "" "Enables test coverage" "" OFF IF (BUILD_TESTS AND CMAKE_COMPILER_IS_GNUCXX))
 
 # Build java as an option
 VP_OPTION(BUILD_JAVA  "" "" "Enable Java support" "" (ANDROID OR NOT CMAKE_CROSSCOMPILING)  IF (ANDROID OR (NOT APPLE_FRAMEWORK AND NOT WINRT)) )
@@ -535,7 +535,7 @@ endif()
 VP_OPTION(USE_FRANKA      Franka      QUIET "Include libfranka SDK support for Franka Emika robots" "" ON IF NOT WINRT AND NOT IOS)
 # Note: libfranka needs c++14 option to build, but to use the library c++11 is enough.
 # That's why, setting USE_CXX_STANDARD=11 (which is the default) allows to use libfranka.
-VP_OPTION(USE_JACOSDK     JacoSDK     ""    "Include Kinova Jaco SDK support"  "" ON IF NOT WINRT AND NOT IOS)
+VP_OPTION(USE_JACOSDK     JacoSDK     ""    "Include Kinova Jaco SDK support"  "" ON IF NOT MINGW AND NOT APPLE AND NOT WINRT AND NOT IOS)
 VP_OPTION(USE_DC1394      DC1394      ""    "Include dc1394 support"           "" ON IF UNIX AND NOT WINRT AND NOT IOS)
 VP_OPTION(USE_V4L2        V4L2        ""    "Include v4l2 support"             "" ON IF UNIX AND NOT WINRT AND NOT IOS)
 VP_OPTION(USE_FLYCAPTURE  FlyCapture  ""    "Include FlyCapture SDK support for FLIR cameras" "" ON IF NOT WINRT AND NOT IOS)
@@ -561,6 +561,7 @@ VP_OPTION(USE_LIBFREENECT LIBFREENECT ""    "Include libfreenect support"      "
 VP_OPTION(USE_LIBUSB_1    LIBUSB_1    ""    "Include libusb-1 support"         "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_REALSENSE   RealSense   ""    "Include RealSense SDK support"    "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_REALSENSE2  RealSense2  ""    "Include RealSense2 SDK support"   "" ON IF NOT WINRT AND NOT IOS)
+VP_OPTION(USE_OCCIPITAL_STRUCTURE   Occipital_Structure   ""    "Include Occipital Structure SDK support" "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_SOWIN       SOWIN       ""    "Include Coin/SoWin support"   "" OFF IF (WIN32 AND USE_COIN3D) AND NOT WINRT AND NOT IOS)
 # Check for SoQt 1.6.0 linked to Qt5 or older version with SOQT
 VP_OPTION(USE_SOQT        "SoQt;SOQT" QUIET "Include Coin/SoQt support"    "" OFF IF USE_COIN3D AND NOT WINRT AND NOT IOS)
@@ -589,7 +590,8 @@ else()
   VP_OPTION(USE_OPENCV      "OpenCV;MyOpenCV" QUIET "Include OpenCV support" "OpenCV_DIR;OpenCV_FOUND;OPENCV_FOUND" ON)
 endif()
 VP_OPTION(USE_ZLIB        "ZLIB;MyZLIB" ""  "Include zlib support"         "" ON IF NOT WINRT AND NOT IOS)
-VP_OPTION(USE_X11         X11         ""    "Include X11 support"          "" ON IF NOT WINRT AND NOT IOS)
+set(X11_ADVANCED "X11_xcb_util_LIB;X11_xcb_util_INCLUDE_PATH;X11_xcb_xfixes_INCLUDE_PATH;X11_xcb_xfixes_LIB")
+VP_OPTION(USE_X11         X11         ""    "Include X11 support"          "${X11_ADVANCED}" ON IF NOT WINRT AND NOT IOS)
 # The native FindGTK2.cmake doesn't consider libgobject-2.0 that is
 # requested by ViSP. That's why we use our FindMyGTK2.cmake
 VP_OPTION(USE_GTK2        MyGTK2       ""    "Include gtk2 support"         "" OFF IF NOT WINRT AND NOT IOS)
@@ -603,6 +605,7 @@ VP_OPTION(USE_ARIA        ARIA         ""    "Include aria support"         "" O
 VP_OPTION(USE_ZBAR        ZBAR         ""    "Include zbar support"         "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_DMTX        DMTX         ""    "Include dmtx support"         "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_PCL         PCL          QUIET "Include Point Cloud Library support" "" ON IF NOT WINRT AND NOT IOS)
+VP_OPTION(USE_TENSORRT    TensorRT     ""    "Include TensorRT support"     "" ON IF NOT WINRT AND NOT IOS)
 
 # ----------------------------------------------------------------------------
 # Handle cxx standard depending on specific 3rd parties. Should be before module parsing and VISP3rdParty.cmake include
@@ -672,15 +675,7 @@ VP_OPTION(WITH_CLIPPER    ""           ""    "Build clipper as built-in library"
 VP_OPTION(WITH_LAPACK     ""           ""    "Build lapack as built-in library"    "" ON IF NOT USE_LAPACK)
 VP_OPTION(WITH_QBDEVICE   ""           ""    "Build qbdevice-api as built-in library" "" ON IF (VISP_CXX_STANDARD GREATER VISP_CXX_STANDARD_98) AND (NOT WINRT) AND (NOT IOS))
 VP_OPTION(WITH_TAKKTILE2  ""           ""    "Build Right Hand takktile2 driver as built-in library"   "" ON IF (VISP_CXX_STANDARD GREATER VISP_CXX_STANDARD_98) AND (NOT WIN32) AND (NOT WINRT) AND (NOT IOS) AND (NOT ANDROID))
-
-# Use stb_image as built-in library only when OpenCV, libjpeg and libpng not available
-if(NOT USE_OPENCV AND (NOT USE_PNG OR NOT USE_JPEG))
-  set(WITH_STBIMAGE ON)
-else()
-  set(WITH_STBIMAGE OFF)
-endif()
-
-VP_OPTION(WITH_CATCH2   ""           ""    "Use catch2" "" ON IF (VISP_CXX_STANDARD GREATER VISP_CXX_STANDARD_98))
+VP_OPTION(WITH_CATCH2     ""           ""    "Use catch2" "" ON IF (VISP_CXX_STANDARD GREATER VISP_CXX_STANDARD_98))
 
 # ----------------------------------------------------------------------------
 # Check for specific functions. Should be after cxx standard detection in VISPDetectCXXStandard.cmake and potential modification depending on pcl, realsense2, libfranka
@@ -905,6 +900,7 @@ VP_SET(VISP_HAVE_LAPACK_OPENBLAS TRUE IF (BUILD_MODULE_visp_core AND USE_OPENBLA
 VP_SET(VISP_HAVE_PTHREAD     TRUE IF (BUILD_MODULE_visp_core AND USE_PTHREAD))
 VP_SET(VISP_HAVE_XML2        TRUE IF (BUILD_MODULE_visp_core AND USE_XML2))
 VP_SET(VISP_HAVE_PCL         TRUE IF (BUILD_MODULE_visp_core AND USE_PCL))
+VP_SET(VISP_HAVE_TENSORRT    TRUE IF (BUILD_MODULE_visp_core AND USE_TENSORRT))
 
 VP_SET(VISP_HAVE_OGRE        TRUE IF (BUILD_MODULE_visp_ar AND USE_OGRE))
 VP_SET(VISP_HAVE_OIS         TRUE IF (BUILD_MODULE_visp_ar AND USE_OIS))
@@ -954,6 +950,7 @@ VP_SET(VISP_HAVE_LIBFREENECT TRUE IF (BUILD_MODULE_visp_sensor AND USE_LIBFREENE
 VP_SET(VISP_HAVE_LIBUSB_1    TRUE IF (BUILD_MODULE_visp_sensor AND USE_LIBUSB_1))
 VP_SET(VISP_HAVE_REALSENSE   TRUE IF (BUILD_MODULE_visp_sensor AND USE_REALSENSE))
 VP_SET(VISP_HAVE_REALSENSE2  TRUE IF (BUILD_MODULE_visp_sensor AND USE_REALSENSE2))
+VP_SET(VISP_HAVE_OCCIPITAL_STRUCTURE   TRUE IF (BUILD_MODULE_visp_sensor AND USE_OCCIPITAL_STRUCTURE))
 VP_SET(VISP_HAVE_FLYCAPTURE  TRUE IF (BUILD_MODULE_visp_sensor AND USE_FLYCAPTURE))
 VP_SET(VISP_HAVE_PYLON       TRUE IF (BUILD_MODULE_visp_sensor AND USE_PYLON))
 VP_SET(VISP_HAVE_UEYE        TRUE IF (BUILD_MODULE_visp_sensor AND USE_UEYE))
@@ -1186,10 +1183,6 @@ endif()
 if(Coin_FOUND)
   mark_as_advanced(Coin_DIR Coin_LIBRARY Qt5OpenGL_DIR)
 endif()
-# PCL and 3rd party advanced vars
-if(USE_PCL)
-  include(cmake/PCLTools.cmake)
-endif()
 
 # ----------------------------------------------------------------------------
 #  Update version of 3rd party for which info is missing
@@ -1242,7 +1235,7 @@ endif()
 find_host_package(Git QUIET)
 
 if(NOT DEFINED VISP_VCSVERSION AND GIT_FOUND)
-  execute_process(COMMAND "${GIT_EXECUTABLE}" describe --tags --always --dirty --match "[0-9].[0-9].[0-9]*"
+  execute_process(COMMAND "${GIT_EXECUTABLE}" describe --tags --always --dirty --match "v[0-9].[0-9].[0-9]*"
     WORKING_DIRECTORY "${VISP_SOURCE_DIR}"
     OUTPUT_VARIABLE VISP_VCSVERSION
     RESULT_VARIABLE GIT_RESULT
@@ -1525,6 +1518,7 @@ status("")
 status("  RGB-D sensors: ")
 status("    Use Realsense:"          USE_REALSENSE    THEN "yes (ver ${REALSENSE_VERSION})" ELSE "no")
 status("    Use Realsense2:"         USE_REALSENSE2   THEN "yes (ver ${REALSENSE2_VERSION})" ELSE "no")
+status("    Use Occipital Structure:"          USE_OCCIPITAL_STRUCTURE    THEN "yes" ELSE "no")
 status("    Use Kinect:"             USE_LIBFREENECT AND USE_LIBUSB_1 AND USE_PTHREAD THEN "yes" ELSE "no")
 status("    \\- Use libfreenect:"    USE_LIBFREENECT  THEN "yes (ver ${LIBFREENECT_VERSION})" ELSE "no")
 status("    \\- Use libusb-1:"       USE_LIBUSB_1     THEN "yes (ver ${LIBUSB_1_VERSION})" ELSE "no")
@@ -1553,6 +1547,10 @@ status("    Use OpenMP:"             USE_OPENMP         THEN "yes" ELSE "no")
 status("    Use pthread:"            USE_PTHREAD        THEN "yes" ELSE "no")
 status("    Use pthread (built-in):" WITH_PTHREAD       THEN "yes (ver ${PTHREADS_VERSION})" ELSE "no")
 status("    Use cxx standard:"       CMAKE_CXX_STANDARD THEN "${CMAKE_CXX_STANDARD}" ELSE "no")
+status("")
+status("  DNN: ")
+status("    Use CUDA Toolkit:"       USE_TENSORRT AND CUDA_FOUND  THEN "yes (ver ${CUDA_VERSION})" ELSE "no")
+status("    Use TensorRT:"           USE_TENSORRT       THEN "yes (ver ${TENSORRT_VERSION})" ELSE "no")
 
 # ========================== documentation ==========================
 status("")
