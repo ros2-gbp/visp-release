@@ -72,10 +72,14 @@ macro(fix_prefix lst isown)
       list(APPEND _lst "${item}")
     elseif(item MATCHES "^-") #could be "-pthread" (occured with Ubuntu 18.04)
       list(APPEND _lst "${item}")
-    elseif(item MATCHES ".framework/")
+    elseif(item MATCHES ".framework/" OR item MATCHES "/([^/]+)\\.framework$")
       vp_get_framework(_fmk_name "${item}" NAME)
       vp_get_framework(_fmk_path "${item}" PATH)
-      list(APPEND _lst "-framework ${_fmk_name} -F${_fmk_path}")
+      list(APPEND _lst "-F${_fmk_path} -framework ${_fmk_name}")
+    elseif(item MATCHES "/([^/]+)\\.tbd$")
+      vp_get_tbd(_fmk_name "${item}" NAME)
+      vp_get_tbd(_fmk_path "${item}" PATH)
+      list(APPEND _lst "-L${_fmk_path} -l${_fmk_name}")
     elseif(item MATCHES "[\\/]")
       get_filename_component(_libdir "${item}" PATH)
       get_filename_component(_libname "${item}" NAME)
@@ -136,6 +140,13 @@ endmacro()
 if(NOT DEFINED CMAKE_HELPER_SCRIPT)
   # build the list of cxxflags for all modules
   vp_get_all_cflags(_cxx_flags)
+  if (APPLE)
+    # Needed on macOS Big Sur 11.6.2 to avoid the following warning
+    # ld: warning: dylib (/usr/local/lib/libvisp_core.3.4.1.dylib) was built for newer macOS version (11.6) than being linked (11.0)
+    if(CMAKE_OSX_DEPLOYMENT_TARGET)
+      list(APPEND _cxx_flags "-mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+    endif()
+  endif()
   # build the list of includes for all modules and dependencies
   vp_get_all_includes(_includes_modules _includes_extra _system_include_dirs)
   # build the list of libs and dependencies for all modules
@@ -242,7 +253,7 @@ set(TARGET_LOCATION_${item} \"${item}${VISP_VERSION_MAJOR}${VISP_VERSION_MINOR}$
 # =============================================================================
 else() # DEFINED CMAKE_HELPER_SCRIPT
 
-  cmake_minimum_required(VERSION 2.8.12.2)
+  cmake_minimum_required(VERSION 3.0)
   include("${CMAKE_HELPER_SCRIPT}")
   include("${VISP_SOURCE_DIR}/cmake/VISPUtils.cmake")
 
@@ -391,8 +402,8 @@ else() # DEFINED CMAKE_HELPER_SCRIPT
     #---------------------------------------------------------------------
     # Updates VISP_SCRIPT_CONFIG_SCRIPT_DEF
     #----------------------------------------------------------------------
-    set(VISP_SCRIPT_CONFIG_DEFS 
-	  "_SCL_SECURE_NO_DEPRECATE")
+    set(VISP_SCRIPT_CONFIG_DEFS
+    "_SCL_SECURE_NO_DEPRECATE")
 
     #---------------------------------------------------------------------
     # Updates VISP_SCRIPT_CONFIG_INC
@@ -414,19 +425,19 @@ else() # DEFINED CMAKE_HELPER_SCRIPT
     fix_suffix_win(_3rdparty 1 _3rdparty_dbg_libname _3rdparty_opt_libname)
     # We suppose that _modules_dbg_libname and _modules_opt_libname have the same libdir
     get_libdir_win(_extra_opt _extra_opt_libdir)
-	
+
     get_libname_win(_extra_opt _extra_opt_libname)
     get_libname_win(_extra_dbg _extra_dbg_libname)
-	
+
     vp_list_unique(_extra_opt_libdir)
-	
+
     if(BUILD_SHARED_LIBS)
       set(VISP_SCRIPT_CONFIG_LIBS_DEBUG
         "${_modules_dbg_libname}"
         "${_extra_dbg_libname}")
       set(VISP_SCRIPT_CONFIG_LIBS_OPTIMIZED
         "${_modules_opt_libname}"
-   	    "${_extra_opt_libname}")
+        "${_extra_opt_libname}")
     else()
       set(VISP_SCRIPT_CONFIG_LIBS_DEBUG
         "${_modules_dbg_libname}"
@@ -434,7 +445,7 @@ else() # DEFINED CMAKE_HELPER_SCRIPT
         "${_extra_dbg_libname}")
       set(VISP_SCRIPT_CONFIG_LIBS_OPTIMIZED
         "${_modules_opt_libname}"
-   	    "${_3rdparty_opt_libname}"
+        "${_3rdparty_opt_libname}"
         "${_extra_opt_libname}")
     endif()
 
@@ -466,7 +477,7 @@ else() # DEFINED CMAKE_HELPER_SCRIPT
 
     vp_list_replace_separator(VISP_SCRIPT_CONFIG_INC "; ")
     vp_list_replace_separator(VISP_SCRIPT_CONFIG_LIBDIR "; ")
-	
+
     configure_file("${VISP_SOURCE_DIR}/${FILE_VISP_SCRIPT_CONFIG_IN}"
       "${FILE_VISP_SCRIPT_CONFIG}" @ONLY)
 
@@ -474,7 +485,7 @@ else() # DEFINED CMAKE_HELPER_SCRIPT
     set(VISP_SCRIPT_CONFIG_INC
       "%PREFIX%/${VISP_INC_INSTALL_PATH}"
       "${_includes_extra}")
-	  
+
     if(BUILD_SHARED_LIBS)
       set(VISP_SCRIPT_CONFIG_LIBDIR
         "%PREFIX%/${VISP_ARCH}/${VISP_RUNTIME}/lib"
@@ -484,12 +495,12 @@ else() # DEFINED CMAKE_HELPER_SCRIPT
         "%PREFIX%/${VISP_ARCH}/${VISP_RUNTIME}/staticlib"
         "${_extra_opt_libdir}")
     endif()
-	
+
     vp_list_replace_separator(VISP_SCRIPT_CONFIG_INC "; ")
     vp_list_replace_separator(VISP_SCRIPT_CONFIG_LIBDIR "; ")
-	
+
     configure_file("${VISP_SOURCE_DIR}/${FILE_VISP_SCRIPT_CONFIG_INSTALL_IN}"
       "${FILE_VISP_SCRIPT_CONFIG_INSTALL}" @ONLY)
   endif()
-	
+
 endif() # DEFINED CMAKE_HELPER_SCRIPT

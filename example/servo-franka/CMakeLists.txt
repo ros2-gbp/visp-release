@@ -38,7 +38,7 @@
 
 project(example-servo-franka)
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.0)
 
 find_package(VISP REQUIRED visp_robot visp_vision visp_io visp_gui visp_vs visp_visual_features visp_detection)
 
@@ -60,8 +60,8 @@ endforeach()
 if(VISP_HAVE_REALSENSE2)
   if(UNIX)
     # Add specific build flag to turn off warnings coming from PCL 3rd party
-    visp_set_source_file_compile_flag(servoFrankaPBVS.cpp -Wno-unused-function -Wno-reorder -Wno-sign-compare -Wno-overloaded-virtual -Wno-ignored-qualifiers)
-    visp_set_source_file_compile_flag(servoFrankaIBVS.cpp -Wno-unused-function -Wno-reorder -Wno-sign-compare -Wno-overloaded-virtual -Wno-ignored-qualifiers)
+    visp_set_source_file_compile_flag(servoFrankaPBVS.cpp -Wno-unused-function -Wno-reorder -Wno-sign-compare -Wno-overloaded-virtual -Wno-ignored-qualifiers -Wno-deprecated-copy)
+    visp_set_source_file_compile_flag(servoFrankaIBVS.cpp -Wno-unused-function -Wno-reorder -Wno-sign-compare -Wno-overloaded-virtual -Wno-ignored-qualifiers -Wno-deprecated-copy)
   else()
     visp_set_source_file_compile_flag(servoFrankaIBVS.cpp /wd4244 /wd4267)
     visp_set_source_file_compile_flag(servoFrankaPBVS.cpp /wd4244 /wd4267)

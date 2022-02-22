@@ -38,7 +38,7 @@
 
 project(example-tracking)
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.0)
 
 find_package(VISP REQUIRED visp_core visp_io visp_gui)
 
@@ -70,13 +70,13 @@ if(BUILD_DEPRECATED_FUNCTIONS)
   endif()
 
   if(VISP_HAVE_OGRE)
-    visp_set_source_file_compile_flag(mbtEdgeKltTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
-    visp_set_source_file_compile_flag(mbtEdgeTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
-    visp_set_source_file_compile_flag(mbtKltTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
-    visp_set_source_file_compile_flag(mbtGenericTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
-    visp_set_source_file_compile_flag(mbtGenericTracking2.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
-    visp_set_source_file_compile_flag(mbtGenericTrackingDepth.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
-    visp_set_source_file_compile_flag(mbtGenericTrackingDepthOnly.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
+    visp_set_source_file_compile_flag(mbtEdgeKltTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
+    visp_set_source_file_compile_flag(mbtEdgeTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
+    visp_set_source_file_compile_flag(mbtKltTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
+    visp_set_source_file_compile_flag(mbtGenericTracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
+    visp_set_source_file_compile_flag(mbtGenericTracking2.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
+    visp_set_source_file_compile_flag(mbtGenericTrackingDepth.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
+    visp_set_source_file_compile_flag(mbtGenericTrackingDepthOnly.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
   endif()
 else()
   if(VISP_HAVE_OGRE)
@@ -97,7 +97,10 @@ foreach(cpp ${example_cpp})
   endif()
 endforeach()
 
-# Add test
+# Add test only if dataset found for isolated build
+visp_find_dataset(DATASET_FOUND)
+if(DATASET_FOUND)
+
 add_test(mbtEdgeTracking    mbtEdgeTracking -c ${OPTION_TO_DESACTIVE_DISPLAY})
 add_test(mbtEdgeKltTracking mbtEdgeKltTracking -c ${OPTION_TO_DESACTIVE_DISPLAY})
 add_test(mbtKltTracking     mbtKltTracking -c ${OPTION_TO_DESACTIVE_DISPLAY})
@@ -242,3 +245,5 @@ if(BUILD_MODULE_visp_tt_mi)
   add_test(templateTrackerPyramidal-MIInverseCompositional-Translation   templateTracker -c -l 2 -t 9 -w 4 -p ${OPTION_TO_DESACTIVE_DISPLAY})
   add_test(templateTrackerPyramidal-MIInverseCompositional-RT            templateTracker -c -l 2 -t 9 -w 5 -p ${OPTION_TO_DESACTIVE_DISPLAY})
 endif()
+
+endif(DATASET_FOUND)

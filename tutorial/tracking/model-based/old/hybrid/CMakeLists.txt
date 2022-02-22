@@ -1,6 +1,6 @@
 project(tutorial-tracking-mb-hybrid)
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.0)
 
 find_package(VISP REQUIRED visp_core visp_mbt visp_klt visp_io visp_gui)
 
@@ -18,7 +18,7 @@ foreach(cpp ${tutorial_cpp})
   visp_add_target(${cpp})
 
   if(VISP_HAVE_OGRE)
-    visp_set_source_file_compile_flag(${cpp} -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
+    visp_set_source_file_compile_flag(${cpp} -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
   endif()
 
   if(COMMAND visp_add_dependency)

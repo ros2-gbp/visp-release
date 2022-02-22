@@ -160,6 +160,7 @@ class VISP_EXPORT vpIoTools
 
 public:
   static const std::string &getBuildInformation();
+  static std::string getTempPath();
   static void getUserName(std::string &username);
   static std::string getUserName();
   static std::string getenv(const std::string &env);
@@ -191,6 +192,7 @@ public:
 
   static std::string getAbsolutePathname(const std::string &pathname);
   static std::string getFileExtension(const std::string &pathname, bool checkFile = false);
+  static long getIndex(const std::string &filename, const std::string &format);
   static std::string getName(const std::string &pathname);
   static std::string getNameWE(const std::string &pathname);
   static std::string getParent(const std::string &pathname);

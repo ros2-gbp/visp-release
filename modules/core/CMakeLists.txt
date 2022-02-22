@@ -270,18 +270,20 @@ if(MSVC)
 endif()
 
 if(USE_EIGEN3)
-  vp_set_source_file_compile_flag(src/math/matrix/vpMatrix_svd.cpp -Wno-float-equal -Wno-strict-overflow -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-deprecated-copy -Wno-shadow)
+  vp_set_source_file_compile_flag(src/math/matrix/vpMatrix_svd.cpp -Wno-float-equal -Wno-strict-overflow -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-deprecated-copy -Wno-shadow -Wno-maybe-uninitialized)
   vp_set_source_file_compile_flag(src/math/matrix/vpMatrix_lu.cpp -Wno-float-equal -Wno-strict-overflow -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-deprecated-copy -Wno-shadow)
   vp_set_source_file_compile_flag(src/math/matrix/vpEigenConversion.cpp -Wno-float-equal -Wno-strict-overflow -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-shadow)
 endif()
 
-vp_set_source_file_compile_flag(src/image/vpImageConvert.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/image/vpImageConvert.cpp -Wno-strict-overflow -Wno-sign-compare)
 vp_set_source_file_compile_flag(src/image/vpImageFilter.cpp -Wno-strict-overflow)
 vp_set_source_file_compile_flag(src/image/vpImageTools.cpp -Wno-strict-overflow)
 vp_set_source_file_compile_flag(src/tools/network/vpServer.cpp -Wno-strict-overflow)
 vp_set_source_file_compile_flag(src/tools/optimization/vpQuadProg.cpp -Wno-strict-overflow)
 vp_set_source_file_compile_flag(src/tools/optimization/vpLinProg.cpp -Wno-strict-overflow)
 vp_set_source_file_compile_flag(src/tools/histogram/vpHistogram.cpp -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/image/vpFont.cpp -Wno-float-equal -Wno-strict-overflow)
+vp_set_source_file_compile_flag(src/munkres/vpMunkres.cpp /wd26812 /wd4244)
 vp_set_source_file_compile_flag(test/image/testImageBinarise.cpp -Wno-strict-overflow)
 vp_set_source_file_compile_flag(test/image/testImageOwnership.cpp -Wno-pessimizing-move)
 vp_set_source_file_compile_flag(test/network/testClient.cpp -Wno-strict-overflow)
@@ -313,5 +315,7 @@ vp_create_module(${opt_libs})
 vp_create_compat_headers("include/visp3/core/vpConfig.h")
 vp_add_tests(CTEST_EXCLUDE_PATH network DEPENDS_ON visp_io visp_gui)
 
-# copy robot and wireframe simulator data
+# copy data for testing
 vp_glob_module_copy_data("test/math/data/*.pgm" "modules/core" NO_INSTALL)
+# copy font
+vp_glob_module_copy_data("src/image/private/Rubik-Regular.ttf" "data/font")
