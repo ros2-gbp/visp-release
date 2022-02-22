@@ -8,7 +8,7 @@ These steps have been tested with CMake 3.19.0 and MinGW-W64 - GCC for Windows 6
 
 \note Concerning ViSP installation, we provide also other \ref tutorial.
 
-\section install_win10_mingw64_required Install prerequisities
+\section install_win10_mingw64_required Install prerequisites
 
 \subsection install_win10_mingw64_required_mingw MinGW-W64
 
@@ -103,14 +103,7 @@ C:\> cmake --build . --config Release --target install -j4
 \endverbatim
 - ViSP is now installed in `%%VISP_WS%\visp-build-mingw\install` folder
 - Modify the `Path` var to add `%%VISP_WS%\visp-build-mingw\install\x64\mingw\bin` corresponding to the path
-to ViSP libraries. To this end, in a `cmd` Command Prompt run:
-\verbatim
-C:\> setx Path "%Path%:%VISP_WS%\visp-build-mingw\install\x64\mingw\bin"
-C:\> exit
-\endverbatim
-\note Since `setx` command is not able to handle a var that has more than 1024 characters (which could be the
-case of `Path` var), it may happen that the previous command is not working as expected. In that case,
-to modify `Path` environment variable do the following:
+to ViSP libraries. To modify `Path` environment variable do the following:
   - Open the Start Search, type in "env", and choose "Edit environment variables for your account"
   - Click the "Environment Variables..." button
   - Under the "User Variables" section (the upper half), find the row with "Path" in the first column,
@@ -230,20 +223,15 @@ Now you have to complete OpenCV installation setting some environment vars:
 - In order that ViSP detects OpenCV you have to set `OpenCV_DIR` environment variable. Start up a `cmd`
 Command Prompt and enter:
 \verbatim
-C:\> setx OpenCV_DIR "%VISP_WS%\opencv-4.5.0\build"
+C:\> setx OpenCV_DIR "%VISP_WS%\opencv-4.5.1\build"
 C:\> exit
 \endverbatim
-where `%%VISP_WS%\opencv-4.0.0\build` is where you have installed OpenCV. Inside this folder you should
+where `%%VISP_WS%\opencv-4.5.1\build` is where you have installed OpenCV. Inside this folder you should
 have a file named `OpenCVConfig.cmake`. 
 
 - You have also to add the location of OpenCV libraries corresponding to MinGW usage in the `Path`
 environment variable. Open the "Edit environment variable" UI, and modify `Path` to add a new line with
-`%%VISP_WS%\opencv-4.5.0\build\x64\mingw\bin`. Modifying the `Path` could also be done in a `cmd` Command Prompt
-running:
-\verbatim
-C:\> setx Path "%Path%:%VISP_WS%\opencv-4.5.0\build\x64\mingw\bin"
-C:\> exit
-\endverbatim
+`%%VISP_WS%\opencv-4.5.1\build\x64\mingw\bin`.
 
 \subsection install_win10_mingw64_get_source Get ViSP source code
 
@@ -251,11 +239,11 @@ There are different ways to get ViSP source code.
 
 - You can download the <a href="https://visp.inria.fr/download">latest release</a> as a zip or a tarball.
 Once `visp-x.y.z.tar.gz` or `visp-x.y.z.zip` is downloaded, uncompress the file in
-`%%VISP_WS%\visp\visp-x.y.z` using for axample <a href="http://www.win-rar.com">WinRAR</a>.
+`%%VISP_WS%\visp\visp-x.y.z` using for example <a href="http://www.win-rar.com">WinRAR</a>.
 
 - You can also download a <a href="https://visp.inria.fr/download#snapshot">daily snapshot</a>. Once
 `visp-snapshot-yyyy-mm-dd.tar.gz` is downloaded, uncompress the file in
-`%%VISP_WS%\visp\visp-x.y.z` using for axample <a href="http://www.win-rar.com">WinRAR</a>.
+`%%VISP_WS%\visp\visp-x.y.z` using for example <a href="http://www.win-rar.com">WinRAR</a>.
 
 - Or you get the cutting-edge ViSP from <a href="https://github.com/lagadic/visp">GitHub repository</a> using
 the `git` command line tool:
@@ -360,12 +348,6 @@ C:\> cmake --build . --config Release --target visp_doc
 
 Modify the `Path` var to add the path to ViSP dll libraries. To this end open the "Edit environment variable"
 UI, and modify `Path` to add a new line with `%%VISP_WS%\visp-build-mingw\install\x64\mingw\bin`.
-
-Modifying the `Path` could also be done in a `cmd` Command Prompt running:
-\verbatim
-C:\> setx Path "%Path%:%VISP_WS%\visp-build-mingw\install\x64\mingw\bin"
-C:\> exit
-\endverbatim
 
 \subsection install_win10_mingw64_visp_dir Set VISP_DIR environment var
 
@@ -542,7 +524,7 @@ General configuration information for ViSP 3.3.1
     \- Use GSL:                  no
     \- Use Lapack (built-in):    yes (ver 3.2.1)
     Use Eigen3:                  yes (ver 3.3.8)
-    Use OpenCV:                  yes (ver 4.5.0)
+    Use OpenCV:                  yes (ver 4.5.1)
 
   Simulator: 
     Ogre simulator: 
@@ -561,7 +543,7 @@ General configuration information for ViSP 3.3.1
     Use JPEG:                    no
     Use PNG:                     no
     \- Use ZLIB:                 no
-    Use OpenCV:                  yes (ver 4.5.0)
+    Use OpenCV:                  yes (ver 4.5.1)
     Use stb_image (built-in):    no
 
   Real robots: 
@@ -584,7 +566,7 @@ General configuration information for ViSP 3.3.1
   GUI: 
     Use X11:                     no
     Use GTK:                     no
-    Use OpenCV:                  yes (ver 4.5.0)
+    Use OpenCV:                  yes (ver 4.5.1)
     Use GDI:                     no
     Use Direct3D:                no
 
@@ -593,7 +575,7 @@ General configuration information for ViSP 3.3.1
     Use CMU 1394:                no
     Use V4L2:                    no
     Use directshow:              no
-    Use OpenCV:                  yes (ver 4.5.0)
+    Use OpenCV:                  yes (ver 4.5.1)
     Use Flycapture:              no
     Use Pylon:                   no
 

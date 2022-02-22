@@ -1,6 +1,6 @@
 project(tutorial-tracking-mb-aprilTag-init)
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.0)
 
 find_package(VISP REQUIRED visp_core visp_sensor visp_gui visp_vision visp_mbt visp_detection)
 
@@ -21,6 +21,7 @@ foreach(cpp ${tutorial_cpp})
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-overloaded-virtual")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-float-equal")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-deprecated-copy")
+    list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-register")
   endif()
   if(VISP_HAVE_FLYCAPTURE)
     # Add specific build flag to turn off warnings coming from FlyCapture 3rd party
@@ -35,6 +36,7 @@ foreach(cpp ${tutorial_cpp})
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-reorder")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-overloaded-virtual")
     list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-ignored-qualifiers")
+    list(APPEND CXX_FLAGS_MUTE_WARNINGS "-Wno-deprecated-copy")
   endif()
 
   if(CXX_FLAGS_MUTE_WARNINGS)

@@ -141,23 +141,111 @@ const std::string &vpIoTools::getBuildInformation()
 }
 
 /*!
+  Return path to the default temporary folder:
+    - on Windows it returns `GetTempPath()`
+    - on Unix it returns `/tmp/<username>`
+
+  \warning This function is not implemented on WINRT.
+
+  The following sample shows how to use this function to create unique temporary directories:
+  \code
+  include <visp3/core/vpIoTools.h>
+
+  int main()
+  {
+    std::string tmp_path = vpIoTools::getTempPath();
+    std::cout << "Temp path: " << tmp_path << std::endl;
+
+    std::string tmp_dir1 = vpIoTools::makeTempDirectory(tmp_path);
+    std::cout << "Created unique temp dir1: " << tmp_dir1 << std::endl;
+
+    std::string tmp_dir2_template = tmp_path + vpIoTools::path("/") + "dir_XXXXXX";
+    std::string tmp_dir2 = vpIoTools::makeTempDirectory(tmp_dir2_template);
+    std::cout << "Created unique temp dir2: " << tmp_dir2 << std::endl;
+
+    if (vpIoTools::remove(tmp_dir1)) {
+      std::cout << "Temp dir1 was deleted" << std::endl;
+    }
+    if (vpIoTools::remove(tmp_dir2)) {
+      std::cout << "Temp dir2 was deleted" << std::endl;
+    }
+  }
+  \endcode
+  On Windows it produces:
+  \verbatim
+  Temp path: C:\Users\<username>\AppData\Local\Temp
+  Created unique temp dir1: C:\Users\<username>\AppData\Local\Temp\ddaac8c3-7a95-447f-8a1c-fe31bb2426f9
+  Created unique temp dir2: C:\Users\<username>\AppData\Local\Temp\dir_8b9e6e9a-fe9b-4b44-8382-fc2368dfed68
+  Temp dir1 was deleted
+  Temp dir2 was deleted
+  \endverbatim
+
+  while on Unix it produces:
+  \verbatim
+  Temp path: /tmp/<username>
+  Created unique temp dir1: /tmp/<username>/AMIsXF
+  Created unique temp dir2: /tmp/<username>/dir_KP7119
+  Temp dir1 was deleted
+  Temp dir2 was deleted
+  \endverbatim
+
+  \sa makeTempDirectory(), remove()
+ */
+std::string vpIoTools::getTempPath()
+{
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
+  std::string username;
+  vpIoTools::getUserName(username);
+  return "/tmp/" + username;
+#elif defined(_WIN32) && !defined(WINRT)
+  // https://docs.microsoft.com/en-us/windows/win32/fileio/creating-and-using-a-temporary-file
+  //  Gets the temp path env string (no guarantee it's a valid path).
+  TCHAR lpTempPathBuffer[MAX_PATH];
+  DWORD dwRetVal = GetTempPath(MAX_PATH /* length of the buffer */, lpTempPathBuffer /* buffer for path */);
+  if (dwRetVal > MAX_PATH || (dwRetVal == 0)) {
+    throw vpIoException(vpIoException::cantGetenv, "Error with GetTempPath() call!");
+  }
+  std::string temp_path(lpTempPathBuffer);
+  if (!temp_path.empty()) {
+    if (temp_path.back() == '\\') {
+      temp_path.resize(temp_path.size() - 1);
+    }
+  }
+  else {
+    temp_path = "C:\temp";
+    try {
+      vpIoTools::makeDirectory(temp_path);
+    } catch (...) {
+      throw(vpException(vpException::fatalError, "Cannot set temp path to %s", temp_path.c_str()));
+    }
+  }
+  return temp_path;
+#else
+  throw vpIoException(vpException::fatalError, "Not implemented on this platform!");
+#endif
+}
+
+/*!
   Sets the base name (prefix) of the experiment files.
 
   \param s : Prefix of the experiment files.
 */
 void vpIoTools::setBaseName(const std::string &s) { baseName = s; }
+
 /*!
   Sets the base directory of the experiment files.
 
   \param dir : Directory where the data will be saved.
 */
 void vpIoTools::setBaseDir(const std::string &dir) { baseDir = dir + "/"; }
+
 /*!
   Gets the base name (prefix) of the experiment files.
 
   \return the base name of the experiment files.
 */
 std::string vpIoTools::getBaseName() { return baseName; }
+
 /*!
   Gets the full path of the experiment files : baseDir/baseName
 
@@ -477,7 +565,7 @@ int vpIoTools::mkdir_p(const char *path, int mode)
   \exception vpIoException::cantCreateDirectory : If the directory cannot be
   created.
 
-  \sa makeTempDirectory()
+  \sa makeTempDirectory(), remove()
 */
 void vpIoTools::makeDirectory(const std::string &dirname)
 {
@@ -559,10 +647,27 @@ void vpIoTools::makeFifo(const std::string &fifoname)
 #endif
 }
 
+#if defined(_WIN32) && !defined(WINRT)
+std::string getUuid()
+{
+  UUID uuid;
+  if (UuidCreate(&uuid) != RPC_S_OK) {
+    throw(vpIoException(vpIoException::fatalError, "UuidCreate() failed!"));
+  }
+
+  RPC_CSTR stringUuid;
+  if (UuidToString(&uuid, &stringUuid) != RPC_S_OK) {
+    throw(vpIoException(vpIoException::fatalError, "UuidToString() failed!"));
+  }
+
+  return reinterpret_cast<char *>(stringUuid);
+}
+#endif
+
 /*!
   Create a new temporary directory with a unique name based on dirname parameter.
 
-  \warning This function is only implemented on unix-like OS.
+  \warning This function is not implemented on WINRT.
 
   \param dirname : Name of the directory to create, or location of an existing directory.
   If \e dirname corresponds to an existing directory, \e dirname is considered as a parent directory.
@@ -576,14 +681,58 @@ void vpIoTools::makeFifo(const std::string &fifoname)
 
   \exception vpIoException::cantCreateDirectory : If the directory cannot be created.
 
-  \sa makeDirectory()
+  The following sample shows how to use this function to create unique temporary directories:
+  \code
+  include <visp3/core/vpIoTools.h>
+
+  int main()
+  {
+    std::string tmp_path = vpIoTools::getTempPath();
+    std::cout << "Temp path: " << tmp_path << std::endl;
+
+    std::string tmp_dir1 = vpIoTools::makeTempDirectory(tmp_path);
+    std::cout << "Created unique temp dir1: " << tmp_dir1 << std::endl;
+
+    std::string tmp_dir2_template = tmp_path + vpIoTools::path("/") + "dir_XXXXXX";
+    std::string tmp_dir2 = vpIoTools::makeTempDirectory(tmp_dir2_template);
+    std::cout << "Created unique temp dir2: " << tmp_dir2 << std::endl;
+
+    if (vpIoTools::remove(tmp_dir1)) {
+      std::cout << "Temp dir1 was deleted" << std::endl;
+    }
+    if (vpIoTools::remove(tmp_dir2)) {
+      std::cout << "Temp dir2 was deleted" << std::endl;
+    }
+  }
+  \endcode
+  On Windows it produces:
+  \verbatim
+  Temp path: C:\Users\<username>\AppData\Local\Temp
+  Created unique temp dir1: C:\Users\<username>\AppData\Local\Temp\ddaac8c3-7a95-447f-8a1c-fe31bb2426f9
+  Created unique temp dir2: C:\Users\<username>\AppData\Local\Temp\dir_8b9e6e9a-fe9b-4b44-8382-fc2368dfed68
+  Temp dir1 was deleted
+  Temp dir2 was deleted
+  \endverbatim
+
+  while on Unix it produces:
+  \verbatim
+  Temp path: /tmp/<username>
+  Created unique temp dir1: /tmp/<username>/AMIsXF
+  Created unique temp dir2: /tmp/<username>/dir_KP7119
+  Temp dir1 was deleted
+  Temp dir2 was deleted
+  \endverbatim
+
+  \sa makeDirectory(), getTempPath(), remove()
 */
 std::string vpIoTools::makeTempDirectory(const std::string &dirname)
 {
-#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
+#if defined(WINRT) || !defined(_WIN32) &&                                                                                      \
+    !(defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // not UNIX and not Windows
+  throw(vpIoException(vpIoException::cantCreateDirectory, "makeTempDirectory() is not supported on this platform!"));
+#endif
 
   std::string dirname_cpy = std::string(dirname);
-
   std::string correctEnding = "XXXXXX";
 
   size_t endingLength = correctEnding.length();
@@ -601,13 +750,26 @@ std::string vpIoTools::makeTempDirectory(const std::string &dirname)
                           "Unable to create temp directory '%s'. It should end with XXXXXX.", dirname_cpy.c_str()));
     }
 
-    // If dirname is an existing directory, we create a temp directory inside
+#if defined(_WIN32) && !defined(WINRT)
+    // Remove XXXXXX
+    dirname_cpy = dirname_cpy.substr(0, dirname_cpy.rfind(correctEnding));
+    // Append UUID
+    dirname_cpy = dirname_cpy + getUuid();
+#endif
+
   } else {
+    // If dirname is an existing directory, we create a temp directory inside
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
     if (dirname_cpy.at(dirname_cpy.length() - 1) != '/') {
       dirname_cpy = dirname_cpy + "/";
     }
     dirname_cpy = dirname_cpy + "XXXXXX";
+#elif defined(_WIN32) && !defined(WINRT)
+    dirname_cpy = createFilePath(dirname_cpy, getUuid());
+#endif
   }
+
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
   char *dirname_char = new char[dirname_cpy.length() + 1];
   strcpy(dirname_char, dirname_cpy.c_str());
 
@@ -621,9 +783,9 @@ std::string vpIoTools::makeTempDirectory(const std::string &dirname)
   std::string res(computedDirname);
   delete[] dirname_char;
   return res;
-#elif defined(_WIN32)
-  (void)dirname;
-  throw(vpIoException(vpIoException::cantCreateDirectory, "Unable to create temp directory. Not implemented yet."));
+#elif defined(_WIN32) && !defined(WINRT)
+  makeDirectory(dirname_cpy);
+  return dirname_cpy;
 #endif
 }
 
@@ -761,6 +923,8 @@ bool vpIoTools::copy(const std::string &src, const std::string &dst)
   \param file_or_dir : File name or directory to remove.
 
   \return true if the file or the directory was removed, false otherwise.
+
+  \sa makeDirectory(), makeTempDirectory()
 */
 bool vpIoTools::remove(const std::string &file_or_dir)
 {
@@ -1188,33 +1352,21 @@ void vpIoTools::saveConfigFile(const bool &actuallySave)
 /*!
  Get ViSP images data path. ViSP images data can be installed from Debian or
  Ubuntu \e visp-images-data package. It can be also installed from
- ViSP-images.zip that can be found on http://visp.inria.fr/download page.
+ visp-images-3.x.y.zip that can be found on https://visp.inria.fr/download page.
 
  This function returns the path to the folder that contains the data.
- - It checks first if \e visp-images-data package is installed. In that case
- returns then \e /usr/share/visp-images-data".
- - Then it checks if VISP_INPUT_IMAGE_PATH environment variable that gives the
+ - It checks first if VISP_INPUT_IMAGE_PATH environment variable that gives the
  location of the data is set. In that case returns the content of this
  environment var.
-
- If the path is not found, returns an empty string.
+ - Otherwise it checks if \e visp-images-data binary package (Ubuntu, Debian) is installed.
+ In that case returns then \e /usr/share/visp-images-data".
+ - If the path is not found, returns an empty string.
  */
 std::string vpIoTools::getViSPImagesDataPath()
 {
   std::string data_path;
   std::string file_to_test("mbt/cube.cao");
   std::string filename;
-#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
-  // Test if visp-images-data package is u-installed (Ubuntu and Debian)
-  data_path = "/usr/share/visp-images-data/ViSP-images";
-  filename = data_path + "/" + file_to_test;
-  if (vpIoTools::checkFilename(filename))
-    return data_path;
-  data_path = "/usr/share/visp-images-data/visp-images";
-  filename = data_path + "/" + file_to_test;
-  if (vpIoTools::checkFilename(filename))
-    return data_path;
-#endif
   // Test if VISP_INPUT_IMAGE_PATH env var is set
   try {
     data_path = vpIoTools::getenv("VISP_INPUT_IMAGE_PATH");
@@ -1231,6 +1383,17 @@ std::string vpIoTools::getViSPImagesDataPath()
       return data_path;
   } catch (...) {
   }
+#if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
+  // Test if visp-images-data package is installed (Ubuntu and Debian)
+  data_path = "/usr/share/visp-images-data/ViSP-images";
+  filename = data_path + "/" + file_to_test;
+  if (vpIoTools::checkFilename(filename))
+    return data_path;
+  data_path = "/usr/share/visp-images-data/visp-images";
+  filename = data_path + "/" + file_to_test;
+  if (vpIoTools::checkFilename(filename))
+    return data_path;
+#endif
   data_path = "";
   return data_path;
 }
@@ -1372,6 +1535,67 @@ std::string vpIoTools::getNameWE(const std::string &pathname)
   size_t found = name.find_last_of(".");
   std::string name_we = name.substr(0, found);
   return name_we;
+}
+
+/*!
+  Checks file name format and extracts its index.
+
+  Format must contain substring "%0xd", defining the length of image index.
+  For example, format can be "img%04d.jpg". Then "img0001.jpg" and
+  "img0000.jpg" satisfy it, while "picture001.jpg" and "img001.jpg" don't.
+
+  \param filename : Name from which to extract the index.
+  \param format : Format of the filename.
+  \return Extracted index on success, -1 otherwise.
+
+  The following sample code shows how to use this function:
+  \code
+#include <visp3/core/vpIoTools.h>
+
+int main()
+{
+  std::cout << vpIoTools::getIndex("file-1.txt", "file-%d.txt") << std::endl;
+  std::cout << vpIoTools::getIndex("/tmp/file0040.txt", "/tmp/file%04d.txt") << std::endl;
+  std::cout << vpIoTools::getIndex("file.txt", "file%d.txt") << std::endl;
+  std::cout << vpIoTools::getIndex("file03.txt", "file%02d.txt") << std::endl;
+  std::cout << vpIoTools::getIndex("file-03.txt", "file%02d.txt") << std::endl;
+}
+  \endcode
+  It produces the following output:
+  \code
+1
+40
+-1
+3
+-1
+  \endcode
+*/
+long vpIoTools::getIndex(const std::string &filename, const std::string &format)
+{
+  size_t indexBegin = format.find_last_of('%');
+  size_t indexEnd = format.find_first_of('d', indexBegin);
+  size_t suffixLength = format.length() - indexEnd - 1;
+
+  // Extracting index
+  if (filename.length() <= suffixLength + indexBegin) {
+    return -1;
+  }
+  size_t indexLength = filename.length() - suffixLength - indexBegin;
+  std::string indexSubstr = filename.substr(indexBegin, indexLength);
+  std::istringstream ss(indexSubstr);
+  long index = 0;
+  ss >> index;
+  if (ss.fail() || index < 0 || !ss.eof()) {
+    return -1;
+  }
+
+  // Checking that format with inserted index equals filename
+  char nameByFormat[FILENAME_MAX];
+  sprintf(nameByFormat, format.c_str(), index);
+  if (std::string(nameByFormat) != filename) {
+    return -1;
+  }
+  return index;
 }
 
 /*!

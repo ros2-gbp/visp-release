@@ -29,7 +29,7 @@
 # WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
 # Description:
-# ViSP overall configuration file. 
+# ViSP overall configuration file.
 #
 # Authors:
 # Fabien Spindler
@@ -38,7 +38,7 @@
 
 project(example-pose-estimation)
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.0)
 
 find_package(VISP REQUIRED visp_core visp_blob visp_vision visp_io visp_gui)
 
@@ -54,5 +54,6 @@ foreach(cpp ${example_cpp})
 
   # Add test
   get_filename_component(target ${cpp} NAME_WE)
-  add_test(${target} ${target} -c ${OPTION_TO_DESACTIVE_DISPLAY})
+  # Only if dataset found for isolated build
+  visp_add_test(${target} ${target} -c ${OPTION_TO_DESACTIVE_DISPLAY})
 endforeach()

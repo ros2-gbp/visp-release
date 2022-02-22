@@ -1,6 +1,6 @@
 project(tutorial-visual-servo-ibvs)
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.0)
 
 if(CMAKE_SYSTEM_NAME MATCHES WindowsPhone OR CMAKE_SYSTEM_NAME MATCHES WindowsStore)
   set(WINRT TRUE)
@@ -55,8 +55,8 @@ list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/target_square.pgm" )
 
 if(VISP_HAVE_OGRE)
   # Add specific build flag to turn off warnings coming from libogre and libois 3rd party
-  visp_set_source_file_compile_flag(tutorial-ibvs-4pts-ogre.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
-  visp_set_source_file_compile_flag(tutorial-ibvs-4pts-ogre-tracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy)
+  visp_set_source_file_compile_flag(tutorial-ibvs-4pts-ogre.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
+  visp_set_source_file_compile_flag(tutorial-ibvs-4pts-ogre-tracking.cpp -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-overloaded-virtual -Wno-float-equal -Wno-deprecated-copy -Wno-register)
 endif()
 
 foreach(cpp ${tutorial_cpp})

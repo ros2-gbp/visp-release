@@ -57,10 +57,17 @@ if(USE_PNG)
   add_definitions(${PNG_DEFINITIONS})
 endif()
 
-if(WITH_STBIMAGE)
-  # stb_image is private
-  include_directories(${STBIMAGE_INCLUDE_DIRS})
+# stb_image is private
+include_directories(${STBIMAGE_INCLUDE_DIRS})
+
+if(WITH_CATCH2)
+  # catch2 is private
+  include_directories(${CATCH2_INCLUDE_DIRS})
 endif()
+
+# simdlib is always enabled since it contains fallback code to plain C++ code
+# Simd lib is private
+include_directories(${SIMDLIB_INCLUDE_DIRS})
 
 # OpenCV
 if(USE_OPENCV)
@@ -170,15 +177,16 @@ if(USE_OPENCV)
 endif(USE_OPENCV)
 
 if(ANDROID)
-  vp_add_module(io visp_core)
+  vp_add_module(io visp_core PRIVATE_OPTIONAL ${SIMDLIB_LIBRARIES})
 else()
-  vp_add_module(io visp_core WRAP java)
+  vp_add_module(io visp_core PRIVATE_OPTIONAL ${SIMDLIB_LIBRARIES} WRAP java)
 endif()
 
 vp_glob_module_sources()
 vp_module_include_directories(${opt_incs})
 vp_create_module(${opt_libs})
-vp_add_tests(DEPENDS_ON visp_features)
+vp_add_tests()
 
 vp_set_source_file_compile_flag(src/tools/vpParseArgv.cpp -Wno-strict-overflow)
-
+vp_set_source_file_compile_flag(src/image/vpImageIo.cpp -Wno-missing-field-initializers) # since stb_image_write.h update from v1.13 to v1.16
+vp_set_source_file_compile_flag(src/image/private/vpImageIoStb.cpp -Wno-missing-field-initializers -Wno-strict-overflow)

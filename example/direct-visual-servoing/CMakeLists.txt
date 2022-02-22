@@ -38,7 +38,7 @@
 
 project(example-direct-vvs)
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.0)
 
 find_package(VISP REQUIRED visp_core visp_robot visp_visual_features visp_io visp_gui)
 
@@ -57,6 +57,7 @@ endforeach()
 visp_set_source_file_compile_flag(photometricVisualServoing.cpp -Wno-strict-overflow)
 visp_set_source_file_compile_flag(photometricVisualServoingWithoutVpServo.cpp -Wno-strict-overflow)
 
-add_test(photometricVisualServoing photometricVisualServoing -c -n 20 ${OPTION_TO_DESACTIVE_DISPLAY})
-add_test(photometricVisualServoingWithoutVpServo photometricVisualServoingWithoutVpServo -c -n 20 ${OPTION_TO_DESACTIVE_DISPLAY})
+# Only if dataset found for isolated build
+visp_add_test(photometricVisualServoing photometricVisualServoing -c -n 20 ${OPTION_TO_DESACTIVE_DISPLAY})
+visp_add_test(photometricVisualServoingWithoutVpServo photometricVisualServoingWithoutVpServo -c -n 20 ${OPTION_TO_DESACTIVE_DISPLAY})
 
