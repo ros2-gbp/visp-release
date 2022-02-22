@@ -380,8 +380,11 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
     free(errs);
 
     // if we didn't get at least 4 maxima, we can't fit a quad.
-    if (nmaxima < 4)
+    if (nmaxima < 4){
+        free(maxima);
+        free(maxima_errs);
         return 0;
+    }
 
     // select only the best maxima if we have too many
     int max_nmaxima = td->qtp.max_nmaxima;
@@ -954,7 +957,7 @@ int fit_quad(
 
         area += sqrt(p*(p-length[0])*(p-length[1])*(p-length[2]));
 
-        if (area < tag_width*tag_width) {
+        if (area < 0.95*tag_width*tag_width) {
             res = 0;
             goto finish;
         }
@@ -1484,7 +1487,7 @@ zarray_t* do_gradient_clusters(image_u8_t* threshim, int ts, int y0, int y1, int
     struct uint64_zarray_entry **clustermap = (struct uint64_zarray_entry **)calloc(nclustermap, sizeof(struct uint64_zarray_entry*));
 
     int mem_chunk_size = 2048;
-    struct uint64_zarray_entry** mem_pools = (struct uint64_zarray_entry**)malloc(sizeof(struct uint64_zarray_entry *)*2*nclustermap/mem_chunk_size);
+    struct uint64_zarray_entry** mem_pools = (struct uint64_zarray_entry**)malloc(sizeof(struct uint64_zarray_entry *)*(1 + 2 * nclustermap / mem_chunk_size)); // SmodeTech: avoid memory corruption when nclustermap < mem_chunk_siz
     int mem_pool_idx = 0;
     int mem_pool_loc = 0;
     mem_pools[mem_pool_idx] = (struct uint64_zarray_entry *)calloc(mem_chunk_size, sizeof(struct uint64_zarray_entry));
@@ -1717,10 +1720,10 @@ zarray_t* gradient_clusters(apriltag_detector_t *td, image_u8_t* threshim, int w
     clusters = zarray_create(sizeof(zarray_t*));
     zarray_ensure_capacity(clusters, zarray_size(clusters_list[0]));
     for (int i = 0; i < zarray_size(clusters_list[0]); i++) {
-        struct cluster_hash* h;
-        zarray_get(clusters_list[0], i, &h);
-        zarray_add(clusters, &h->data);
-        free(h);
+        struct cluster_hash* hash;
+        zarray_get(clusters_list[0], i, &hash);
+        zarray_add(clusters, &hash->data);
+        free(hash);
     }
     zarray_destroy(clusters_list[0]);
     free(clusters_list);
@@ -1904,8 +1907,8 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
             float rgb[3];
             int bias = 100;
 
-            for (int i = 0; i < 3; i++)
-                rgb[i] = bias + (random() % (255-bias));
+            for (int j = 0; j < 3; j++)
+                rgb[j] = bias + (random() % (255-bias));
 
             fprintf(f, "%f %f %f setrgbcolor\n", rgb[0]/255.0f, rgb[1]/255.0f, rgb[2]/255.0f);
             fprintf(f, "%.15f %.15f moveto %.15f %.15f lineto %.15f %.15f lineto %.15f %.15f lineto %.15f %.15f lineto stroke\n",

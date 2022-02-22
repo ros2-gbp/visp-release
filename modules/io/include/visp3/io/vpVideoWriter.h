@@ -59,40 +59,40 @@
 
   \ingroup group_io_video
 
-  \brief Class that enables to write easily a video file or a sequence of
-images.
+  \brief Class that enables to write easily a video file or a sequence of images.
 
-  This class has its own implementation to write a sequence of PGM and PPM
-images.
+  This class has its own implementation to write a sequence of PGM and PPM images.
 
   This class may benefit from optional 3rd parties:
   - libpng: If installed this optional 3rd party is used to write a sequence
-of PNG images. Installation instructions are provided here
-https://visp.inria.fr/3rd_png.
+    of PNG images. Installation instructions are provided here
+    https://visp.inria.fr/3rd_png.
   - libjpeg: If installed this optional 3rd party is used to write a sequence
-of JPEG images. Installation instructions are provided here
-https://visp.inria.fr/3rd_jpeg.
+    of JPEG images. Installation instructions are provided here
+    https://visp.inria.fr/3rd_jpeg.
   - OpenCV: If installed this optional 3rd party is used to write a sequence
-of images where images could be in TIFF, BMP, DIB, PBM, RASTER, JPEG2000
-format. If libpng or libjpeg is not installed, OpenCV is also used to consider
-these image formats. OpenCV allows also to consider AVI, MPEG, MPEG4, MOV,
-OGV, WMV, FLV, MKV video formats. Installation instructions are provided here
-https://visp.inria.fr/3rd_opencv.
+    of images where images could be in TIFF, BMP, DIB, PBM, RASTER, JPEG2000
+    format. If libpng or libjpeg is not installed, OpenCV is also used to consider
+    these image formats. OpenCV allows also to consider AVI, MPEG, MPEG4, MOV,
+    OGV, WMV, FLV, MKV video formats. Installation instructions are provided here
+    https://visp.inria.fr/3rd_opencv.
 
   The following example available in tutorial-video-recorder.cpp shows how
-this class can be used to record a video from a camera by default in an mpeg
-file. \include tutorial-video-recorder.cpp
+  this class can be used to record a video from a camera by default in an mpeg
+  file.
+
+  \include tutorial-video-recorder.cpp
 
   The following example shows also how this class can be used to write an
-image sequence. The images are stored in the folder "./image" and are named
-"image0000.jpeg", "image0001.jpeg", "image0002.jpeg", ...
+  image sequence. The images are stored in the folder "./image" and are named
+  "image0000.jpeg", "image0001.jpeg", "image0002.jpeg", ...
 
   \code
   #include <visp3/core/vpConfig.h>
   #include <visp3/io/vpVideoWriter.h>
 
-  int main()
-  {
+int main()
+{
   vpImage<vpRGBa> I;
 
   vpVideoWriter writer;
@@ -113,11 +113,11 @@ image sequence. The images are stored in the folder "./image" and are named
   writer.close();
 
   return 0;
-  }
+ }
   \endcode
 
   The other following example explains how to use the class to write directly
-an mpeg file.
+  an mpeg file.
 
   \code
 #include <visp3/io/vpVideoWriter.h>
@@ -160,9 +160,9 @@ class VISP_EXPORT vpVideoWriter
 {
 private:
 #if VISP_HAVE_OPENCV_VERSION >= 0x020100
-  cv::VideoWriter writer;
-  int fourcc;
-  double framerate;
+  cv::VideoWriter m_writer;
+  int m_fourcc;
+  double m_framerate;
 #endif
   //! Types of available formats
   typedef enum {
@@ -178,26 +178,29 @@ private:
   } vpVideoFormatType;
 
   //! Video's format which has to be writen
-  vpVideoFormatType formatType;
+  vpVideoFormatType m_formatType;
 
-  //! Path to the image sequence
-  char fileName[FILENAME_MAX];
+  //! Path to the video or image sequence
+  std::string m_videoName;
+  std::string m_frameName;
 
   //! Indicates if the path to the image sequence is set.
-  bool initFileName;
+  bool m_initFileName;
 
   //! Indicates if the video is "open".
-  bool isOpen;
+  bool m_isOpen;
 
   //! Count the frame number.
-  unsigned int frameCount;
+  int m_frameCount;
 
   //! The first frame index.
-  unsigned int firstFrame;
+  int m_firstFrame;
 
   //! Size of the frame
-  unsigned int width;
-  unsigned int height;
+  unsigned int m_width;
+  unsigned int m_height;
+
+  int m_frameStep;
 
 public:
   vpVideoWriter();
@@ -210,7 +213,11 @@ public:
 
     \return Returns the current frame index.
   */
-  inline unsigned int getCurrentFrameIndex() const { return frameCount; }
+  inline unsigned int getCurrentFrameIndex() const { return m_frameCount; }
+  /*!
+   * Return the name of the file in which the last frame was saved.
+   */
+  inline std::string getFrameName() const { return m_frameName; }
 
   void open(vpImage<vpRGBa> &I);
   void open(vpImage<unsigned char> &I);
@@ -219,36 +226,40 @@ public:
 
     By default the first frame index is set to 0.
   */
-  inline void resetFrameCounter() { frameCount = firstFrame; }
+  inline void resetFrameCounter() { m_frameCount = m_firstFrame; }
 
   void saveFrame(vpImage<vpRGBa> &I);
   void saveFrame(vpImage<unsigned char> &I);
 
 #if VISP_HAVE_OPENCV_VERSION >= 0x020100
-  inline void setCodec(const int fourcc_codec) { this->fourcc = fourcc_codec; }
+  inline void setCodec(const int fourcc_codec) { m_fourcc = fourcc_codec; }
 #endif
 
-  void setFileName(const char *filename);
   void setFileName(const std::string &filename);
-  /*!
-    Enables to set the first frame index.
+  void setFirstFrameIndex(int first_frame);
 
-    \param first_frame : The first frame index.
-  */
-  inline void setFirstFrameIndex(unsigned int first_frame) { this->firstFrame = first_frame; }
+  /*!
+   * Sets the framerate in Hz of the video when encoding.
+   *
+   * \param framerate : The expected framerate.
+   *
+   * By default the framerate is set to 25Hz.
+   *
+   * \note Framerate can only be set when OpenCV > 2.1.0.
+   */
 #if VISP_HAVE_OPENCV_VERSION >= 0x020100
-  /*!
-      Sets the framerate in Hz of the video when encoding.
-
-      \param frame_rate : the expected framerate.
-
-      By default the framerate is set to 25Hz.
-    */
-  inline void setFramerate(const double frame_rate) { this->framerate = frame_rate; }
+  inline void setFramerate(const double framerate) { m_framerate = framerate; }
+#else
+  inline void setFramerate(const double dummy) { (void)dummy; }
 #endif
+  /*!
+   * Set frame step between 2 successive images when a sequence of images is considered.
+   * \param frame_step : Step between 2 successive images. The default value is 1.
+   */
+  inline void setFrameStep(const int frame_step) { m_frameStep = frame_step; }
 
 private:
-  vpVideoFormatType getFormat(const char *filename);
+  vpVideoFormatType getFormat(const std::string &filename);
   static std::string getExtension(const std::string &filename);
 };
 

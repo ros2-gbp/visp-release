@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2021 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -230,6 +230,7 @@ set(VISP_HAVE_LIBFREENECT_OLD "@VISP_HAVE_LIBFREENECT_OLD@")
 set(VISP_HAVE_LIBUSB_1       "@VISP_HAVE_LIBUSB_1@")
 set(VISP_HAVE_MKL            "@VISP_HAVE_MKL@")
 set(VISP_HAVE_NETLIB         "@VISP_HAVE_NETLIB@")
+set(VISP_HAVE_OCCIPITAL_STRUCTURE "@VISP_HAVE_OCCIPITAL_STRUCTURE@")
 set(VISP_HAVE_OGRE           "@VISP_HAVE_OGRE@")
 set(VISP_HAVE_OIS            "@VISP_HAVE_OIS@")
 set(VISP_HAVE_OPENBLAS       "@VISP_HAVE_OPENBLAS@")
@@ -255,6 +256,7 @@ set(VISP_HAVE_SOQT           "@VISP_HAVE_SOQT@")
 set(VISP_HAVE_SOWIN          "@VISP_HAVE_SOWIN@")
 set(VISP_HAVE_SOXT           "@VISP_HAVE_SOXT@")
 set(VISP_HAVE_TAKKTILE2      "@VISP_HAVE_TAKKTILE2@")
+set(VISP_HAVE_TENSORRT       "@VISP_HAVE_TENSORRT@")
 set(VISP_HAVE_UEYE           "@VISP_HAVE_UEYE@")
 set(VISP_HAVE_V4L2           "@VISP_HAVE_V4L2@")
 set(VISP_HAVE_VIPER650       "@VISP_HAVE_VIPER650@")
@@ -364,6 +366,41 @@ macro(visp_add_dependency file_cpp dependency)
     endif()
   endif()
 endmacro()
+
+function(visp_find_dataset found)
+  set(file_to_test "mbt/cube.cao")
+  set(_found FALSE)
+
+  if(DEFINED ENV{VISP_INPUT_IMAGE_PATH})
+    if(EXISTS "$ENV{VISP_INPUT_IMAGE_PATH}/${file_to_test}")
+      set(_found TRUE)
+    elseif(EXISTS "$ENV{VISP_INPUT_IMAGE_PATH}/ViSP-images/${file_to_test}")
+      set(_found TRUE)
+    elseif(EXISTS "$ENV{VISP_INPUT_IMAGE_PATH}/visp-images/${file_to_test}")
+      set(_found TRUE)
+    endif()
+  endif()
+
+  if(NOT _found)
+    if(EXISTS "/usr/share/visp-images-data/ViSP-images/${file_to_test}")
+      set(_found TRUE)
+    elseif(EXISTS "/usr/share/visp-images-data/visp-images/${file_to_test}")
+      set(_found TRUE)
+    endif()
+  endif()
+
+  # Export return values
+  set(${found} "${_found}" CACHE INTERNAL "")
+endfunction(visp_find_dataset)
+
+# Add test only if ViSP dataset found
+macro(visp_add_test)
+  visp_find_dataset(DATASET_FOUND)
+  if(DATASET_FOUND)
+    add_test(${ARGN})
+  endif()
+endmacro()
+
 
 # Copy the data files to the same location than the target associated to the cpp files
 # Since CMake 3.0.0 policy CMP0026 was introduced to disallow location property on target.
