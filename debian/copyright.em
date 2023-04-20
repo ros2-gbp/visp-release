@@ -1,9 +1,11 @@
 Format: Bloom subset of https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: visp
-Upstream-Contact: https://github.com/lagadic/visp-release/issues
-Source: https://github.com/lagadic/visp-release
+Upstream-Name: @(Name)
+@[if BugTracker]Upstream-Contact: @(BugTracker)@\n@[end if]@
+@[if Source]Source: @(Source)@\n@[end if]@
+@[for License, Text in Licenses]@
 
 Files: See file headers in repository for details
 Copyright: See package copyright in source code for details
-License: GPLv2
- See repository for full license text
+License: @(License)
+ @(Text)
+@[end for]@
