@@ -345,7 +345,8 @@ tracks:
     patches: rolling
     release_inc: '2'
     release_repo_url: null
-    release_tag: :{ask}
+    release_tag: v3.5.0
+    release_tag_saved: :{ask}
     ros_distro: rolling
     vcs_type: git
     vcs_uri: https://github.com/lagadic/visp.git
