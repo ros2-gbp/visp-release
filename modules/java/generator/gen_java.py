@@ -698,17 +698,21 @@ class JavaWrapperGenerator(object):
 
             # Add 3rd party specific tags
             # If Lapack, Eigen3 or OpenCV are missing, don't include them to prevent compilation error
-            if fi.name in ['detByLULapack', 'svdLapack', 'inverseByLULapack', 'pseudoInverseLapack', 'inverseByLapack', 'inverseByCholeskyLapack', 'inverseByQRLapack']:
+            if re.search("Lapack", fi.name, re.IGNORECASE):
                 c_prologue.append('#if defined(VISP_HAVE_LAPACK)')
 
-            if fi.name in ['detByLUEigen3', 'svdEigen3', 'inverseByLUEigen3', 'pseudoInverseEigen3', 'inverseByEigen3']:
+            if re.search("Eigen3", fi.name, re.IGNORECASE):
                 c_prologue.append('#if defined(VISP_HAVE_EIGEN3)')
 
-            if fi.name in ['detByLUOpenCV', 'svdOpenCV', 'inverseByLUOpenCV', 'pseudoInverseOpenCV', 'inverseByOpenCV', 'inverseByCholeskyOpenCV']:
-                c_prologue.append('#if (VISP_HAVE_OPENCV_VERSION >= 0x020101)')
+            if re.search("OpenCV", fi.name, re.IGNORECASE):
+                c_prologue.append('#if defined (VISP_HAVE_OPENCV)')
 
-            if fi.name in ['detByLUGsl', 'svdGsl', 'inverseByLUGsl', 'pseudoInverseGsl', 'inverseByGsl', 'inverseByCholeskyGsl', 'inverseByQRGsl']:
+            if re.search("Gsl", fi.name, re.IGNORECASE):
                 c_prologue.append('#if defined(VISP_BUILD_DEPRECATED_FUNCTIONS) && defined(VISP_HAVE_LAPACK)')
+
+            if re.search("json", fi.name, re.IGNORECASE) or fi.name in ['saveConfigFile']:
+                c_prologue.append('#if defined(VISP_HAVE_NLOHMANN_JSON)')
+
 
             if type_dict[fi.ctype]["jni_type"] == "jdoubleArray" and type_dict[fi.ctype]["suffix"] != "[D":
                 fields = type_dict[fi.ctype]["jn_args"]
@@ -751,6 +755,8 @@ class JavaWrapperGenerator(object):
                             c_epilogue.append("%(t)s_to_Mat( %(n)s, %(n)s_mat );" % {"n": a.name, "t": a.ctype})
                     elif type_dict[a.ctype]["v_type"] in ("std::vector<double>"):
                         c_prologue.append("std::vector<double> v_ = List_to_vector_double(env, v);")
+                    elif type_dict[a.ctype]["v_type"] in ("std::vector<float>"):
+                        c_prologue.append("std::vector<float> v_ = List_to_vector_float(env, v);")
                     else:  # pass as list
                         jn_args.append(ArgInfo([a.ctype, a.name, "", [], ""]))
                         jni_args.append(ArgInfo([a.ctype, "%s_list" % a.name, "", [], ""]))
@@ -961,7 +967,7 @@ class JavaWrapperGenerator(object):
                 else:
                     cvname = ("me->" if not self.isSmartClass(ci) else "(*me)->") + name
                     c_prologue.append( \
-                        "%(cls)s* me = (%(cls)s*) self; //TODO: check for NULL" \
+                        "%(cls)s* me = (%(cls)s*) self; //TODO: check for nullptr" \
                         % {"cls": reverseCamelCase(self.smartWrap(ci, fi.fullClass(isCPP=True)))} \
                         )
             cvargs = []
@@ -990,16 +996,19 @@ class JavaWrapperGenerator(object):
 
             # Add 3rd party specific tags
             # If Lapack, Eigen3 or OpenCV are missing, don't include them to prevent compilation error
-            if fi.name in ['detByLULapack', 'svdLapack', 'inverseByLULapack', 'pseudoInverseLapack', 'inverseByLapack', 'inverseByCholeskyLapack', 'inverseByQRLapack']:
+            if re.search("Lapack", fi.name, re.IGNORECASE):
                 ret += '\n    #endif'
 
-            if fi.name in ['detByLUEigen3', 'svdEigen3', 'inverseByLUEigen3', 'pseudoInverseEigen3', 'inverseByEigen3']:
+            if re.search("Eigen3", fi.name, re.IGNORECASE):
                 ret += '\n    #endif'
 
-            if fi.name in ['detByLUOpenCV', 'svdOpenCV', 'inverseByLUOpenCV', 'pseudoInverseOpenCV', 'inverseByOpenCV', 'inverseByCholeskyOpenCV']:
+            if re.search("OpenCV", fi.name, re.IGNORECASE):
                 ret += '\n    #endif'
 
-            if fi.name in ['detByLUGsl', 'svdGsl', 'inverseByLUGsl', 'pseudoInverseGsl', 'inverseByGsl', 'inverseByCholeskyGsl', 'inverseByQRGsl']:
+            if re.search("Gsl", fi.name, re.IGNORECASE):
+                ret += '\n    #endif'
+
+            if re.search("json", fi.name, re.IGNORECASE) or fi.name in ['saveConfigFile']:
                 ret += '\n    #endif'
 
             rtype = type_dict[fi.ctype].get("jni_type", "jdoubleArray")
@@ -1128,7 +1137,7 @@ JNIEXPORT jstring JNICALL Java_org_visp_%(module)s_%(j_cls)s_toString(JNIEnv*, j
 JNIEXPORT jstring JNICALL Java_org_visp_%(module)s_%(j_cls)s_toString
   (JNIEnv* env, jclass, jlong self)
 {
-  %(cls)s* me = (%(cls)s*) self; //TODO: check for NULL
+  %(cls)s* me = (%(cls)s*) self; //TODO: check for nullptr
   std::stringstream ss;
   ss << *me;
   return env->NewStringUTF(ss.str().c_str());
@@ -1140,13 +1149,15 @@ JNIEXPORT jstring JNICALL Java_org_visp_%(module)s_%(j_cls)s_toString
 
         if ci.name != 'VpImgproc' and ci.name != self.Module or ci.base:
             # finalize()
-            ci.j_code.write(
-                """
-    @Override
-    protected void finalize() throws Throwable {
-        delete(nativeObj);
-    }
-                """)
+            # Note 2023.10.27 warning: [removal] finalize() in Object has been deprecated and marked for removal
+            # Comment for now
+#            ci.j_code.write(
+#                """
+#    @Override
+#    protected void finalize() throws Throwable {
+#        delete(nativeObj);
+#    }
+#                """)
 
             ci.jn_code.write(
                 """

@@ -1,32 +1,23 @@
 //! \example tutorial-event-keyboard.cpp
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayD3D.h>
+#include <visp3/core/vpConfig.h>
+#include <visp3/gui/vpDisplayFactory.h>
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 int main()
 {
+#if defined(VISP_HAVE_DISPLAY)
   vpImage<unsigned char> I(240, 320); // Create a black image
-#if defined(VISP_HAVE_X11)
-  vpDisplay *d = new vpDisplayX;
-#elif defined(VISP_HAVE_GTK)
-  vpDisplay *d = new vpDisplayGTK;
-#elif defined(VISP_HAVE_GDI)
-  vpDisplay *d = new vpDisplayGDI;
-#elif defined(VISP_HAVE_D3D9)
-  vpDisplay *d = new vpDisplayD3D;
-#elif defined(VISP_HAVE_OPENCV)
-  vpDisplay *d = new vpDisplayOpenCV;
+
+  // Initialize the display with the image I. Display and image are now linked together
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  std::shared_ptr<vpDisplay> d = vpDisplayFactory::createDisplay(I, -1, -1, "Keyboard event example", vpDisplay::SCALE_AUTO);
 #else
-  std::cout << "Sorry, no video device is available" << std::endl;
-  return -1;
+  vpDisplay *d = vpDisplayFactory::allocateDisplay(I, -1, -1, "Keyboard event example", vpDisplay::SCALE_AUTO);
 #endif
-  // Initialize the display with the image I. Display and image are
-  // now link together.
-#ifdef VISP_HAVE_DISPLAY
-  d->init(I);
-#endif
+
   // Set the display background with image I content
   vpDisplay::display(I);
   // Flush the foreground and background display
@@ -43,11 +34,18 @@ int main()
     bool event = vpDisplay::getKeyboardEvent(I, &key[0], false);
     if (event) {
       std::cout << "Key detected: " << key << std::endl;
-      cpt_event ++;
+      cpt_event++;
     }
     vpTime::wait(5); // wait 5 ms
-  } while(cpt_event < 5);
-#ifdef VISP_HAVE_DISPLAY
+  } while (cpt_event < 5);
+
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
   delete d;
 #endif
+
+#else
+  std::cout << "No gui available to display an image..." << std::endl;
+#endif
+
+  return EXIT_SUCCESS;
 }

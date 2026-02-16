@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,31 +29,26 @@
  *
  * Description:
  * Test vpXmlParserRectOriented parse / save.
- *
- *****************************************************************************/
+ */
 
 /*!
-  \file testXmlParserRectOriented.cpp
+  \example testXmlParserRectOriented.cpp
 
   Test vpXmlParserRectOriented parse / save.
 */
 
-#include <visp3/core/vpXmlParserRectOriented.h>
 #include <visp3/core/vpIoTools.h>
+#include <visp3/core/vpXmlParserRectOriented.h>
 
 int main()
 {
-#if defined(_WIN32)
-  std::string tmp_dir = "C:/temp/";
-#else
-  std::string tmp_dir = "/tmp/";
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
 #endif
+#if defined(VISP_HAVE_PUGIXML)
 
-  // Get the user login name
-  std::string username;
-  vpIoTools::getUserName(username);
+  std::string tmp_dir = vpIoTools::getTempPath() + "/test_xml_parser_rect_oriented/";
 
-  tmp_dir += username + "/test_xml_parser_rect_oriented/";
   vpIoTools::remove(tmp_dir);
   std::cout << "Create: " << tmp_dir << std::endl;
   vpIoTools::makeDirectory(tmp_dir);
@@ -80,11 +74,12 @@ int main()
         !vpMath::equal(rect_oriented.getHeight(), rect_oriented_read.getHeight(), eps) ||
         !vpMath::equal(rect_oriented.getOrientation(), rect_oriented_read.getOrientation(), eps)) {
       std::cerr << "Issue when parsing XML file: " << filename << std::endl;
-      return  EXIT_FAILURE;
+      return EXIT_FAILURE;
     }
   }
 
   vpIoTools::remove(tmp_dir);
+#endif
 
   return EXIT_SUCCESS;
 }

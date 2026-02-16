@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Test various determinant computation methods.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testMatrixDeterminant.cpp
@@ -48,13 +43,33 @@
 // List of allowed command line options
 #define GETOPTARGS "cdn:i:pf:R:C:vh"
 
-/*!
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
+void usage(const char *name, const char *badparam);
+bool getOptions(int argc, const char **argv, unsigned int &nb_matrices, unsigned int &nb_iterations,
+                bool &use_plot_file, std::string &plotfile, unsigned int &nbrows, unsigned int &nbcols, bool &verbose);
+vpMatrix make_random_matrix(unsigned int nbrows, unsigned int nbcols);
+void create_bench(unsigned int nb_matrices, unsigned int nb_rows, unsigned int nb_cols, bool verbose,
+                  std::vector<vpMatrix> &bench);
+void test_det_default(bool verbose, const std::vector<vpMatrix> &bench, double &time, std::vector<double> &result);
+void save_time(const std::string &method, bool verbose, bool use_plot_file, std::ofstream &of, double time);
+#if defined(VISP_HAVE_EIGEN3)
+void test_det_eigen3(bool verbose, const std::vector<vpMatrix> &bench, double &time, std::vector<double> &result);
+#endif
+#if defined(VISP_HAVE_LAPACK)
+void test_det_lapack(bool verbose, const std::vector<vpMatrix> &bench, double &time, std::vector<double> &result);
+#endif
+#if defined(VISP_HAVE_OPENCV)
+void test_det_opencv(bool verbose, const std::vector<vpMatrix> &bench, double &time, std::vector<double> &result);
+#endif
+
+/*!
   Print the program options.
 
   \param name : Program name.
   \param badparam : Bad parameter name.
-
  */
 void usage(const char *name, const char *badparam)
 {
@@ -66,7 +81,8 @@ Outputs a comparison of these methods.\n\
 SYNOPSIS\n\
   %s [-n <number of matrices>] [-f <plot filename>]\n\
      [-R <number of rows>] [-C <number of columns>]\n\
-     [-i <number of iterations>] [-p] [-h]\n", name);
+     [-i <number of iterations>] [-p] [-h]\n",
+          name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               Default\n\
@@ -120,14 +136,13 @@ bool getOptions(int argc, const char **argv, unsigned int &nb_matrices, unsigned
 
     switch (c) {
     case 'h':
-      usage(argv[0], NULL);
+      usage(argv[0], nullptr);
       return false;
-      break;
     case 'n':
-      nb_matrices = (unsigned int)atoi(optarg_);
+      nb_matrices = static_cast<unsigned int>(atoi(optarg_));
       break;
     case 'i':
-      nb_iterations = (unsigned int)atoi(optarg_);
+      nb_iterations = static_cast<unsigned int>(atoi(optarg_));
       break;
     case 'f':
       plotfile = optarg_;
@@ -137,10 +152,10 @@ bool getOptions(int argc, const char **argv, unsigned int &nb_matrices, unsigned
       use_plot_file = true;
       break;
     case 'R':
-      nbrows = (unsigned int)atoi(optarg_);
+      nbrows = static_cast<unsigned int>(atoi(optarg_));
       break;
     case 'C':
-      nbcols = (unsigned int)atoi(optarg_);
+      nbcols = static_cast<unsigned int>(atoi(optarg_));
       break;
     case 'v':
       verbose = true;
@@ -153,13 +168,12 @@ bool getOptions(int argc, const char **argv, unsigned int &nb_matrices, unsigned
     default:
       usage(argv[0], optarg_);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL);
+    usage(argv[0], nullptr);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -175,7 +189,7 @@ vpMatrix make_random_matrix(unsigned int nbrows, unsigned int nbcols)
 
   for (unsigned int i = 0; i < A.getRows(); i++)
     for (unsigned int j = 0; j < A.getCols(); j++)
-      A[i][j] = (double)rand() / (double)RAND_MAX;
+      A[i][j] = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   return A;
 }
 
@@ -243,7 +257,7 @@ void test_det_lapack(bool verbose, const std::vector<vpMatrix> &bench, double &t
 }
 #endif
 
-#if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
+#if defined(VISP_HAVE_OPENCV)
 void test_det_opencv(bool verbose, const std::vector<vpMatrix> &bench, double &time, std::vector<double> &result)
 {
   if (verbose)
@@ -273,7 +287,7 @@ void save_time(const std::string &method, bool verbose, bool use_plot_file, std:
 int main(int argc, const char *argv[])
 {
   try {
-#if defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_LAPACK) || (VISP_HAVE_OPENCV_VERSION >= 0x020101)
+#if defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_OPENCV)
     unsigned int nb_matrices = 1000;
     unsigned int nb_iterations = 10;
     unsigned int nb_rows = 6;
@@ -286,28 +300,28 @@ int main(int argc, const char *argv[])
     // Read the command line options
     if (getOptions(argc, argv, nb_matrices, nb_iterations, use_plot_file, plotfile, nb_rows, nb_cols, verbose) ==
         false) {
-      exit(-1);
+      return EXIT_FAILURE;
     }
 
     if (use_plot_file) {
       of.open(plotfile.c_str());
       of << "iter"
-         << "\t";
+        << "\t";
 
       of << "\"Determinant default\""
-         << "\t";
+        << "\t";
 
 #if defined(VISP_HAVE_LAPACK)
       of << "\"Determinant Lapack\""
-         << "\t";
+        << "\t";
 #endif
 #if defined(VISP_HAVE_EIGEN3)
       of << "\"Determinant Eigen3\""
-         << "\t";
+        << "\t";
 #endif
-#if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
+#if defined(VISP_HAVE_OPENCV)
       of << "\"Determinant OpenCV\""
-         << "\t";
+        << "\t";
 #endif
       of << std::endl;
     }
@@ -338,7 +352,7 @@ int main(int argc, const char *argv[])
       save_time("Determinant by Eigen3: ", verbose, use_plot_file, of, time);
 #endif
 
-#if (VISP_HAVE_OPENCV_VERSION >= 0x020101)
+#if defined(VISP_HAVE_OPENCV)
       std::vector<double> result_opencv;
       test_det_opencv(verbose, bench, time, result_opencv);
       save_time("Determinant by OpenCV: ", verbose, use_plot_file, of, time);
@@ -347,22 +361,22 @@ int main(int argc, const char *argv[])
       if (use_plot_file)
         of << std::endl;
 
-#if defined(VISP_HAVE_LAPACK) && (VISP_HAVE_OPENCV_VERSION >= 0x020101)
+#if defined(VISP_HAVE_LAPACK) && defined(VISP_HAVE_OPENCV)
       // Compare results
       for (unsigned int i = 0; i < bench.size(); i++) {
         if (std::fabs(result_lapack[i] - result_opencv[i]) > 1e-6) {
           std::cout << "Determinant differ between Lapack and OpenCV: " << result_lapack[i] << " " << result_opencv[i]
-                    << std::endl;
+            << std::endl;
           ret = EXIT_FAILURE;
         }
       }
 #endif
-#if defined(VISP_HAVE_EIGEN3) && (VISP_HAVE_OPENCV_VERSION >= 0x020101)
+#if defined(VISP_HAVE_EIGEN3) && defined(VISP_HAVE_OPENCV)
       // Compare results
       for (unsigned int i = 0; i < bench.size(); i++) {
         if (std::fabs(result_eigen3[i] - result_opencv[i]) > 1e-6) {
           std::cout << "Determinant differ between Eigen3 and OpenCV: " << result_eigen3[i] << " " << result_opencv[i]
-                    << std::endl;
+            << std::endl;
           ret = EXIT_FAILURE;
         }
       }
@@ -372,7 +386,7 @@ int main(int argc, const char *argv[])
       for (unsigned int i = 0; i < bench.size(); i++) {
         if (std::fabs(result_eigen3[i] - result_lapack[i]) > 1e-6) {
           std::cout << "Determinant differ between Eigen3 and Lapack: " << result_eigen3[i] << " " << result_lapack[i]
-                    << std::endl;
+            << std::endl;
           ret = EXIT_FAILURE;
         }
       }
@@ -385,7 +399,8 @@ int main(int argc, const char *argv[])
 
     if (ret == EXIT_SUCCESS) {
       std::cout << "Test succeed" << std::endl;
-    } else {
+    }
+    else {
       std::cout << "Test failed" << std::endl;
     }
 
@@ -393,11 +408,11 @@ int main(int argc, const char *argv[])
 #else
     (void)argc;
     (void)argv;
-    std::cout << "Test does nothing since you dont't have Lapack, Eigen3 or OpenCV 3rd party"
-              << std::endl;
+    std::cout << "Test does nothing since you dont't have Lapack, Eigen3 or OpenCV 3rd party" << std::endl;
     return EXIT_SUCCESS;
 #endif
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e.getStringMessage() << std::endl;
     return EXIT_FAILURE;
   }

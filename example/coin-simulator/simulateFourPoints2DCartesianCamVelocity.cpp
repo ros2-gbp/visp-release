@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,12 +29,7 @@
  *
  * Description:
  * Simulation of a visual servoing with visualization.
- *
- * Authors:
- * Eric Marchand
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \file simulateFourPoints2DCartesianCamVelocity.cpp
@@ -70,6 +64,10 @@
 #define GETOPTARGS "di:h"
 #define SAVE 0
 
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+
 /*!
 
 Print the program options.
@@ -85,7 +83,8 @@ void usage(const char *name, const char *badparam, std::string ipath)
 Simulation Servo 4points.\n\
           \n\
 SYNOPSIS\n\
-  %s [-i <input image path>] [-d] [-h]\n", name);
+  %s [-i <input image path>] [-d] [-h]\n",
+          name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               Default\n\
@@ -103,7 +102,8 @@ OPTIONS:                                               Default\n\
      using the task manager under Windows.\n\
                   \n\
   -h\n\
-     Print the help.\n\n", ipath.c_str());
+     Print the help.\n\n",
+          ipath.c_str());
 
   if (badparam)
     fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
@@ -138,20 +138,18 @@ bool getOptions(int argc, const char **argv, std::string &ipath, bool &display)
       display = false;
       break;
     case 'h':
-      usage(argv[0], NULL, ipath);
+      usage(argv[0], nullptr, ipath);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg, ipath);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL, ipath);
+    usage(argv[0], nullptr, ipath);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg << std::endl << std::endl;
     return false;
@@ -281,10 +279,10 @@ static void *mainLoop(void *_simu)
 
     if (SAVE == 1) {
       char name[FILENAME_MAX];
-      sprintf(name, "/tmp/image.%04u.external.png", iter);
+      snprintf(name, FILENAME_MAX, "/tmp/image.%04u.external.png", iter);
       std::cout << name << std::endl;
       simu->write(name);
-      sprintf(name, "/tmp/image.%04u.internal.png", iter);
+      snprintf(name, FILENAME_MAX, "/tmp/image.%04u.internal.png", iter);
       simu->write(name);
     }
 
@@ -295,7 +293,7 @@ static void *mainLoop(void *_simu)
 
   simu->closeMainApplication();
 
-  void *a = NULL;
+  void *a = nullptr;
   return a;
 }
 
@@ -318,7 +316,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, opt_ipath, opt_display) == false) {
-      exit(-1);
+      return EXIT_FAILURE;
     }
 
     // Get the option values
@@ -326,25 +324,25 @@ int main(int argc, const char **argv)
       ipath = opt_ipath;
 
     // Compare ipath and env_ipath. If they differ, we take into account
-    // the input path comming from the command line option
+    // the input path coming from the command line option
     if (!opt_ipath.empty() && !env_ipath.empty()) {
       if (ipath != env_ipath) {
         std::cout << std::endl << "WARNING: " << std::endl;
         std::cout << "  Since -i <visp image path=" << ipath << "> "
-                  << "  is different from VISP_IMAGE_PATH=" << env_ipath << std::endl
-                  << "  we skip the environment variable." << std::endl;
+          << "  is different from VISP_IMAGE_PATH=" << env_ipath << std::endl
+          << "  we skip the environment variable." << std::endl;
       }
     }
 
     // Test if an input path is set
     if (opt_ipath.empty() && env_ipath.empty()) {
-      usage(argv[0], NULL, ipath);
+      usage(argv[0], nullptr, ipath);
       std::cerr << std::endl << "ERROR:" << std::endl;
       std::cerr << "  Use -i <visp image path> option or set VISP_INPUT_IMAGE_PATH " << std::endl
-                << "  environment variable to specify the location of the " << std::endl
-                << "  image path where test images are located." << std::endl
-                << std::endl;
-      exit(-1);
+        << "  environment variable to specify the location of the " << std::endl
+        << "  image path where test images are located." << std::endl
+        << std::endl;
+      return EXIT_FAILURE;
     }
 
     vpCameraParameters cam;
@@ -370,7 +368,8 @@ int main(int argc, const char **argv)
       simu.mainLoop();
     }
     return EXIT_SUCCESS;
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return EXIT_FAILURE;
   }
@@ -381,7 +380,9 @@ int main()
 {
   std::cout << "You do not have Coin3D and SoQT or SoWin or SoXt functionalities enabled..." << std::endl;
   std::cout << "Tip:" << std::endl;
-  std::cout << "- Install Coin3D and SoQT or SoWin or SoXt, configure ViSP again using cmake and build again this example" << std::endl;
+  std::cout
+    << "- Install Coin3D and SoQT or SoWin or SoXt, configure ViSP again using cmake and build again this example"
+    << std::endl;
   return EXIT_SUCCESS;
 }
 #endif

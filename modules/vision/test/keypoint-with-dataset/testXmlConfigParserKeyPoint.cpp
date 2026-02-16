@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,20 +29,24 @@
  *
  * Description:
  * Test vpXmlConfigParserKeyPoint parse / save.
- *
- *****************************************************************************/
+ */
 
 /*!
-  \file testXmlConfigParserKeyPoint.cpp
+  \example testXmlConfigParserKeyPoint.cpp
 
   Test vpXmlConfigParserKeyPoint parse / save.
 */
 
-#include <visp3/vision/vpXmlConfigParserKeyPoint.h>
 #include <visp3/core/vpIoTools.h>
+#include <visp3/vision/vpXmlConfigParserKeyPoint.h>
 
 int main()
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
+
+#if defined(VISP_HAVE_PUGIXML)
   std::string visp_images_dir = vpIoTools::getViSPImagesDataPath();
   if (vpIoTools::checkDirectory(visp_images_dir + "/xml")) {
     double eps = std::numeric_limits<double>::epsilon();
@@ -52,16 +55,12 @@ int main()
       vpXmlConfigParserKeyPoint xml;
       xml.parse(filename);
 
-      if (xml.getDetectorName() != "FAST" ||
-          xml.getExtractorName() != "ORB" ||
+      if (xml.getDetectorName() != "FAST" || xml.getExtractorName() != "ORB" ||
           xml.getMatcherName() != "BruteForce-Hamming" ||
           xml.getMatchingMethod() != vpXmlConfigParserKeyPoint::ratioDistanceThreshold ||
-          !vpMath::equal(xml.getMatchingRatioThreshold(), 0.8, eps) ||
-          !xml.getUseRansacVVSPoseEstimation() ||
-          !xml.getUseRansacConsensusPercentage() ||
-          !vpMath::equal(xml.getRansacConsensusPercentage(), 20.0, eps) ||
-          xml.getNbRansacIterations() != 200 ||
-          !vpMath::equal(xml.getRansacThreshold(), 0.005, eps)) {
+          !vpMath::equal(xml.getMatchingRatioThreshold(), 0.8, eps) || !xml.getUseRansacVVSPoseEstimation() ||
+          !xml.getUseRansacConsensusPercentage() || !vpMath::equal(xml.getRansacConsensusPercentage(), 20.0, eps) ||
+          xml.getNbRansacIterations() != 200 || !vpMath::equal(xml.getRansacThreshold(), 0.005, eps)) {
         std::cerr << "Issue when parsing xml: " << filename << std::endl;
         return EXIT_FAILURE;
       }
@@ -72,21 +71,16 @@ int main()
       vpXmlConfigParserKeyPoint xml;
       xml.parse(filename);
 
-      if (xml.getDetectorName() != "SIFT" ||
-          xml.getExtractorName() != "SIFT" ||
-          xml.getMatcherName() != "BruteForce" ||
+      if (xml.getDetectorName() != "SIFT" || xml.getExtractorName() != "SIFT" || xml.getMatcherName() != "BruteForce" ||
           xml.getMatchingMethod() != vpXmlConfigParserKeyPoint::ratioDistanceThreshold ||
-          !vpMath::equal(xml.getMatchingRatioThreshold(), 0.8, eps) ||
-          !xml.getUseRansacVVSPoseEstimation() ||
-          !xml.getUseRansacConsensusPercentage() ||
-          !vpMath::equal(xml.getRansacConsensusPercentage(), 20.0, eps) ||
-          xml.getNbRansacIterations() != 200 ||
-          !vpMath::equal(xml.getRansacThreshold(), 0.005, eps)) {
+          !vpMath::equal(xml.getMatchingRatioThreshold(), 0.8, eps) || !xml.getUseRansacVVSPoseEstimation() ||
+          !xml.getUseRansacConsensusPercentage() || !vpMath::equal(xml.getRansacConsensusPercentage(), 20.0, eps) ||
+          xml.getNbRansacIterations() != 200 || !vpMath::equal(xml.getRansacThreshold(), 0.005, eps)) {
         std::cerr << "Issue when parsing xml: " << filename << std::endl;
         return EXIT_FAILURE;
       }
     }
   }
-
+#endif
   return EXIT_SUCCESS;
 }

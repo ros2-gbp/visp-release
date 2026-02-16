@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,9 +33,7 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 /*!
  \file vpTemplateTrackerWarpAffine.h
  \brief Affine warping function: w(X)=AX+b with: A=[[1+p0, p2], [p1, 1+p3]]
@@ -46,8 +43,10 @@
 #ifndef vpTemplateTrackerWarpAffine_hh
 #define vpTemplateTrackerWarpAffine_hh
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/tt/vpTemplateTrackerWarp.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpTemplateTrackerWarpAffine
   \ingroup group_tt_warp
@@ -61,9 +60,15 @@
   \right]
   \f]
 
-  We recall that u axis is the image horizontal axis, and v axis is the image vertical axis. A point (u,v) with coordinates
-  (0,0) is located in the top left image corner.
+  We recall that u axis is the image horizontal axis, and v axis is the image vertical axis. A point (u,v) with
+  coordinates (0,0) is located in the top left image corner.
 
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in the Template Tracker  (TT), you may have a look at:</span><br>
+
+  - \ref tutorial-tracking-tt
 */
 class VISP_EXPORT vpTemplateTrackerWarpAffine : public vpTemplateTrackerWarp
 {
@@ -71,8 +76,8 @@ public:
   vpTemplateTrackerWarpAffine();
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-  void computeCoeff(const vpColVector &) {}
-  void computeDenom(vpColVector &, const vpColVector &) {}
+  void computeCoeff(const vpColVector &) { }
+  void computeDenom(vpColVector &, const vpColVector &) { }
 #endif
 
   void dWarp(const vpColVector &X, const vpColVector &, const vpColVector &, vpMatrix &dM);
@@ -97,4 +102,5 @@ public:
   void warpX(const int &v1, const int &u1, double &v2, double &u2, const vpColVector &p);
   void warpXInv(const vpColVector &X1, vpColVector &X2, const vpColVector &p);
 };
+END_VISP_NAMESPACE
 #endif

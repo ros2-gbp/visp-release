@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,25 +33,21 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #include <visp3/tt/vpTemplateTrackerWarpRT.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
  * Construct a model with 3 parameters for rotation and translation initialized to zero.
  */
-vpTemplateTrackerWarpRT::vpTemplateTrackerWarpRT()
-{
-  nbParam = 3;
-}
+  vpTemplateTrackerWarpRT::vpTemplateTrackerWarpRT() { nbParam = 3; }
 
-/*!
- * Get the parameters of the warping function one level down
- * where image size is divided by two along the lines and the columns.
- * \param p : 3-dim vector that contains the current parameters of the warping function.
- * \param p_down : 3-dim vector that contains the resulting parameters one level down.
- */
+  /*!
+   * Get the parameters of the warping function one level down
+   * where image size is divided by two along the lines and the columns.
+   * \param p : 3-dim vector that contains the current parameters of the warping function.
+   * \param p_down : 3-dim vector that contains the resulting parameters one level down.
+   */
 void vpTemplateTrackerWarpRT::getParamPyramidDown(const vpColVector &p, vpColVector &p_down)
 {
   p_down[0] = p[0];
@@ -154,15 +149,14 @@ void vpTemplateTrackerWarpRT::warpX(const vpColVector &X1, vpColVector &X2, cons
  * \param p : 3-dim vector that contains the parameters of the warping function.
  * \param dM : Resulting warping model derivative returned as a 2-by-3 matrix.
  */
-void vpTemplateTrackerWarpRT::dWarp(const vpColVector &X, const vpColVector &, const vpColVector &p,
-                                    vpMatrix &dM)
+void vpTemplateTrackerWarpRT::dWarp(const vpColVector &X, const vpColVector &, const vpColVector &p, vpMatrix &dM)
 {
   double u = X[0];
   double v = X[1];
   double c = cos(p[0]);
   double s = sin(p[0]);
 
-  dM[0][0] = - s * u - c * v;
+  dM[0][0] = -s * u - c * v;
   dM[0][1] = 1;
   dM[0][2] = 0;
 
@@ -178,8 +172,8 @@ void vpTemplateTrackerWarpRT::dWarp(const vpColVector &X, const vpColVector &, c
  * the initial warping function parameters (p=0).
  * \param dM : Resulting warping model compositionnal derivative returned as a 2-by-3 matrix.
  */
-void vpTemplateTrackerWarpRT::dWarpCompo(const vpColVector &, const vpColVector &,
-                                         const vpColVector &p, const double *dwdp0, vpMatrix &dM)
+void vpTemplateTrackerWarpRT::dWarpCompo(const vpColVector &, const vpColVector &, const vpColVector &p,
+                                         const double *dwdp0, vpMatrix &dM)
 {
   double c = cos(p[0]);
   double s = sin(p[0]);
@@ -221,7 +215,7 @@ void vpTemplateTrackerWarpRT::getParamInverse(const vpColVector &p, vpColVector 
 
   p_inv[0] = atan2(-s, c);
   p_inv[1] = -(c * u + s * v);
-  p_inv[2] =  s * u - c * v;
+  p_inv[2] = s * u - c * v;
 }
 
 /*!
@@ -247,3 +241,4 @@ void vpTemplateTrackerWarpRT::pRondp(const vpColVector &p1, const vpColVector &p
   p12[1] = c1 * u2 - s1 * v2 + u1;
   p12[2] = s1 * u2 + c1 * v2 + v1;
 }
+END_VISP_NAMESPACE
