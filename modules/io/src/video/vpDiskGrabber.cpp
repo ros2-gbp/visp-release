@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,57 +29,55 @@
  *
  * Description:
  * Disk framegrabber.
- *
- * Authors:
- * Eric Marchand
- *
- *****************************************************************************/
+ */
 
+#include <visp3/core/vpIoTools.h>
 #include <visp3/io/vpDiskGrabber.h>
 
-/*!
-  Elementary constructor.
-*/
+BEGIN_VISP_NAMESPACE
+
 vpDiskGrabber::vpDiskGrabber()
   : m_image_number(0), m_image_number_next(0), m_image_step(1), m_number_of_zero(0), m_directory("/tmp"),
-    m_base_name("I"), m_extension("pgm"), m_use_generic_name(false), m_generic_name("empty")
+  m_base_name("I"), m_extension("pgm"), m_use_generic_name(false), m_generic_name("empty")
 {
   init = false;
 }
 
-/*!
-  Constructor that takes a generic image sequence as input.
-*/
+vpDiskGrabber::vpDiskGrabber(const vpDiskGrabber &grabber) : vpFrameGrabber(grabber)
+{
+  *this = grabber;
+}
+
+vpDiskGrabber &vpDiskGrabber::operator=(const vpDiskGrabber &grabber)
+{
+  m_image_number = grabber.m_image_number;
+  m_image_number_next = grabber.m_image_number_next;
+  m_image_step = grabber.m_image_step;
+  m_number_of_zero = grabber.m_number_of_zero;
+  m_directory = grabber.m_directory;
+  m_base_name = grabber.m_base_name;
+  m_extension = grabber.m_extension;
+  m_use_generic_name = grabber.m_use_generic_name;
+  m_generic_name = grabber.m_generic_name;
+
+  return *this;
+}
+
 vpDiskGrabber::vpDiskGrabber(const std::string &generic_name)
   : m_image_number(0), m_image_number_next(0), m_image_step(1), m_number_of_zero(0), m_directory("/tmp"),
-    m_base_name("I"), m_extension("pgm"), m_use_generic_name(true), m_generic_name(generic_name)
+  m_base_name("I"), m_extension("pgm"), m_use_generic_name(true), m_generic_name(generic_name)
 {
   init = false;
 }
-
-/*!
-  Constructor.
-
-  \param dir : Location of the image sequence.
-  \param basename : Base name of each image.
-  \param number : Initial image number.
-  \param step : Increment between two images.
-  \param noz : Number of zero to code the image number.
-  \param ext : Extension of the image file.
-*/
 
 vpDiskGrabber::vpDiskGrabber(const std::string &dir, const std::string &basename, long number, int step,
                              unsigned int noz, const std::string &ext)
   : m_image_number(number), m_image_number_next(number), m_image_step(step), m_number_of_zero(noz), m_directory(dir),
-    m_base_name(basename), m_extension(ext), m_use_generic_name(false), m_generic_name("empty"), m_image_name()
+  m_base_name(basename), m_extension(ext), m_use_generic_name(false), m_generic_name("empty"), m_image_name()
 {
   init = false;
 }
 
-/*!
-  Read the first image of the sequence.
-  The image number is not incremented.
-*/
 void vpDiskGrabber::open(vpImage<unsigned char> &I)
 {
   long first_number = getImageNumber();
@@ -95,10 +92,6 @@ void vpDiskGrabber::open(vpImage<unsigned char> &I)
   init = true;
 }
 
-/*!
-  Read the first image of the sequence.
-  The image number is not incremented.
-*/
 void vpDiskGrabber::open(vpImage<vpRGBa> &I)
 {
   // First we save the image number, so that it can be reaffected after the
@@ -115,10 +108,6 @@ void vpDiskGrabber::open(vpImage<vpRGBa> &I)
   init = true;
 }
 
-/*!
-  Read the first image of the sequence.
-  The image number is not incremented.
-*/
 void vpDiskGrabber::open(vpImage<float> &I)
 {
   // First we save the image number, so that it can be reaffected after the
@@ -135,225 +124,160 @@ void vpDiskGrabber::open(vpImage<float> &I)
   init = true;
 }
 
-/*!
-  Acquire an image reading the next image from the disk.
-  After this call, the image number is incremented considering the step.
-
-  \param I : The image read from a file.
- */
 void vpDiskGrabber::acquire(vpImage<unsigned char> &I)
 {
   m_image_number = m_image_number_next;
-  std::stringstream ss;
 
   if (m_use_generic_name) {
-    char filename[FILENAME_MAX];
-    sprintf(filename, m_generic_name.c_str(), m_image_number);
-    ss << filename;
-  } else {
+    m_image_name = vpIoTools::formatString(m_generic_name, static_cast<unsigned int>(m_image_number));
+  }
+  else {
+    std::stringstream ss;
     ss << m_directory << "/" << m_base_name << std::setfill('0') << std::setw(m_number_of_zero) << m_image_number << "."
-       << m_extension;
+      << m_extension;
+    m_image_name = ss.str();
   }
 
   m_image_number_next += m_image_step;
-  m_image_name = ss.str();
   vpImageIo::read(I, m_image_name);
 
   width = I.getWidth();
   height = I.getHeight();
 }
 
-/*!
-  Acquire an image reading the next image from the disk.
-  After this call, the image number is incremented considering the step.
-
-  \param I : The image read from a file.
- */
 void vpDiskGrabber::acquire(vpImage<vpRGBa> &I)
 {
   m_image_number = m_image_number_next;
-  std::stringstream ss;
 
   if (m_use_generic_name) {
-    char filename[FILENAME_MAX];
-    sprintf(filename, m_generic_name.c_str(), m_image_number);
-    ss << filename;
-  } else {
+    m_image_name = vpIoTools::formatString(m_generic_name, static_cast<unsigned int>(m_image_number));
+  }
+  else {
+    std::stringstream ss;
     ss << m_directory << "/" << m_base_name << std::setfill('0') << std::setw(m_number_of_zero) << m_image_number << "."
-       << m_extension;
+      << m_extension;
+    m_image_name = ss.str();
   }
 
   m_image_number_next += m_image_step;
-  m_image_name = ss.str();
+
   vpImageIo::read(I, m_image_name);
 
   width = I.getWidth();
   height = I.getHeight();
 }
 
-/*!
-  Acquire an image reading the next pfm image from the disk.
-  After this call, the image number is incremented considering the step.
-
-  \param I : The image read from a file.
- */
 void vpDiskGrabber::acquire(vpImage<float> &I)
 {
   m_image_number = m_image_number_next;
-  std::stringstream ss;
+
   if (m_use_generic_name) {
-    char filename[FILENAME_MAX];
-    sprintf(filename, m_generic_name.c_str(), m_image_number);
-    ss << filename;
-  } else {
+    m_image_name = vpIoTools::formatString(m_generic_name, static_cast<unsigned int>(m_image_number));
+  }
+  else {
+    std::stringstream ss;
     ss << m_directory << "/" << m_base_name << std::setfill('0') << std::setw(m_number_of_zero) << m_image_number << "."
-       << m_extension;
+      << m_extension;
+    m_image_name = ss.str();
   }
 
   m_image_number_next += m_image_step;
 
-  vpImageIo::readPFM(I, ss.str());
+  std::string extension = vpIoTools::toLowerCase(vpIoTools::getFileExtension(m_image_name, true));
+
+  if (extension.find("npy") != std::string::npos) {
+#if defined (VISP_HAVE_MINIZ) && (VISP_CXX_STANDARD > VISP_CXX_STANDARD_98) && defined(VISP_HAVE_WORKING_REGEX)
+    visp::cnpy::NpyArray array = visp::cnpy::npy_load(m_image_name);
+    float *data = array.data<float>();
+    I.init(data, static_cast<unsigned int>(array.shape[0]), static_cast<unsigned int>(array.shape[1]), true);
+#else
+    throw(vpException(vpException::ioError, "Miniz is not installed, npy files cannot be read"));
+#endif
+  }
+  else {
+    vpImageIo::read(I, m_image_name);
+  }
 
   width = I.getWidth();
   height = I.getHeight();
 }
 
-/*!
-  Acquire an image reading the image with number \e img_number from the disk.
-  After this call, the image number is incremented considering the step.
-
-  \param I : The image read from a file.
-  \param img_number : The number of the desired image.
- */
-void vpDiskGrabber::acquire(vpImage<unsigned char> &I, long img_number)
+void vpDiskGrabber::acquire(vpImage<unsigned char> &I, long image_number)
 {
-  m_image_number = img_number;
-  std::stringstream ss;
+  m_image_number = image_number;
+
   if (m_use_generic_name) {
-    char filename[FILENAME_MAX];
-    sprintf(filename, m_generic_name.c_str(), m_image_number);
-    ss << filename;
-  } else {
+    m_image_name = vpIoTools::formatString(m_generic_name, static_cast<unsigned int>(m_image_number));
+  }
+  else {
+    std::stringstream ss;
     ss << m_directory << "/" << m_base_name << std::setfill('0') << std::setw(m_number_of_zero) << m_image_number << "."
-       << m_extension;
+      << m_extension;
+    m_image_name = ss.str();
   }
 
   m_image_number_next = m_image_number + m_image_step;
 
-  vpImageIo::read(I, ss.str());
+  vpImageIo::read(I, m_image_name);
 
   width = I.getWidth();
   height = I.getHeight();
 }
 
-/*!
-  Acquire an image reading the image with number \e img_number from the disk.
-  After this call, the image number is incremented considering the step.
-
-  \param I : The image read from a file.
-  \param img_number : The number of the desired image.
- */
-void vpDiskGrabber::acquire(vpImage<vpRGBa> &I, long img_number)
+void vpDiskGrabber::acquire(vpImage<vpRGBa> &I, long image_number)
 {
-  m_image_number = img_number;
-  std::stringstream ss;
+  m_image_number = image_number;
+
   if (m_use_generic_name) {
-    char filename[FILENAME_MAX];
-    sprintf(filename, m_generic_name.c_str(), m_image_number);
-    ss << filename;
-  } else {
+    m_image_name = vpIoTools::formatString(m_generic_name, static_cast<unsigned int>(m_image_number));
+  }
+  else {
+    std::stringstream ss;
     ss << m_directory << "/" << m_base_name << std::setfill('0') << std::setw(m_number_of_zero) << m_image_number << "."
-       << m_extension;
+      << m_extension;
+    m_image_name = ss.str();
   }
 
   m_image_number_next = m_image_number + m_image_step;
 
-  vpImageIo::read(I, ss.str());
+  vpImageIo::read(I, m_image_name);
 
   width = I.getWidth();
   height = I.getHeight();
 }
 
-/*!
-  Acquire an image reading the pfm image with number \e img_number from the
-  disk. After this call, the image number is incremented considering the step.
-
-  \param I : The image read from a file.
-  \param img_number : The number of the desired image.
- */
-void vpDiskGrabber::acquire(vpImage<float> &I, long img_number)
+void vpDiskGrabber::acquire(vpImage<float> &I, long image_number)
 {
   m_image_number = m_image_number_next;
-  std::stringstream ss;
+
   if (m_use_generic_name) {
-    char filename[FILENAME_MAX];
-    sprintf(filename, m_generic_name.c_str(), m_image_number);
-    ss << filename;
-  } else {
-    ss << m_directory << "/" << m_base_name << std::setfill('0') << std::setw(m_number_of_zero) << img_number << "."
-       << m_extension;
+    m_image_name = vpIoTools::formatString(m_generic_name, static_cast<unsigned int>(m_image_number));
+  }
+  else {
+    std::stringstream ss;
+    ss << m_directory << "/" << m_base_name << std::setfill('0') << std::setw(m_number_of_zero) << image_number << "."
+      << m_extension;
+    m_image_name = ss.str();
   }
 
   m_image_number_next += m_image_step;
 
-  vpImageIo::readPFM(I, ss.str());
+  vpImageIo::readPFM(I, m_image_name);
 
   width = I.getWidth();
   height = I.getHeight();
 }
 
-/*!
-  Not useful.
-
-  Here for compatibility issue with the vpFrameGrabber class.
- */
-void vpDiskGrabber::close()
-{
-  // Nothing do do here...
-}
-
-/*!
-  Destructor
-
-  In fact nothing to destroy...
- */
-vpDiskGrabber::~vpDiskGrabber() {}
-
-/*!
-  Set the main directory name (ie location of the image sequence)
-*/
-void vpDiskGrabber::setDirectory(const std::string &dir) { m_directory = dir; }
-
-/*!
-  Set the image base name.
-*/
-void vpDiskGrabber::setBaseName(const std::string &name) { m_base_name = name; }
-
-/*!
-  Set the image extension.
- */
-void vpDiskGrabber::setExtension(const std::string &ext) { m_extension = ext; }
-
-/*!
-  Set the number of the image to be read.
-*/
 void vpDiskGrabber::setImageNumber(long number)
 {
   m_image_number = number;
   m_image_number_next = number;
 }
 
-/*!
-  Set the step between two images.
-*/
-void vpDiskGrabber::setStep(long step) { m_image_step = step; }
-/*!
-  Set the step between two images.
-*/
-void vpDiskGrabber::setNumberOfZero(unsigned int noz) { m_number_of_zero = noz; }
-
 void vpDiskGrabber::setGenericName(const std::string &generic_name)
 {
   m_generic_name = generic_name;
   m_use_generic_name = true;
 }
+
+END_VISP_NAMESPACE

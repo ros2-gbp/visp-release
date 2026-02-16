@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -37,8 +36,7 @@
  *
  * Authors:
  * Jean-Luc CORRE
- *
- *****************************************************************************/
+ */
 
 #ifndef vpBoundio_h
 #define vpBoundio_h
@@ -49,9 +47,10 @@
 
 #include "vpBound.h"
 
+BEGIN_VISP_NAMESPACE
 void fscanf_Bound(Bound *bp);
 void fscanf_Face_list(Face_list *lp);
 void fscanf_Point3f_list(Point3f_list *lp);
-
+END_VISP_NAMESPACE
 #endif
 #endif

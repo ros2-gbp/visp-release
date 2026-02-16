@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,8 +29,7 @@
  *
  * Description:
  * Test for vpImageDraw class.
- *
- *****************************************************************************/
+ */
 /*!
  \example testImageDraw.cpp
 
@@ -39,29 +37,35 @@
 */
 
 #include <iostream>
-#include <visp3/core/vpImageDraw.h>
 #include <visp3/core/vpFont.h>
+#include <visp3/core/vpImageDraw.h>
 #include <visp3/io/vpImageIo.h>
 
-int main(int argc ,char *argv[])
+int main(int argc, char *argv[])
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
   bool save = false;
+  vpFont::vpFontFamily font_family = vpFont::TRUETYPE_FILE;
+
   for (int i = 1; i < argc; i++) {
     if (std::string(argv[i]) == "--save") {
       save = true;
     }
+    else if (std::string(argv[i]) == "--mono") {
+      font_family = vpFont::GENERIC_MONOSPACE;
+    }
     else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
-      std::cout << "\nUsage: " << argv[0]
-                << " [--save] [--help] [-h]\n"
-                << std::endl;
-      return 0;
+      std::cout << "\nUsage: " << argv[0] << " [--save] [--mono (GENERIC_MONOSPACE font)] [--help] [-h]\n" << std::endl;
+      return EXIT_SUCCESS;
     }
   }
   std::cout << "Save: " << save << std::endl;
 
   const std::string visp = "ViSP: Open source Visual Servoing Platform";
 
-  //vpRGBa
+  // vpRGBa
   {
     vpImage<vpRGBa> I(480, 640, vpRGBa(255));
     vpImagePoint iP1, iP2;
@@ -74,7 +78,7 @@ int main(int argc ,char *argv[])
 
     iP1.set_i(20);
     iP1.set_j(60);
-    vpFont font(32);
+    vpFont font(32, font_family);
     font.drawText(I, "Test...", iP1, vpColor::blue);
 
     iP1.set_i(60);
@@ -89,11 +93,12 @@ int main(int argc ,char *argv[])
     iP1.set_j(200);
     font.drawText(I, "Test...", iP1, vpColor::white, vpColor::black);
 
-    vpFont font2(20);
+    vpFont font2(26, font_family);
     vpImagePoint textSize = font2.getMeasure(visp);
     vpImagePoint textPos = vpImagePoint(24, 620 - textSize.get_j());
     font2.drawText(I, visp, textPos, vpColor::darkGreen);
-    vpImageDraw::drawRectangle(I, vpRect(textPos.get_u(), textPos.get_v(), textSize.get_u(), textSize.get_v()), vpColor::darkRed);
+    vpImageDraw::drawRectangle(I, vpRect(textPos.get_u(), textPos.get_v(), textSize.get_u(), textSize.get_v()),
+                               vpColor::darkRed);
 
     iP1.set_i(80);
     iP1.set_j(220);
@@ -193,7 +198,7 @@ int main(int argc ,char *argv[])
     }
   }
 
-  //unsigned char
+  // unsigned char
   {
     vpImage<unsigned char> I(480, 640, 0);
     vpImagePoint iP1, iP2;
@@ -207,7 +212,7 @@ int main(int argc ,char *argv[])
 
     iP1.set_i(20);
     iP1.set_j(60);
-    vpFont font(32);
+    vpFont font(32, font_family);
     font.drawText(I, "Test...", iP1, color);
 
     iP1.set_i(60);
@@ -222,7 +227,7 @@ int main(int argc ,char *argv[])
     iP1.set_j(200);
     font.drawText(I, "Test...", iP1, 0, 255);
 
-    vpFont font2(20);
+    vpFont font2(20, font_family);
     vpImagePoint textSize = font2.getMeasure(visp);
     vpImagePoint textPos = vpImagePoint(24, 620 - textSize.get_j());
     font2.drawText(I, visp, textPos, 255);

@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -31,13 +31,20 @@
 # Description:
 # ViSP configuration file.
 #
-# Authors:
-# Fabien Spindler
-#
 #############################################################################
 
-vp_add_module(visual_features visp_core OPTIONAL visp_blob visp_me)
+vp_add_module(visual_features visp_core OPTIONAL visp_blob visp_me visp_io)
 vp_glob_module_sources()
 vp_module_include_directories()
 vp_create_module()
-vp_add_tests()
+
+set(opt_test_incs "")
+set(opt_test_libs "")
+
+if(WITH_CATCH2)
+  # catch2 is private
+  list(APPEND opt_test_incs ${CATCH2_INCLUDE_DIRS})
+  list(APPEND opt_test_libs ${CATCH2_LIBRARIES})
+endif()
+
+vp_add_tests(PRIVATE_INCLUDE_DIRS ${opt_test_incs} PRIVATE_LIBRARIES ${opt_test_libs})

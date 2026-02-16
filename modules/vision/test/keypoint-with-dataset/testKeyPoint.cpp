@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,24 +29,25 @@
  *
  * Description:
  * Test keypoint matching.
- *
- * Authors:
- * Souriya Trinh
- *
- *****************************************************************************/
+ */
+
+/*!
+  \example testKeyPoint.cpp
+
+  \brief Test keypoint matching.
+*/
 
 #include <iostream>
 
 #include <visp3/core/vpConfig.h>
 
-#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020301)
+#if defined(VISP_HAVE_OPENCV) && defined(HAVE_OPENCV_IMGPROC) && defined(HAVE_OPENCV_VIDEO) && \
+  (((VISP_HAVE_OPENCV_VERSION < 0x050000)  && defined(HAVE_OPENCV_CALIB3D) && defined(HAVE_OPENCV_FEATURES2D)) || \
+   ((VISP_HAVE_OPENCV_VERSION >= 0x050000) && defined(HAVE_OPENCV_3D) && defined(HAVE_OPENCV_FEATURES)))
 
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpIoTools.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/io/vpImageIo.h>
 #include <visp3/io/vpParseArgv.h>
 #include <visp3/io/vpVideoReader.h>
@@ -55,6 +55,10 @@
 
 // List of allowed command line options
 #define GETOPTARGS "cdh"
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 void usage(const char *name, const char *badparam);
 bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display);
@@ -70,26 +74,26 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
 void usage(const char *name, const char *badparam)
 {
   fprintf(stdout, "\n\
-          Test keypoints matching.\n\
-          \n\
-          SYNOPSIS\n\
-          %s [-c] [-d] [-h]\n", name);
+  Test keypoints matching.\n\
+  \n\
+  SYNOPSIS\n\
+  %s [-c] [-d] [-h]\n", name);
 
-      fprintf(stdout, "\n\
-              OPTIONS:                                               \n\
-              \n\
-              -c\n\
-              Disable the mouse click. Useful to automate the \n\
-              execution of this program without human intervention.\n\
-              \n\
-              -d \n\
-              Turn off the display.\n\
-              \n\
-              -h\n\
-              Print the help.\n");
+  fprintf(stdout, "\n\
+  OPTIONS:                                               \n\
+  \n\
+  -c\n\
+     Disable the mouse click. Useful to automate the \n\
+     execution of this program without human intervention.\n\
+  \n\
+  -d \n\
+     Turn off the display.\n\
+  \n\
+  -h\n\
+     Print the help.\n");
 
-              if (badparam)
-              fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
+  if (badparam)
+    fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
 }
 
 /*!
@@ -117,20 +121,18 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
       display = false;
       break;
     case 'h':
-      usage(argv[0], NULL);
+      usage(argv[0], nullptr);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg_);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL);
+    usage(argv[0], nullptr);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -139,17 +141,27 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
   return true;
 }
 
-template<typename Type>
-void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_display,
-              vpImage<Type> &Iref, vpImage<Type> &Icur, vpImage<Type> &Imatch)
+template <typename Type>
+void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_display, vpImage<Type> &Iref,
+              vpImage<Type> &Icur, vpImage<Type> &Imatch)
 {
+#if defined(VISP_HAVE_DATASET)
+#if VISP_HAVE_DATASET_VERSION >= 0x030600
+  std::string ext("png");
+#else
+  std::string ext("pgm");
+#endif
+#else
+  // We suppose that the user will download a recent dataset
+  std::string ext("png");
+#endif
   // Set the path location of the image sequence
   std::string dirname = vpIoTools::createFilePath(env_ipath, "mbt/cube");
 
   // Build the name of the image files
-  std::string filenameRef = vpIoTools::createFilePath(dirname, "image0000.pgm");
+  std::string filenameRef = vpIoTools::createFilePath(dirname, "image0000." + ext);
   vpImageIo::read(Iref, filenameRef);
-  std::string filenameCur = vpIoTools::createFilePath(dirname, "image%04d.pgm");
+  std::string filenameCur = vpIoTools::createFilePath(dirname, "image%04d." + ext);
 
   // Init keypoints
   vpKeyPoint keypoints("ORB", "ORB", "BruteForce-Hamming");
@@ -163,19 +175,15 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
   Imatch.resize(Icur.getHeight(), 2 * Icur.getWidth());
   Imatch.insert(Iref, vpImagePoint(0, 0));
 
-#if defined VISP_HAVE_X11
-  vpDisplayX display;
-#elif defined VISP_HAVE_GTK
-  vpDisplayGTK display;
-#elif defined VISP_HAVE_GDI
-  vpDisplayGDI display;
-#else
-  vpDisplayOpenCV display;
-#endif
+  vpDisplay *display = nullptr;
 
   if (opt_display) {
-    display.setDownScalingFactor(vpDisplay::SCALE_AUTO);
-    display.init(Imatch, 0, 0, "ORB keypoints matching");
+#ifdef VISP_HAVE_DISPLAY
+    display = vpDisplayFactory::allocateDisplay(Imatch, 0, 0, "ORB keypoints matching");
+    display->setDownScalingFactor(vpDisplay::SCALE_AUTO);
+#else
+    std::cout << "No image viewer is available..." << std::endl;
+#endif
   }
 
   bool opt_click = false;
@@ -204,25 +212,26 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
         if (button == vpMouseButton::button3) {
           opt_click = false;
         }
-      } else {
+      }
+      else {
         // Use right click to enable/disable step by step tracking
         if (vpDisplay::getClick(Imatch, button, false)) {
           if (button == vpMouseButton::button3) {
             opt_click = true;
-          } else if (button == vpMouseButton::button1) {
+          }
+          else if (button == vpMouseButton::button1) {
             break;
           }
         }
       }
     }
   }
+
+  if (display) {
+    delete display;
+  }
 }
 
-/*!
-  \example testKeyPoint.cpp
-
-  \brief   Test keypoint matching.
-*/
 int main(int argc, const char **argv)
 {
   try {
@@ -232,7 +241,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, opt_click_allowed, opt_display) == false) {
-      exit(-1);
+      return EXIT_FAILURE;
     }
 
     // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH
@@ -241,9 +250,9 @@ int main(int argc, const char **argv)
 
     if (env_ipath.empty()) {
       std::cerr << "Please set the VISP_INPUT_IMAGE_PATH environment "
-                   "variable value."
-                << std::endl;
-      return -1;
+        "variable value."
+        << std::endl;
+      return EXIT_FAILURE;
     }
 
     {
@@ -260,20 +269,21 @@ int main(int argc, const char **argv)
       run_test(env_ipath, opt_click_allowed, opt_display, Iref, Icur, Imatch);
     }
 
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cerr << e.what() << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   std::cout << "testKeyPoint is ok !" << std::endl;
-  return 0;
+  return EXIT_SUCCESS;
 }
 #else
 int main()
 {
   std::cerr << "You need OpenCV library." << std::endl;
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #endif

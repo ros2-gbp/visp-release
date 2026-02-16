@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,14 +29,10 @@
  *
  * Description:
  * Network Request.
- *
- * Authors:
- * Aurelien Yol
- *
- *****************************************************************************/
+ */
 
-#ifndef vpRequest_H
-#define vpRequest_H
+#ifndef VP_REQUEST_H
+#define VP_REQUEST_H
 
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDebug.h>
@@ -47,6 +42,7 @@
 #include <string.h>
 #include <vector>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpRequest
 
@@ -54,7 +50,7 @@
 
   \brief This the request that will transit on the network
 
-  Exemple request decoding an image on a specific form.
+  Example request decoding an image on a specific form.
   First parameter : Height of the image.
   Second parameter : Width of the image.
   Thirs parameter : Bitmap of the image (not compress).
@@ -62,66 +58,66 @@
   Here is the header of the vpRequestImage class.
 
   \code
-#ifndef vpRequestImage_H
-#define vpRequestImage_H
+  #ifndef vpRequestImage_H
+  #define vpRequestImage_H
 
-#include <visp3/core/vpImage.h>
-#include <visp3/core/vpRequest.h>
+  #include <visp3/core/vpImage.h>
+  #include <visp3/core/vpRequest.h>
 
-class vpRequestImage : public vpRequest
-{
-private:
-  vpImage<unsigned char> *I;
+  class vpRequestImage : public vpRequest
+  {
+  private:
+    vpImage<unsigned char> *I;
 
-public:
-  vpRequestImage();
-  vpRequestImage(vpImage<unsigned char> *);
-  virtual ~vpRequestImage();
+  public:
+    vpRequestImage();
+    vpRequestImage(vpImage<unsigned char> *);
+    virtual ~vpRequestImage();
 
-  virtual void encode();
-  virtual void decode();
-};
+    virtual void encode();
+    virtual void decode();
+  };
 
-#endif
+  #endif
   \endcode
 
   Here is the definition of the vpRequestImage class.
 
   \code
-#include <vpRequestImage.h>
+  #include <vpRequestImage.h>
 
-vpRequestImage::vpRequestImage(){
-  request_id = "image";
-}
-
-vpRequestImage::vpRequestImage(vpImage<unsigned char> *Im){
-  request_id = "image";
-  I = Im;
-}
-
-vpRequestImage::~vpRequestImage(){}
-
-void vpRequestImage::encode(){
-  clear();
-
-  unsigned int h = I->getHeight();
-  unsigned int w = I->getWidth();
-
-  addParameterObject(&h);
-  addParameterObject(&w);
-  addParameterObject(I->bitmap,h*w*sizeof(unsigned char));
-}
-
-void vpRequestImage::decode(){
-  if(listOfParams.size() == 3){
-    unsigned int w, h;
-    memcpy((void*)&h, (void*)listOfParams[0].c_str(), sizeof(unsigned int));
-    memcpy((void*)&w, (void*)listOfParams[1].c_str(), sizeof(unsigned int));
-
-    I->resize(h,w);
-    memcpy((void*)I->bitmap,(void*)listOfParams[2].c_str(),w*h*sizeof(unsigned char));
+  vpRequestImage::vpRequestImage(){
+    request_id = "image";
   }
-}
+
+  vpRequestImage::vpRequestImage(vpImage<unsigned char> *Im){
+    request_id = "image";
+    I = Im;
+  }
+
+  vpRequestImage::~vpRequestImage(){}
+
+  void vpRequestImage::encode(){
+    clear();
+
+    unsigned int h = I->getHeight();
+    unsigned int w = I->getWidth();
+
+    addParameterObject(&h);
+    addParameterObject(&w);
+    addParameterObject(I->bitmap,h*w*sizeof(unsigned char));
+  }
+
+  void vpRequestImage::decode(){
+    if(listOfParams.size() == 3){
+      unsigned int w, h;
+      memcpy((void*)&h, (void*)listOfParams[0].c_str(), sizeof(unsigned int));
+      memcpy((void*)&w, (void*)listOfParams[1].c_str(), sizeof(unsigned int));
+
+      I->resize(h,w);
+      memcpy((void*)I->bitmap,(void*)listOfParams[2].c_str(),w*h*sizeof(unsigned char));
+    }
+  }
   \endcode
 
   \sa vpClient
@@ -136,11 +132,22 @@ protected:
 
 public:
   vpRequest();
-  virtual ~vpRequest();
+  vpRequest(const vpRequest &req)
+  {
+    *this = req;
+  }
+  virtual ~vpRequest() { }
 
-  void addParameter(char *params);
-  void addParameter(std::string &params);
-  void addParameter(std::vector<std::string> &listOfparams);
+  vpRequest &operator=(const vpRequest &req)
+  {
+    request_id = req.request_id;
+    listOfParams = req.listOfParams;
+    return *this;
+  }
+
+  void addParameter(const char *params);
+  void addParameter(const std::string &params);
+  void addParameter(const std::vector<std::string> &listOfparams);
   template <typename T> void addParameterObject(T *params, const int &sizeOfObject = sizeof(T));
 
   /*!
@@ -183,7 +190,7 @@ public:
 
     \return ID of the request.
   */
-  std::string getId() { return request_id; }
+  std::string getId() const { return request_id; }
 
   /*!
     Change the ID of the request.
@@ -199,7 +206,7 @@ public:
 
     \return Number of parameters.
   */
-  unsigned int size() { return (unsigned int)listOfParams.size(); }
+  unsigned int size() const { return static_cast<unsigned int>(listOfParams.size()); }
 };
 
 //######## Definition of Template Functions ########
@@ -223,12 +230,12 @@ template <typename T> void vpRequest::addParameterObject(T *params, const int &s
   if (sizeOfObject != 0) {
     char *tempS = new char[sizeOfObject];
     memcpy((void *)tempS, (void *)params, sizeOfObject);
-    std::string returnVal(tempS, (size_t)sizeOfObject);
+    std::string returnVal(tempS, static_cast<size_t>(sizeOfObject));
 
     listOfParams.push_back(returnVal);
 
     delete[] tempS;
   }
 }
-
+END_VISP_NAMESPACE
 #endif

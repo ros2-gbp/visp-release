@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -29,16 +28,11 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Description:
- * Compute the visibility of 3D polygons already transformed in the camera
- *frame
- *
- * Authors:
- * Aurelien Yol
- *
- *****************************************************************************/
+ * Compute the visibility of 3D polygons already transformed in the camera frame.
+ */
 
-#ifndef vpMbScanLine_HH
-#define vpMbScanLine_HH
+#ifndef VP_MB_SCANLINE_H
+#define VP_MB_SCANLINE_H
 
 #include <deque>
 #include <limits> // numeric_limits
@@ -47,6 +41,7 @@
 #include <set>
 #include <vector>
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpCameraParameters.h>
 #include <visp3/core/vpColVector.h>
 #include <visp3/core/vpImage.h>
@@ -61,13 +56,25 @@
 #endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+BEGIN_VISP_NAMESPACE
 
 /*!
   \class vpMbScanLine
 
   \ingroup group_mbt_faces
 
- */
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+ *
+ * <b>Tutorials</b><br>
+ * <span style="margin-left:2em"> If you are interested in using a MBT tracker in your applications, you may have a look at:</span><br>
+ *
+ * - \ref tutorial-tracking-mb-generic
+ * - \ref tutorial-tracking-mb-generic-stereo
+ * - \ref tutorial-tracking-mb-generic-rgbd
+ * - \ref tutorial-tracking-mb-generic-apriltag-live
+ * - \ref tutorial-mb-generic-json
+ * - \ref tutorial-tracking-mb-generic-rgbd-Blender
+*/
 class VISP_EXPORT vpMbScanLine
 {
 public:
@@ -80,8 +87,9 @@ public:
   typedef std::pair<vpColVector, vpColVector> vpMbScanLineEdge;
 
   //! Structure to define a scanline intersection.
-  struct vpMbScanLineSegment {
-    vpMbScanLineSegment() : type(START), edge(), p(0), P1(0), P2(0), Z1(0), Z2(0), ID(0), b_sample_Y(false) {}
+  struct vpMbScanLineSegment
+  {
+    vpMbScanLineSegment() : type(START), edge(), p(0), P1(0), P2(0), Z1(0), Z2(0), ID(0), b_sample_Y(false) { }
     vpMbScanLineType type;
     vpMbScanLineEdge edge;
     double p;      // This value can be either x or y-coordinate value depending if
@@ -93,7 +101,8 @@ public:
   };
 
   //! vpMbScanLineEdge Comparator.
-  struct vpMbScanLineEdgeComparator {
+  struct vpMbScanLineEdgeComparator
+  {
     inline bool operator()(const vpMbScanLineEdge &l0, const vpMbScanLineEdge &l1) const
     {
       for (unsigned int i = 0; i < 3; ++i)
@@ -111,7 +120,8 @@ public:
   };
 
   //! vpMbScanLineSegment Comparators.
-  struct vpMbScanLineSegmentComparator {
+  struct vpMbScanLineSegmentComparator
+  {
     inline bool operator()(const vpMbScanLineSegment &a, const vpMbScanLineSegment &b) const
     {
       // return a.p == b.p ? a.type < b.type : a.p < b.p;
@@ -135,14 +145,16 @@ private:
   double depthTreshold;
 
 public:
-#if defined(DEBUG_DISP)
+#if (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)) && defined(DEBUG_DISP)
   vpDisplay *dispMaskDebug;
   vpDisplay *dispLineDebug;
   vpImage<unsigned char> linedebugImg;
 #endif
 
   vpMbScanLine();
+  vpMbScanLine(const vpMbScanLine &scanline);
   virtual ~vpMbScanLine();
+  vpMbScanLine &operator=(const vpMbScanLine &scanline);
 
   void drawScene(const std::vector<std::vector<std::pair<vpPoint, unsigned int> > *> &polygons,
                  std::vector<int> listPolyIndices, const vpCameraParameters &K, unsigned int w, unsigned int h);
@@ -197,7 +209,7 @@ private:
   static vpPoint mix(const vpPoint &a, const vpPoint &b, double alpha);
   static double norm(const vpPoint &a, const vpPoint &b);
 };
-
+END_VISP_NAMESPACE
 #endif // doxygen should skip this
 
 #endif

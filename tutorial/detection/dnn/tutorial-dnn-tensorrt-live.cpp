@@ -13,15 +13,18 @@
 //
 
 #include <iostream>
+
 #include <visp3/core/vpConfig.h>
 
 #if defined(VISP_HAVE_TENSORRT) && defined(VISP_HAVE_OPENCV)
-#include <opencv2/opencv_modules.hpp>
-#if defined(HAVE_OPENCV_CUDEV) && defined(HAVE_OPENCV_CUDAWARPING) && defined(HAVE_OPENCV_CUDAARITHM) &&               \
-    defined(VISP_HAVE_OPENCV_DNN)
+
+#if defined(HAVE_OPENCV_CUDEV) && defined(HAVE_OPENCV_CUDAWARPING) && defined(HAVE_OPENCV_CUDAARITHM) && \
+    defined(HAVE_OPENCV_DNN) && defined(HAVE_OPENCV_VIDEOIO)
 #include <visp3/core/vpImageConvert.h>
 #include <visp3/core/vpIoTools.h>
-#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayFactory.h>
+
+#include <opencv2/videoio.hpp>
 
 //! [OpenCV CUDA header files]
 #include <opencv2/core/cuda.hpp>
@@ -40,6 +43,10 @@
 //! [TRT header files]
 
 #include <sys/stat.h>
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 //! [Preprocess image]
 void preprocessImage(cv::Mat &img, float *gpu_input, const nvinfer1::Dims &dims, float meanR, float meanG, float meanB)
@@ -108,7 +115,7 @@ std::vector<cv::Rect> postprocessResults(std::vector<void *> buffers, const std:
 
   // post process
   int N = output_dims[0].d[1], C = output_dims[0].d[2]; // (1 x N x C format); N: Number of output detection boxes
-                                                        // (fixed in the model), C: Number of classes.
+  // (fixed in the model), C: Number of classes.
   for (int i = 0; i < N; i++)                           // for all N (boxes)
   {
     uint32_t maxClass = 0;
@@ -128,10 +135,10 @@ std::vector<cv::Rect> postprocessResults(std::vector<void *> buffers, const std:
     }
 
     if (maxScore > confThresh) {
-      int left = (int)(cpu_outputs[1][4 * i] * image_width);
-      int top = (int)(cpu_outputs[1][4 * i + 1] * image_height);
-      int right = (int)(cpu_outputs[1][4 * i + 2] * image_width);
-      int bottom = (int)(cpu_outputs[1][4 * i + 3] * image_height);
+      int left = static_cast<int>(cpu_outputs[1][4 * i] * image_width);
+      int top = static_cast<int>(cpu_outputs[1][4 * i + 1] * image_height);
+      int right = static_cast<int>(cpu_outputs[1][4 * i + 2] * image_width);
+      int bottom = static_cast<int>(cpu_outputs[1][4 * i + 3] * image_height);
       int width = right - left + 1;
       int height = bottom - top + 1;
 
@@ -164,7 +171,8 @@ public:
 } gLogger;
 
 // destroy TensoRT objects if something goes wrong
-struct TRTDestroy {
+struct TRTDestroy
+{
   template <class T> void operator()(T *obj) const
   {
     if (obj)
@@ -177,20 +185,20 @@ template <class T> using TRTUniquePtr = std::unique_ptr<T, TRTDestroy>;
 //! [ParseOnnxModel]
 bool parseOnnxModel(const std::string &model_path, TRTUniquePtr<nvinfer1::ICudaEngine> &engine,
                     TRTUniquePtr<nvinfer1::IExecutionContext> &context)
-//! [ParseOnnxModel]
+  //! [ParseOnnxModel]
 {
   // this section of code is from jetson-inference's `tensorNet`, to test if the GIE already exists.
   char cache_prefix[FILENAME_MAX];
   char cache_path[FILENAME_MAX];
 
-  sprintf(cache_prefix, "%s", model_path.c_str());
-  sprintf(cache_path, "%s.engine", cache_prefix);
+  snprintf(cache_prefix, FILENAME_MAX, "%s", model_path.c_str());
+  snprintf(cache_path, FILENAME_MAX, "%s.engine", cache_prefix);
 
   std::cout << "attempting to open engine cache file " << cache_path << std::endl;
 
   //! [ParseOnnxModel engine exists]
   if (vpIoTools::checkFilename(cache_path)) {
-    char *engineStream = NULL;
+    char *engineStream = nullptr;
     size_t engineSize = 0;
 
     // determine the file size of the engine
@@ -202,7 +210,7 @@ bool parseOnnxModel(const std::string &model_path, TRTUniquePtr<nvinfer1::ICudaE
     engineStream = (char *)malloc(engineSize);
 
     // open the engine cache file from disk
-    FILE *cacheFile = NULL;
+    FILE *cacheFile = nullptr;
     cacheFile = fopen(cache_path, "rb");
 
     // read the serialized engine into memory
@@ -218,8 +226,8 @@ bool parseOnnxModel(const std::string &model_path, TRTUniquePtr<nvinfer1::ICudaE
     fclose(cacheFile);
 
     // Recreate the inference runtime
-    TRTUniquePtr<nvinfer1::IRuntime> infer{nvinfer1::createInferRuntime(gLogger)};
-    engine.reset(infer->deserializeCudaEngine(engineStream, engineSize, NULL));
+    TRTUniquePtr<nvinfer1::IRuntime> infer { nvinfer1::createInferRuntime(gLogger) };
+    engine.reset(infer->deserializeCudaEngine(engineStream, engineSize, nullptr));
     context.reset(engine->createExecutionContext());
 
     return true;
@@ -233,10 +241,10 @@ bool parseOnnxModel(const std::string &model_path, TRTUniquePtr<nvinfer1::ICudaE
       return false;
     }
 
-    TRTUniquePtr<nvinfer1::IBuilder> builder{nvinfer1::createInferBuilder(gLogger)};
-    TRTUniquePtr<nvinfer1::INetworkDefinition> network{
-        builder->createNetworkV2(1U << (uint32_t)nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH)};
-    TRTUniquePtr<nvonnxparser::IParser> parser{nvonnxparser::createParser(*network, gLogger)};
+    TRTUniquePtr<nvinfer1::IBuilder> builder { nvinfer1::createInferBuilder(gLogger) };
+    TRTUniquePtr<nvinfer1::INetworkDefinition> network {
+        builder->createNetworkV2(1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH)) };
+    TRTUniquePtr<nvonnxparser::IParser> parser { nvonnxparser::createParser(*network, gLogger) };
 
     // parse ONNX
     if (!parser->parseFromFile(model_path.c_str(), static_cast<int>(nvinfer1::ILogger::Severity::kINFO))) {
@@ -244,7 +252,7 @@ bool parseOnnxModel(const std::string &model_path, TRTUniquePtr<nvinfer1::ICudaE
       return false;
     }
 
-    TRTUniquePtr<nvinfer1::IBuilderConfig> config{builder->createBuilderConfig()};
+    TRTUniquePtr<nvinfer1::IBuilderConfig> config { builder->createBuilderConfig() };
     // allow TRT to use up to 1GB of GPU memory for tactic selection
     config->setMaxWorkspaceSize(32 << 20);
     // use FP16 mode if possible
@@ -257,7 +265,7 @@ bool parseOnnxModel(const std::string &model_path, TRTUniquePtr<nvinfer1::ICudaE
     engine.reset(builder->buildEngineWithConfig(*network, *config));
     context.reset(engine->createExecutionContext());
 
-    TRTUniquePtr<nvinfer1::IHostMemory> serMem{engine->serialize()};
+    TRTUniquePtr<nvinfer1::IHostMemory> serMem { engine->serialize() };
 
     if (!serMem) {
       std::cout << "Failed to serialize CUDA engine." << std::endl;
@@ -278,7 +286,7 @@ bool parseOnnxModel(const std::string &model_path, TRTUniquePtr<nvinfer1::ICudaE
     memcpy(engineMemory, serData, serSize);
 
     // write the cache file
-    FILE *cacheFile = NULL;
+    FILE *cacheFile = nullptr;
     cacheFile = fopen(cache_path, "wb");
 
     fwrite(engineMemory, 1, serSize, cacheFile);
@@ -303,34 +311,43 @@ int main(int argc, char **argv)
 
   for (int i = 1; i < argc; i++) {
     if (std::string(argv[i]) == "--device" && i + 1 < argc) {
-      opt_device = atoi(argv[i + 1]);
-    } else if (std::string(argv[i]) == "--input" && i + 1 < argc) {
-      input = std::string(argv[i + 1]);
-    } else if (std::string(argv[i]) == "--model" && i + 1 < argc) {
-      modelFile = std::string(argv[i + 1]);
-    } else if (std::string(argv[i]) == "--config" && i + 1 < argc) {
-      config = std::string(argv[i + 1]);
-    } else if (std::string(argv[i]) == "--input-scale" && i + 1 < argc) {
-      opt_scale = atoi(argv[i + 1]);
-    } else if (std::string(argv[i]) == "--mean" && i + 3 < argc) {
-      meanR = atof(argv[i + 1]);
-      meanG = atof(argv[i + 2]);
-      meanB = atof(argv[i + 3]);
-    } else if (std::string(argv[i]) == "--confThresh" && i + 1 < argc) {
-      confThresh = (float)atof(argv[i + 1]);
-    } else if (std::string(argv[i]) == "--nmsThresh" && i + 1 < argc) {
-      nmsThresh = (float)atof(argv[i + 1]);
-    } else if (std::string(argv[i]) == "--labels" && i + 1 < argc) {
-      labelFile = std::string(argv[i + 1]);
-    } else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
+      opt_device = atoi(argv[++i]);
+    }
+    else if (std::string(argv[i]) == "--input" && i + 1 < argc) {
+      input = std::string(argv[++i]);
+    }
+    else if (std::string(argv[i]) == "--model" && i + 1 < argc) {
+      modelFile = std::string(argv[++i]);
+    }
+    else if (std::string(argv[i]) == "--config" && i + 1 < argc) {
+      config = std::string(argv[++i]);
+    }
+    else if (std::string(argv[i]) == "--input-scale" && i + 1 < argc) {
+      opt_scale = atoi(argv[++i]);
+    }
+    else if (std::string(argv[i]) == "--mean" && i + 3 < argc) {
+      meanR = atof(argv[++i]);
+      meanG = atof(argv[++i]);
+      meanB = atof(argv[++i]);
+    }
+    else if (std::string(argv[i]) == "--confThresh" && i + 1 < argc) {
+      confThresh = static_cast<float>(atof(argv[++i]));
+    }
+    else if (std::string(argv[i]) == "--nmsThresh" && i + 1 < argc) {
+      nmsThresh = static_cast<float>(atof(argv[++i]));
+    }
+    else if (std::string(argv[i]) == "--labels" && i + 1 < argc) {
+      labelFile = std::string(argv[++i]);
+    }
+    else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
       std::cout << argv[0]
-                << " [--device <camera device number>] [--input <path to image or video>"
-                   " (camera is used if input is empty)] [--model <path to net trained weights>]"
-                   " [--config <path to net config file>]"
-                   " [--input-scale <input scale factor>] [--mean <meanR meanG meanB>]"
-                   " [--confThresh <confidence threshold>]"
-                   " [--nmsThresh <NMS threshold>] [--labels <path to label file>]"
-                << std::endl;
+        << " [--device <camera device number>] [--input <path to image or video>"
+        " (camera is used if input is empty)] [--model <path to net trained weights>]"
+        " [--config <path to net config file>]"
+        " [--input-scale <input scale factor>] [--mean <meanR meanG meanB>]"
+        " [--confThresh <confidence threshold>]"
+        " [--nmsThresh <NMS threshold>] [--labels <path to label file>]"
+        << std::endl;
       return EXIT_SUCCESS;
     }
   }
@@ -349,14 +366,14 @@ int main(int argc, char **argv)
 
   //! [Create GIE]
   // Parse the model and initialize the engine and the context.
-  TRTUniquePtr<nvinfer1::ICudaEngine> engine{nullptr};
-  TRTUniquePtr<nvinfer1::IExecutionContext> context{nullptr};
+  TRTUniquePtr<nvinfer1::ICudaEngine> engine { nullptr };
+  TRTUniquePtr<nvinfer1::IExecutionContext> context { nullptr };
   if (!parseOnnxModel(model_path, engine, context)) // Problem parsing Onnx model
   {
     std::cout << "Make sure the model file exists. To see available models, plese visit: "
-                 "\n\twww.github.com/lagadic/visp-images/dnn/object_detection/"
-              << std::endl;
-    return 0;
+      "\n\twww.github.com/lagadic/visp-images/dnn/object_detection/"
+      << std::endl;
+    return EXIT_FAILURE;
   }
   //! [Create GIE]
 
@@ -371,14 +388,15 @@ int main(int argc, char **argv)
 
     if (engine->bindingIsInput(i)) {
       input_dims.emplace_back(engine->getBindingDimensions(i));
-    } else {
+    }
+    else {
       output_dims.emplace_back(engine->getBindingDimensions(i));
     }
   }
 
   if (input_dims.empty() || output_dims.empty()) {
     std::cerr << "Expect at least one input and one output for network" << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
   //! [Get I/O dimensions]
 
@@ -387,7 +405,8 @@ int main(int argc, char **argv)
 
   if (input.empty()) {
     capture.open(opt_device);
-  } else {
+  }
+  else {
     capture.open(input);
   }
 
@@ -396,8 +415,8 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  int cap_width = (int)capture.get(cv::CAP_PROP_FRAME_WIDTH);
-  int cap_height = (int)capture.get(cv::CAP_PROP_FRAME_HEIGHT);
+  int cap_width = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_WIDTH));
+  int cap_height = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_HEIGHT));
   capture.set(cv::CAP_PROP_FRAME_WIDTH, cap_width / opt_scale);
   capture.set(cv::CAP_PROP_FRAME_HEIGHT, cap_height / opt_scale);
   //! [OpenCV VideoCapture]
@@ -409,7 +428,7 @@ int main(int argc, char **argv)
   if (input.empty()) {
     int i = 0;
     while ((i++ < 20) && !capture.read(frame)) {
-    }; // warm up camera by skiping unread frames
+    } // warm up camera by skiping unread frames
   }
 
   vpImageConvert::convert(frame, I);
@@ -420,7 +439,11 @@ int main(int argc, char **argv)
   std::vector<cv::Rect> boxesNMS;
   std::vector<int> classIds;
 
-  vpDisplayX d(I);
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  std::shared_ptr<vpDisplay> display = vpDisplayFactory::createDisplay(I);
+#else
+  vpDisplay *display = vpDisplayFactory::allocateDisplay(I);
+#endif
 
   double start, stop;
   //! [Main loop]
@@ -457,6 +480,12 @@ int main(int argc, char **argv)
 
   for (void *buf : buffers)
     cudaFree(buf);
+
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+  if (display != nullptr) {
+    delete display;
+  }
+#endif
 
   return EXIT_SUCCESS;
 }

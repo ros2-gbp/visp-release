@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,20 +29,24 @@
  *
  * Description:
  * D3D renderer for windows 32 display
- *
- * Authors:
- * Bruno Renier
- *
- *****************************************************************************/
+ */
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#ifndef VP_D3D_RENDERER_H
+#define VP_D3D_RENDERER_H
 
 #include <visp3/core/vpConfig.h>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if (defined(VISP_HAVE_D3D9))
 
-#ifndef VPD3DRENDERER_HH
-#define VPD3DRENDERER_HH
+
+// Mute warning with clang-cl
+// warning : non-portable path to file '<WinSock2.h>'; specified path differs in case from file name on disk [-Wnonportable-system-include-path]
+// warning : non-portable path to file '<Windows.h>'; specified path differs in case from file name on disk [-Wnonportable-system-include-path]
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wnonportable-system-include-path"
+#endif
 
 // Include WinSock2.h before windows.h to ensure that winsock.h is not
 // included by windows.h since winsock.h and winsock2.h are incompatible
@@ -51,20 +54,26 @@
 #include <d3dx9.h>
 #include <visp3/core/vpDisplayException.h>
 #include <visp3/gui/vpWin32Renderer.h>
+
+
 #include <windows.h>
+
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#endif
 
 #include <iostream>
 
+BEGIN_VISP_NAMESPACE
+
 /*!
-  \class vpD3DRenderer.h
-
-  \brief Display under windows using Direct3D9.
-  Is used by vpDisplayD3D to do the drawing.
-
+ * \class vpD3DRenderer.h
+ *
+ * \brief Display under windows using Direct3D9.
+ * Is used by vpDisplayD3D to do the drawing.
 */
 class VISP_EXPORT vpD3DRenderer : public vpWin32Renderer
 {
-
   IDirect3D9 *pD3D;
 
   // The d3d device we will be working with.
@@ -87,7 +96,7 @@ class VISP_EXPORT vpD3DRenderer : public vpWin32Renderer
   // The window's handle.
   HWND hWnd;
 
-  // Colors  for overlay drawn with d3d directly.
+  // Colors for overlay drawn with d3d directly.
   unsigned long colors[vpColor::id_unknown];
 
   // Colors for overlay drawn with GDI.
@@ -101,14 +110,12 @@ public:
   bool render();
 
   vpD3DRenderer();
-  virtual ~vpD3DRenderer();
+  virtual ~vpD3DRenderer() VP_OVERRIDE;
 
   void setImg(const vpImage<vpRGBa> &im);
   void setImg(const vpImage<unsigned char> &im);
-  void setImgROI(const vpImage<vpRGBa> &im, const vpImagePoint &iP, unsigned int width,
-                 unsigned int height);
-  void setImgROI(const vpImage<unsigned char> &im, const vpImagePoint &iP, unsigned int width,
-                 unsigned int height);
+  void setImgROI(const vpImage<vpRGBa> &im, const vpImagePoint &iP, unsigned int width, unsigned int height);
+  void setImgROI(const vpImage<unsigned char> &im, const vpImagePoint &iP, unsigned int width, unsigned int height);
 
   void setPixel(const vpImagePoint &iP, const vpColor &color);
 
@@ -130,7 +137,7 @@ public:
   void drawArrow(const vpImagePoint &ip1, const vpImagePoint &ip2, const vpColor &color, unsigned int w, unsigned int h,
                  unsigned int thickness = 1);
 
-  void getImage(vpImage<vpRGBa> &I);
+  void getImage(vpImage<vpRGBa> &I) VP_OVERRIDE;
 
 private:
   void initView(float, float);
@@ -171,7 +178,7 @@ private:
       c = D3DCOLOR_ARGB(0xFF, color.R, color.G, color.B);
     }
 
-    if (x >= 0 && y >= 0 && x <= (int)maxX && y <= (int)maxY)
+    if (x >= 0 && y >= 0 && x <= static_cast<int>(maxX) && y <= static_cast<int>(maxY))
       *(unsigned long *)(buf + (y * pitch) + (x << 2)) = c; // colors[color];
   }
   /*!
@@ -198,5 +205,8 @@ private:
   unsigned int supPowerOf2(unsigned int n);
 };
 #endif
+
+END_VISP_NAMESPACE
+
 #endif
 #endif

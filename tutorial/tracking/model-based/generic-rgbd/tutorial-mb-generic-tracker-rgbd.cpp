@@ -1,22 +1,89 @@
 //! \example tutorial-mb-generic-tracker-rgbd.cpp
 #include <iostream>
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDisplay.h>
 #include <visp3/core/vpIoTools.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/io/vpImageIo.h>
-#include <visp3/core/vpXmlParserCamera.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayX.h>
 //! [Include]
 #include <visp3/mbt/vpMbGenericTracker.h>
 //! [Include]
 
-#if defined (VISP_HAVE_PCL)
+#if defined(VISP_HAVE_PCL) && defined(VISP_HAVE_PCL_SEGMENTATION) && defined(VISP_HAVE_PCL_FILTERS) && defined(VISP_HAVE_PCL_COMMON)
 #include <pcl/common/common.h>
-#include <pcl/io/pcd_io.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
-namespace {
-struct rs_intrinsics {
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+
+namespace
+{
+typedef enum  DepthType
+{
+  DEPTH_UNUSED = 0,
+  DEPTH_DENSE = 1,
+  DEPTH_NORMAL = 2,
+  DEPTH_COUNT = 3
+}DepthType;
+
+std::string depthTypeToString(const DepthType &type)
+{
+  std::string name;
+  switch (type) {
+  case DEPTH_UNUSED:
+    name = "unused";
+    break;
+  case DEPTH_DENSE:
+    name = "dense";
+    break;
+  case DEPTH_NORMAL:
+    name = "normals";
+    break;
+  case DEPTH_COUNT:
+  default:
+    name = "unknown";
+    break;
+  }
+  return name;
+}
+
+DepthType depthTypeFromString(const std::string &name)
+{
+  DepthType type(DEPTH_COUNT);
+  unsigned int i = 0;
+  bool notFound = true;
+  while ((i < static_cast<unsigned int>(DEPTH_COUNT)) && notFound) {
+    DepthType candidate = static_cast<DepthType>(i);
+    if (vpIoTools::toLowerCase(name) == depthTypeToString(candidate)) {
+      notFound = false;
+      type = candidate;
+    }
+    ++i;
+  }
+  return type;
+}
+
+std::string getDepthTypeList(const std::string &prefix = "<", const std::string &sep = " , ", const std::string &suffix = ">")
+{
+  std::string list(prefix);
+  unsigned int i = 0;
+  while (i < static_cast<unsigned int>(DEPTH_COUNT - 1)) {
+    DepthType type = static_cast<DepthType>(i);
+    std::string name = depthTypeToString(type);
+    list += name + sep;
+    ++i;
+  }
+  DepthType type = static_cast<DepthType>(DEPTH_COUNT - 1);
+  std::string name = depthTypeToString(type);
+  list += name + suffix;
+  return list;
+}
+
+struct vpRealsenseIntrinsics_t
+{
   float ppx;       /**< Horizontal coordinate of the principal point of the image,
                       as a pixel offset from the left edge */
   float ppy;       /**< Vertical coordinate of the principal point of the image, as
@@ -28,7 +95,8 @@ struct rs_intrinsics {
   float coeffs[5]; /**< Distortion coefficients */
 };
 
-void rs_deproject_pixel_to_point(float point[3], const rs_intrinsics &intrin, const float pixel[2], float depth) {
+void rs_deproject_pixel_to_point(float point[3], const vpRealsenseIntrinsics_t &intrin, const float pixel[2], float depth)
+{
   float x = (pixel[0] - intrin.ppx) / intrin.fx;
   float y = (pixel[1] - intrin.ppy) / intrin.fy;
 
@@ -50,12 +118,8 @@ bool read_data(unsigned int cpt, const std::string &input_directory, vpImage<vpR
                vpImage<uint16_t> &I_depth_raw, pcl::PointCloud<pcl::PointXYZ>::Ptr &pointcloud)
 //! [Read data function]
 {
-  char buffer[FILENAME_MAX];
   // Read color
-  std::stringstream ss;
-  ss << input_directory << "/color_image_%04d.jpg";
-  sprintf(buffer, ss.str().c_str(), cpt);
-  std::string filename_color = buffer;
+  std::string filename_color = vpIoTools::formatString(input_directory + "/color_image_%04d.jpg", cpt);
 
   if (!vpIoTools::checkFilename(filename_color)) {
     std::cerr << "Cannot read: " << filename_color << std::endl;
@@ -64,10 +128,7 @@ bool read_data(unsigned int cpt, const std::string &input_directory, vpImage<vpR
   vpImageIo::read(I_color, filename_color);
 
   // Read raw depth
-  ss.str("");
-  ss << input_directory << "/depth_image_%04d.bin";
-  sprintf(buffer, ss.str().c_str(), cpt);
-  std::string filename_depth = buffer;
+  std::string filename_depth = vpIoTools::formatString(input_directory + "/depth_image_%04d.bin", cpt);
 
   std::ifstream file_depth(filename_depth.c_str(), std::ios::in | std::ios::binary);
   if (!file_depth.is_open()) {
@@ -90,11 +151,11 @@ bool read_data(unsigned int cpt, const std::string &input_directory, vpImage<vpR
   // Transform pointcloud
   pointcloud->width = width;
   pointcloud->height = height;
-  pointcloud->resize((size_t)width * height);
+  pointcloud->resize(static_cast<size_t>(width * height));
 
   // Only for Creative SR300
   const float depth_scale = 0.00100000005f;
-  rs_intrinsics depth_intrinsic;
+  vpRealsenseIntrinsics_t depth_intrinsic;
   depth_intrinsic.ppx = 320.503509521484f;
   depth_intrinsic.ppy = 235.602951049805f;
   depth_intrinsic.fx = 383.970001220703f;
@@ -109,17 +170,17 @@ bool read_data(unsigned int cpt, const std::string &input_directory, vpImage<vpR
     for (unsigned int j = 0; j < width; j++) {
       float scaled_depth = I_depth_raw[i][j] * depth_scale;
       float point[3];
-      float pixel[2] = {(float)j, (float)i};
+      float pixel[2] = { static_cast<float>(j), static_cast<float>(i) };
       rs_deproject_pixel_to_point(point, depth_intrinsic, pixel, scaled_depth);
-      pointcloud->points[(size_t) (i*width + j)].x = point[0];
-      pointcloud->points[(size_t) (i*width + j)].y = point[1];
-      pointcloud->points[(size_t) (i*width + j)].z = point[2];
+      pointcloud->points[static_cast<size_t>(i * width + j)].x = point[0];
+      pointcloud->points[static_cast<size_t>(i * width + j)].y = point[1];
+      pointcloud->points[static_cast<size_t>(i * width + j)].z = point[2];
     }
   }
 
   return true;
 }
-}
+} // namespace
 
 int main(int argc, char *argv[])
 {
@@ -128,49 +189,73 @@ int main(int argc, char *argv[])
   std::string model_color = "model/cube/cube.cao", model_depth = "model/cube/cube.cao";
   std::string init_file = "model/cube/cube.init";
   unsigned int frame_cpt = 0;
-  bool disable_depth = false;
+  DepthType use_depth = DEPTH_DENSE;
 
   for (int i = 1; i < argc; i++) {
-    if (std::string(argv[i]) == "--input_directory" && i+1 < argc) {
-      input_directory = std::string(argv[i+1]);
-    } else if (std::string(argv[i]) == "--config_color" && i+1 < argc) {
-      config_color = std::string(argv[i+1]);
-    } else if (std::string(argv[i]) == "--config_depth" && i+1 < argc) {
-      config_depth = std::string(argv[i+1]);
-    } else if (std::string(argv[i]) == "--model_color" && i+1 < argc) {
-      model_color = std::string(argv[i+1]);
-    } else if (std::string(argv[i]) == "--model_depth" && i+1 < argc) {
-      model_depth = std::string(argv[i+1]);
-    } else if (std::string(argv[i]) == "--init_file" && i+1 < argc) {
-      init_file = std::string(argv[i+1]);
-    } else if (std::string(argv[i]) == "--disable_depth") {
-      disable_depth = true;
-    } else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
-      std::cout << "Usage: \n" << argv[0] << " --input_directory <data directory> --config_color <object.xml> --config_depth <object.xml>"
-                                             " --model_color <object.cao> --model_depth <object.cao> --init_file <object.init> --disable_depth" << std::endl;
-      std::cout << "\nExample:\n" << argv[0] << " --config_color model/cube/cube.xml --config_depth model/cube/cube.xml"
-                                                " --model_color model/cube/cube.cao --model_depth model/cube/cube.cao --init_file model/cube/cube.init\n" << std::endl;
-      return 0;
+    if (std::string(argv[i]) == "--input_directory" && i + 1 < argc) {
+      input_directory = std::string(argv[i + 1]);
+    }
+    else if (std::string(argv[i]) == "--config_color" && i + 1 < argc) {
+      config_color = std::string(argv[i + 1]);
+    }
+    else if (std::string(argv[i]) == "--config_depth" && i + 1 < argc) {
+      config_depth = std::string(argv[i + 1]);
+    }
+    else if (std::string(argv[i]) == "--model_color" && i + 1 < argc) {
+      model_color = std::string(argv[i + 1]);
+    }
+    else if (std::string(argv[i]) == "--model_depth" && i + 1 < argc) {
+      model_depth = std::string(argv[i + 1]);
+    }
+    else if (std::string(argv[i]) == "--init_file" && i + 1 < argc) {
+      init_file = std::string(argv[i + 1]);
+    }
+    else if (std::string(argv[i]) == "--use_depth"  && i + 1 < argc) {
+      use_depth = depthTypeFromString(std::string(argv[i + 1]));
+    }
+    else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
+      std::cout << "Usage: \n"
+        << argv[0]
+        << " --input_directory <data directory> --config_color <object.xml> --config_depth <object.xml>"
+        " --model_color <object.cao> --model_depth <object.cao> --init_file <object.init> --use_depth " << getDepthTypeList()
+        << std::endl;
+      std::cout
+        << "\nExample:\n"
+        << argv[0]
+        << " --config_color model/cube/cube.xml --config_depth model/cube/cube.xml"
+        " --model_color model/cube/cube.cao --model_depth model/cube/cube.cao --init_file model/cube/cube.init --use_depth "<< depthTypeToString(use_depth) <<"\n"
+        << std::endl;
+      return EXIT_SUCCESS;
     }
   }
 
   std::cout << "Tracked features: " << std::endl;
-#ifdef VISP_HAVE_OPENCV
+#if defined(VISP_HAVE_OPENCV)
   std::cout << "  Use edges   : 1" << std::endl;
+#if defined(HAVE_OPENCV_IMGPROC) && defined(HAVE_OPENCV_VIDEO)
   std::cout << "  Use klt     : 1" << std::endl;
-  std::cout << "  Use depth   : " << ! disable_depth << std::endl;
+#else
+  std::cout << "  Use klt     : 0" << std::endl;
+#endif
+  std::cout << "  Use depth   : " << depthTypeToString(use_depth) << std::endl;
 #else
   std::cout << "  Use edges   : 1" << std::endl;
   std::cout << "  Use klt     : 0" << std::endl;
   std::cout << "  Use depth   : 0" << std::endl;
 #endif
   std::cout << "Config files: " << std::endl;
-  std::cout << "  Input directory: " << "\"" << input_directory << "\"" << std::endl;
-  std::cout << "  Config color: " << "\"" << config_color << "\"" << std::endl;
-  std::cout << "  Config depth: " << "\"" << config_depth << "\"" << std::endl;
-  std::cout << "  Model color : " << "\"" << model_color << "\"" << std::endl;
-  std::cout << "  Model depth : " << "\"" << model_depth << "\"" << std::endl;
-  std::cout << "  Init file   : " << "\"" << init_file << "\"" << std::endl;
+  std::cout << "  Input directory: "
+    << "\"" << input_directory << "\"" << std::endl;
+  std::cout << "  Config color: "
+    << "\"" << config_color << "\"" << std::endl;
+  std::cout << "  Config depth: "
+    << "\"" << config_depth << "\"" << std::endl;
+  std::cout << "  Model color : "
+    << "\"" << model_color << "\"" << std::endl;
+  std::cout << "  Model depth : "
+    << "\"" << model_depth << "\"" << std::endl;
+  std::cout << "  Init file   : "
+    << "\"" << init_file << "\"" << std::endl;
 
   vpImage<vpRGBa> I_color;
   //! [Images]
@@ -186,16 +271,17 @@ int main(int argc, char *argv[])
   vpImageConvert::convert(I_color, I_gray);
   vpImageConvert::createDepthHistogram(I_depth_raw, I_depth);
 
-#if defined(VISP_HAVE_X11)
-  vpDisplayX d1, d2;
-#elif defined(VISP_HAVE_GDI)
-  vpDisplayGDI d1, d2;
+#if defined(VISP_HAVE_DISPLAY)
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  std::shared_ptr<vpDisplay> display1 = vpDisplayFactory::createDisplay();
+  std::shared_ptr<vpDisplay> display2 = vpDisplayFactory::createDisplay();
+#else
+  vpDisplay *display1 = vpDisplayFactory::allocateDisplay();
+  vpDisplay *display2 = vpDisplayFactory::allocateDisplay();
 #endif
-
-#if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)
   unsigned int _posx = 100, _posy = 50, _posdx = 10;
-  d1.init(I_gray, _posx, _posy, "Color stream");
-  d2.init(I_depth, _posx + I_gray.getWidth()+_posdx, _posy, "Depth stream");
+  display1->init(I_gray, _posx, _posy, "Color stream");
+  display2->init(I_depth, _posx + I_gray.getWidth() + _posdx, _posy, "Depth stream");
 #endif
 
   vpDisplay::display(I_gray);
@@ -205,17 +291,73 @@ int main(int argc, char *argv[])
 
   //! [Constructor]
   std::vector<int> trackerTypes;
-#ifdef VISP_HAVE_OPENCV
+#if defined(VISP_HAVE_OPENCV) && defined(HAVE_OPENCV_IMGPROC) && defined(HAVE_OPENCV_VIDEO)
   trackerTypes.push_back(vpMbGenericTracker::EDGE_TRACKER | vpMbGenericTracker::KLT_TRACKER);
 #else
   trackerTypes.push_back(vpMbGenericTracker::EDGE_TRACKER);
 #endif
-  trackerTypes.push_back(vpMbGenericTracker::DEPTH_DENSE_TRACKER);
+  if (use_depth == DEPTH_DENSE) {
+    trackerTypes.push_back(vpMbGenericTracker::DEPTH_DENSE_TRACKER);
+  }
+  else if (use_depth == DEPTH_NORMAL) {
+    trackerTypes.push_back(vpMbGenericTracker::DEPTH_NORMAL_TRACKER);
+  }
   vpMbGenericTracker tracker(trackerTypes);
   //! [Constructor]
+#if defined(VISP_HAVE_PUGIXML)
   //! [Load config file]
   tracker.loadConfigFile(config_color, config_depth);
   //! [Load config file]
+#else
+  {
+    vpCameraParameters cam_color, cam_depth;
+    cam_color.initPersProjWithoutDistortion(614.9, 614.9, 320.2, 241.5);
+    cam_depth.initPersProjWithoutDistortion(384.0, 384.0, 320.5, 235.6);
+    tracker.setCameraParameters(cam_color, cam_depth);
+  }
+
+  // Edge
+  vpMe me;
+  me.setMaskSize(5);
+  me.setMaskNumber(180);
+  me.setRange(7);
+  me.setLikelihoodThresholdType(vpMe::NORMALIZED_THRESHOLD);
+  me.setThreshold(10);
+  me.setMu1(0.5);
+  me.setMu2(0.5);
+  me.setSampleStep(4);
+  tracker.setMovingEdge(me);
+
+  // Klt
+#if defined(VISP_HAVE_MODULE_KLT) && defined(VISP_HAVE_OPENCV) && defined(HAVE_OPENCV_IMGPROC) && defined(HAVE_OPENCV_VIDEO)
+  vpKltOpencv klt;
+  tracker.setKltMaskBorder(5);
+  klt.setMaxFeatures(300);
+  klt.setWindowSize(5);
+  klt.setQuality(0.01);
+  klt.setMinDistance(5);
+  klt.setHarrisFreeParameter(0.01);
+  klt.setBlockSize(3);
+  klt.setPyramidLevels(3);
+
+  tracker.setKltOpencv(klt);
+#endif
+
+  // Depth
+  tracker.setDepthNormalFeatureEstimationMethod(vpMbtFaceDepthNormal::ROBUST_FEATURE_ESTIMATION);
+  tracker.setDepthNormalPclPlaneEstimationMethod(2);
+  tracker.setDepthNormalPclPlaneEstimationRansacMaxIter(200);
+  tracker.setDepthNormalPclPlaneEstimationRansacThreshold(0.001);
+  tracker.setDepthNormalSamplingStep(2, 2);
+
+  tracker.setDepthDenseSamplingStep(4, 4);
+
+  tracker.setAngleAppear(vpMath::rad(80.0));
+  tracker.setAngleDisappear(vpMath::rad(85.0));
+  tracker.setNearClippingDistance(0.001);
+  tracker.setFarClippingDistance(5.0);
+  tracker.setClipping(tracker.getClipping() | vpMbtPolygon::FOV_CLIPPING);
+#endif
   //! [Load cao]
   tracker.loadModel(model_color, model_depth);
   //! [Load cao]
@@ -232,7 +374,7 @@ int main(int argc, char *argv[])
   //! [Map transformations]
   vpHomogeneousMatrix depth_M_color;
   {
-    std::ifstream file( (std::string(input_directory + "/depth_M_color.txt")).c_str() );
+    std::ifstream file((std::string(input_directory + "/depth_M_color.txt")).c_str());
     depth_M_color.load(file);
     file.close();
   }
@@ -261,9 +403,9 @@ int main(int argc, char *argv[])
 
   try {
     bool quit = false;
-    while (! quit) {
+    while (!quit) {
       double t = vpTime::measureTimeMs();
-      quit = ! read_data(frame_cpt, input_directory, I_color, I_depth_raw, pointcloud);
+      quit = !read_data(frame_cpt, input_directory, I_color, I_depth_raw, pointcloud);
       vpImageConvert::convert(I_color, I_gray);
       vpImageConvert::createDepthHistogram(I_depth_raw, I_depth);
 
@@ -271,11 +413,13 @@ int main(int argc, char *argv[])
       vpDisplay::display(I_depth);
 
       mapOfImages["Camera1"] = &I_gray;
-      std::map<std::string, pcl::PointCloud< pcl::PointXYZ >::ConstPtr> mapOfPointclouds;
-      if (disable_depth)
+      std::map<std::string, pcl::PointCloud<pcl::PointXYZ>::ConstPtr> mapOfPointclouds;
+      if (use_depth == DEPTH_UNUSED) {
         mapOfPointclouds["Camera2"] = empty_pointcloud;
-      else
+      }
+      else {
         mapOfPointclouds["Camera2"] = pointcloud;
+      }
 
       //! [Track]
       tracker.track(mapOfImages, mapOfPointclouds);
@@ -288,9 +432,9 @@ int main(int argc, char *argv[])
       std::cout << "iter: " << frame_cpt << " cMo:\n" << cMo << std::endl;
 
       //! [Display]
-      tracker.display(I_gray, I_depth, cMo, depth_M_color*cMo, cam_color, cam_depth, vpColor::red, 3);
+      tracker.display(I_gray, I_depth, cMo, depth_M_color * cMo, cam_color, cam_depth, vpColor::red, 3);
       vpDisplay::displayFrame(I_gray, cMo, cam_color, 0.05, vpColor::none, 3);
-      vpDisplay::displayFrame(I_depth, depth_M_color*cMo, cam_depth, 0.05, vpColor::none, 3);
+      vpDisplay::displayFrame(I_depth, depth_M_color * cMo, cam_depth, 0.05, vpColor::none, 3);
       //! [Display]
 
       t = vpTime::measureTimeMs() - t;
@@ -306,9 +450,8 @@ int main(int argc, char *argv[])
       }
       {
         std::stringstream ss;
-        ss << "Features: edges " << tracker.getNbFeaturesEdge()
-           << ", klt " << tracker.getNbFeaturesKlt()
-           << ", depth " << tracker.getNbFeaturesDepthDense();
+        ss << "Features: edges " << tracker.getNbFeaturesEdge() << ", klt " << tracker.getNbFeaturesKlt() << ", depth "
+          << tracker.getNbFeaturesDepthDense();
         vpDisplay::displayText(I_gray, I_gray.getHeight() - 30, 20, ss.str(), vpColor::red);
       }
 
@@ -320,14 +463,25 @@ int main(int argc, char *argv[])
         quit = true;
       }
 
-      frame_cpt ++;
+      frame_cpt++;
     }
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch exception: " << e.getStringMessage() << std::endl;
   }
 
-  std::cout << "\nProcessing time, Mean: " << vpMath::getMean(times_vec) << " ms ; Median: " << vpMath::getMedian(times_vec)
-            << " ; Std: " << vpMath::getStdev(times_vec) << " ms" << std::endl;
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11) && defined(VISP_HAVE_DISPLAY)
+  if (display1 != nullptr) {
+    delete display1;
+  }
+  if (display2 != nullptr) {
+    delete display2;
+  }
+#endif
+
+  std::cout << "\nProcessing time, Mean: " << vpMath::getMean(times_vec)
+    << " ms ; Median: " << vpMath::getMedian(times_vec) << " ; Std: " << vpMath::getStdev(times_vec) << " ms"
+    << std::endl;
 
   vpDisplay::displayText(I_gray, 60, 20, "Click to quit", vpColor::red);
   vpDisplay::flush(I_gray);
@@ -339,7 +493,8 @@ int main(int argc, char *argv[])
 int main()
 {
   std::cout << "To run this tutorial, ViSP should be build with PCL library."
-               " Install libpcl, configure and build again ViSP..." << std::endl;
+    " Install libpcl, configure and build again ViSP..."
+    << std::endl;
   return EXIT_SUCCESS;
 }
 #endif

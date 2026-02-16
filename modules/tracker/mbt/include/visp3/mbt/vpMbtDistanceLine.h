@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -32,11 +31,8 @@
  * Manage the line of a polygon used in the model-based tracker.
  *
  * Authors:
- * Nicolas Melchior
  * Romain Tallonneau
- * Eric Marchand
- *
- *****************************************************************************/
+ */
 
 /*!
  \file vpMbtDistanceLine.h
@@ -46,6 +42,7 @@
 #ifndef vpMbtDistanceLine_HH
 #define vpMbtDistanceLine_HH
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpLine.h>
 #include <visp3/core/vpPoint.h>
@@ -56,6 +53,7 @@
 
 #include <list>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpMbtDistanceLine
 
@@ -63,7 +61,18 @@
 
   \ingroup group_mbt_features
 
- */
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in using a MBT tracker in your applications, you may have a look at:</span><br>
+
+  - \ref tutorial-tracking-mb-generic
+  - \ref tutorial-tracking-mb-generic-stereo
+  - \ref tutorial-tracking-mb-generic-rgbd
+  - \ref tutorial-tracking-mb-generic-apriltag-live
+  - \ref tutorial-mb-generic-json
+  - \ref tutorial-tracking-mb-generic-rgbd-Blender
+*/
 class VISP_EXPORT vpMbtDistanceLine
 {
 private:
@@ -114,11 +123,11 @@ public:
   // private:
   //#ifndef DOXYGEN_SHOULD_SKIP_THIS
   //    vpMbtDistanceLine(const vpMbtDistanceLine &)
-  //      : name(), index(0), cam(), me(NULL), isTrackedLine(true),
+  //      : name(), index(0), cam(), me(nullptr), isTrackedLine(true),
   //      isTrackedLineWithVisibility(true),
   //        wmean(1), featureline(), poly(), useScanLine(false), meline(),
-  //        line(NULL), p1(NULL), p2(NULL), L(), error(), nbFeature(),
-  //        nbFeatureTotal(0), Reinit(false), hiddenface(NULL),
+  //        line(nullptr), p1(nullptr), p2(nullptr), L(), error(), nbFeature(),
+  //        nbFeatureTotal(0), Reinit(false), hiddenface(nullptr),
   //        Lindex_polygon(), Lindex_polygon_tracked(), isvisible(false)
   //    {
   //      throw vpException(vpException::functionNotImplementedError, "Not
@@ -130,13 +139,18 @@ public:
   //    }
   //#endif
 
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  vpMbtDistanceLine(const vpMbtDistanceLine &) = delete; // non construction-copyable
+  vpMbtDistanceLine &operator=(const vpMbtDistanceLine &) = delete; // non copyable
+#endif
+
 public:
   vpMbtDistanceLine();
   virtual ~vpMbtDistanceLine();
 
   void addPolygon(const int &index);
 
-  void buildFrom(vpPoint &_p1, vpPoint &_p2, vpUniRand& rand_gen);
+  void buildFrom(vpPoint &_p1, vpPoint &_p2, vpUniRand &rand_gen);
 
   bool closeToImageBorder(const vpImage<unsigned char> &I, const unsigned int threshold);
   void computeInteractionMatrixError(const vpHomogeneousMatrix &cMo);
@@ -149,7 +163,7 @@ public:
   void displayMovingEdges(const vpImage<vpRGBa> &I);
 
   /*!
-   Get the camera paramters.
+   Get the camera parameters.
 
    \param camera : The vpCameraParameters used to store the camera parameters.
   */
@@ -174,8 +188,7 @@ public:
   std::vector<std::vector<double> > getFeaturesForDisplay();
 
   std::vector<std::vector<double> > getModelForDisplay(unsigned int width, unsigned int height,
-                                                       const vpHomogeneousMatrix &cMo,
-                                                       const vpCameraParameters &cam,
+                                                       const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
                                                        bool displayFullModel = false);
 
   /*!
@@ -195,7 +208,7 @@ public:
   void initInteractionMatrixError();
 
   bool initMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, bool doNotTrack,
-                      const vpImage<bool> *mask = NULL);
+                      const vpImage<bool> *mask = nullptr, const int &initRange = 0);
 
   /*!
    Return if the line is used for tracking.
@@ -212,10 +225,10 @@ public:
   inline bool isVisible() const { return isvisible; }
 
   void reinitMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo,
-                        const vpImage<bool> *mask = NULL);
+                        const vpImage<bool> *mask = nullptr);
 
   /*!
-   Set the camera paramters.
+   Set the camera parameters.
    \param camera : The camera parameters.
   */
   inline void setCameraParameters(const vpCameraParameters &camera) { this->cam = camera; }
@@ -269,5 +282,5 @@ public:
 private:
   void project(const vpHomogeneousMatrix &cMo);
 };
-
+END_VISP_NAMESPACE
 #endif

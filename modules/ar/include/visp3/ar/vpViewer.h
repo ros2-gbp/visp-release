@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,14 +29,8 @@
  *
  * Description:
  * Simulator based on Coin3d.
- *
- * Authors:
- * Eric Marchand
- *
- *****************************************************************************/
+ */
 
-#ifndef vpViewer_HH
-#define vpViewer_HH
 /*!
   \file vpViewer.h
 
@@ -49,6 +42,9 @@
   one of the GUI (SoWin, SoXT, SoQt) are installed.
 
 */
+
+#ifndef VP_VIEWER_H
+#define VP_VIEWER_H
 
 #include <visp3/core/vpConfig.h>
 
@@ -97,6 +93,7 @@
 #include <visp3/core/vpDebug.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpViewer
   \ingroup group_ar_simulator
@@ -143,20 +140,20 @@ private:
   vpSimulator *simu;
   SbBool processSoEvent(const SoEvent *const event);
 #if defined(VISP_HAVE_SOWIN)
-  static HWND init(const char *appname) { return SoWin::init(appname); };
-  static void mainLoop() { SoWin::mainLoop(); };
-  static void exitMainLoop() { SoWin::exitMainLoop(); };
+  static HWND init(const char *appname) { return SoWin::init(appname); }
+  static void mainLoop() { SoWin::mainLoop(); }
+  static void exitMainLoop() { SoWin::exitMainLoop(); }
 #elif defined(VISP_HAVE_SOQT)
-  static QWidget *init(const char *appname) { return SoQt::init(appname); };
-  static void mainLoop() { SoQt::mainLoop(); };
-  static void exitMainLoop() { SoQt::exitMainLoop(); };
+  static QWidget *init(const char *appname) { return SoQt::init(appname); }
+  static void mainLoop() { SoQt::mainLoop(); }
+  static void exitMainLoop() { SoQt::exitMainLoop(); }
 #elif defined(VISP_HAVE_SOXT)
-  static Widget init(const char *appname) { return SoXt::init(appname); };
-  static void mainLoop() { SoXt::mainLoop(); };
-  static void exitMainLoop() { SoXt::exitMainLoop(); };
+  static Widget init(const char *appname) { return SoXt::init(appname); }
+  static void mainLoop() { SoXt::mainLoop(); }
+  static void exitMainLoop() { SoXt::exitMainLoop(); }
 #endif
 };
-
+END_VISP_NAMESPACE
 #endif // VISP_HAVE_COIN3D_AND_GUI
 
 #endif

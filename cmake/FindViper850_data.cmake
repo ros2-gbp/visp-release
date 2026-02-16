@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -30,28 +30,28 @@
 #
 # Description:
 # Try to determine if calibration data (camera intrinsic/extrinsic, FT calib file)
-# are available for Inria's Viper 850 robot. 
+# are available for Inria's Viper 850 robot.
 #
 # VIPER850_DATA_FOUND
 # VIPER850_DATA_PATH
 #
-# Authors:
-# Fabien Spindler
-#
 #############################################################################
 
-    
+
 find_path(VIPER850_DATA_PATH
   NAMES include/const_camera_Viper850.xml
   PATHS
+    $ENV{VIPER850_DATA_DIR}
+    ${VIPER850_DATA_DIR}
     /home/soft/Viper850/Viper850
     /home/soft/Viper850/current
+    /home/soft/viper850/viper850
     /udd/fspindle/robot/Viper850/current
     Z:/robot/Viper850/current
   )
 
 #message("DBG VIPER850_DATA_PATH=${VIPER850_DATA_PATH}")
- 
+
 if(VIPER850_DATA_PATH)
   set(VIPER850_DATA_FOUND TRUE)
 else()
@@ -61,4 +61,3 @@ endif()
 mark_as_advanced(
   VIPER850_DATA_PATH
 )
-
