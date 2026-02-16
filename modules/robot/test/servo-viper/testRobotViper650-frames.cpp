@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Test Viper 650 robot.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testRobotViper650-frames.cpp
@@ -47,6 +42,9 @@
 
 #ifdef VISP_HAVE_VIPER650
 
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 bool pose_equal(const vpHomogeneousMatrix &M1, const vpHomogeneousMatrix &M2, double epsilon = 1e-6)
 {
   vpTranslationVector t1, t2;
@@ -146,7 +144,7 @@ int main()
       if (!pose_equal(eMt, eMt_, 1e-4)) {
         std::cout << "  Error: Pose eMt differ" << std::endl;
         std::cout << "\nTest failed" << std::endl;
-        return -1;
+        return EXIT_FAILURE;
       }
       std::cout << "  They are the same, we can continue" << std::endl;
 
@@ -159,7 +157,7 @@ int main()
       if (!pose_equal(eMt, cMe.inverse(), 1e-4)) {
         std::cout << "  Error: Pose eMc differ" << std::endl;
         std::cout << "\nTest failed" << std::endl;
-        return -1;
+        return EXIT_FAILURE;
       }
       std::cout << "  They are the same, we can continue" << std::endl;
     }
@@ -182,7 +180,7 @@ int main()
       if (!pose_equal(fMt, fMt_, 1e-4)) {
         std::cout << "  Error: Pose fMt differ" << std::endl;
         std::cout << "\nTest failed" << std::endl;
-        return -1;
+        return EXIT_FAILURE;
       }
       std::cout << "  They are the same, we can continue" << std::endl;
     }
@@ -204,7 +202,7 @@ int main()
       if (!joint_equal(q, q2, 1e-4)) {
         std::cout << "  Error: Joint position differ" << std::endl;
         std::cout << "\nTest failed" << std::endl;
-        return -1;
+        return EXIT_FAILURE;
       }
       std::cout << "  They are the same, we can continue" << std::endl;
     }
@@ -228,7 +226,7 @@ int main()
       if (!joint_equal(q, q3, 1e-4)) {
         std::cout << "  Error: Joint position differ" << std::endl;
         std::cout << "\nTest failed" << std::endl;
-        return -1;
+        return EXIT_FAILURE;
       }
       std::cout << "  They are the same, we can continue" << std::endl;
     }
@@ -259,7 +257,7 @@ int main()
       if (!pose_equal(fMt_, vpHomogeneousMatrix(fpt_), 1e-4)) {
         std::cout << "  Error: Pose fMt_ differ" << std::endl;
         std::cout << "\nTest failed" << std::endl;
-        return -1;
+        return EXIT_FAILURE;
       }
       std::cout << "  They are the same, we can continue" << std::endl;
     }
@@ -366,8 +364,11 @@ int main()
     }
     std::cout << "The end" << std::endl;
     std::cout << "Test succeed" << std::endl;
-  } catch (const vpException &e) {
+    return EXIT_SUCCESS;
+  }
+  catch (const vpException &e) {
     std::cout << "Test failed with exception: " << e.getMessage() << std::endl;
+    return EXIT_FAILURE;
   }
 }
 
@@ -375,7 +376,7 @@ int main()
 int main()
 {
   std::cout << "The real Viper650 robot controller is not available." << std::endl;
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #endif

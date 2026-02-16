@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,20 +29,24 @@
  *
  * Description:
  * Windows 32 display's window class
- *
- * Authors:
- * Bruno Renier
- * Anthony Saunier
- *
- *****************************************************************************/
+ */
+
+#ifndef VP_WIN32_WINDOW_H
+#define VP_WIN32_WINDOW_H
 
 #include <visp3/core/vpConfig.h>
 
 #if (defined(VISP_HAVE_GDI) || defined(VISP_HAVE_D3D9))
-#ifndef vpWin32Window_HH
-#define vpWin32Window_HH
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+// Mute warning with clang-cl
+// warning : non-portable path to file '<WinSock2.h>'; specified path differs in case from file name on disk [-Wnonportable-system-include-path]
+// warning : non-portable path to file '<Windows.h>'; specified path differs in case from file name on disk [-Wnonportable-system-include-path]
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wnonportable-system-include-path"
+#endif
 
 // Include WinSock2.h before windows.h to ensure that winsock.h is not
 // included by windows.h since winsock.h and winsock2.h are incompatible
@@ -52,7 +55,14 @@
 #include <visp3/core/vpDisplayException.h>
 #include <visp3/gui/vpGDIRenderer.h>
 #include <visp3/gui/vpWin32Renderer.h>
+
 #include <windows.h>
+
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#endif
+
+BEGIN_VISP_NAMESPACE
 
 // ViSP-defined messages for window's callback function
 #define vpWM_GETCLICK WM_USER + 1
@@ -112,8 +122,10 @@ private:
   vpWin32Renderer *renderer;
 
 public:
-  explicit vpWin32Window(vpWin32Renderer *rend = NULL);
+  VP_EXPLICIT vpWin32Window(vpWin32Renderer *rend = nullptr);
+  vpWin32Window(const vpWin32Window &window);
   virtual ~vpWin32Window();
+  vpWin32Window &operator=(const vpWin32Window &window);
 
   HWND getHWnd() { return hWnd; }
 
@@ -123,7 +135,7 @@ public:
   //! Initialize the window
   void initWindow(const char *title, int posx, int posy, unsigned int w, unsigned int h);
 
-  void setScale(unsigned int scale) { renderer->setScale(scale); };
+  void setScale(unsigned int scale) { renderer->setScale(scale); }
 
   // Friend classes
   friend class vpDisplayWin32;
@@ -134,6 +146,7 @@ public:
   friend LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 };
 
+END_VISP_NAMESPACE
 #endif
 #endif
 #endif

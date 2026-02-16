@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -33,22 +32,20 @@
  *
  * Authors:
  * Gatien Gaumerais
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 #ifndef _vpRobotBebop2_h_
 #define _vpRobotBebop2_h_
 
 #include <visp3/core/vpConfig.h>
 
-#ifdef VISP_HAVE_ARSDK
+#if defined(VISP_HAVE_ARSDK) && defined(VISP_HAVE_THREADS)
 
 #include <visp3/core/vpImage.h>
 
 extern "C" {
 #include <libARController/ARController.h> // For drone control
-#include <libARSAL/ARSAL.h> // For semaphore
+#include <libARSAL/ARSAL.h>               // For semaphore
 
 #ifdef VISP_HAVE_FFMPEG
 #include <libavcodec/avcodec.h> // For H264 video decoding
@@ -60,6 +57,7 @@ extern "C" {
 #include <signal.h>
 #include <string>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpRobotBebop2
 
@@ -67,6 +65,12 @@ extern "C" {
 
   Interface for Parrot ARSDK3, allowing to control the Bebop 2 drone and get images from the camera (if ViSP was built
   with FFMpeg support).
+
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in using performing visual servoing using a Bebop 2 drone, you may have a look at:</span><br>
+ * - \ref tutorial-bebop2-vs
 */
 class VISP_EXPORT vpRobotBebop2
 {
@@ -75,13 +79,13 @@ public:
                 int discoveryPort = 44444);
   virtual ~vpRobotBebop2();
 
-  /** @name Drone networking information  */
+  //! @name Drone networking information
   //@{
   std::string getIpAddress();
   int getDiscoveryPort();
   //@}
 
-  /** @name General drone information  */
+  //! @name General drone information
   //@{
   void doFlatTrim();
   unsigned int getBatteryLevel();
@@ -89,7 +93,7 @@ public:
   void resetAllSettings();
   //@}
 
-  /** @name Drone state checking */
+  //! @name Drone state checking
   //@{
   bool isFlying();
   bool isHovering();
@@ -99,7 +103,7 @@ public:
   //@}
 
   //*** Motion commands ***//
-  /** @name Motion commands and parameters */
+  //! @name Motion commands and parameters
   //@{
   void cutMotors();
   double getMaxTilt();
@@ -154,14 +158,14 @@ public:
 private:
   //*** Attributes ***//
   std::string m_ipAddress; ///< Ip address of the drone to discover on the network
-  int m_discoveryPort; ///< Port of the drone to discover on the network
+  int m_discoveryPort;     ///< Port of the drone to discover on the network
 
   ARSAL_Sem_t m_stateSem;    ///< Semaphore
   struct sigaction m_sigAct; ///< Signal handler
 
 #ifdef VISP_HAVE_FFMPEG
   AVCodecContext *m_codecContext; ///< Codec context for video stream decoding
-  AVPacket m_packet;              ///< Packed used to send data to the decoder
+  AVPacket *m_packet;             ///< Packed used to send data to the decoder
   AVFrame *m_picture;             ///< Frame used to receive data from the decoder
   std::mutex m_bgr_picture_mutex; ///< Mutex to protect m_bgr_picture
   AVFrame *m_bgr_picture;         ///< Frame used to store rescaled frame received from the decoder
@@ -177,9 +181,9 @@ private:
   static bool m_running; ///< Used for checking if the drone is running ie if successfully connected and ready to
                          ///< receive commands
 
-  bool m_exposureSet;       ///< Used to know if exposure compensation has been set
-  bool m_flatTrimFinished;  ///< Used to know when the drone has finished a flat trim
-  bool m_relativeMoveEnded; ///< Used to know when the drone has ended a relative move
+  bool m_exposureSet;        ///< Used to know if exposure compensation has been set
+  bool m_flatTrimFinished;   ///< Used to know when the drone has finished a flat trim
+  bool m_relativeMoveEnded;  ///< Used to know when the drone has ended a relative move
   bool m_videoResolutionSet; ///< Used to know if video resolution has been set
   bool m_streamingStarted;   ///< Used to know if the streaming has been started
   bool m_streamingModeSet;   ///< Used to know if the streaming mode has been set
@@ -248,6 +252,6 @@ private:
                                       ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary, void *customData);
   //*** ***//
 };
-
+END_VISP_NAMESPACE
 #endif //#ifdef VISP_HAVE_ARSDK
 #endif //#ifndef _vpRobotBebop2_h_
