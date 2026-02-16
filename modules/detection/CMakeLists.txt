@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -31,54 +31,33 @@
 # Description:
 # ViSP configuration file.
 #
-# Authors:
-# Fabien Spindler
-#
 #############################################################################
 
 # Add optional 3rd parties
 set(opt_incs "")
+set(opt_system_incs "")
 set(opt_libs "")
+set(opt_libs_private "")
 
 if(USE_ZBAR)
-  list(APPEND opt_incs ${ZBAR_INCLUDE_DIRS})
+  list(APPEND opt_system_incs ${ZBAR_INCLUDE_DIRS})
   list(APPEND opt_libs ${ZBAR_LIBRARIES})
 endif()
 
 if(USE_DMTX)
-  list(APPEND opt_incs ${DMTX_INCLUDE_DIRS})
+  list(APPEND opt_system_incs ${DMTX_INCLUDE_DIRS})
   list(APPEND opt_libs ${DMTX_LIBRARIES})
-endif()
-
-if(USE_ZBAR)
-  # Add specific build flag to turn off warnings coming from zbar 3rd party
-  vp_set_source_file_compile_flag(src/barcode/vpDetectorQRCode.cpp -Wno-unused-parameter)
 endif()
 
 if(WITH_APRILTAG)
   # April Tag is private
-  include_directories(${APRILTAG_INCLUDE_DIRS})
-
-  # Add specific build flag to turn off warnings coming from apriltag 3rd party
-  if(UNIX OR MINGW)
-    vp_set_source_file_compile_flag(src/tag/vpDetectorAprilTag.cpp -Wno-unused-parameter -Wno-strict-overflow)
-  else(WIN32)
-    if(BUILD_SHARED_LIBS)
-      vp_set_source_file_compile_flag(src/tag/vpDetectorAprilTag.cpp /wd4200)
-    else()
-      vp_warnings_disable(CMAKE_CXX_FLAGS /wd4200)
-    endif()
-  endif()
-endif()
-
-if(WITH_CATCH2)
-  # catch2 is private
-  include_directories(${CATCH2_INCLUDE_DIRS})
+  include_directories(SYSTEM ${APRILTAG_INCLUDE_DIRS})
+  set(opt_libs_private ${APRILTAG_LIBRARIES})
 endif()
 
 # TensorRT
 if(USE_TENSORRT)
-  list(APPEND opt_incs ${TENSORRT_INCLUDE_DIRS})
+  list(APPEND opt_system_incs ${TENSORRT_INCLUDE_DIRS})
   list(APPEND opt_libs ${TENSORRT_LIBRARIES})
 endif()
 
@@ -111,7 +90,9 @@ if(USE_OPENCV)
     if(OpenCV_VERSION AND ((OpenCV_VERSION VERSION_EQUAL 3.4.3) OR (OpenCV_VERSION VERSION_GREATER 3.4.3)))
       list(APPEND OpenCV_REQUIRED_LIB_COMPONENTS "opencv_dnn")
     endif()
-
+    if(OpenCV_VERSION AND ((OpenCV_VERSION GREATER_EQUAL 5.0.0)))
+      list(APPEND OpenCV_REQUIRED_LIB_COMPONENTS "opencv_xobjdetect")
+    endif()
     if(USE_TENSORRT)
       list(APPEND OpenCV_REQUIRED_LIB_COMPONENTS "opencv_cudaarithm" "opencv_cudawarping")
     endif()
@@ -192,12 +173,22 @@ if(USE_OPENCV)
 #    list(APPEND opt_libs ${OpenCV_LIBS})
   endif()
   if(OpenCV_INCLUDE_DIRS)
-    list(APPEND opt_incs ${OpenCV_INCLUDE_DIRS})
+    list(APPEND opt_system_incs ${OpenCV_INCLUDE_DIRS})
   endif()
 endif(USE_OPENCV)
 
-vp_add_module(detection visp_core visp_vision PRIVATE_OPTIONAL ${APRILTAG_LIBRARIES} WRAP java)
+vp_add_module(detection visp_core visp_vision PRIVATE_OPTIONAL ${opt_libs_private} WRAP java)
 vp_glob_module_sources()
-vp_module_include_directories(${opt_incs})
+vp_module_include_directories(${opt_incs} SYSTEM ${opt_system_incs})
 vp_create_module(${opt_libs})
-vp_add_tests(DEPENDS_ON visp_detection visp_gui visp_io)
+
+set(opt_test_incs "")
+set(opt_test_libs "")
+
+if(WITH_CATCH2)
+  # catch2 is private
+  list(APPEND opt_test_incs ${CATCH2_INCLUDE_DIRS})
+  list(APPEND opt_test_libs ${CATCH2_LIBRARIES})
+endif()
+
+vp_add_tests(DEPENDS_ON visp_detection visp_gui visp_io PRIVATE_INCLUDE_DIRS ${opt_test_incs} PRIVATE_LIBRARIES ${opt_test_libs})

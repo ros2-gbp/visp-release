@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Test some vpMath functionalities.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testRobust.cpp
@@ -52,6 +47,10 @@
 #include <visp3/io/vpParseArgv.h>
 // List of allowed command line options
 #define GETOPTARGS "cdho:"
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 void usage(const char *name, const char *badparam, std::string ofilename);
 bool getOptions(int argc, const char **argv, std::string &ofilename);
@@ -79,7 +78,8 @@ plot '%s' title \"Tukey Estimator\" lw 2, 1 title \"Least-Squares\" lw 2\n\
 \n\
 \n\
 SYNOPSIS\n\
-  %s [-o <output filename>] [-h]\n", ofilename.c_str(), name);
+  %s [-o <output filename>] [-h]\n",
+          ofilename.c_str(), name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                              Default\n\
@@ -88,7 +88,8 @@ OPTIONS:                                              Default\n\
      weights.\n\
 \n\
   -h\n\
-     Print the help.\n", ofilename.c_str());
+     Print the help.\n",
+          ofilename.c_str());
 
   if (badparam)
     fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
@@ -114,9 +115,8 @@ bool getOptions(int argc, const char **argv, std::string &ofilename)
       ofilename = optarg_;
       break;
     case 'h':
-      usage(argv[0], NULL, ofilename);
+      usage(argv[0], nullptr, ofilename);
       return false;
-      break;
 
     case 'c':
     case 'd':
@@ -124,13 +124,12 @@ bool getOptions(int argc, const char **argv, std::string &ofilename)
     default:
       usage(argv[0], optarg_, ofilename);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL, ofilename);
+    usage(argv[0], nullptr, ofilename);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -163,12 +162,13 @@ int main(int argc, const char **argv)
       try {
         // Create the dirname
         vpIoTools::makeDirectory(ofilename);
-      } catch (...) {
-        usage(argv[0], NULL, ofilename);
+      }
+      catch (...) {
+        usage(argv[0], nullptr, ofilename);
         std::cerr << std::endl << "ERROR:" << std::endl;
         std::cerr << "  Cannot create " << ofilename << std::endl;
         std::cerr << "  Check your -o " << ofilename << " option " << std::endl;
-        exit(-1);
+        return EXIT_FAILURE;
       }
     }
 
@@ -177,7 +177,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, ofilename) == false) {
-      exit(-1);
+      return EXIT_FAILURE;
     }
 
     double sig = 1;
@@ -187,25 +187,27 @@ int main(int argc, const char **argv)
     std::cout << "Create file: " << ofilename << std::endl;
     f.open(ofilename.c_str());
     if (f.fail()) {
-      usage(argv[0], NULL, ofilename);
+      usage(argv[0], nullptr, ofilename);
       std::cerr << std::endl << "ERROR:" << std::endl;
       std::cerr << "  Cannot create the file: " << ofilename << std::endl;
       std::cerr << "  Check your -o " << ofilename << " option " << std::endl;
-      exit(-1);
+      return EXIT_FAILURE;
     }
     double x = -10;
     while (x < 10) {
       if (fabs(x / sig) <= (4.6851)) {
         w = vpMath::sqr(1 - vpMath::sqr(x / (sig * 4.6851)));
-      } else {
+      }
+      else {
         w = 0;
       }
       f << x << "  " << w << std::endl;
       x += 0.01;
     }
-    return 0;
-  } catch (const vpException &e) {
+    return EXIT_SUCCESS;
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }

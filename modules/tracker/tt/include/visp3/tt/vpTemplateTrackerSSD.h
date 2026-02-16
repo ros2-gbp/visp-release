@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,9 +33,7 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 /*!
  \file vpTemplateTrackerSSD.h
  \brief
@@ -47,6 +44,7 @@
 
 #include <math.h>
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDisplay.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpImageFilter.h>
@@ -56,9 +54,17 @@
 #include <visp3/tt/vpTemplateTracker.h>
 #include <visp3/vision/vpHomography.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpTemplateTrackerSSD
   \ingroup group_tt_tracker
+
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in the Template Tracker (TT), you may have a look at:</span><br>
+
+  - \ref tutorial-tracking-tt
 */
 class VISP_EXPORT vpTemplateTrackerSSD : public vpTemplateTracker
 {
@@ -73,10 +79,10 @@ protected:
   virtual void trackNoPyr(const vpImage<unsigned char> &I) = 0;
 
 public:
-  explicit vpTemplateTrackerSSD(vpTemplateTrackerWarp *warp);
+  VP_EXPLICIT vpTemplateTrackerSSD(vpTemplateTrackerWarp *warp);
 
   double getSSD(const vpImage<unsigned char> &I, const vpColVector &tp);
   void setGain(double g) { gain = g; }
 };
-
+END_VISP_NAMESPACE
 #endif

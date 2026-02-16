@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,24 +29,18 @@
  *
  * Description:
  * Hinkley's cumulative sum test implementation.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
-
   \file vpHinkley.cpp
 
   \brief Definition of the vpHinkley class corresponding to the Hinkley's
   cumulative sum test.
-
 */
 
-#include <visp3/core/vpDebug.h>
 #include <visp3/core/vpHinkley.h>
-//#include <visp3/core/vpIoTools.h>
+#if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
+#include <visp3/core/vpDebug.h>
 #include <visp3/core/vpMath.h>
 
 #include <cmath> // std::fabs
@@ -56,6 +49,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+BEGIN_VISP_NAMESPACE
 /* VP_DEBUG_MODE fixed by configure:
    1:
    2:
@@ -73,7 +67,7 @@
   setDelta() and setAlpha() to modify these values.
 
 */
-vpHinkley::vpHinkley() : dmin2(0.1), alpha(0.2), nsignal(0), mean(0), Sk(0), Mk(0), Tk(0), Nk(0) {}
+vpHinkley::vpHinkley() : dmin2(0.1), alpha(0.2), nsignal(0), mean(0), Sk(0), Mk(0), Tk(0), Nk(0) { }
 
 /*!
 
@@ -93,8 +87,7 @@ vpHinkley::vpHinkley() : dmin2(0.1), alpha(0.2), nsignal(0), mean(0), Sk(0), Mk(
 
 vpHinkley::vpHinkley(double alpha_val, double delta_val)
   : dmin2(delta_val / 2.), alpha(alpha_val), nsignal(0), mean(0), Sk(0), Mk(0), Tk(0), Nk(0)
-{
-}
+{ }
 
 /*!
 
@@ -116,13 +109,6 @@ void vpHinkley::init(double alpha_val, double delta_val)
   setAlpha(alpha_val);
   setDelta(delta_val);
 }
-
-/*!
-
-  Destructor.
-
-*/
-vpHinkley::~vpHinkley() {}
 
 /*!
 
@@ -308,9 +294,9 @@ vpHinkley::vpHinkleyJumpType vpHinkley::testDownUpwardJump(double signal)
   computeNk();
 
   vpCDEBUG(2) << "alpha: " << alpha << " dmin2: " << dmin2 << " signal: " << signal << " Sk: " << Sk << " Mk: " << Mk
-              << " Tk: " << Tk << " Nk: " << Nk << std::endl;
+    << " Tk: " << Tk << " Nk: " << Nk << std::endl;
 
-  // teste si les variables cumulees excedent le seuil
+// teste si les variables cumulees excedent le seuil
   if ((Mk - Sk) > alpha)
     jump = downwardJump;
   else if ((Tk - Nk) > alpha)
@@ -431,8 +417,13 @@ void vpHinkley::print(vpHinkley::vpHinkleyJumpType jump)
   case upwardJump:
     std::cout << " Jump upward detected " << std::endl;
     break;
-  default:
-    std::cout << " Jump  detected " << std::endl;
-    break;
+  default: {
+    throw(vpException(vpException::fatalError, "Unsupported jump type in vpHinkley::print()"));
+  }
   }
 }
+END_VISP_NAMESPACE
+#elif !defined(VISP_BUILD_SHARED_LIBS)
+ // Work around to avoid warning: libvisp_core.a(vpHinkley.cpp.o) has no symbols
+void dummy_vpRHinkley() { }
+#endif

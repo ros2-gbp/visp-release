@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Draw text in an image.
- *
- *****************************************************************************/
-
-#ifndef _vpFont_h_
-#define _vpFont_h_
+ */
 
 /*!
   \file vpFont.h
@@ -42,9 +37,13 @@
   \brief Draw text in an image.
 */
 
-#include <visp3/core/vpImage.h>
-#include <visp3/core/vpColor.h>
+#ifndef _vpFont_h_
+#define _vpFont_h_
 
+#include <visp3/core/vpColor.h>
+#include <visp3/core/vpImage.h>
+
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpFont
 
@@ -55,23 +54,23 @@
 class VISP_EXPORT vpFont
 {
 public:
-  enum vpFontFamily
-  {
-    GENERIC_MONOSPACE,
-    TRUETYPE_FILE
-  };
+  enum vpFontFamily { GENERIC_MONOSPACE, TRUETYPE_FILE };
 
-  vpFont(unsigned int height = 16, const vpFontFamily & fontFamily = TRUETYPE_FILE, const std::string & ttfFilename = std::string(VISP_RUBIK_REGULAR_FONT_RESOURCES));
+  vpFont(unsigned int height = 16, const vpFontFamily &fontFamily = TRUETYPE_FILE,
+         const std::string &ttfFilename = std::string(VISP_RUBIK_REGULAR_FONT_RESOURCES));
   ~vpFont();
 
-  bool drawText(vpImage<unsigned char> & I, const std::string & text, const vpImagePoint & position, unsigned char color) const;
-  bool drawText(vpImage<unsigned char> & I, const std::string & text, const vpImagePoint & position, unsigned char color, unsigned char background) const;
+  bool drawText(vpImage<unsigned char> &I, const std::string &text, const vpImagePoint &position,
+                unsigned char color) const;
+  bool drawText(vpImage<unsigned char> &I, const std::string &text, const vpImagePoint &position, unsigned char color,
+                unsigned char background) const;
 
-  bool drawText(vpImage<vpRGBa> & I, const std::string & text, const vpImagePoint & position, const vpColor & color) const;
-  bool drawText(vpImage<vpRGBa> & I, const std::string & text, const vpImagePoint & position, const vpColor & color, const vpColor & background) const;
+  bool drawText(vpImage<vpRGBa> &I, const std::string &text, const vpImagePoint &position, const vpColor &color) const;
+  bool drawText(vpImage<vpRGBa> &I, const std::string &text, const vpImagePoint &position, const vpColor &color,
+                const vpColor &background) const;
 
   unsigned int getHeight() const;
-  vpImagePoint getMeasure(const std::string & text) const;
+  vpImagePoint getMeasure(const std::string &text) const;
   bool setHeight(unsigned int height);
 
 private:
@@ -82,5 +81,5 @@ private:
   class Impl;
   Impl *m_impl;
 };
-
+END_VISP_NAMESPACE
 #endif
