@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Test some vpMomentAlpha functionalities.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testMomentAlpha.cpp
@@ -43,15 +38,23 @@
 */
 
 #include <string>
-#include <visp3/core/vpMomentObject.h>
-#include <visp3/core/vpMomentGravityCenter.h>
-#include <visp3/core/vpMomentDatabase.h>
-#include <visp3/core/vpMomentCentered.h>
 #include <visp3/core/vpMomentAlpha.h>
 #include <visp3/core/vpMomentBasic.h>
+#include <visp3/core/vpMomentCentered.h>
+#include <visp3/core/vpMomentDatabase.h>
+#include <visp3/core/vpMomentGravityCenter.h>
+#include <visp3/core/vpMomentObject.h>
 #include <visp3/io/vpImageIo.h>
 
-int test_moment_alpha(const std::string &name, bool symmetry, const std::vector<int> &vec_angle, double tolerance_deg, double symmetry_threshold=1e-6)
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+
+int test_moment_alpha(const std::string &name, bool symmetry, const std::vector<int> &vec_angle, double tolerance_deg,
+                      double symmetry_threshold = 1e-6);
+
+int test_moment_alpha(const std::string &name, bool symmetry, const std::vector<int> &vec_angle, double tolerance_deg,
+                      double symmetry_threshold)
 {
   vpImage<unsigned char> I;
 
@@ -62,10 +65,10 @@ int test_moment_alpha(const std::string &name, bool symmetry, const std::vector<
   // ***************
   std::vector<double> mu_ref;
   double alpha_ref = 0.;
-  for(unsigned int i = (unsigned int)vec_angle.size(); i >= 1; --i) {
+  for (unsigned int i = static_cast<unsigned int>(vec_angle.size()); i >= 1; --i) {
     // Compute reference alpha image <name>-<vec_angle>[i]deg.pgm
     std::stringstream ss;
-    ss << name << "-" << vec_angle[i-1] << "deg.pgm";
+    ss << name << "-" << vec_angle[i - 1] << "deg.pgm";
     std::cout << "Process image " << ss.str() << std::endl;
     vpImageIo::read(I, ss.str());
 
@@ -73,42 +76,44 @@ int test_moment_alpha(const std::string &name, bool symmetry, const std::vector<
     {
       vpMomentObject obj(3);
       obj.setType(vpMomentObject::DENSE_FULL_OBJECT);
-      obj.fromImage(I, 127, vpCameraParameters());                     // Init the dense object with the image and corresponding camera parameters
-      vpMomentDatabase db;                            // Database
-      vpMomentGravityCenter mg;                       // Declaration of gravity center moment
-      vpMomentCentered mc;                            // Declaration of centered moments
-      vpMomentAlpha malpha_ref;                       // Declaration of alpha reference moments
-      mg.linkTo(db);                                  // Add gravity center moment to database
-      mc.linkTo(db);                                  // Add centered moments
-      malpha_ref.linkTo(db);                          // Add alpha moment
-      db.updateAll(obj);                              // All of the moments must be updated, not just alpha
-      mg.compute();                                   // Compute gravity center moment
-      mc.compute();                                   // Compute centered moments AFTER gravity center
-      malpha_ref.compute();                           // Compute alpha gravity center
+      obj.fromImage(I, 127,
+                    vpCameraParameters()); // Init the dense object with the image and corresponding camera parameters
+      vpMomentDatabase db;                 // Database
+      vpMomentGravityCenter mg;            // Declaration of gravity center moment
+      vpMomentCentered mc;                 // Declaration of centered moments
+      vpMomentAlpha malpha_ref;            // Declaration of alpha reference moments
+      mg.linkTo(db);                       // Add gravity center moment to database
+      mc.linkTo(db);                       // Add centered moments
+      malpha_ref.linkTo(db);               // Add alpha moment
+      db.updateAll(obj);                   // All of the moments must be updated, not just alpha
+      mg.compute();                        // Compute gravity center moment
+      mc.compute();                        // Compute centered moments AFTER gravity center
+      malpha_ref.compute();                // Compute alpha gravity center
 
       mu_ref.clear();
-      mu_ref.push_back(mc.get(3,0));
-      mu_ref.push_back(mc.get(2,1));
-      mu_ref.push_back(mc.get(1,2));
-      mu_ref.push_back(mc.get(0,3));
+      mu_ref.push_back(mc.get(3, 0));
+      mu_ref.push_back(mc.get(2, 1));
+      mu_ref.push_back(mc.get(1, 2));
+      mu_ref.push_back(mc.get(0, 3));
       alpha_ref = malpha_ref.get();
     }
     // Consider the case of a relative alpha
     {
       vpMomentObject obj(3);
       obj.setType(vpMomentObject::DENSE_FULL_OBJECT);
-      obj.fromImage(I, 127, vpCameraParameters());                     // Init the dense object with the image and corresponding camera parameters
-      vpMomentDatabase db;                            // Database
-      vpMomentGravityCenter mg;                       // Declaration of gravity center moment
-      vpMomentCentered mc;                            // Declaration of centered moments
-      vpMomentAlpha malpha(mu_ref, alpha_ref, symmetry_threshold);        // Declaration of alpha relative moments
-      mg.linkTo(db);                                  // Add gravity center moment to database
-      mc.linkTo(db);                                  // Add centered moments
-      malpha.linkTo(db);                              // Add alpha moment
-      db.updateAll(obj);                              // All of the moments must be updated, not just alpha
-      mg.compute();                                   // Compute gravity center moment
-      mc.compute();                                   // Compute centered moments AFTER gravity center
-      malpha.compute();                               // Compute alpha gravity center
+      obj.fromImage(I, 127,
+                    vpCameraParameters()); // Init the dense object with the image and corresponding camera parameters
+      vpMomentDatabase db;                 // Database
+      vpMomentGravityCenter mg;            // Declaration of gravity center moment
+      vpMomentCentered mc;                 // Declaration of centered moments
+      vpMomentAlpha malpha(mu_ref, alpha_ref, symmetry_threshold); // Declaration of alpha relative moments
+      mg.linkTo(db);                                               // Add gravity center moment to database
+      mc.linkTo(db);                                               // Add centered moments
+      malpha.linkTo(db);                                           // Add alpha moment
+      db.updateAll(obj);                                           // All of the moments must be updated, not just alpha
+      mg.compute();                                                // Compute gravity center moment
+      mc.compute();                                                // Compute centered moments AFTER gravity center
+      malpha.compute();                                            // Compute alpha gravity center
 
       if (malpha.is_symmetric() != symmetry) {
         std::cout << "Error in symmety detection" << std::endl;
@@ -120,7 +125,7 @@ int test_moment_alpha(const std::string &name, bool symmetry, const std::vector<
   // ***************
   std::cout << "*** Compute angle in relative mode using the last reference from the previous test" << std::endl;
   // ***************
-  for(size_t i = 0; i < vec_angle.size(); i++) {
+  for (size_t i = 0; i < vec_angle.size(); i++) {
     std::stringstream ss;
     ss << name << "-" << vec_angle[i] << "deg.pgm";
     std::cout << "Process image " << ss.str() << std::endl;
@@ -128,21 +133,21 @@ int test_moment_alpha(const std::string &name, bool symmetry, const std::vector<
 
     vpMomentObject obj(3);
     obj.setType(vpMomentObject::DENSE_FULL_OBJECT);
-    obj.fromImage(I, 127, vpCameraParameters());      // Init the dense object with the image
-    vpMomentDatabase db;                              // Database
-    vpMomentGravityCenter g;                          // Declaration of gravity center
-    vpMomentCentered mc;                              // Centered moments
-    vpMomentAlpha malpha(mu_ref, alpha_ref, symmetry_threshold);          // Alpha moment relative to the reference alpha
-    g.linkTo(db);                                     // Add gravity center to database
-    mc.linkTo(db);                                    // Add centered moments
-    malpha.linkTo(db);                                // Add alpha depending on centered moments
-    db.updateAll(obj);                                // All of the moments must be updated, not just alpha
-    g.compute();                                      // Compute the moment
-    mc.compute();                                     // Compute centered moments AFTER gravity center
-    malpha.compute();                                 // Compute alpha AFTER centered moments.
+    obj.fromImage(I, 127, vpCameraParameters());                 // Init the dense object with the image
+    vpMomentDatabase db;                                         // Database
+    vpMomentGravityCenter g;                                     // Declaration of gravity center
+    vpMomentCentered mc;                                         // Centered moments
+    vpMomentAlpha malpha(mu_ref, alpha_ref, symmetry_threshold); // Alpha moment relative to the reference alpha
+    g.linkTo(db);                                                // Add gravity center to database
+    mc.linkTo(db);                                               // Add centered moments
+    malpha.linkTo(db);                                           // Add alpha depending on centered moments
+    db.updateAll(obj);                                           // All of the moments must be updated, not just alpha
+    g.compute();                                                 // Compute the moment
+    mc.compute();                                                // Compute centered moments AFTER gravity center
+    malpha.compute();                                            // Compute alpha AFTER centered moments.
 
-    if (! symmetry) {
-      // Tranform input angle from [0; 360] to [-180; +180] range
+    if (!symmetry) {
+      // Transform input angle from [0; 360] to [-180; +180] range
       double angle = vec_angle[i];
       if (angle > 180)
         angle -= 360;
@@ -151,22 +156,24 @@ int test_moment_alpha(const std::string &name, bool symmetry, const std::vector<
 
       std::cout << "alpha expected " << angle << " computed " << vpMath::deg(malpha.get()) << " deg" << std::endl;
 
-      if (! vpMath::equal(angle, vpMath::deg(malpha.get()), tolerance_deg)) { // 0.5 deg of tolerance
+      if (!vpMath::equal(angle, vpMath::deg(malpha.get()), tolerance_deg)) { // 0.5 deg of tolerance
         std::cout << "Error: result is not in the tolerance: " << tolerance_deg << std::endl;
         return EXIT_FAILURE;
       }
     }
     else {
-      // Tranform input angle from [0; 360] to [0; 180] range
+      // Transform input angle from [0; 360] to [0; 180] range
       double angle_des1 = vec_angle[i];
       double angle_des2 = vec_angle[i] - 180;
 
-      // Tranform input angle from [0; 360] to [0; 180] range
+      // Transform input angle from [0; 360] to [0; 180] range
       double alpha = vpMath::deg(malpha.get());
 
-      std::cout << "alpha expected " << angle_des1 << " or " << angle_des2 << " computed " << alpha << " deg" << std::endl;
+      std::cout << "alpha expected " << angle_des1 << " or " << angle_des2 << " computed " << alpha << " deg"
+        << std::endl;
 
-      if (! vpMath::equal(angle_des1, alpha, tolerance_deg) && ! vpMath::equal(angle_des2, alpha, tolerance_deg)) { // 0.5 deg of tolerance
+      if (!vpMath::equal(angle_des1, alpha, tolerance_deg) &&
+          !vpMath::equal(angle_des2, alpha, tolerance_deg)) { // 0.5 deg of tolerance
         std::cout << "Error: result is not in the tolerance: " << tolerance_deg << std::endl;
         return EXIT_FAILURE;
       }

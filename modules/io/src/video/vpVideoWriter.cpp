@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,57 +29,62 @@
  *
  * Description:
  * Write image sequences.
- *
- * Authors:
- * Nicolas Melchior
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \file vpVideoWriter.cpp
   \brief Write image sequences.
 */
 
-#include <visp3/core/vpDebug.h>
+#include <visp3/core/vpIoTools.h>
 #include <visp3/io/vpVideoWriter.h>
 
-#if VISP_HAVE_OPENCV_VERSION >= 0x020200
+#if defined(HAVE_OPENCV_IMGPROC)
 #include <opencv2/imgproc/imgproc.hpp>
 #endif
+
+BEGIN_VISP_NAMESPACE
 
 /*!
   Basic constructor.
 */
 vpVideoWriter::vpVideoWriter()
   :
-#if VISP_HAVE_OPENCV_VERSION >= 0x020100
-    m_writer(), m_framerate(25.0),
+#if defined(VISP_HAVE_OPENCV) && \
+    (((VISP_HAVE_OPENCV_VERSION < 0x030000) && defined(HAVE_OPENCV_HIGHGUI)) || \
+     ((VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(HAVE_OPENCV_VIDEOIO)))
+  m_writer(), m_framerate(25.0),
 #endif
-    m_formatType(FORMAT_UNKNOWN), m_videoName(), m_frameName(),
-    m_initFileName(false), m_isOpen(false), m_frameCount(0), m_firstFrame(0),
-    m_width(0), m_height(0), m_frameStep(1)
+  m_formatType(FORMAT_UNKNOWN), m_videoName(), m_frameName(), m_initFileName(false), m_isOpen(false), m_frameCount(0),
+  m_firstFrame(0), m_width(0), m_height(0), m_frameStep(1)
 {
-#if VISP_HAVE_OPENCV_VERSION >= 0x030000
+#if defined(VISP_HAVE_OPENCV) && \
+    (((VISP_HAVE_OPENCV_VERSION < 0x030000) && defined(HAVE_OPENCV_HIGHGUI)) || \
+     ((VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(HAVE_OPENCV_VIDEOIO)))
+#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
   m_fourcc = cv::VideoWriter::fourcc('P', 'I', 'M', '1');
-#elif VISP_HAVE_OPENCV_VERSION >= 0x020100
+#else
   m_fourcc = CV_FOURCC('P', 'I', 'M', '1'); // default is a MPEG-1 codec
+#endif
 #endif
 }
 
 /*!
   Basic destructor.
 */
-vpVideoWriter::~vpVideoWriter() {}
+vpVideoWriter::~vpVideoWriter() { }
 
 /*!
-  It enables to set the path and the name of the files which will be saved.
+  It enables to set the path and the name of the video or sequence of images
+  which will be saved.
 
-  If you want to write a sequence of images, \f$ filename \f$ corresponds to
-  the path followed by the image name template. For exemple, if you want to
-  write different images named image0001.jpeg, image0002.jpg, ... and located
-  in the folder /local/image, \f$ filename \f$ will be
-  "/local/image/image%04d.jpg".
+  If you want to write a sequence of images, `filename` corresponds to
+  the path followed by the image name template. For example, if you want to
+  write different images named `image0001.jpeg`, `image0002.jpg`, ... and located
+  in the folder `/local/image`, `filename` will be `/local/image/image%04d.jpg`.
+
+  \note The function open() will create recursively the folders to host the
+  video or the sequence of images.
 
   \param filename : filename template of an image sequence.
 */
@@ -105,25 +109,34 @@ void vpVideoWriter::setFileName(const std::string &filename)
 /*!
   Sets all the parameters needed to write the video or the image sequence.
 
+  This function will also create recursively the folders to host the
+  video or the sequence of images.
+
   \param I : One image with the right dimensions.
 */
 void vpVideoWriter::open(vpImage<vpRGBa> &I)
 {
-  if (! m_initFileName) {
+  if (!m_initFileName) {
     throw(vpImageException(vpImageException::noFileNameError, "The generic filename has to be set in video writer"));
   }
 
-  if (m_formatType == FORMAT_PGM || m_formatType == FORMAT_PPM || m_formatType == FORMAT_JPEG || m_formatType == FORMAT_PNG) {
+  vpIoTools::makeDirectory(vpIoTools::getParent(m_videoName));
+
+  if (m_formatType == FORMAT_PGM || m_formatType == FORMAT_PPM || m_formatType == FORMAT_JPEG ||
+      m_formatType == FORMAT_PNG) {
     m_width = I.getWidth();
     m_height = I.getHeight();
-  } else if (m_formatType == FORMAT_AVI || m_formatType == FORMAT_MPEG || m_formatType == FORMAT_MPEG4 ||
-             m_formatType == FORMAT_MOV) {
-#if VISP_HAVE_OPENCV_VERSION >= 0x020100
+  }
+  else if (m_formatType == FORMAT_AVI || m_formatType == FORMAT_MPEG || m_formatType == FORMAT_MPEG4 ||
+          m_formatType == FORMAT_MOV) {
+#if defined(VISP_HAVE_OPENCV) && \
+    (((VISP_HAVE_OPENCV_VERSION < 0x030000) && defined(HAVE_OPENCV_HIGHGUI)) || \
+     ((VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(HAVE_OPENCV_VIDEOIO)))
     m_writer = cv::VideoWriter(m_videoName, m_fourcc, m_framerate,
                                cv::Size(static_cast<int>(I.getWidth()), static_cast<int>(I.getHeight())));
 
-    if (! m_writer.isOpened()) {
-      throw(vpException(vpException::fatalError, "Could not open encode the video with OpenCV"));
+    if (!m_writer.isOpened()) {
+      throw(vpException(vpException::fatalError, "Could not encode the video with OpenCV"));
     }
 #else
     throw(vpException(vpException::fatalError, "To encode video files ViSP should be build with OpenCV >= 2.1.0"));
@@ -138,25 +151,34 @@ void vpVideoWriter::open(vpImage<vpRGBa> &I)
 /*!
   Sets all the parameters needed to write the video or the image sequence.
 
+  This function will also create recursively the folders to host the
+  video or the sequence of images.
+
   \param I : One image with the right dimensions.
 */
 void vpVideoWriter::open(vpImage<unsigned char> &I)
 {
-  if (! m_initFileName) {
+  if (!m_initFileName) {
     throw(vpImageException(vpImageException::noFileNameError, "The generic filename has to be set in video writer"));
   }
 
-  if (m_formatType == FORMAT_PGM || m_formatType == FORMAT_PPM || m_formatType == FORMAT_JPEG || m_formatType == FORMAT_PNG) {
+  vpIoTools::makeDirectory(vpIoTools::getParent(m_videoName));
+
+  if (m_formatType == FORMAT_PGM || m_formatType == FORMAT_PPM || m_formatType == FORMAT_JPEG ||
+      m_formatType == FORMAT_PNG) {
     m_width = I.getWidth();
     m_height = I.getHeight();
-  } else if (m_formatType == FORMAT_AVI || m_formatType == FORMAT_MPEG || m_formatType == FORMAT_MPEG4 ||
-             m_formatType == FORMAT_MOV) {
-#if VISP_HAVE_OPENCV_VERSION >= 0x020100
+  }
+  else if (m_formatType == FORMAT_AVI || m_formatType == FORMAT_MPEG || m_formatType == FORMAT_MPEG4 ||
+          m_formatType == FORMAT_MOV) {
+#if defined(VISP_HAVE_OPENCV) && \
+    (((VISP_HAVE_OPENCV_VERSION < 0x030000) && defined(HAVE_OPENCV_HIGHGUI)) || \
+     ((VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(HAVE_OPENCV_VIDEOIO)))
     m_writer = cv::VideoWriter(m_videoName, m_fourcc, m_framerate,
                                cv::Size(static_cast<int>(I.getWidth()), static_cast<int>(I.getHeight())));
 
-    if (! m_writer.isOpened()) {
-      throw(vpException(vpException::fatalError, "Could not open encode the video with OpenCV"));
+    if (!m_writer.isOpened()) {
+      throw(vpException(vpException::fatalError, "Could not encode the video with OpenCV"));
     }
 #else
     throw(vpException(vpException::fatalError, "To encode video files ViSP should be build with OpenCV >= 2.1.0"));
@@ -179,17 +201,19 @@ void vpVideoWriter::open(vpImage<unsigned char> &I)
 */
 void vpVideoWriter::saveFrame(vpImage<vpRGBa> &I)
 {
-  if (! m_isOpen) {
+  if (!m_isOpen) {
     throw(vpException(vpException::notInitialized, "The video has to be open first with video writer open() method"));
   }
 
-  if (m_formatType == FORMAT_PGM || m_formatType == FORMAT_PPM || m_formatType == FORMAT_JPEG || m_formatType == FORMAT_PNG) {
-    char name[FILENAME_MAX];
-    sprintf(name, m_videoName.c_str(), m_frameCount);
-    vpImageIo::write(I, name);
-    m_frameName = std::string(name);
-  } else {
-#if VISP_HAVE_OPENCV_VERSION >= 0x020100
+  if (m_formatType == FORMAT_PGM || m_formatType == FORMAT_PPM || m_formatType == FORMAT_JPEG ||
+      m_formatType == FORMAT_PNG) {
+    m_frameName = vpIoTools::formatString(m_videoName, m_frameCount);
+    vpImageIo::write(I, m_frameName);
+  }
+  else {
+#if defined(VISP_HAVE_OPENCV) && \
+    (((VISP_HAVE_OPENCV_VERSION < 0x030000) && defined(HAVE_OPENCV_HIGHGUI)) || \
+     ((VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(HAVE_OPENCV_VIDEOIO)))
     cv::Mat matFrame;
     vpImageConvert::convert(I, matFrame);
     m_writer << matFrame;
@@ -210,26 +234,30 @@ void vpVideoWriter::saveFrame(vpImage<vpRGBa> &I)
 */
 void vpVideoWriter::saveFrame(vpImage<unsigned char> &I)
 {
-  if (! m_isOpen) {
+  if (!m_isOpen) {
     throw(vpException(vpException::notInitialized, "The video has to be open first with video writer open() method"));
   }
 
-  if (m_formatType == FORMAT_PGM || m_formatType == FORMAT_PPM || m_formatType == FORMAT_JPEG || m_formatType == FORMAT_PNG) {
-    char name[FILENAME_MAX];
-    sprintf(name, m_videoName.c_str(), m_frameCount);
-    vpImageIo::write(I, name);
-    m_frameName = std::string(name);
-  } else {
-#if VISP_HAVE_OPENCV_VERSION >= 0x030000
+  if (m_formatType == FORMAT_PGM || m_formatType == FORMAT_PPM || m_formatType == FORMAT_JPEG ||
+      m_formatType == FORMAT_PNG) {
+    m_frameName = vpIoTools::formatString(m_videoName, m_frameCount);
+    vpImageIo::write(I, m_frameName);
+  }
+  else {
+#if defined(VISP_HAVE_OPENCV) && \
+    (((VISP_HAVE_OPENCV_VERSION < 0x030000) && defined(HAVE_OPENCV_HIGHGUI)) || \
+     ((VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(HAVE_OPENCV_VIDEOIO)))
+#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
     cv::Mat matFrame, rgbMatFrame;
     vpImageConvert::convert(I, matFrame);
     cv::cvtColor(matFrame, rgbMatFrame, cv::COLOR_GRAY2BGR);
     m_writer << rgbMatFrame;
-#elif VISP_HAVE_OPENCV_VERSION >= 0x020100
+#else
     cv::Mat matFrame, rgbMatFrame;
     vpImageConvert::convert(I, matFrame);
     cv::cvtColor(matFrame, rgbMatFrame, CV_GRAY2BGR);
     m_writer << rgbMatFrame;
+#endif
 #endif
   }
 
@@ -241,7 +269,7 @@ void vpVideoWriter::saveFrame(vpImage<unsigned char> &I)
 */
 void vpVideoWriter::close()
 {
-  if (! m_isOpen) {
+  if (!m_isOpen) {
     throw(vpException(vpException::notInitialized, "Cannot close video writer: not yet opened"));
   }
 }
@@ -317,9 +345,12 @@ std::string vpVideoWriter::getExtension(const std::string &filename)
 
   \param first_frame : The first frame index. Value should be positive.
 */
-void vpVideoWriter::setFirstFrameIndex(int first_frame) {
+void vpVideoWriter::setFirstFrameIndex(int first_frame)
+{
   if (first_frame < 0) {
     throw(vpException(vpException::fatalError, "Video writer first frame index cannot be negative"));
   }
   m_firstFrame = first_frame;
 }
+
+END_VISP_NAMESPACE

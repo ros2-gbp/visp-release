@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Test some vpColVector functionalities.
- *
- * Authors:
- * Eric Marchand
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testRowVector.cpp
@@ -47,6 +42,12 @@
 
 #include <visp3/core/vpMath.h>
 #include <visp3/core/vpRowVector.h>
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+
+bool test(const std::string &s, const vpRowVector &v, const std::vector<double> &bench);
 
 bool test(const std::string &s, const vpRowVector &v, const std::vector<double> &bench)
 {
@@ -94,8 +95,8 @@ int main()
     vpRowVector v(4);
     std::vector<double> bench1(4);
     for (unsigned int i = 0; i < v.size(); i++) {
-      v[i] = (double)i;
-      bench1[i] = (double)i;
+      v[i] = static_cast<double>(i);
+      bench1[i] = static_cast<double>(i);
     }
     if (test("v", v, bench1) == false)
       return err;
@@ -115,7 +116,7 @@ int main()
 
     vpRowVector r1;
     for (size_t i = 0; i < 4; i++)
-      r1.stack((double)i);
+      r1.stack(static_cast<double>(i));
 
     vpRowVector r2 = r1.extract(1, 3);
     if (test("r2", r2, bench3) == false)
@@ -128,7 +129,7 @@ int main()
       M[0][i] = i;
       bench[i] = i;
     }
-    if (test("M", M, bench) == false)
+    if (test("M", vpRowVector(M), bench) == false)
       return err;
     vpRowVector v;
     v = M;
@@ -140,7 +141,7 @@ int main()
     vpRowVector z1(bench);
     if (test("z1", z1, bench) == false)
       return err;
-    vpRowVector z2 = bench;
+    vpRowVector z2 = vpRowVector(bench);
     if (test("z2", z2, bench) == false)
       return err;
   }
@@ -171,7 +172,7 @@ int main()
     vpRowVector y1(bench2);
     if (test("y1", y1, bench1) == false)
       return err;
-    vpRowVector y2 = bench2;
+    vpRowVector y2 = vpRowVector(bench2);
     if (test("y2", y2, bench1) == false)
       return err;
   }
@@ -287,7 +288,7 @@ int main()
     std::cout << "** Test conversion to/from std::vector" << std::endl;
     std::vector<double> std_vector(5);
     for (size_t i = 0; i < std_vector.size(); i++) {
-      std_vector[i] = (double) i;
+      std_vector[i] = static_cast<double>(i);
     }
     vpRowVector v(std_vector);
     if (test("v", v, std_vector) == false)
@@ -299,5 +300,5 @@ int main()
       return EXIT_FAILURE;
   }
   std::cout << "All tests succeed" << std::endl;
-  return 0;
+  return EXIT_SUCCESS;
 }

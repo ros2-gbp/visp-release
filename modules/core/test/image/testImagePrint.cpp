@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,8 +29,7 @@
  *
  * Description:
  * Test image print.
- *
- *****************************************************************************/
+ */
 
 #include <iostream>
 #include <visp3/core/vpImage.h>
@@ -43,6 +41,9 @@
 */
 int main()
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
   unsigned int size = 16;
   vpImage<int> I_int(size, size);
   vpImage<unsigned char> I_uchar(size, size);
@@ -50,9 +51,9 @@ int main()
 
   for (unsigned int i = 0, cpt = 0; i < size; i++) {
     for (unsigned int j = 0; j < size; j++, cpt++) {
-      I_int[i][j] = (int)cpt;
-      I_uchar[i][j] = (unsigned char)cpt;
-      I_char[i][j] = (char)cpt;
+      I_int[i][j] = static_cast<int>(cpt);
+      I_uchar[i][j] = static_cast<char>(cpt);
+      I_char[i][j] = static_cast<char>(cpt);
     }
   }
 
@@ -63,9 +64,9 @@ int main()
 
   for (unsigned int i = 0, cpt = 0; i < size; i++) {
     for (unsigned int j = 0; j < size; j++, cpt++) {
-      I_float[i][j] = (float)sqrt((double)cpt);
-      I_double[i][j] = sqrt((double)cpt);
-      I_rgba[i][j] = vpRGBa((unsigned char)cpt);
+      I_float[i][j] = static_cast<float>(sqrt(static_cast<double>(cpt)));
+      I_double[i][j] = sqrt(static_cast<double>(cpt));
+      I_rgba[i][j] = vpRGBa(static_cast<unsigned char>(cpt));
     }
   }
 

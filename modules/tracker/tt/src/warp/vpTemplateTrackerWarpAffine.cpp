@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,25 +33,21 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #include <visp3/tt/vpTemplateTrackerWarpAffine.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
  * Construct a model with 6 affine parameters initialized to zero.
  */
-vpTemplateTrackerWarpAffine::vpTemplateTrackerWarpAffine()
-{
-  nbParam = 6;
-}
+  vpTemplateTrackerWarpAffine::vpTemplateTrackerWarpAffine() { nbParam = 6; }
 
-/*!
- * Get the parameters of the warping function one level down
- * where image size is divided by two along the lines and the columns.
- * \param p : 6-dim vector that contains the current parameters of the warping function.
- * \param p_down : 6-dim vector that contains the resulting parameters one level down.
- */
+  /*!
+   * Get the parameters of the warping function one level down
+   * where image size is divided by two along the lines and the columns.
+   * \param p : 6-dim vector that contains the current parameters of the warping function.
+   * \param p_down : 6-dim vector that contains the resulting parameters one level down.
+   */
 void vpTemplateTrackerWarpAffine::getParamPyramidDown(const vpColVector &p, vpColVector &p_down)
 {
   p_down[0] = p[0];
@@ -188,8 +183,8 @@ void vpTemplateTrackerWarpAffine::dWarp(const vpColVector &X, const vpColVector 
  * the initial warping function parameters (p=0).
  * \param dM : Resulting warping model compositionnal derivative returned as a 2-by-6 matrix.
  */
-void vpTemplateTrackerWarpAffine::dWarpCompo(const vpColVector &, const vpColVector &,
-                                             const vpColVector &p, const double *dwdp0, vpMatrix &dM)
+void vpTemplateTrackerWarpAffine::dWarpCompo(const vpColVector &, const vpColVector &, const vpColVector &p,
+                                             const double *dwdp0, vpMatrix &dM)
 {
   for (unsigned int i = 0; i < nbParam; i++) {
     dM[0][i] = (1. + p[0]) * dwdp0[i] + p[2] * dwdp0[i + nbParam];
@@ -221,16 +216,15 @@ void vpTemplateTrackerWarpAffine::getParamInverse(const vpColVector &p, vpColVec
   double u = p[4];
   double v = p[5];
   double r_00 = 1 + p[0], r_01 = p[2];
-  double r_10 = p[1],     r_11 = 1 + p[3];
+  double r_10 = p[1], r_11 = 1 + p[3];
   double det = r_00 * r_11 - r_01 * r_10;
   if (std::fabs(det) < std::numeric_limits<double>::epsilon()) {
-    throw(vpException(vpException::fatalError,
-                      "In vpTemplateTrackerWarpAffine::getParamInverse() "
+    throw(vpException(vpException::fatalError, "In vpTemplateTrackerWarpAffine::getParamInverse() "
                       "cannot inverse 2-by-2 matrix. Matrix determinant is 0."));
   }
 
-  double ri_11 =  r_00 / det;
-  double ri_00 =  r_11 / det;
+  double ri_11 = r_00 / det;
+  double ri_00 = r_11 / det;
   double ri_01 = -r_01 / det;
   double ri_10 = -r_10 / det;
 
@@ -253,9 +247,9 @@ void vpTemplateTrackerWarpAffine::getParamInverse(const vpColVector &p, vpColVec
 void vpTemplateTrackerWarpAffine::pRondp(const vpColVector &p1, const vpColVector &p2, vpColVector &p12) const
 {
   double r1_00 = 1 + p1[0], r1_01 = p1[2];
-  double r1_10 = p1[1],     r1_11 = 1 + p1[3];
+  double r1_10 = p1[1], r1_11 = 1 + p1[3];
   double r2_00 = 1 + p2[0], r2_01 = p2[2];
-  double r2_10 = p2[1],     r2_11 = 1 + p2[3];
+  double r2_10 = p2[1], r2_11 = 1 + p2[3];
   double u1 = p1[4];
   double v1 = p1[5];
   double u2 = p2[4];
@@ -268,3 +262,4 @@ void vpTemplateTrackerWarpAffine::pRondp(const vpColVector &p1, const vpColVecto
   p12[4] = r1_00 * u2 + r1_01 * v2 + u1;
   p12[5] = r1_10 * u2 + r1_11 * v2 + v1;
 }
+END_VISP_NAMESPACE

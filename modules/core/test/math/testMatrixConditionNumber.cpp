@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,8 +29,7 @@
  *
  * Description:
  * Test matrix condition number.
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testMatrixConditionNumber.cpp
@@ -41,6 +39,11 @@
 #include <iostream>
 #include <stdlib.h>
 #include <visp3/core/vpMatrix.h>
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+int test_condition_number(const std::string &test_name, const vpMatrix &M);
 
 int test_condition_number(const std::string &test_name, const vpMatrix &M)
 {
@@ -74,12 +77,12 @@ int test_condition_number(const std::string &test_name, const vpMatrix &M)
   }
   std::cout << "  Condition number such as cond(M)=||M||_L2 * ||M^+||_L2: " << cond_pinv << std::endl;
   std::cout << "  Condition number cond(M): " << cond << std::endl;
-  if (! vpMath::equal(cond, cond_pinv, precision)) {
+  if (!vpMath::equal(cond, cond_pinv, precision)) {
     std::cout << "  Condition number differ from the one computed with the pseudo inverse" << std::endl;
     return EXIT_FAILURE;
   }
   if (is_square) {
-    if (! vpMath::equal(cond, cond_inv, precision)) {
+    if (!vpMath::equal(cond, cond_inv, precision)) {
       std::cout << "  Condition number differ from the one computed with the inverse" << std::endl;
       return EXIT_FAILURE;
     }
@@ -103,8 +106,12 @@ int main()
   }
 
   M.resize(2, 3);
-  M[0][0] = 1; M[0][1] = 2; M[0][2] = 3;
-  M[1][0] = 4; M[1][1] = 5; M[1][2] = 6;
+  M[0][0] = 1;
+  M[0][1] = 2;
+  M[0][2] = 3;
+  M[1][0] = 4;
+  M[1][1] = 5;
+  M[1][2] = 6;
 
   if (test_condition_number("* Test rect matrix M", M)) {
     std::cout << "  - Condition number computation fails" << std::endl;
@@ -125,9 +132,18 @@ int main()
   }
 
   M.resize(3, 4);
-  M[0][0] = 1; M[0][1] = 2; M[0][2] = 3; M[0][3] = 0;
-  M[1][0] = 4; M[1][1] = 5; M[1][2] = 6; M[1][3] = 0;
-  M[2][0] = 0; M[2][1] = 0; M[2][2] = 0; M[2][3] = 0;
+  M[0][0] = 1;
+  M[0][1] = 2;
+  M[0][2] = 3;
+  M[0][3] = 0;
+  M[1][0] = 4;
+  M[1][1] = 5;
+  M[1][2] = 6;
+  M[1][3] = 0;
+  M[2][0] = 0;
+  M[2][1] = 0;
+  M[2][2] = 0;
+  M[2][3] = 0;
 
   if (test_condition_number("* Test rect matrix M", M)) {
     std::cout << "  - Condition number computation fails" << std::endl;

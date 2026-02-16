@@ -396,7 +396,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
 
         boolean bmpValid = true;
         if (modified != -1) {
-			      if (mPreviewFormat == RGBA){
+            if (mPreviewFormat == RGBA){
                 try {
                     Utils.vpImageUCharToBitmap(modified, mCacheBitmap);
                 } catch(Exception e) {
@@ -421,14 +421,14 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
             Canvas canvas = getHolder().lockCanvas();
             if (canvas != null) {
                 canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
-        				Log.d(TAG, "mStretch value: " + mScale);
+                Log.d(TAG, "mStretch value: " + mScale);
 
                 if (mScale != 0) {
                     canvas.drawBitmap(mCacheBitmap, new Rect(0,0,mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
-                         new Rect((int)((canvas.getWidth() - mScale*mCacheBitmap.getWidth()) / 2),
-                         (int)((canvas.getHeight() - mScale*mCacheBitmap.getHeight()) / 2),
-                         (int)((canvas.getWidth() - mScale*mCacheBitmap.getWidth()) / 2 + mScale*mCacheBitmap.getWidth()),
-                         (int)((canvas.getHeight() - mScale*mCacheBitmap.getHeight()) / 2 + mScale*mCacheBitmap.getHeight())), null);
+                         new Rect(Math.round((canvas.getWidth() - mScale*mCacheBitmap.getWidth()) / 2),
+                         Math.round((canvas.getHeight() - mScale*mCacheBitmap.getHeight()) / 2),
+                         Math.round((canvas.getWidth() - mScale*mCacheBitmap.getWidth()) / 2 + mScale*mCacheBitmap.getWidth()),
+                         Math.round((canvas.getHeight() - mScale*mCacheBitmap.getHeight()) / 2 + mScale*mCacheBitmap.getHeight())), null);
                 } else {
                      canvas.drawBitmap(mCacheBitmap, new Rect(0,0,mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
                          new Rect((canvas.getWidth() - mCacheBitmap.getWidth()) / 2,
@@ -502,7 +502,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
             }
         }
 
-		int size[] = {calcWidth, calcHeight};
+    int size[] = {calcWidth, calcHeight};
         return size;
     }
 }

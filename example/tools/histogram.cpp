@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -31,10 +30,7 @@
  * Description:
  * Example of Histogram manipulation.
  *
- * Author:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \file histogram.cpp
@@ -42,6 +38,7 @@
   \brief Histogram manipulation.
 */
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDebug.h>
 #include <visp3/core/vpHistogram.h>
 #include <visp3/core/vpImage.h>
@@ -56,6 +53,10 @@
 
 // List of allowed command line options
 #define GETOPTARGS "i:o:h"
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 /*!
   \example histogram.cpp
@@ -75,17 +76,18 @@
   \param user : Username.
 
  */
-void usage(const char *name, const char *badparam, std::string ipath, std::string opath, std::string user)
+void usage(const char *name, const char *badparam, const std::string &ipath, const std::string &opath, const std::string &user)
 {
   fprintf(stdout, "\n\
 Read an image on the disk, display it using X11, display some\n\
-features (line, circle, caracters) in overlay and finaly write \n\
+features (line, circle, characters) in overlay and finally write \n\
 the image and the overlayed features in an image on the disk.\n\
 \n\
 SYNOPSIS\n\
   %s [-i <input image path>] [-o <output histogram path>]\n\
      [-h]\n\
-", name);
+",
+name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               Default\n\
@@ -103,7 +105,8 @@ OPTIONS:                                               Default\n\
      \"histogram.txt\" is saved.\n\
 \n\
   -h\n\
-     Print the help.\n\n", ipath.c_str(), opath.c_str(), user.c_str());
+     Print the help.\n\n",
+          ipath.c_str(), opath.c_str(), user.c_str());
 
   if (badparam) {
     fprintf(stderr, "ERROR: \n");
@@ -137,20 +140,18 @@ bool getOptions(int argc, const char **argv, std::string &ipath, std::string &op
       opath = optarg_;
       break;
     case 'h':
-      usage(argv[0], NULL, ipath, opath, user);
+      usage(argv[0], nullptr, ipath, opath, user);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg_, ipath, opath, user);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL, ipath, opath, user);
+    usage(argv[0], nullptr, ipath, opath, user);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -190,7 +191,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, opt_ipath, opt_opath, username) == false) {
-      exit(-1);
+      return EXIT_FAILURE;
     }
 
     // Get the option values
@@ -207,35 +208,36 @@ int main(int argc, const char **argv)
       try {
         // Create the dirname
         vpIoTools::makeDirectory(dirname);
-      } catch (...) {
-        usage(argv[0], NULL, ipath, opath, username);
+      }
+      catch (...) {
+        usage(argv[0], nullptr, ipath, opath, username);
         std::cerr << std::endl << "ERROR:" << std::endl;
         std::cerr << "  Cannot create " << dirname << std::endl;
         std::cerr << "  Check your -o " << opath << " option " << std::endl;
-        exit(-1);
+        return EXIT_FAILURE;
       }
     }
 
     // Compare ipath and env_ipath. If they differ, we take into account
-    // the input path comming from the command line option
+    // the input path coming from the command line option
     if (opt_ipath.empty()) {
       if (ipath != env_ipath) {
         std::cout << std::endl << "WARNING: " << std::endl;
         std::cout << "  Since -i <visp image path=" << ipath << "> "
-                  << "  is different from VISP_IMAGE_PATH=" << env_ipath << std::endl
-                  << "  we skip the environment variable." << std::endl;
+          << "  is different from VISP_IMAGE_PATH=" << env_ipath << std::endl
+          << "  we skip the environment variable." << std::endl;
       }
     }
 
     // Test if an input path is set
     if (opt_ipath.empty() && env_ipath.empty()) {
-      usage(argv[0], NULL, ipath, opath, username);
+      usage(argv[0], nullptr, ipath, opath, username);
       std::cerr << std::endl << "ERROR:" << std::endl;
       std::cerr << "  Use -i <visp image path> option or set VISP_INPUT_IMAGE_PATH " << std::endl
-                << "  environment variable to specify the location of the " << std::endl
-                << "  image path where test images are located." << std::endl
-                << std::endl;
-      exit(-1);
+        << "  environment variable to specify the location of the " << std::endl
+        << "  image path where test images are located." << std::endl
+        << std::endl;
+      return EXIT_FAILURE;
     }
 
     // Create a grey level image
@@ -300,7 +302,8 @@ int main(int argc, const char **argv)
     nbpeaks = h.getPeaks(distance, peak1, peak2);
     if (nbpeaks != 2) {
       std::cout << "Not a bimodal histogram..." << std::endl;
-    } else {
+    }
+    else {
       vpTRACE("Bimodal histogram: main peak1: %d-%d second peak2: %d-%d", peak1.getLevel(), peak1.getValue(),
               peak2.getLevel(), peak2.getValue());
     }
@@ -309,7 +312,8 @@ int main(int argc, const char **argv)
     vpHistogramValey valey;
     if (h.getValey(peak1, peak2, valey) == false) {
       vpTRACE("No valey found...");
-    } else {
+    }
+    else {
       vpTRACE("Valey: %d-%d", valey.getLevel(), valey.getValue());
     }
 
@@ -320,13 +324,16 @@ int main(int argc, const char **argv)
       unsigned ret = h.getValey(distance, peak1, valeyl, valeyr);
       if (ret == 0x00) {
         vpTRACE("No left and right valey for peak %d-%d...", peak1.getLevel(), peak1.getValue());
-      } else if (ret == 0x10) {
+      }
+      else if (ret == 0x10) {
         vpTRACE("No right valey for peak %d-%d...", peak1.getLevel(), peak1.getValue());
         vpTRACE("Left valey: %d-%d", valeyl.getLevel(), valeyl.getValue());
-      } else if (ret == 0x01) {
+      }
+      else if (ret == 0x01) {
         vpTRACE("No left valey for peak %d-%d...", peak1.getLevel(), peak1.getValue());
         vpTRACE("Right valey: %d-%d", valeyr.getLevel(), valeyr.getValue());
-      } else if (ret == 0x11) {
+      }
+      else if (ret == 0x11) {
         vpTRACE("Left valey: %d-%d", valeyl.getLevel(), valeyl.getValue());
         vpTRACE("Right valey: %d-%d", valeyr.getLevel(), valeyr.getValue());
       }
@@ -336,13 +343,16 @@ int main(int argc, const char **argv)
       unsigned ret = h.getValey(distance, peak2, valeyl, valeyr);
       if (ret == 0x00) {
         vpTRACE("No left and right valey for peak %d-%d...", peak2.getLevel(), peak2.getValue());
-      } else if (ret == 0x10) {
+      }
+      else if (ret == 0x10) {
         vpTRACE("No right valey for peak %d-%d...", peak2.getLevel(), peak2.getValue());
         vpTRACE("Left valey: %d-%d", valeyl.getLevel(), valeyl.getValue());
-      } else if (ret == 0x01) {
+      }
+      else if (ret == 0x01) {
         vpTRACE("No left valey for peak %d-%d...", peak2.getLevel(), peak2.getValue());
         vpTRACE("Right valey: %d-%d", valeyr.getLevel(), valeyr.getValue());
-      } else if (ret == 0x11) {
+      }
+      else if (ret == 0x11) {
         vpTRACE("Left valey: %d-%d", valeyl.getLevel(), valeyl.getValue());
         vpTRACE("Right valey: %d-%d", valeyr.getLevel(), valeyr.getValue());
       }
@@ -354,12 +364,14 @@ int main(int argc, const char **argv)
     vpHistogramPeak peakl, peakr;
     if (h.getPeaks(distance, peakl, peakr, valey) == false) {
       std::cout << "Not a bimodal histogram..." << std::endl;
-    } else {
+    }
+    else {
       vpTRACE("Bimodal histogram: valey %d-%d for peakl: %d-%d peakr: %d-%d", valey.getLevel(), valey.getValue(),
               peakl.getLevel(), peakl.getValue(), peakr.getLevel(), peakr.getValue());
     }
     return EXIT_SUCCESS;
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return EXIT_FAILURE;
   }
