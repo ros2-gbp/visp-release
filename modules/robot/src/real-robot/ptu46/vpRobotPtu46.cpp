@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Interface for the ptu-46 robot.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 #include <signal.h>
 #include <string.h>
@@ -49,6 +44,7 @@
 #include <visp3/robot/vpRobotException.h>
 #include <visp3/robot/vpRobotPtu46.h>
 
+BEGIN_VISP_NAMESPACE
 /* ---------------------------------------------------------------------- */
 /* --- STATIC ------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
@@ -69,25 +65,23 @@ const double vpRobotPtu46::defaultPositioningVelocity = 10.0;
   \sa init()
 
 */
-vpRobotPtu46::vpRobotPtu46(const char *device) : vpRobot()
+vpRobotPtu46::vpRobotPtu46(const std::string &device) : vpRobot()
 {
-  this->device = new char[FILENAME_MAX];
-
-  sprintf(this->device, "%s", device);
+  this->device = device;
 
   vpDEBUG_TRACE(12, "Open communication with Ptu-46.");
   try {
     init();
-  } catch (...) {
-    delete[] this->device;
+  }
+  catch (...) {
     vpERROR_TRACE("Error caught");
     throw;
   }
 
   try {
     setRobotState(vpRobot::STATE_STOP);
-  } catch (...) {
-    delete[] this->device;
+  }
+  catch (...) {
     vpERROR_TRACE("Error caught");
     throw;
   }
@@ -116,8 +110,6 @@ vpRobotPtu46::~vpRobotPtu46(void)
 
   vpRobotPtu46::robotAlreadyCreated = false;
 
-  delete[] device;
-
   return;
 }
 
@@ -134,14 +126,13 @@ vpRobotPtu46::~vpRobotPtu46(void)
 
 
   \exception vpRobotException::constructionError : If the device cannot be
-  oppened.
+  opened.
 
 */
 void vpRobotPtu46::init()
 {
-
   vpDEBUG_TRACE(12, "Open connection Ptu-46.");
-  if (0 != ptu.init(device)) {
+  if (0 != ptu.init(device.c_str())) {
     vpERROR_TRACE("Cannot open connection with ptu-46.");
     throw vpRobotException(vpRobotException::constructionError, "Cannot open connection with ptu-46");
   }
@@ -168,7 +159,8 @@ vpRobot::vpRobotStateType vpRobotPtu46::setRobotState(vpRobot::vpRobotStateType 
     if (vpRobot::STATE_VELOCITY_CONTROL == getRobotState()) {
       vpDEBUG_TRACE(12, "Passage vitesse -> position.");
       ptu.stop();
-    } else {
+    }
+    else {
       vpDEBUG_TRACE(1, "Passage arret -> position.");
     }
     break;
@@ -205,7 +197,7 @@ void vpRobotPtu46::stopMotion(void)
   on the tilt axis.
 
   \param cVe : Twist transformation between camera and end effector frame to
-  expess a velocity skew from end effector frame in camera frame.
+  express a velocity skew from end effector frame in camera frame.
 
 */
 void vpRobotPtu46::get_cVe(vpVelocityTwistMatrix &cVe) const
@@ -244,7 +236,8 @@ void vpRobotPtu46::get_eJe(vpMatrix &eJe)
 
   try {
     vpPtu46::get_eJe(q, eJe);
-  } catch (...) {
+  }
+  catch (...) {
     vpERROR_TRACE("catch exception ");
     throw;
   }
@@ -264,7 +257,8 @@ void vpRobotPtu46::get_fJe(vpMatrix &fJe)
 
   try {
     vpPtu46::get_fJe(q, fJe);
-  } catch (...) {
+  }
+  catch (...) {
     vpERROR_TRACE("Error caught");
     throw;
   }
@@ -280,7 +274,7 @@ void vpRobotPtu46::setPositioningVelocity(double velocity) { positioningVelocity
 /*!
   Get the velocity in % used for a position control.
 
-  \return Positionning velocity in [0, 100]
+  \return Positioning velocity in [0, 100]
 
 */
 double vpRobotPtu46::getPositioningVelocity(void) { return positioningVelocity; }
@@ -289,7 +283,7 @@ double vpRobotPtu46::getPositioningVelocity(void) { return positioningVelocity; 
    Move the robot in position control.
 
    \warning This method is blocking. That mean that it waits the end of the
-   positionning.
+   positioning.
 
    \param frame : Control frame. This head can only be controlled in
    articular.
@@ -338,8 +332,8 @@ void vpRobotPtu46::setPosition(const vpRobot::vpControlFrameType frame, const vp
   artpos[1] = q[1];
 
   if (0 != ptu.move(artpos, positioningVelocity, PTU_ABSOLUTE_MODE)) {
-    vpERROR_TRACE("Positionning error.");
-    throw vpRobotException(vpRobotException::lowLevelError, "Positionning error.");
+    vpERROR_TRACE("Positioning error.");
+    throw vpRobotException(vpRobotException::lowLevelError, "Positioning error.");
   }
 
   return;
@@ -349,7 +343,7 @@ void vpRobotPtu46::setPosition(const vpRobot::vpControlFrameType frame, const vp
    Move the robot in position control.
 
    \warning This method is blocking. That mean that it wait the end of the
-   positionning.
+   positioning.
 
    \param frame : Control frame. This head can only be controlled in
    articular.
@@ -369,7 +363,8 @@ void vpRobotPtu46::setPosition(const vpRobot::vpControlFrameType frame, const do
     q[1] = q2;
 
     setPosition(frame, q);
-  } catch (...) {
+  }
+  catch (...) {
     vpERROR_TRACE("Error caught");
     throw;
   }
@@ -439,8 +434,8 @@ void vpRobotPtu46::getPosition(const vpRobot::vpControlFrameType frame, vpColVec
   double artpos[2];
 
   if (0 != ptu.getCurrentPosition(artpos)) {
-    vpERROR_TRACE("Error when calling  recup_posit_Afma4.");
-    throw vpRobotException(vpRobotException::lowLevelError, "Error when calling  recup_posit_Afma4.");
+    vpERROR_TRACE("Error when calling vpRobotPtu46::getPosition()");
+    throw vpRobotException(vpRobotException::lowLevelError, "Error when calling vpRobotPtu46::getPosition().");
   }
 
   q.resize(vpPtu46::ndof);
@@ -476,7 +471,7 @@ void vpRobotPtu46::getPosition(const vpRobot::vpControlFrameType frame, vpColVec
   (vpRobot::REFERENCE_FRAME, vpRobot::END_EFFECTOR_FRAME, vpRobot::MIXT_FRAME) is given.
 
   \warning Velocities could be saturated if one of them exceed the maximal
-  autorized speed (see vpRobot::maxRotationVelocity).
+  authorized speed (see vpRobot::maxRotationVelocity).
 */
 
 void vpRobotPtu46::setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &v)
@@ -536,7 +531,7 @@ void vpRobotPtu46::setVelocity(const vpRobot::vpControlFrameType frame, const vp
   case vpRobot::ARTICULAR_FRAME:
   case vpRobot::CAMERA_FRAME: {
     double max = this->maxRotationVelocity;
-    bool norm = false;                   // Flag to indicate when velocities need to be nomalized
+    bool norm = false;                   // Flag to indicate when velocities need to be normalized
     for (unsigned int i = 0; i < 2; ++i) // rx and ry of the camera
     {
       if (fabs(v[i]) > max) {
@@ -547,7 +542,7 @@ void vpRobotPtu46::setVelocity(const vpRobot::vpControlFrameType frame, const vp
                       i);
       }
     }
-    // Rotations velocities normalisation
+    // Rotations velocities normalization
     if (norm == true) {
       max = this->maxRotationVelocity / max;
       for (unsigned int i = 0; i < 2; ++i)
@@ -649,7 +644,7 @@ vpColVector vpRobotPtu46::getVelocity(vpRobot::vpControlFrameType frame)
 
   \code
   # Example of ptu-46 position file
-  # The axis positions must be preceed by R:
+  # The axis positions must be preceeded by R:
   # First value : pan  articular position in degrees
   # Second value: tilt articular position in degrees
   R: 15.0 5.0
@@ -772,9 +767,8 @@ void vpRobotPtu46::getDisplacement(vpRobot::vpControlFrameType frame, vpColVecto
   }
   }
 }
-
+END_VISP_NAMESPACE
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_robot.a(vpRobotPtu46.cpp.o) has no
-// symbols
-void dummy_vpRobotPtu46(){};
+// Work around to avoid warning: libvisp_robot.a(vpRobotPtu46.cpp.o) has no symbols
+void dummy_vpRobotPtu46() { }
 #endif

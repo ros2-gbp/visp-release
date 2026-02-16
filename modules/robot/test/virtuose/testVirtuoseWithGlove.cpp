@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Test for Virtuose + Glove SDK wrapper.
- *
- * Author:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testVirtuoseWithGlove.cpp
@@ -49,17 +44,20 @@
 #include <sstream>
 #include <vector>
 
-#include <visp3/robot/vpVirtuose.h>
-#include <visp3/core/vpImage.h>
 #include <visp3/core/vpCameraParameters.h>
+#include <visp3/core/vpImage.h>
 #include <visp3/core/vpMeterPixelConversion.h>
-#include <visp3/gui/vpDisplayX.h>
 #include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/robot/vpVirtuose.h>
 
 #if defined(VISP_HAVE_VIRTUOSE) && (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI))
 
 int main()
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
   int port = 53210;
   std::string ip = "localhost";
 
@@ -70,8 +68,8 @@ int main()
   vpHomogeneousMatrix wMc(0.3, 0, 1.2, vpMath::rad(180), 0, 0);
 
   // Open device
-  for (size_t device=0; device < virtuose.size(); device ++) {
-    std::cout << "Try to connect to " << ip << " port " << (port  + device) << std::endl;
+  for (size_t device = 0; device < virtuose.size(); device++) {
+    std::cout << "Try to connect to " << ip << " port " << (port + device) << std::endl;
     virtuose[device].setIpAddressAndPort(ip, port + static_cast<int>(device));
     virtuose[device].init();
   }
@@ -79,11 +77,11 @@ int main()
   std::cout << "After init" << std::endl;
 #if 0
   // Get joint position
-  for (size_t device=0; device < virtuose.size(); device ++) {
+  for (size_t device = 0; device < virtuose.size(); device++) {
     std::cout << "Number of joints: " << virtuose[device].getJointsNumber()
-              << " Joint position: " << virtuose[device].getArticularPosition().t() << std::endl
-              << " Cartesian position: " << virtuose[device].getAvatarPosition().t() << std::endl;
-    //    std::cout << "Joint velocity: " << virtuose.getArticularVelocity().t() << std::endl;
+      << " Joint position: " << virtuose[device].getArticularPosition().t() << std::endl
+      << " Cartesian position: " << virtuose[device].getAvatarPosition().t() << std::endl;
+//    std::cout << "Joint velocity: " << virtuose.getArticularVelocity().t() << std::endl;
   }
 #endif
   bool end = false;
@@ -96,10 +94,10 @@ int main()
   vpDisplayGDI d(I);
 #endif
 
-  while(!end) {
+  while (!end) {
     vpDisplay::display(I);
     // Get joint position
-    for (size_t device=0; device < virtuose.size(); device ++) {
+    for (size_t device = 0; device < virtuose.size(); device++) {
       vpPoseVector wpd = virtuose[device].getAvatarPosition();
       std::cout << "Device #" << device << " has position: " << wpd.t() << std::endl;
       wMd[device].buildFrom(wpd);
@@ -113,19 +111,18 @@ int main()
       double Y = cMd[1][3];
       double Z = cMd[2][3];
       vpImagePoint pos;
-      vpMeterPixelConversion::convertPoint(cam, X/Z, Y/Z, pos);
+      vpMeterPixelConversion::convertPoint(cam, X / Z, Y / Z, pos);
       vpDisplay::displayText(I, pos + vpImagePoint(10, 10), ss.str(), vpColor::white);
       vpDisplay::displayText(I, 10, 10, "Click to quit...", vpColor::red);
     }
-    if(vpDisplay::getClick(I, false)) {
+    if (vpDisplay::getClick(I, false)) {
       end = true;
     }
     vpDisplay::flush(I);
-
   }
 
   // Close device
-  for (size_t device=0; device < virtuose.size(); device ++) {
+  for (size_t device = 0; device < virtuose.size(); device++) {
     virtuose[device].close();
   }
   std::cout << "The end" << std::endl;

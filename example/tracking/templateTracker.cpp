@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,13 +29,7 @@
  *
  * Description:
  * Example of template tracking.
- *
- * Authors:
- * Amaury Dame
- * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \example templateTracker.cpp
@@ -86,8 +79,13 @@
 
 #define GETOPTARGS "cdhi:l:Lprs:t:w:"
 
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-typedef enum {
+typedef enum
+{
   WARP_AFFINE,
   WARP_HOMOGRAPHY,
   WARP_HOMOGRAPHY_SL3,
@@ -99,7 +97,8 @@ typedef enum {
   WARP_LAST
 } WarpType;
 
-typedef enum {
+typedef enum
+{
   TRACKER_SSD_ESM,
   TRACKER_SSD_FORWARD_ADDITIONAL,
   TRACKER_SSD_FORWARD_COMPOSITIONAL,
@@ -120,20 +119,32 @@ typedef enum {
 void usage(const char *name, const char *badparam, const WarpType &warp_type, TrackerType &tracker_type,
            const long &last_frame, const double &residual_threhold)
 {
+#if defined(VISP_HAVE_DATASET)
+#if VISP_HAVE_DATASET_VERSION >= 0x030600
+  std::string ext("png");
+#else
+  std::string ext("pgm");
+#endif
+#else
+  // We suppose that the user will download a recent dataset
+  std::string ext("png");
+#endif
+
   fprintf(stdout, "\n\
 Example of template tracking.\n\
 \n\
 SYNOPSIS\n\
   %s [-i <test image path>] [-c] [-d] [-p] \n\
      [-w <warp type>] [-t <tracker type>] \n\
-     [-l <last frame number>] [-r] [-L] [-h]\n", name);
+     [-l <last frame number>] [-r] [-L] [-h]\n",
+          name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                                            Default\n\
   -i <input image path>                                \n\
      Set image input path.\n\
      From this path read images \n\
-     \"cube/image%%04d.pgm\". These \n\
+     \"mire-2/image%%04d.%s\". These \n\
      images come from ViSP-images-x.y.z.tar.gz available \n\
      on the ViSP website.\n\
      Setting the VISP_INPUT_IMAGE_PATH environment\n\
@@ -147,9 +158,10 @@ OPTIONS:                                                            Default\n\
      Turn off the display.\n\
           \n\
   -c\n\
-     Disable the mouse click. Useful to automaze the \n\
-     execution of this program without humain intervention.\n\
-          \n", last_frame);
+     Disable the mouse click. Useful to automate the \n\
+     execution of this program without human intervention.\n\
+          \n",
+          ext.c_str(), last_frame);
 
 #ifdef VISP_HAVE_MODULE_TT_MI
   fprintf(stdout, "\n\
@@ -161,8 +173,10 @@ OPTIONS:                                                            Default\n\
      %d : Homography in SL3\n\
      %d : SRT (scale, rotation, translation)\n\
      %d : Translation\n\
-     %d : RT (rotation, translation)\n\n", (int)warp_type, (int)WARP_AFFINE, (int)WARP_HOMOGRAPHY, (int)WARP_HOMOGRAPHY_SL3, (int)WARP_SRT,
-          (int)WARP_TRANSLATION, (int)WARP_RT);
+     %d : RT (rotation, translation)\n\n",
+          static_cast<int>(warp_type), static_cast<int>(WARP_AFFINE), static_cast<int>(WARP_HOMOGRAPHY),
+          static_cast<int>(WARP_HOMOGRAPHY_SL3), static_cast<int>(WARP_SRT),
+          static_cast<int>(WARP_TRANSLATION), static_cast<int>(WARP_RT));
 #else
   fprintf(stdout, "\n\
   -w <warp type=[0,1,2,3,4]>                                          %d\n\
@@ -172,8 +186,10 @@ OPTIONS:                                                            Default\n\
      %d : Homography\n\
      %d : Homography in SL3\n\
      %d : SRT (scale, rotation, translation)\n\
-     %d : Translation\n\n", (int)warp_type, (int)WARP_AFFINE, (int)WARP_HOMOGRAPHY, (int)WARP_HOMOGRAPHY_SL3, (int)WARP_SRT,
-          (int)WARP_TRANSLATION);
+     %d : Translation\n\n",
+          static_cast<int>(warp_type), static_cast<int>(WARP_AFFINE), static_cast<int>(WARP_HOMOGRAPHY),
+          static_cast<int>(WARP_HOMOGRAPHY_SL3), static_cast<int>(WARP_SRT),
+          static_cast<int>(WARP_TRANSLATION));
 #endif
 
 #ifdef VISP_HAVE_MODULE_TT_MI
@@ -190,11 +206,12 @@ OPTIONS:                                                            Default\n\
      %d : MI ESM\n\
      %d : MI forward additional\n\
      %d : MI forward compositional\n\
-     %d : MI inverse compositional\n", (int)tracker_type, (int)TRACKER_SSD_ESM, (int)TRACKER_SSD_FORWARD_ADDITIONAL,
-          (int)TRACKER_SSD_FORWARD_COMPOSITIONAL, (int)TRACKER_SSD_INVERSE_COMPOSITIONAL,
-          (int)TRACKER_ZNCC_FORWARD_ADDITIONEL, (int)TRACKER_ZNCC_INVERSE_COMPOSITIONAL, (int)TRACKER_MI_ESM,
-          (int)TRACKER_MI_FORWARD_ADDITIONAL, (int)TRACKER_MI_FORWARD_COMPOSITIONAL,
-          (int)TRACKER_MI_INVERSE_COMPOSITIONAL);
+     %d : MI inverse compositional\n",
+          static_cast<int>(tracker_type), static_cast<int>(TRACKER_SSD_ESM), static_cast<int>(TRACKER_SSD_FORWARD_ADDITIONAL),
+          static_cast<int>(TRACKER_SSD_FORWARD_COMPOSITIONAL), static_cast<int>(TRACKER_SSD_INVERSE_COMPOSITIONAL),
+          static_cast<int>(TRACKER_ZNCC_FORWARD_ADDITIONEL), static_cast<int>(TRACKER_ZNCC_INVERSE_COMPOSITIONAL), static_cast<int>(TRACKER_MI_ESM),
+          static_cast<int>(TRACKER_MI_FORWARD_ADDITIONAL), static_cast<int>(TRACKER_MI_FORWARD_COMPOSITIONAL),
+          static_cast<int>(TRACKER_MI_INVERSE_COMPOSITIONAL));
 #else
   fprintf(stdout, "\n\
   -t <tracker type=[0,1,2,3,4,5]>                                     %d\n\
@@ -205,9 +222,10 @@ OPTIONS:                                                            Default\n\
      %d : SSD forward compositional\n\
      %d : SSD inverse compositional\n\
      %d : ZNCC forward additional\n\
-     %d : ZNCC inverse compositional\n", (int)tracker_type, (int)TRACKER_SSD_ESM, (int)TRACKER_SSD_FORWARD_ADDITIONAL,
-          (int)TRACKER_SSD_FORWARD_COMPOSITIONAL, (int)TRACKER_SSD_INVERSE_COMPOSITIONAL,
-          (int)TRACKER_ZNCC_FORWARD_ADDITIONEL, (int)TRACKER_ZNCC_INVERSE_COMPOSITIONAL);
+     %d : ZNCC inverse compositional\n",
+          static_cast<int>(tracker_type), static_cast<int>(TRACKER_SSD_ESM), static_cast<int>(TRACKER_SSD_FORWARD_ADDITIONAL),
+          static_cast<int>(TRACKER_SSD_FORWARD_COMPOSITIONAL), static_cast<int>(TRACKER_SSD_INVERSE_COMPOSITIONAL),
+          static_cast<int>(TRACKER_ZNCC_FORWARD_ADDITIONEL), static_cast<int>(TRACKER_ZNCC_INVERSE_COMPOSITIONAL));
 
 #endif
   fprintf(stdout, "\n\
@@ -226,15 +244,16 @@ OPTIONS:                                                            Default\n\
      Create log file.\n\
                                   \n\
   -h \n\
-     Print the help.\n\n", residual_threhold);
+     Print the help.\n\n",
+          residual_threhold);
 
   if (badparam)
     fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
 }
 
 bool getOptions(int argc, const char **argv, std::string &ipath, bool &click_allowed, bool &display, bool &pyramidal,
-                WarpType &warp_type, TrackerType &tracker_type, long &last_frame, bool &reinit, double &threshold_residual,
-                bool &log)
+                WarpType &warp_type, TrackerType &tracker_type, long &last_frame, bool &reinit,
+                double &threshold_residual, bool &log)
 {
   const char *optarg_;
   int c;
@@ -248,9 +267,8 @@ bool getOptions(int argc, const char **argv, std::string &ipath, bool &click_all
       display = false;
       break;
     case 'h':
-      usage(argv[0], NULL, warp_type, tracker_type, last_frame, threshold_residual);
+      usage(argv[0], nullptr, warp_type, tracker_type, last_frame, threshold_residual);
       return false;
-      break;
     case 'i':
       ipath = optarg_;
       break;
@@ -279,26 +297,25 @@ bool getOptions(int argc, const char **argv, std::string &ipath, bool &click_all
     default:
       usage(argv[0], optarg_, warp_type, tracker_type, last_frame, threshold_residual);
       return false;
-      break;
     }
   }
 
   if (warp_type >= WARP_LAST) {
-    usage(argv[0], NULL, warp_type, tracker_type, last_frame, threshold_residual);
+    usage(argv[0], nullptr, warp_type, tracker_type, last_frame, threshold_residual);
     std::cerr << "ERROR: " << std::endl;
-    std::cerr << "  Bad argument -w <warp type> with \"warp type\"=" << (int)warp_type << std::endl << std::endl;
+    std::cerr << "  Bad argument -w <warp type> with \"warp type\"=" << static_cast<int>(warp_type) << std::endl << std::endl;
     return false;
   }
   if (tracker_type >= TRACKER_LAST) {
-    usage(argv[0], NULL, warp_type, tracker_type, last_frame, threshold_residual);
+    usage(argv[0], nullptr, warp_type, tracker_type, last_frame, threshold_residual);
     std::cerr << "ERROR: " << std::endl;
-    std::cerr << "  Bad argument -t <tracker type> with \"tracker type\"=" << (int)tracker_type << std::endl
-              << std::endl;
+    std::cerr << "  Bad argument -t <tracker type> with \"tracker type\"=" << static_cast<int>(tracker_type) << std::endl
+      << std::endl;
     return false;
   }
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL, warp_type, tracker_type, last_frame, threshold_residual);
+    usage(argv[0], nullptr, warp_type, tracker_type, last_frame, threshold_residual);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -332,6 +349,17 @@ int main(int argc, const char **argv)
     std::string opath = "C:\\temp";
 #endif
 
+#if defined(VISP_HAVE_DATASET)
+#if VISP_HAVE_DATASET_VERSION >= 0x030600
+    std::string ext("png");
+#else
+    std::string ext("pgm");
+#endif
+#else
+    // We suppose that the user will download a recent dataset
+    std::string ext("png");
+#endif
+
     // Get the user login name
     std::string username;
     vpIoTools::getUserName(username);
@@ -351,29 +379,29 @@ int main(int argc, const char **argv)
     // Read the command line options
     if (!getOptions(argc, argv, opt_ipath, opt_click_allowed, opt_display, opt_pyramidal, opt_warp_type,
                     opt_tracker_type, opt_last_frame, opt_reinit, opt_threshold_residual, opt_log)) {
-      return (-1);
+      return EXIT_FAILURE;
     }
 
     // Test if an input path is set
     if (opt_ipath.empty() && env_ipath.empty()) {
-      usage(argv[0], NULL, opt_warp_type, opt_tracker_type, opt_last_frame, opt_threshold_residual);
+      usage(argv[0], nullptr, opt_warp_type, opt_tracker_type, opt_last_frame, opt_threshold_residual);
       std::cerr << std::endl << "ERROR:" << std::endl;
       std::cerr << "  Use -i <visp image path> option or set VISP_INPUT_IMAGE_PATH " << std::endl
-                << "  environment variable to specify the location of the " << std::endl
-                << "  image path where test images are located." << std::endl
-                << std::endl;
+        << "  environment variable to specify the location of the " << std::endl
+        << "  image path where test images are located." << std::endl
+        << std::endl;
 
-      return (-1);
+      return EXIT_FAILURE;
     }
 
     // Get the option values
     if (!opt_ipath.empty())
-      ipath = vpIoTools::createFilePath(opt_ipath, "mire-2/image.%04d.pgm");
+      ipath = vpIoTools::createFilePath(opt_ipath, "mire-2/image.%04d." + ext);
     else
-      ipath = vpIoTools::createFilePath(env_ipath, "mire-2/image.%04d.pgm");
+      ipath = vpIoTools::createFilePath(env_ipath, "mire-2/image.%04d." + ext);
 
     if (opt_log) {
-      ofs.open( logfilename.c_str() );
+      ofs.open(logfilename.c_str());
     }
 
     vpImage<unsigned char> I;
@@ -384,24 +412,25 @@ int main(int argc, const char **argv)
     reader.setLastFrameIndex(opt_last_frame);
     try {
       reader.open(I);
-    } catch (...) {
+    }
+    catch (...) {
       std::cout << "Cannot open sequence: " << ipath << std::endl;
-      return -1;
+      return EXIT_FAILURE;
     }
     reader.acquire(I);
 
-    vpDisplay *display = NULL;
+    vpDisplay *display = nullptr;
     if (opt_display) {
 // initialise a  display
-#if defined VISP_HAVE_X11
+#if defined(VISP_HAVE_X11)
       display = new vpDisplayX;
-#elif defined VISP_HAVE_GDI
+#elif defined(VISP_HAVE_GDI)
       display = new vpDisplayGDI;
-#elif defined VISP_HAVE_OPENCV
+#elif defined(HAVE_OPENCV_HIGHGUI)
       display = new vpDisplayOpenCV;
-#elif defined VISP_HAVE_D3D9
+#elif defined(VISP_HAVE_D3D9)
       display = new vpDisplayD3D;
-#elif defined VISP_HAVE_GTK
+#elif defined(VISP_HAVE_GTK)
       display = new vpDisplayGTK;
 #else
       opt_display = false;
@@ -413,7 +442,7 @@ int main(int argc, const char **argv)
       vpDisplay::flush(I);
     }
 
-    vpTemplateTrackerWarp *warp = NULL;
+    vpTemplateTrackerWarp *warp = nullptr;
     switch (opt_warp_type) {
     case WARP_AFFINE:
       warp = new vpTemplateTrackerWarpAffine;
@@ -436,10 +465,10 @@ int main(int argc, const char **argv)
       break;
 #endif
     default:
-      return 0;
+      return EXIT_FAILURE;
     }
 
-    vpTemplateTracker *tracker = NULL;
+    vpTemplateTracker *tracker = nullptr;
     switch (opt_tracker_type) {
     case TRACKER_SSD_ESM:
       tracker = new vpTemplateTrackerSSDESM(warp);
@@ -474,7 +503,7 @@ int main(int argc, const char **argv)
       break;
 #endif
     default:
-      return 0;
+      return EXIT_FAILURE;
     }
 
     tracker->setSampling(2, 2);
@@ -535,7 +564,8 @@ int main(int argc, const char **argv)
           vpDisplay::displayText(I, 10, 10, "Re-init simulation", vpColor::red);
           vpDisplay::flush(I);
           tracker->initClick(I, delaunay);
-        } else {
+        }
+        else {
           std::vector<vpImagePoint> v_ip;
           vpImagePoint ip;
           ip.set_ij(146, 60);
@@ -569,11 +599,11 @@ int main(int argc, const char **argv)
 
       vpDisplay::flush(I);
 
-      niter ++;
+      niter++;
     }
     double t_end = vpTime::measureTimeMs();
     std::cout << "Total time: " << t_end - t_init << " ms" << std::endl;
-    std::cout << "Total mean: " << (t_end - t_init)/niter << " ms" << std::endl;
+    std::cout << "Total mean: " << (t_end - t_init) / niter << " ms" << std::endl;
 
     if (opt_log) {
       std::cout << "Log are saved in: " << logfilename << std::endl;
@@ -593,7 +623,8 @@ int main(int argc, const char **argv)
     delete tracker;
 
     return EXIT_SUCCESS;
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return EXIT_FAILURE;
   }

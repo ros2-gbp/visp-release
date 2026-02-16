@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -32,12 +31,9 @@
  * Make the complete tracking of an object by using its CAD model
  *
  * Authors:
- * Nicolas Melchior
  * Romain Tallonneau
- * Eric Marchand
  * Aurelien Yol
- *
- *****************************************************************************/
+ */
 
 #include <limits.h>
 
@@ -50,22 +46,21 @@
 #include <visp3/core/vpPolygon.h>
 #include <visp3/mbt/vpMbtPolygon.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   Basic constructor.
 */
 vpMbtPolygon::vpMbtPolygon()
   : index(-1), isvisible(false), isappearing(false), useLod(false), minLineLengthThresh(50.0),
-    minPolygonAreaThresh(2500.0), name(""), hasOrientation(true)
-{
-}
+  minPolygonAreaThresh(2500.0), name(""), hasOrientation(true)
+{ }
 
 vpMbtPolygon::vpMbtPolygon(const vpMbtPolygon &mbtp)
   : vpPolygon3D(mbtp), index(mbtp.index), isvisible(mbtp.isvisible), isappearing(mbtp.isappearing), useLod(mbtp.useLod),
-    minLineLengthThresh(mbtp.minLineLengthThresh), minPolygonAreaThresh(mbtp.minPolygonAreaThresh), name(mbtp.name),
-    hasOrientation(mbtp.hasOrientation)
+  minLineLengthThresh(mbtp.minLineLengthThresh), minPolygonAreaThresh(mbtp.minPolygonAreaThresh), name(mbtp.name),
+  hasOrientation(mbtp.hasOrientation)
 {
-  //*this = mbtp; // Should not be called by copy contructor to avoid multiple
-  // assignements.
+  //*this = mbtp; // Should not be called by copy constructor to avoid multiple assignments.
 }
 
 vpMbtPolygon &vpMbtPolygon::operator=(const vpMbtPolygon &mbtp)
@@ -84,11 +79,6 @@ vpMbtPolygon &vpMbtPolygon::operator=(const vpMbtPolygon &mbtp)
 }
 
 /*!
-  Basic destructor.
-*/
-vpMbtPolygon::~vpMbtPolygon() {}
-
-/*!
   Check if the polygon is visible in the image and if the angle between the
   normal to the face and the line vector going from the optical center to the
   cog of the face is below the given threshold. To do that, the polygon is
@@ -99,8 +89,9 @@ vpMbtPolygon::~vpMbtPolygon() {}
   \param modulo : Indicates if the test should also consider faces that are
   not oriented counter clockwise. If true, the orientation of the face is
   without importance.
-  \param cam : Camera parameters (intrinsics parameters)
-  \param width, height : Image size used to consider level of detail.
+  \param cam : Camera parameters (intrinsics parameters).
+  \param width : Image width used to consider level of detail.
+  \param height : Image height used to consider level of detail.
 
   \return Return true if the polygon is visible.
 */
@@ -130,7 +121,7 @@ bool vpMbtPolygon::isVisible(const vpHomogeneousMatrix &cMo, double alpha, const
         double length = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
         //          std::cout << "Index=" << index << " ; Line length=" <<
         //          length << " ; clippingFlag=" << clippingFlag << std::endl;
-        //        vpTRACE("index=%d lenght=%f minLineLengthThresh=%f", index,
+        //        vpTRACE("index=%d length=%f minLineLengthThresh=%f", index,
         //        length, minLineLengthThresh);
 
         if (length < minLineLengthThresh) {
@@ -177,9 +168,9 @@ bool vpMbtPolygon::isVisible(const vpHomogeneousMatrix &cMo, double alpha, const
     pt.set_Y(pt.get_Y() + p[i].get_Y());
     pt.set_Z(pt.get_Z() + p[i].get_Z());
   }
-  e4[0] = -pt.get_X() / (double)nbpt;
-  e4[1] = -pt.get_Y() / (double)nbpt;
-  e4[2] = -pt.get_Z() / (double)nbpt;
+  e4[0] = -pt.get_X() / static_cast<double>(nbpt);
+  e4[1] = -pt.get_Y() / static_cast<double>(nbpt);
+  e4[2] = -pt.get_Z() / static_cast<double>(nbpt);
   e4.normalize();
 
   double angle = acos(vpColVector::dotProd(e4, faceNormal));
@@ -217,9 +208,11 @@ bool vpMbtPolygon::isVisible(const vpHomogeneousMatrix &cMo, double alpha, const
 
   if (angle < alpha + vpMath::rad(1)) {
     isappearing = true;
-  } else if (modulo && (M_PI - angle) < alpha + vpMath::rad(1)) {
+  }
+  else if (modulo && (M_PI - angle) < alpha + vpMath::rad(1)) {
     isappearing = true;
-  } else {
+  }
+  else {
     isappearing = false;
   }
 
@@ -234,9 +227,9 @@ bool vpMbtPolygon::isVisible(const vpHomogeneousMatrix &cMo, double alpha, const
 /*!
   Set the flag to consider if the level of detail (LOD) is used or not.
   When activated, lines and faces of the 3D model are tracked if respectively
-  their projected lenght and area in the image are significative enough. By
+  their projected length and area in the image are significative enough. By
   significative, we mean:
-  - if the lenght of the projected line in the image is greater that a
+  - if the length of the projected line in the image is greater that a
   threshold set by setMinLineLengthThresh()
   - if the area of the projected face in the image is greater that a threshold
   set by setMinPolygonAreaThresh().
@@ -245,33 +238,38 @@ bool vpMbtPolygon::isVisible(const vpHomogeneousMatrix &cMo, double alpha, const
 
   The sample code below shows how to introduce this feature:
   \code
-#include <visp3/io/vpImageIo.h>
-#include <visp3/mbt/vpMbEdgeTracker.h>
+  #include <visp3/io/vpImageIo.h>
+  #include <visp3/mbt/vpMbEdgeTracker.h>
 
-int main()
-{
-  vpImage<unsigned char> I;
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  // Acquire an image
-  vpImageIo::read(I, "my-image.pgm");
+  int main()
+  {
+    vpImage<unsigned char> I;
 
-  std::string object = "my-object";
-  vpMbEdgeTracker tracker;
-  tracker.loadConfigFile( object+".xml" );
-  tracker.loadModel( object+".cao" );
+    // Acquire an image
+    vpImageIo::read(I, "my-image.pgm");
 
-  tracker.setLod(true);
-  tracker.setMinLineLengthThresh(20.);
-  tracker.setMinPolygonAreaThresh(20.*20.);
+    std::string object = "my-object";
+    vpMbEdgeTracker tracker;
+    tracker.loadConfigFile( object+".xml" );
+    tracker.loadModel( object+".cao" );
 
-  tracker.initClick(I, object+".init" );
+    tracker.setLod(true);
+    tracker.setMinLineLengthThresh(20.);
+    tracker.setMinPolygonAreaThresh(20.*20.);
 
-  while (true) {
-    // tracking loop
+    tracker.initClick(I, object+".init" );
+
+    while (true) {
+      // tracking loop
+    }
   }
-}
   \endcode
 
   \sa setMinLineLengthThresh(), setMinPolygonAreaThresh()
  */
 void vpMbtPolygon::setLod(bool use_lod) { this->useLod = use_lod; }
+END_VISP_NAMESPACE

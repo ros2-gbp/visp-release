@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -31,32 +30,42 @@
  * Description:
  * Test keypoint matching with mostly OpenCV functions calls
  * to detect potential memory leaks in testKeyPoint.cpp.
- *
- * Authors:
- * Souriya Trinh
- *
- *****************************************************************************/
+ */
+
+/*!
+  \example testKeyPoint-3.cpp
+
+  \brief   Test keypoint matching with mostly OpenCV functions calls
+  to detect potential memory leaks in testKeyPoint.cpp.
+*/
 
 #include <iostream>
 
 #include <visp3/core/vpConfig.h>
 
-#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020301)
+#if defined(VISP_HAVE_OPENCV) && defined(HAVE_OPENCV_IMGPROC) && (defined(HAVE_OPENCV_FEATURES2D) || defined(HAVE_OPENCV_FEATURES))
 
-#include <opencv2/core/core.hpp>
+#if defined(HAVE_OPENCV_FEATURES)
+#include <opencv2/features.hpp>
+#endif
+
+#if defined(HAVE_OPENCV_FEATURES2D)
 #include <opencv2/features2d/features2d.hpp>
+#endif
+
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpIoTools.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/io/vpImageIo.h>
 #include <visp3/io/vpParseArgv.h>
 #include <visp3/io/vpVideoReader.h>
 
 // List of allowed command line options
 #define GETOPTARGS "cdh"
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 void usage(const char *name, const char *badparam);
 bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display);
@@ -74,7 +83,8 @@ void usage(const char *name, const char *badparam)
 Test keypoints matching.\n\
 \n\
 SYNOPSIS\n\
-  %s [-c] [-d] [-h]\n", name);
+  %s [-c] [-d] [-h]\n",
+          name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               \n\
@@ -118,20 +128,18 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
       display = false;
       break;
     case 'h':
-      usage(argv[0], NULL);
+      usage(argv[0], nullptr);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg_);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL);
+    usage(argv[0], nullptr);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -140,27 +148,37 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
   return true;
 }
 
-template<typename Type>
-void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_display,
-              vpImage<Type> &Iref, vpImage<Type> &Icur, vpImage<Type> &Imatch)
+template <typename Type>
+void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_display, vpImage<Type> &Iref,
+              vpImage<Type> &Icur, vpImage<Type> &Imatch)
 {
+#if defined(VISP_HAVE_DATASET)
+#if VISP_HAVE_DATASET_VERSION >= 0x030600
+  std::string ext("png");
+#else
+  std::string ext("pgm");
+#endif
+#else
+  // We suppose that the user will download a recent dataset
+  std::string ext("png");
+#endif
   // Set the path location of the image sequence
   std::string dirname = vpIoTools::createFilePath(env_ipath, "mbt/cube");
 
   // Build the name of the image files
-  std::string filenameRef = vpIoTools::createFilePath(dirname, "image0000.pgm");
+  std::string filenameRef = vpIoTools::createFilePath(dirname, "image0000." + ext);
   vpImageIo::read(Iref, filenameRef);
-  std::string filenameCur = vpIoTools::createFilePath(dirname, "image%04d.pgm");
+  std::string filenameCur = vpIoTools::createFilePath(dirname, "image%04d." + ext);
 
   // Init keypoints
   cv::Ptr<cv::FeatureDetector> detector;
   cv::Ptr<cv::DescriptorExtractor> extractor;
   cv::Ptr<cv::DescriptorMatcher> matcher;
 
-#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
+#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x030000)
   detector = cv::ORB::create();
   extractor = cv::ORB::create();
-#else
+#elif defined(VISP_HAVE_OPENCV)
   detector = cv::FeatureDetector::create("ORB");
   extractor = cv::DescriptorExtractor::create("ORB");
 #endif
@@ -180,19 +198,15 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
   Imatch.resize(Icur.getHeight(), 2 * Icur.getWidth());
   Imatch.insert(Iref, vpImagePoint(0, 0));
 
-#if defined VISP_HAVE_X11
-  vpDisplayX display;
-#elif defined VISP_HAVE_GTK
-  vpDisplayGTK display;
-#elif defined VISP_HAVE_GDI
-  vpDisplayGDI display;
-#else
-  vpDisplayOpenCV display;
-#endif
+  vpDisplay *display = nullptr;
 
   if (opt_display) {
-    display.setDownScalingFactor(vpDisplay::SCALE_AUTO);
-    display.init(Imatch, 0, 0, "ORB keypoints matching");
+#ifdef VISP_HAVE_DISPLAY
+    display = vpDisplayFactory::allocateDisplay(Imatch, 0, 0, "ORB keypoints matching");
+    display->setDownScalingFactor(vpDisplay::SCALE_AUTO);
+#else
+    std::cout << "No image viewer is available..." << std::endl;
+#endif
   }
 
   bool opt_click = false;
@@ -227,9 +241,9 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
 
     if (opt_display) {
       for (std::vector<cv::DMatch>::const_iterator it = matches.begin(); it != matches.end(); ++it) {
-        vpImagePoint leftPt(trainKeyPoints[(size_t)it->trainIdx].pt.y, trainKeyPoints[(size_t)it->trainIdx].pt.x);
-        vpImagePoint rightPt(queryKeyPoints[(size_t)it->queryIdx].pt.y,
-                             queryKeyPoints[(size_t)it->queryIdx].pt.x + Iref.getWidth());
+        vpImagePoint leftPt(trainKeyPoints[static_cast<size_t>(it->trainIdx)].pt.y, trainKeyPoints[static_cast<size_t>(it->trainIdx)].pt.x);
+        vpImagePoint rightPt(queryKeyPoints[static_cast<size_t>(it->queryIdx)].pt.y,
+                             queryKeyPoints[static_cast<size_t>(it->queryIdx)].pt.x + Iref.getWidth());
         vpDisplay::displayLine(Imatch, leftPt, rightPt, vpColor::green);
       }
 
@@ -243,26 +257,26 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
         if (button == vpMouseButton::button3) {
           opt_click = false;
         }
-      } else {
-        // Use right click to enable/disable step by step tracking
+      }
+      else {
+     // Use right click to enable/disable step by step tracking
         if (vpDisplay::getClick(Imatch, button, false)) {
           if (button == vpMouseButton::button3) {
             opt_click = true;
-          } else if (button == vpMouseButton::button1) {
+          }
+          else if (button == vpMouseButton::button1) {
             break;
           }
         }
       }
     }
   }
+
+  if (display) {
+    delete display;
+  }
 }
 
-/*!
-  \example testKeyPoint-3.cpp
-
-  \brief   Test keypoint matching with mostly OpenCV functions calls
-  to detect potential memory leaks in testKeyPoint.cpp.
-*/
 int main(int argc, const char **argv)
 {
   try {
@@ -272,7 +286,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, opt_click_allowed, opt_display) == false) {
-      exit(-1);
+      return EXIT_FAILURE;
     }
 
     // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH
@@ -281,9 +295,9 @@ int main(int argc, const char **argv)
 
     if (env_ipath.empty()) {
       std::cerr << "Please set the VISP_INPUT_IMAGE_PATH environment "
-                   "variable value."
-                << std::endl;
-      return -1;
+        "variable value."
+        << std::endl;
+      return EXIT_FAILURE;
     }
 
     {
@@ -300,20 +314,22 @@ int main(int argc, const char **argv)
       run_test(env_ipath, opt_click_allowed, opt_display, Iref, Icur, Imatch);
     }
 
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cerr << e.what() << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   std::cout << "testKeyPoint-3 is ok !" << std::endl;
-  return 0;
+  return EXIT_SUCCESS;
 }
+
 #else
 int main()
 {
   std::cerr << "You need OpenCV library." << std::endl;
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #endif

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -31,10 +30,7 @@
  * Description:
  * Example of  command line parsing.
  *
- * Author:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \file parse-argv1.cpp
@@ -52,10 +48,15 @@
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDebug.h>
 #include <visp3/io/vpParseArgv.h>
 // List of allowed command line options
 #define GETOPTARGS "d:f:i:h"
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 void usage(const char *name, const char *badparam, int i_val, float f_val, double d_val);
 bool getOptions(int argc, const char **argv, int &i_val, float &f_val, double &d_val);
@@ -78,7 +79,8 @@ Parsing command line arguments example.\n\
 \n\
 SYNOPSIS\n\
   %s [-i <integer>] [-f <float>] [-d <double> [-h]\n\
-", name);
+",
+name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               Default\n\
@@ -92,7 +94,8 @@ OPTIONS:                                               Default\n\
      A double value.\n\
 \n\
   -h\n\
-     Print the help.\n\n", i_val, f_val, d_val);
+     Print the help.\n\n",
+          i_val, f_val, d_val);
 
   if (badparam) {
     fprintf(stderr, "ERROR: \n");
@@ -123,26 +126,24 @@ bool getOptions(int argc, const char **argv, int &i_val, float &f_val, double &d
       d_val = atof(optarg_);
       break;
     case 'f':
-      f_val = (float)atof(optarg_);
+      f_val = static_cast<float>(atof(optarg_));
       break;
     case 'i':
       i_val = atoi(optarg_);
       break;
     case 'h':
-      usage(argv[0], NULL, i_val, f_val, d_val);
+      usage(argv[0], nullptr, i_val, f_val, d_val);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg_, i_val, f_val, d_val);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL, i_val, f_val, d_val);
+    usage(argv[0], nullptr, i_val, f_val, d_val);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -163,7 +164,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, i_val, f_val, d_val) == false) {
-      return (-1);
+      return EXIT_FAILURE;
     }
 
     cout << "Your parameters: " << endl;
@@ -173,7 +174,8 @@ int main(int argc, const char **argv)
     cout << "Call  " << argv[0] << " -h to see how to change these parameters." << endl;
 
     return EXIT_SUCCESS;
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch a ViSP exception: " << e << std::endl;
     return EXIT_FAILURE;
   }

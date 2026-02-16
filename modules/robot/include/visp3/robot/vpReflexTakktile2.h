@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Interface for the Reflex Takktile 2 hand from Right Hand Robotics.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 #ifndef _vpReflexTakktile2_h_
 #define _vpReflexTakktile2_h_
@@ -47,6 +42,7 @@
 
 #include <visp3/core/vpColVector.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
 
   \class vpReflexTakktile2
@@ -87,7 +83,7 @@ public:
     std::vector<std::string> error_state;
 
     HandInfo();
-    ~HandInfo(){}
+    ~HandInfo() { }
 
     friend VISP_EXPORT std::ostream &operator<<(std::ostream &os, const HandInfo &hand);
   };
@@ -158,6 +154,6 @@ private:
   class Impl;
   Impl *m_impl;
 };
-
+END_VISP_NAMESPACE
 #endif
 #endif

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,8 +29,7 @@
  *
  * Description:
  * Load XML Parameter for Model Based Tracker.
- *
- *****************************************************************************/
+ */
 
 /*!
  * \file vpMbtXmlGenericParser.h
@@ -44,10 +42,12 @@
 
 #include <visp3/core/vpConfig.h>
 
+#if defined(VISP_HAVE_PUGIXML)
 #include <visp3/core/vpCameraParameters.h>
 #include <visp3/mbt/vpMbtFaceDepthNormal.h>
 #include <visp3/me/vpMe.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpMbtXmlGenericParser
   \brief Parse an Xml file to extract configuration parameters of a mbtConfig
@@ -56,11 +56,24 @@
 
   Data parser for the model-based tracker.
 
- */
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in using a MBT tracker in your applications, you may have a look at:</span><br>
+
+  - \ref tutorial-tracking-mb-generic
+  - \ref tutorial-tracking-mb-generic-stereo
+  - \ref tutorial-tracking-mb-generic-rgbd
+  - \ref tutorial-tracking-mb-generic-apriltag-live
+  - \ref tutorial-mb-generic-json
+  - \ref tutorial-tracking-mb-generic-rgbd-Blender
+
+*/
 class VISP_EXPORT vpMbtXmlGenericParser
 {
 public:
-  enum vpParserType {
+  enum vpParserType
+  {
     EDGE_PARSER = 1 << 0,         /*!< Parser for model-based tracking using moving
                                      edges features. */
     KLT_PARSER = 1 << 1,          /*!< Parser for model-based tracking using KLT features. */
@@ -162,5 +175,6 @@ private:
   class Impl;
   Impl *m_impl;
 };
-
+END_VISP_NAMESPACE
+#endif
 #endif
