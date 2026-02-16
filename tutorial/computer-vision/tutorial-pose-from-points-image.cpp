@@ -1,27 +1,34 @@
 /*! \example tutorial-pose-from-points-image.cpp */
+
+#include <visp3/core/vpConfig.h>
+#include <visp3/core/vpIoTools.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/io/vpImageIo.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
 
 //! [Include]
 #include "pose_helper.h"
 //! [Include]
 
-int main()
+int main(int, char *argv[])
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  std::shared_ptr<vpDisplay> display;
+#else
+  vpDisplay *display = nullptr;
+#endif
   try {
     //! [Read image]
     vpImage<unsigned char> I;
-    vpImageIo::read(I, "square.pgm");
+    vpImageIo::read(I, vpIoTools::getParent(argv[0]) + "/data/square.jpg");
     //! [Read image]
 
-#if defined(VISP_HAVE_X11)
-    vpDisplayX d(I);
-#elif defined(VISP_HAVE_GDI)
-    vpDisplayGDI d(I);
-#elif defined(VISP_HAVE_OPENCV)
-    vpDisplayOpenCV d(I);
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+    display = vpDisplayFactory::createDisplay(I);
+#else
+    display = vpDisplayFactory::allocateDisplay(I);
 #endif
 
     //! [Camera parameters]
@@ -38,9 +45,9 @@ int main()
     //! [3D model]
     std::vector<vpPoint> point;
     point.push_back(vpPoint(-0.06, -0.06, 0));
-    point.push_back(vpPoint( 0.06, -0.06, 0));
-    point.push_back(vpPoint( 0.06,  0.06, 0));
-    point.push_back(vpPoint(-0.06,  0.06, 0));
+    point.push_back(vpPoint(0.06, -0.06, 0));
+    point.push_back(vpPoint(0.06, 0.06, 0));
+    point.push_back(vpPoint(-0.06, 0.06, 0));
     //! [3D model]
 
     //! [Homogeneous matrix]
@@ -50,7 +57,7 @@ int main()
 
     while (1) {
       //! [Tracking]
-      vpImageIo::read(I, "square.pgm");
+      vpImageIo::read(I, vpIoTools::getParent(argv[0]) + "/data/square.jpg");
       vpDisplay::display(I);
       for (unsigned int i = 0; i < dot.size(); i++) {
         dot[i].setGraphics(true);
@@ -80,7 +87,13 @@ int main()
       vpTime::wait(40);
       //! [Slow down]
     }
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e.getMessage() << std::endl;
   }
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+  if (display != nullptr) {
+    delete display;
+  }
+#endif
 }

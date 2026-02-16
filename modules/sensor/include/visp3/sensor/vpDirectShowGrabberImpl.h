@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,12 +29,7 @@
  *
  * Description:
  * DirectShow framegrabber Implementation.
- *
- * Authors:
- * Bruno Renier
- * Anthony Saunier
- *
- *****************************************************************************/
+ */
 
 #ifndef vpDirectShowGrabberImpl_hh
 #define vpDirectShowGrabberImpl_hh
@@ -55,6 +49,8 @@
 #include <visp3/core/vpDebug.h>
 #include <visp3/sensor/vpDirectShowDevice.h>
 #include <visp3/sensor/vpDirectShowSampleGrabberI.h>
+
+BEGIN_VISP_NAMESPACE
 /*!
         \class vpDirectShowGrabberImpl
         \brief class for windows direct show devices - implementation
@@ -70,8 +66,8 @@ class VISP_EXPORT vpDirectShowGrabberImpl : public vpFrameGrabber
 
 public:
   /*!
-Enumeration of video subtypes.
-*/
+    Enumeration of video subtypes.
+  */
   /*
     typedef enum {
             //Known RGB formats
@@ -192,7 +188,7 @@ private:
   bool connectSourceToGrabber(CComPtr<IBaseFilter> &pCapSource, CComPtr<IBaseFilter> &pGrabberFilter);
 
   // used to convert HRESULT-associated error message to a string
-  void HRtoStr(std::string str);
+  void HRtoStr(std::string &str);
 
   // create the list of the available devices
   bool createDeviceList(CComPtr<IEnumMoniker> &ppVideoInputEnum);
@@ -212,7 +208,7 @@ private:
   // Frees the format block in an AM_MEDIA_TYPE structure
   void MyFreeMediaType(AM_MEDIA_TYPE &mt);
 };
-
+END_VISP_NAMESPACE
 #endif
 #endif
 #endif

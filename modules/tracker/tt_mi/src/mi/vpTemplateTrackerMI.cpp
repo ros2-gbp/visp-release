@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,16 +33,15 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #include <visp3/core/vpException.h>
 #include <visp3/tt_mi/vpTemplateTrackerMI.h>
 #include <visp3/tt_mi/vpTemplateTrackerMIBSpline.h>
 
+BEGIN_VISP_NAMESPACE
 void vpTemplateTrackerMI::setBspline(const vpBsplineType &newbs)
 {
-  bspline = (int)newbs;
+  bspline = static_cast<int>(newbs);
   influBspline = bspline * bspline;
   Ncb = Nc + bspline;
   if (Pt)
@@ -67,21 +65,21 @@ void vpTemplateTrackerMI::setBspline(const vpBsplineType &newbs)
   Pr = new double[Ncb];
 
   Prt = new double[Ncb * Ncb];
-  dPrt = new double[Ncb * Ncb * (int)(nbParam)];
-  d2Prt = new double[Ncb * Ncb * (int)(nbParam * nbParam)];
+  dPrt = new double[Ncb * Ncb * static_cast<int>(nbParam)];
+  d2Prt = new double[Ncb * Ncb * static_cast<int>(nbParam * nbParam)];
 
   PrtD = new double[Nc * Nc * influBspline];
-  dPrtD = new double[Nc * Nc * (int)(nbParam)*influBspline];
-  PrtTout = new double[Nc * Nc * influBspline * (1 + (int)(nbParam + nbParam * nbParam))];
+  dPrtD = new double[Nc * Nc * static_cast<int>(nbParam)*influBspline];
+  PrtTout = new double[Nc * Nc * influBspline * (1 + static_cast<int>(nbParam + nbParam * nbParam))];
 
   hessianComputation = USE_HESSIEN_DESIRE;
 }
 
 vpTemplateTrackerMI::vpTemplateTrackerMI(vpTemplateTrackerWarp *_warp)
-  : vpTemplateTracker(_warp), hessianComputation(USE_HESSIEN_NORMAL), ApproxHessian(HESSIAN_NEW), lambda(0), temp(NULL),
-    Prt(NULL), dPrt(NULL), Pt(NULL), Pr(NULL), d2Prt(NULL), PrtTout(NULL), dprtemp(NULL), PrtD(NULL), dPrtD(NULL),
-    influBspline(0), bspline(3), Nc(8), Ncb(0), d2Ix(), d2Iy(), d2Ixy(), MI_preEstimation(0), MI_postEstimation(0),
-    NMI_preEstimation(0), NMI_postEstimation(0), covarianceMatrix(), computeCovariance(false)
+  : vpTemplateTracker(_warp), hessianComputation(USE_HESSIEN_NORMAL), ApproxHessian(HESSIAN_NEW), lambda(0), temp(nullptr),
+  Prt(nullptr), dPrt(nullptr), Pt(nullptr), Pr(nullptr), d2Prt(nullptr), PrtTout(nullptr), dprtemp(nullptr), PrtD(nullptr), dPrtD(nullptr),
+  influBspline(0), bspline(3), Nc(8), Ncb(0), d2Ix(), d2Iy(), d2Ixy(), MI_preEstimation(0), MI_postEstimation(0),
+  NMI_preEstimation(0), NMI_postEstimation(0), covarianceMatrix(), computeCovariance(false)
 {
   Ncb = Nc + bspline;
   influBspline = bspline * bspline;
@@ -99,15 +97,15 @@ vpTemplateTrackerMI::vpTemplateTrackerMI(vpTemplateTrackerWarp *_warp)
   X2.resize(2);
 
   PrtD = new double[Nc * Nc * influBspline]; //(r,t)
-  dPrtD = new double[Nc * Nc * (int)(nbParam)*influBspline];
+  dPrtD = new double[Nc * Nc * static_cast<int>(nbParam)*influBspline];
 
   Prt = new double[Ncb * Ncb]; //(r,t)
   Pt = new double[Ncb];
   Pr = new double[Ncb];
-  dPrt = new double[Ncb * Ncb * (int)(nbParam)];
-  d2Prt = new double[Ncb * Ncb * (int)(nbParam * nbParam)];
+  dPrt = new double[Ncb * Ncb * static_cast<int>(nbParam)];
+  d2Prt = new double[Ncb * Ncb * static_cast<int>(nbParam * nbParam)];
 
-  PrtTout = new double[Nc * Nc * influBspline * (1 + (int)(nbParam + nbParam * nbParam))];
+  PrtTout = new double[Nc * Nc * influBspline * (1 + static_cast<int>(nbParam + nbParam * nbParam))];
 
   lambda = lambdaDep;
 }
@@ -135,13 +133,13 @@ void vpTemplateTrackerMI::setNc(int nc)
     delete[] PrtTout;
 
   PrtD = new double[Nc * Nc * influBspline]; //(r,t)
-  dPrtD = new double[Nc * Nc * (int)(nbParam)*influBspline];
+  dPrtD = new double[Nc * Nc * static_cast<int>(nbParam)*influBspline];
   Prt = new double[Ncb * Ncb]; //(r,t)
-  dPrt = new double[Ncb * Ncb * (int)(nbParam)];
+  dPrt = new double[Ncb * Ncb * static_cast<int>(nbParam)];
   Pt = new double[Ncb];
   Pr = new double[Ncb];
-  d2Prt = new double[Ncb * Ncb * (int)(nbParam * nbParam)]; //(r,t)
-  PrtTout = new double[Nc * Nc * influBspline * (1 + (int)(nbParam + nbParam * nbParam))];
+  d2Prt = new double[Ncb * Ncb * static_cast<int>(nbParam * nbParam)]; //(r,t)
+  PrtTout = new double[Nc * Nc * influBspline * (1 + static_cast<int>(nbParam + nbParam * nbParam))];
 }
 
 double vpTemplateTrackerMI::getCost(const vpImage<unsigned char> &I, const vpColVector &tp)
@@ -150,9 +148,9 @@ double vpTemplateTrackerMI::getCost(const vpImage<unsigned char> &I, const vpCol
   int Nbpoint = 0;
   double IW;
 
-  unsigned int Ncb_ = (unsigned int)Ncb;
-  unsigned int Nc_ = (unsigned int)Nc;
-  unsigned int influBspline_ = (unsigned int)influBspline;
+  unsigned int Ncb_ = static_cast<unsigned int>(Ncb);
+  unsigned int Nc_ = static_cast<unsigned int>(Nc);
+  unsigned int influBspline_ = static_cast<unsigned int>(influBspline);
 
   memset(Prt, 0, Ncb_ * Ncb_ * sizeof(double));
   memset(PrtD, 0, Nc_ * Nc_ * influBspline_ * sizeof(double));
@@ -176,7 +174,7 @@ double vpTemplateTrackerMI::getCost(const vpImage<unsigned char> &I, const vpCol
       else
         IW = BI.getValue(i2, j2);
 
-      double Nc_1 = (Nc - 1.)/255.;
+      double Nc_1 = (Nc - 1.) / 255.;
       double IW_Nc = IW * Nc_1;
       double Tij_Nc = Tij * Nc_1;
       int cr = static_cast<int>(IW_Nc);
@@ -190,7 +188,7 @@ double vpTemplateTrackerMI::getCost(const vpImage<unsigned char> &I, const vpCol
     }
   }
 
-  ratioPixelIn = (double)Nbpoint / (double)templateSize;
+  ratioPixelIn = static_cast<double>(Nbpoint) / static_cast<double>(templateSize);
 
   double *pt = PrtD;
   for (int r = 0; r < Nc; r++)
@@ -272,7 +270,7 @@ double vpTemplateTrackerMI::getNormalizedCost(const vpImage<unsigned char> &I, c
       double Tij = ptTemplate[point].val;
       int Tij_ = static_cast<int>(Tij);
       if (!blur) {
-        IW = I[(int)i2][(int)j2];
+        IW = I[static_cast<int>(i2)][static_cast<int>(j2)];
       }
       else {
         IW = BI.getValue(i2, j2);
@@ -382,7 +380,7 @@ void vpTemplateTrackerMI::computeProba(int &nbpoint)
 
 void vpTemplateTrackerMI::computeMI(double &MI)
 {
-  unsigned int Ncb_ = (unsigned int)Ncb;
+  unsigned int Ncb_ = static_cast<unsigned int>(Ncb);
 
   // Compute Pr and Pt
   memset(Pr, 0, Ncb_ * sizeof(double));
@@ -391,7 +389,7 @@ void vpTemplateTrackerMI::computeMI(double &MI)
     unsigned int r_Nbc_ = r * Ncb_;
     for (unsigned int t = 0; t < Ncb_; t++) {
       Pr[r] += Prt[r_Nbc_ + t];
-      Pt[r] += Prt[r + Ncb_* t];
+      Pt[r] += Prt[r + Ncb_ * t];
     }
   }
 
@@ -426,7 +424,7 @@ void vpTemplateTrackerMI::computeHessien(vpMatrix &Hessian)
       for (unsigned int r = 0; r < Ncb_; r++) {
         if (Prt[r * Ncb_ + t] > seuilevitinf) {
           unsigned int r_Ncb_t_ = r * Ncb_ + t;
-          unsigned int r_Ncb_t_nbParam_ = r_Ncb_t_ * nbParam ;
+          unsigned int r_Ncb_t_nbParam_ = r_Ncb_t_ * nbParam;
           for (unsigned int it = 0; it < nbParam; it++) {
             dprtemp[it] = dPrt[r_Ncb_t_nbParam_ + it];
           }
@@ -439,8 +437,8 @@ void vpTemplateTrackerMI::computeHessien(vpMatrix &Hessian)
             unsigned int r_Ncb_t_nbParam2_it_nbParam_ = r_Ncb_t_nbParam2_ + it * nbParam;
             for (unsigned int jt = 0; jt < nbParam; jt++) {
               if (ApproxHessian != HESSIAN_NONSECOND && ApproxHessian != HESSIAN_NEW)
-                Hessian[it][jt] += dprtemp[it] * dprtemp[jt] * Prt_Pt_ +
-                                   d2Prt[r_Ncb_t_nbParam2_it_nbParam_ + jt] * dtemp;
+                Hessian[it][jt] +=
+                dprtemp[it] * dprtemp[jt] * Prt_Pt_ + d2Prt[r_Ncb_t_nbParam2_it_nbParam_ + jt] * dtemp;
               else if (ApproxHessian == HESSIAN_NEW)
                 Hessian[it][jt] += d2Prt[r_Ncb_t_nbParam2_it_nbParam_ + jt] * dtemp;
               else
@@ -514,7 +512,7 @@ void vpTemplateTrackerMI::computeHessienNormalized(vpMatrix &Hessian)
           unsigned int r_Ncb_t_nbParam2_ = r_Ncb_t_ * nbParam2;
           for (unsigned int it = 0; it < nbParam; it++) {
             double dprtemp_it2_ = Prt_ * dprtemp[it] * dprtemp[it];
-            unsigned int r_Ncb_t_nbParam2_it_nbParam_ = r_Ncb_t_nbParam2_  + it * nbParam;
+            unsigned int r_Ncb_t_nbParam2_it_nbParam_ = r_Ncb_t_nbParam2_ + it * nbParam;
             for (unsigned int jt = 0; jt < nbParam; jt++) {
               unsigned int r_Ncb_t_nbParam2_it_nbParam_jt_ = r_Ncb_t_nbParam2_it_nbParam_ + jt;
               m_d2u[it][jt] += d2Prt[r_Ncb_t_nbParam2_it_nbParam_jt_] * log_Pt_Pr_ + dprtemp_it2_;
@@ -617,7 +615,7 @@ double vpTemplateTrackerMI::getMI(const vpImage<unsigned char> &I, int &nc, cons
     double j2 = X2[0];
     double i2 = X2[1];
 
-     if ((i2 >= 0) && (j2 >= 0) && (i2 < I.getHeight() - 1) && (j2 < I.getWidth()) - 1) {
+    if ((i2 >= 0) && (j2 >= 0) && (i2 < I.getHeight() - 1) && (j2 < I.getWidth()) - 1) {
       Nbpoint++;
 
       double Tij = ptTemplate[point].val;
@@ -637,8 +635,8 @@ double vpTemplateTrackerMI::getMI(const vpImage<unsigned char> &I, int &nc, cons
     }
   }
   double *pt = tPrtD;
-  int tNcb_ = (int)tNcb;
-  int tinfluBspline_ = (int)tinfluBspline;
+  int tNcb_ = static_cast<int>(tNcb);
+  int tinfluBspline_ = static_cast<int>(tinfluBspline);
   for (int r = 0; r < nc; r++)
     for (int t = 0; t < nc; t++) {
       for (volatile int i = 0; i < tinfluBspline_; i++) {
@@ -658,7 +656,8 @@ double vpTemplateTrackerMI::getMI(const vpImage<unsigned char> &I, int &nc, cons
     delete[] tPt;
 
     return 0;
-  } else {
+  }
+  else {
     for (unsigned int r = 0; r < tNcb; r++)
       for (unsigned int t = 0; t < tNcb; t++)
         tPrt[r * tNcb + t] = tPrt[r * tNcb + t] / Nbpoint;
@@ -670,7 +669,7 @@ double vpTemplateTrackerMI::getMI(const vpImage<unsigned char> &I, int &nc, cons
     }
 
     // calcul Pt;
-    memset(tPt, 0, (size_t)(tNcb * sizeof(double)));
+    memset(tPt, 0, static_cast<size_t>(tNcb * sizeof(double)));
     for (unsigned int t = 0; t < tNcb; t++) {
       for (unsigned int r = 0; r < tNcb; r++)
         tPt[t] += tPrt[r * tNcb + t];
@@ -680,12 +679,12 @@ double vpTemplateTrackerMI::getMI(const vpImage<unsigned char> &I, int &nc, cons
         MI -= tPr[r] * log(tPr[r]);
 
     for (unsigned int t = 0; t < tNcb; t++)
-       if (std::fabs(tPt[t]) > std::numeric_limits<double>::epsilon())
+      if (std::fabs(tPt[t]) > std::numeric_limits<double>::epsilon())
         MI -= tPt[t] * log(tPt[t]);
 
     for (unsigned int r = 0; r < tNcb; r++)
       for (unsigned int t = 0; t < tNcb; t++)
-         if (std::fabs(tPrt[r * tNcb + t]) > std::numeric_limits<double>::epsilon())
+        if (std::fabs(tPrt[r * tNcb + t]) > std::numeric_limits<double>::epsilon())
           MI += tPrt[r * tNcb + t] * log(tPrt[r * tNcb + t]);
   }
   delete[] tPrtD;
@@ -758,3 +757,4 @@ double vpTemplateTrackerMI::getMI256(const vpImage<unsigned char> &I, const vpCo
   }
   return MI;
 }
+END_VISP_NAMESPACE

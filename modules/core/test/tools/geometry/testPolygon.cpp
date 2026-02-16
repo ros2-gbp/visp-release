@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,11 @@
  *
  * Description:
  * Example which test the polygon.
- *
- * Author:
- * Romain Tallonneau
- *
- *****************************************************************************/
+ */
+
+/*!
+  \example testPolygon.cpp
+ */
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpImagePoint.h>
 #include <visp3/core/vpPolygon.h>
@@ -71,8 +70,9 @@ void usage(const char *name, const char *badparam)
 test the generic 2D polygons.\n\
 \n\
 SYNOPSIS\n\
-  %s [-c] [-d] [-h]\n						      \
-", name);
+  %s [-c] [-d] [-h]\n\
+",
+name);
 
   fprintf(stdout, "\n\
 OPTIONS: \n\
@@ -99,12 +99,15 @@ OPTIONS: \n\
 
   \param argc : Command line number of parameters.
   \param argv : Array of command line parameters.
-  \param opt_display : optionnal flag to turn off the display.
+  \param opt_display : Optional flag to turn off the display.
   \param opt_click : activates the mouse click.
   \return false if the program has to be stopped, true otherwise.
 */
 bool getOptions(int argc, const char **argv, bool &opt_display, bool &opt_click, int &method)
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
   const char *optarg_;
   int c;
   while ((c = vpParseArgv::parse(argc, argv, GETOPTARGS, &optarg_)) > 1) {
@@ -120,20 +123,18 @@ bool getOptions(int argc, const char **argv, bool &opt_display, bool &opt_click,
       method = atoi(optarg_);
       break;
     case 'h':
-      usage(argv[0], NULL);
+      usage(argv[0], nullptr);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg_);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL);
+    usage(argv[0], nullptr);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -144,12 +145,15 @@ bool getOptions(int argc, const char **argv, bool &opt_display, bool &opt_click,
 
 /* --------------------------------------------------------------------------
  */
-/*                               MAIN FUNCTION */
-/* --------------------------------------------------------------------------
- */
+ /*                               MAIN FUNCTION */
+ /* --------------------------------------------------------------------------
+  */
 
 int main(int argc, const char **argv)
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
   try {
     bool opt_display = true;
     bool opt_click = true;
@@ -158,7 +162,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, opt_display, opt_click, method) == false) {
-      return (-1);
+      return EXIT_FAILURE;
     }
 
     std::vector<vpImagePoint> vec1;
@@ -180,11 +184,11 @@ int main(int argc, const char **argv)
     std::vector<vpImagePoint> vec3;
     vpPolygon p3(vec3);
 
-#if defined VISP_HAVE_X11
+#if defined(VISP_HAVE_X11)
     vpDisplayX display;
-#elif defined VISP_HAVE_GTK
+#elif defined(VISP_HAVE_GTK)
     vpDisplayGTK display;
-#elif defined VISP_HAVE_GDI
+#elif defined(VISP_HAVE_GDI)
     vpDisplayGDI display;
 #else
     opt_display = false;
@@ -236,8 +240,8 @@ int main(int argc, const char **argv)
         vpDisplay::getClick(I);
 
         vpRect bbox = p4.getBoundingBox();
-        for (unsigned int i = (unsigned int)floor(bbox.getTop()); i < (unsigned int)ceil(bbox.getBottom()); ++i) {
-          for (unsigned int j = (unsigned int)floor(bbox.getLeft()); j < (unsigned int)ceil(bbox.getRight()); ++j) {
+        for (unsigned int i = static_cast<unsigned int>(floor(bbox.getTop())); i < static_cast<unsigned int>(ceil(bbox.getBottom())); ++i) {
+          for (unsigned int j = static_cast<unsigned int>(floor(bbox.getLeft())); j < static_cast<unsigned int>(ceil(bbox.getRight())); ++j) {
             if (p4.isInside(vpImagePoint(i, j), (vpPolygon::PointInPolygonMethod)method)) {
               vpDisplay::displayPoint(I, vpImagePoint(i, j), vpColor::orange);
             }
@@ -291,17 +295,17 @@ int main(int argc, const char **argv)
         t_benchmark = vpTime::measureTimeMs() - t_benchmark;
         std::cout << "PnPolyRayCasting: " << t_benchmark << " ms" << std::endl;
 
-#if defined VISP_HAVE_X11
+#if defined(VISP_HAVE_X11)
         vpDisplayX display1, display2;
-#elif defined VISP_HAVE_GTK
+#elif defined(VISP_HAVE_GTK)
         vpDisplayGTK display1, display2;
-#elif defined VISP_HAVE_GDI
+#elif defined(VISP_HAVE_GDI)
         vpDisplayGDI display1, display2;
 #endif
 
 #if (defined VISP_HAVE_X11) || (defined VISP_HAVE_GTK) || (defined VISP_HAVE_GDI)
         display1.init(I_segmentIntersection, 10, 10, "Segment Intersection test");
-        display2.init(I_rayCasting, (int)I_segmentIntersection.getWidth() + 10, 10, "Ray Casting test");
+        display2.init(I_rayCasting, static_cast<int>(I_segmentIntersection.getWidth()) + 10, 10, "Ray Casting test");
 #endif
 
         vpDisplay::display(I_segmentIntersection);
@@ -314,9 +318,10 @@ int main(int argc, const char **argv)
       }
     }
 
-    return 0;
-  } catch (const vpException &e) {
+    return EXIT_SUCCESS;
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }

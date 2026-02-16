@@ -1,7 +1,7 @@
-#############################################################################
+# ############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -28,13 +28,10 @@
 # This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
 # WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# Authors:
-# Fabien Spindler
-#
-#############################################################################
+# ############################################################################
 
 # ----------------------------------------------------------------------------
-#   Uninstall target, for "make uninstall"
+# Uninstall target, for "make uninstall"
 # ----------------------------------------------------------------------------
 configure_file(
   cmake/templates/cmake_uninstall.cmake.in
@@ -49,7 +46,7 @@ if(ENABLE_SOLUTION_FOLDERS)
 endif()
 
 # ----------------------------------------------------------------------------
-#   Doxygen documentation target, for "make visp_doc" and "make html-doc" (to keep compat with previous versions)
+# Doxygen documentation target, for "make visp_doc" and "make html-doc" (to keep compat with previous versions)
 # ----------------------------------------------------------------------------
 if(DOXYGEN_FOUND)
   add_custom_target(html-doc
@@ -60,76 +57,110 @@ if(DOXYGEN_FOUND)
     COMMAND "${DOXYGEN_EXECUTABLE}" "${VISP_DOC_DIR}/config-doxygen"
     DEPENDS "${VISP_DOC_DIR}/config-doxygen"
   )
-  if(UNIX AND NOT ANDROID) # man target available only on unix
+  add_custom_target(visp_doc_xml
+    COMMAND "${DOXYGEN_EXECUTABLE}" "${VISP_DOC_DIR}/config-doxygen-xml"
+    DEPENDS "${VISP_DOC_DIR}/config-doxygen-xml"
+  )
+
+  if(CMAKE_GENERATOR MATCHES "Xcode")
+    add_dependencies(visp_doc man) # developer_scripts not available when Xcode
+    add_dependencies(visp_doc man)
+  elseif(UNIX AND NOT ANDROID) # man target available only on unix
     add_dependencies(visp_doc man developer_scripts)
-  elseif(NOT (MINGW OR IOS))
+    add_dependencies(visp_doc_xml man developer_scripts)
+  elseif(NOT(MINGW OR IOS))
     add_dependencies(visp_doc developer_scripts)
+    add_dependencies(visp_doc_xml developer_scripts)
   endif()
+
   if(ENABLE_SOLUTION_FOLDERS)
     set_target_properties(visp_doc PROPERTIES FOLDER "extra")
+    set_target_properties(visp_doc_xml PROPERTIES FOLDER "extra")
     set_target_properties(html-doc PROPERTIES FOLDER "extra")
   endif()
 endif()
 
 # ----------------------------------------------------------------------------
-#   Tests target, for make visp_tests
+# Tests target, for make visp_apps
+# ----------------------------------------------------------------------------
+if(BUILD_APPS)
+  add_custom_target(visp_apps)
+
+  if(ENABLE_SOLUTION_FOLDERS)
+    set_target_properties(visp_apps PROPERTIES FOLDER "extra")
+  endif()
+endif()
+
+# ----------------------------------------------------------------------------
+# Tests target, for make visp_tests
 # ----------------------------------------------------------------------------
 if(BUILD_TESTS)
   add_custom_target(visp_tests)
+
   if(ENABLE_SOLUTION_FOLDERS)
     set_target_properties(visp_tests PROPERTIES FOLDER "extra")
   endif()
 endif()
 
 # ----------------------------------------------------------------------------
-#   Tests target, for make visp_examples
+# Tests target, for make visp_examples
 # ----------------------------------------------------------------------------
 if(BUILD_EXAMPLES)
   add_custom_target(visp_examples)
+
   if(ENABLE_SOLUTION_FOLDERS)
     set_target_properties(visp_examples PROPERTIES FOLDER "extra")
   endif()
 endif()
 
 # ----------------------------------------------------------------------------
-#   Tests target, for make visp_demos
+# Tests target, for make visp_demos
 # ----------------------------------------------------------------------------
 if(BUILD_DEMOS)
   add_custom_target(visp_demos)
+
   if(ENABLE_SOLUTION_FOLDERS)
     set_target_properties(visp_demos PROPERTIES FOLDER "extra")
   endif()
 endif()
 
 # ----------------------------------------------------------------------------
-#   Tests target, for make visp_tutorials
+# Tests target, for make visp_tutorials
 # ----------------------------------------------------------------------------
 if(BUILD_TUTORIALS)
   add_custom_target(visp_tutorials)
+
   if(ENABLE_SOLUTION_FOLDERS)
     set_target_properties(visp_tutorials PROPERTIES FOLDER "extra")
   endif()
 endif()
 
 # ----------------------------------------------------------------------------
-#   Target building all ViSP modules
+# Target building all ViSP modules
 # ----------------------------------------------------------------------------
 add_custom_target(visp_modules)
+
 if(ENABLE_SOLUTION_FOLDERS)
   set_target_properties(visp_modules PROPERTIES FOLDER "extra")
 endif()
 
 # ----------------------------------------------------------------------------
-#   Coverage
+# Coverage
 # ----------------------------------------------------------------------------
-
 if(BUILD_TESTS AND BUILD_COVERAGE)
   # needed for coverage
+  find_program(GCOV_COMMAND gcov)
   find_program(GCOVR_COMMAND gcovr)
   find_program(LCOV_COMMAND lcov)
   find_program(GENHTML_COMMAND genhtml)
 
-  if(GCOVR_COMMAND AND LCOV_COMMAND AND GENHTML_COMMAND)
+  if(GCOV_COMMAND)
+    set(GCOV_OR_GCOVR_CMD ${GCOV_COMMAND})
+  elseif(GCOVR_COMMAND)
+    set(GCOV_OR_GCOVR_CMD ${GCOVR_COMMAND})
+  endif()
+
+  if(GCOV_OR_GCOVR_CMD AND LCOV_COMMAND AND GENHTML_COMMAND)
     add_custom_target(visp_coverage
 
       # Cleanup lcov
@@ -142,12 +173,12 @@ if(BUILD_TESTS AND BUILD_COVERAGE)
       COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target test
 
       # Capturing lcov counters and generating report
-      COMMAND ${LCOV_COMMAND} --directory . --capture --output-file visp-coverage.info
+      COMMAND ${LCOV_COMMAND} --directory . --capture --ignore mismatch --output-file visp-coverage.info
       COMMAND ${LCOV_COMMAND} --remove visp-coverage.info '/usr/*' --output-file visp-coverage.cleaned
       COMMAND ${GENHTML_COMMAND} -o coverage visp-coverage.cleaned --demangle-cpp --num-spaces 2 --sort --title "ViSP coverage test" --function-coverage --legend
       COMMAND ${CMAKE_COMMAND} -E remove visp-coverage.info visp-coverage.cleaned
 
-      COMMAND ${GCOVR_COMMAND} --xml --root=${CMAKE_SOURCE_DIR} -o coverage.xml
+      COMMAND ${GCOV_OR_GCOVR_CMD} --xml --root=${CMAKE_SOURCE_DIR} -o coverage.xml
 
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMENT "Run code coverage"

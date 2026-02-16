@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -32,12 +31,7 @@
  *   tests the control law
  *   eye-in-hand control
  *   velocity computed in articular
- *
- * Authors:
- * Eric Marchand
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \example servoViper850Point2DArtVelocity-jointAvoidance-basic.cpp
@@ -69,9 +63,7 @@
 #include <visp3/core/vpIoTools.h>
 #include <visp3/core/vpMath.h>
 #include <visp3/core/vpPoint.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/gui/vpPlot.h>
 #include <visp3/robot/vpRobotViper850.h>
 #include <visp3/sensor/vp1394TwoGrabber.h>
@@ -82,6 +74,16 @@
 
 int main()
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
+
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  std::shared_ptr<vpDisplay> display;
+#else
+  vpDisplay *display = nullptr;
+#endif
+
   try {
     vpRobotViper850 robot;
 
@@ -119,12 +121,10 @@ int main()
     }
     std::cout << "Tloop: " << Tloop << std::endl;
 
-#ifdef VISP_HAVE_X11
-    vpDisplayX display(I, 800, 100, "Current image");
-#elif defined(VISP_HAVE_OPENCV)
-    vpDisplayOpenCV display(I, 800, 100, "Current image");
-#elif defined(VISP_HAVE_GTK)
-    vpDisplayGTK display(I, 800, 100, "Current image");
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+    display = vpDisplayFactory::createDisplay(I, 800, 100, "Current image");
+#else
+    display = vpDisplayFactory::allocateDisplay(I, 800, 100, "Current image");
 #endif
 
     vpDisplay::display(I);
@@ -175,11 +175,10 @@ int main()
     plot.setTitle(1, "Joint velocity");
 
     // For the first graphic, set the curves legend
-    char legend[10];
+    std::string legend;
     for (unsigned int i = 0; i < 6; i++) {
-      sprintf(legend, "q%u", i + 1);
+      legend = "q" + i + 1;
       plot.setLegend(0, i, legend);
-      sprintf(legend, "q%u", i + 1);
       plot.setLegend(1, i, legend);
     }
     plot.setLegend(0, 6, "tQmin");
@@ -266,7 +265,7 @@ int main()
       double t_0 = vpTime::measureTimeMs(); // t_0: current time
 
       // Update loop time in second
-      double Tv = (double)(t_0 - t_1) / 1000.0;
+      double Tv = static_cast<double>(t_0 - t_1) / 1000.0;
       std::cout << "Tv: " << Tv << std::endl;
 
       // Update time for next iteration
@@ -342,7 +341,6 @@ int main()
         unsigned int k = 0;
 
         for (unsigned int j = 0; j < 6; j++) // j is the joint
-          // if (pb[j]==1)	{
           if (std::fabs(pb[j] - 1) <= std::numeric_limits<double>::epsilon()) {
             for (unsigned int i = 0; i < dimKernelL; i++)
               E[k][i] = kernelJ1[j][i];
@@ -357,7 +355,8 @@ int main()
 
         e2 = (kernelJ1 * a0);
         // cout << "e2 " << e2.t() ;
-      } else {
+      }
+      else {
         e2 = 0;
       }
       //  std::cout << "e2: " << e2.t() << std::endl;
@@ -400,10 +399,20 @@ int main()
 
     // Display task information
     task.print();
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+    if (display != nullptr) {
+      delete display;
+    }
+#endif
     return EXIT_SUCCESS;
   }
   catch (const vpException &e) {
     std::cout << "Catch an exception: " << e.getMessage() << std::endl;
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+    if (display != nullptr) {
+      delete display;
+    }
+#endif
     return EXIT_FAILURE;
   }
 }

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,16 +29,15 @@
  *
  * Description:
  * Manage depth dense features for a particular face.
- *
- *****************************************************************************/
+ */
 
-#ifndef _vpMbtFaceDepthDense_h_
-#define _vpMbtFaceDepthDense_h_
+#ifndef VP_MBT_FACE_DEPTH_DENSE_H
+#define VP_MBT_FACE_DEPTH_DENSE_H
 
 #include <iostream>
 
 #include <visp3/core/vpConfig.h>
-#ifdef VISP_HAVE_PCL
+#if defined(VISP_HAVE_PCL) && defined(VISP_HAVE_PCL_COMMON)
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #endif
@@ -50,10 +48,28 @@
 
 #define DEBUG_DISPLAY_DEPTH_DENSE 0
 
-class VISP_EXPORT vpMbtFaceDepthDense
+BEGIN_VISP_NAMESPACE
+/**
+ * \ingroup group_mbt_faces
+ * \brief Manage depth dense features for a particular face.
+ *
+ * <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+ *
+ * <b>Tutorials</b><br>
+ * <span style="margin-left:2em"> If you are interested in using a MBT tracker in your applications, you may have a look at:</span><br>
+ *
+ * - \ref tutorial-tracking-mb-generic
+ * - \ref tutorial-tracking-mb-generic-stereo
+ * - \ref tutorial-tracking-mb-generic-rgbd
+ * - \ref tutorial-tracking-mb-generic-apriltag-live
+ * - \ref tutorial-mb-generic-json
+ * - \ref tutorial-tracking-mb-generic-rgbd-Blender
+ */
+  class VISP_EXPORT vpMbtFaceDepthDense
 {
 public:
-  enum vpDepthDenseFilteringType {
+  enum vpDepthDenseFilteringType
+  {
     NO_FILTERING = 0,                         ///< Face is used if visible
     DEPTH_OCCUPANCY_RATIO_FILTERING = 1 << 1, ///< Face is used if there is
                                               ///< enough depth information in
@@ -82,12 +98,14 @@ public:
   bool m_useScanLine;
 
   vpMbtFaceDepthDense();
+  vpMbtFaceDepthDense(const vpMbtFaceDepthDense &mbt_face);
   virtual ~vpMbtFaceDepthDense();
+  vpMbtFaceDepthDense &operator=(const vpMbtFaceDepthDense &mbt_face);
 
-  void addLine(vpPoint &p1, vpPoint &p2, vpMbHiddenFaces<vpMbtPolygon> *const faces, vpUniRand& rand_gen, int polygon = -1,
-               std::string name = "");
+  void addLine(vpPoint &p1, vpPoint &p2, vpMbHiddenFaces<vpMbtPolygon> *const faces, vpUniRand &rand_gen,
+               int polygon = -1, std::string name = "");
 
-#ifdef VISP_HAVE_PCL
+#if defined(VISP_HAVE_PCL) && defined(VISP_HAVE_PCL_COMMON)
   bool computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
                               const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud, unsigned int stepX,
                               unsigned int stepY
@@ -95,18 +113,25 @@ public:
                               ,
                               vpImage<unsigned char> &debugImage, std::vector<std::vector<vpImagePoint> > &roiPts_vec
 #endif
-                              , const vpImage<bool> *mask = NULL
-  );
+                              ,
+                              const vpImage<bool> *mask = nullptr);
 #endif
   bool computeDesiredFeatures(const vpHomogeneousMatrix &cMo, unsigned int width, unsigned int height,
-                              const std::vector<vpColVector> &point_cloud, unsigned int stepX,
-                              unsigned int stepY
+                              const std::vector<vpColVector> &point_cloud, unsigned int stepX, unsigned int stepY
 #if DEBUG_DISPLAY_DEPTH_DENSE
                               ,
                               vpImage<unsigned char> &debugImage, std::vector<std::vector<vpImagePoint> > &roiPts_vec
 #endif
-                              , const vpImage<bool> *mask = NULL
-  );
+                              ,
+                              const vpImage<bool> *mask = nullptr);
+  bool computeDesiredFeatures(const vpHomogeneousMatrix &cMo, unsigned int width, unsigned int height,
+                              const vpMatrix &point_cloud, unsigned int stepX, unsigned int stepY
+#if DEBUG_DISPLAY_DEPTH_DENSE
+                              ,
+                              vpImage<unsigned char> &debugImage, std::vector<std::vector<vpImagePoint> > &roiPts_vec
+#endif
+                              ,
+                              const vpImage<bool> *mask = nullptr);
 
   void computeInteractionMatrixAndResidu(const vpHomogeneousMatrix &cMo, vpMatrix &L, vpColVector &error);
 
@@ -124,11 +149,10 @@ public:
                       double scale = 0.05, unsigned int thickness = 1);
 
   std::vector<std::vector<double> > getModelForDisplay(unsigned int width, unsigned int height,
-                                                       const vpHomogeneousMatrix &cMo,
-                                                       const vpCameraParameters &cam,
+                                                       const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
                                                        bool displayFullModel = false);
 
-  inline unsigned int getNbFeatures() const { return (unsigned int)(m_pointCloudFace.size() / 3); }
+  inline unsigned int getNbFeatures() const { return static_cast<unsigned int>(m_pointCloudFace.size() / 3); }
 
   inline bool isTracked() const { return m_isTrackedDepthDenseFace; }
 
@@ -138,23 +162,18 @@ public:
 
   void setScanLineVisibilityTest(bool v);
 
-  inline void setDepthDenseFilteringMaxDistance(double maxDistance)
-  {
-    m_depthDenseFilteringMaxDist = maxDistance;
-  }
+  inline void setDepthDenseFilteringMaxDistance(double maxDistance) { m_depthDenseFilteringMaxDist = maxDistance; }
 
   inline void setDepthDenseFilteringMethod(int method) { m_depthDenseFilteringMethod = method; }
 
-  inline void setDepthDenseFilteringMinDistance(double minDistance)
-  {
-    m_depthDenseFilteringMinDist = minDistance;
-  }
+  inline void setDepthDenseFilteringMinDistance(double minDistance) { m_depthDenseFilteringMinDist = minDistance; }
 
   inline void setDepthDenseFilteringOccupancyRatio(double occupancyRatio)
   {
     if (occupancyRatio < 0.0 || occupancyRatio > 1.0) {
       std::cerr << "occupancyRatio < 0.0 || occupancyRatio > 1.0" << std::endl;
-    } else {
+    }
+    else {
       m_depthDenseFilteringOccupancyRatio = occupancyRatio;
     }
   }
@@ -176,10 +195,10 @@ private:
     //! The second extremity clipped in the image frame
     vpImagePoint m_imPt2;
 
-    PolygonLine() : m_p1(NULL), m_p2(NULL), m_poly(), m_imPt1(), m_imPt2() {}
+    PolygonLine() : m_p1(nullptr), m_p2(nullptr), m_poly(), m_imPt1(), m_imPt2() { }
 
     PolygonLine(const PolygonLine &polyLine)
-      : m_p1(NULL), m_p2(NULL), m_poly(polyLine.m_poly), m_imPt1(polyLine.m_imPt1), m_imPt2(polyLine.m_imPt2)
+      : m_p1(nullptr), m_p2(nullptr), m_poly(polyLine.m_poly), m_imPt1(polyLine.m_imPt1), m_imPt2(polyLine.m_imPt2)
     {
       m_p1 = &m_poly.p[0];
       m_p2 = &m_poly.p[1];
@@ -237,4 +256,5 @@ protected:
 
   bool samePoint(const vpPoint &P1, const vpPoint &P2) const;
 };
+END_VISP_NAMESPACE
 #endif
