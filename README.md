@@ -1,3 +1,26 @@
+## visp (humble) - 3.7.0-2
+
+The packages in the `visp` repository were released into the `humble` distro by running `/usr/bin/bloom-release --track humble --rosdistro humble visp` on `Mon, 02 Mar 2026 16:22:46 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+
+- upstream repository: https://github.com/lagadic/visp.git
+- release repository: https://github.com/ros2-gbp/visp-release.git
+- rosdistro version: `3.5.0-2`
+- old version: `3.7.0-1`
+- new version: `3.7.0-2`
+
+Versions of tools used:
+
+- bloom version: `0.13.0`
+- catkin_pkg version: `1.1.0`
+- rosdep version: `0.26.0`
+- rosdistro version: `1.0.1`
+- vcstools version: `0.1.42`
+
+
 ## visp (humble) - 3.7.0-1
 
 The packages in the `visp` repository were released into the `humble` distro by running `/usr/bin/bloom-release --rosdistro humble --track humble visp` on `Mon, 02 Mar 2026 15:12:42 -0000`
