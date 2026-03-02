@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,17 +29,12 @@
  *
  * Description:
  * Network request.
- *
- * Authors:
- * Aurelien Yol
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpRequest.h>
 
-vpRequest::vpRequest() : request_id(""), listOfParams() {}
-
-vpRequest::~vpRequest() {}
+BEGIN_VISP_NAMESPACE
+vpRequest::vpRequest() : request_id(""), listOfParams() { }
 
 /*!
   Add a message as parameter of the request.
@@ -49,7 +43,7 @@ vpRequest::~vpRequest() {}
 
   \param params : Array of characters representing the message to add.
 */
-void vpRequest::addParameter(char *params)
+void vpRequest::addParameter(const char *params)
 {
   std::string val = params;
   listOfParams.push_back(val);
@@ -62,7 +56,7 @@ void vpRequest::addParameter(char *params)
 
   \param params : std::string representing the message to add.
 */
-void vpRequest::addParameter(std::string &params) { listOfParams.push_back(params); }
+void vpRequest::addParameter(const std::string &params) { listOfParams.push_back(params); }
 
 /*!
   Add messages as parameters of the request.
@@ -72,8 +66,10 @@ void vpRequest::addParameter(std::string &params) { listOfParams.push_back(param
 
   \param listOfparams : Array of std::string representing the messages to add.
 */
-void vpRequest::addParameter(std::vector<std::string> &listOfparams)
+void vpRequest::addParameter(const std::vector<std::string> &listOfparams)
 {
-  for (unsigned int i = 0; i < listOfparams.size(); i++)
-    listOfparams.push_back(listOfparams[i]);
+  for (unsigned int i = 0; i < listOfparams.size(); i++) {
+    this->listOfParams.push_back(listOfparams[i]);
+  }
 }
+END_VISP_NAMESPACE

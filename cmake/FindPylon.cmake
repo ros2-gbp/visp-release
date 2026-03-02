@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -36,9 +36,6 @@
 # PYLON_LIBRARIES
 # PYLON_VERSION
 #
-# Authors:
-# Wenfeng CAI
-# Fabien Spindler : compat with OSX and Windows
 #
 #############################################################################
 
@@ -67,6 +64,7 @@ if(APPLE)
                     OUTPUT_VARIABLE PYLON_VERSION_TMP
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
     string(REPLACE "-n" "" PYLON_VERSION ${PYLON_VERSION_TMP})
+    string(STRIP ${PYLON_VERSION} PYLON_VERSION)
   endif()
 
   if(PYLON_INCLUDE_DIRS AND PYLON_LIBRARIES)
@@ -116,6 +114,7 @@ elseif(MSVC)
   if(PYLON_INCLUDE_DIRS AND PYLON_LIBRARIES)
     vp_parse_header("${PYLON_INCLUDE_DIR}/pylon/PylonVersionNumber.h" PYLON_VERSION_LINES PYLON_VERSION_MAJOR PYLON_VERSION_MINOR PYLON_VERSION_SUBMINOR)
     set(PYLON_VERSION "${PYLON_VERSION_MAJOR}.${PYLON_VERSION_MINOR}.${PYLON_VERSION_SUBMINOR}")
+    string(STRIP ${PYLON_VERSION} PYLON_VERSION)
     set(PYLON_FOUND TRUE)
   endif()
 
@@ -145,6 +144,7 @@ elseif(UNIX)
     execute_process(COMMAND ${PYLON_CONFIG} "--version"
                     OUTPUT_VARIABLE PYLON_VERSION
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
+    string(STRIP ${PYLON_VERSION} PYLON_VERSION)
     execute_process(COMMAND ${PYLON_CONFIG} "--libs" "--libs-rpath"
                     OUTPUT_VARIABLE PYLON_LIBRARIES
                     OUTPUT_STRIP_TRAILING_WHITESPACE)

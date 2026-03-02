@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,25 +29,32 @@
  *
  * Description:
  * Benchmark image warping.
- *
- *****************************************************************************/
+ */
+
+/*!
+  \example perfImageWarp.cpp
+ */
 
 #include <visp3/core/vpConfig.h>
 
-#ifdef VISP_HAVE_CATCH2
-#define CATCH_CONFIG_ENABLE_BENCHMARKING
-#define CATCH_CONFIG_RUNNER
-#include <catch.hpp>
+#if defined(VISP_HAVE_CATCH2)
 
-#include <visp3/core/vpIoTools.h>
+#include <catch_amalgamated.hpp>
+
 #include <visp3/core/vpImageTools.h>
+#include <visp3/core/vpIoTools.h>
 #include <visp3/io/vpImageIo.h>
 
-namespace {
-static std::string ipath = vpIoTools::getViSPImagesDataPath();
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+namespace
+{
+VP_ATTRIBUTE_NO_DESTROY static std::string ipath = vpIoTools::getViSPImagesDataPath();
 }
 
-TEST_CASE("Benchmark affine warp on grayscale image", "[benchmark]") {
+TEST_CASE("Benchmark affine warp on grayscale image", "[benchmark]")
+{
   std::string imgPath = vpIoTools::createFilePath(ipath, "Klimt/Klimt.pgm");
   REQUIRE(vpIoTools::checkFilename(imgPath));
 
@@ -61,30 +67,38 @@ TEST_CASE("Benchmark affine warp on grayscale image", "[benchmark]") {
   M.eye();
 
   const double theta = vpMath::rad(45);
-  M[0][0] = cos(theta);   M[0][1] = -sin(theta);   M[0][2] = I.getWidth() / 2;
-  M[1][0] = sin(theta);   M[1][1] = cos(theta);    M[1][2] = I.getHeight() / 2;
+  M[0][0] = cos(theta);
+  M[0][1] = -sin(theta);
+  M[0][2] = I.getWidth() / 2;
+  M[1][0] = sin(theta);
+  M[1][1] = cos(theta);
+  M[1][2] = I.getHeight() / 2;
 
-  BENCHMARK("Benchmark affine warp (ref code) (NN)") {
+  BENCHMARK("Benchmark affine warp (ref code) (NN)")
+  {
     vpImageTools::warpImage(I, M, I_affine, vpImageTools::INTERPOLATION_NEAREST, false);
     return I_affine;
   };
 
-  BENCHMARK("Benchmark affine warp (fixed-point) (NN)") {
+  BENCHMARK("Benchmark affine warp (fixed-point) (NN)")
+  {
     vpImageTools::warpImage(I, M, I_affine, vpImageTools::INTERPOLATION_NEAREST);
     return I_affine;
   };
 
-  BENCHMARK("Benchmark affine warp (ref code) (bilinear)") {
+  BENCHMARK("Benchmark affine warp (ref code) (bilinear)")
+  {
     vpImageTools::warpImage(I, M, I_affine, vpImageTools::INTERPOLATION_LINEAR, false);
     return I_affine;
   };
 
-  BENCHMARK("Benchmark affine warp (fixed-point) (bilinear)") {
+  BENCHMARK("Benchmark affine warp (fixed-point) (bilinear)")
+  {
     vpImageTools::warpImage(I, M, I_affine, vpImageTools::INTERPOLATION_LINEAR);
     return I_affine;
   };
 
-#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
+#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(HAVE_OPENCV_IMGPROC)
   cv::Mat img, img_affine;
   vpImageConvert::convert(I, img);
   vpImageConvert::convert(I, img_affine);
@@ -96,19 +110,22 @@ TEST_CASE("Benchmark affine warp on grayscale image", "[benchmark]") {
     }
   }
 
-  BENCHMARK("Benchmark affine warp (OpenCV) (NN)") {
+  BENCHMARK("Benchmark affine warp (OpenCV) (NN)")
+  {
     cv::warpAffine(img, img_affine, M_cv, img.size(), cv::INTER_NEAREST);
     return img_affine;
   };
 
-  BENCHMARK("Benchmark affine warp (OpenCV) (bilinear)") {
+  BENCHMARK("Benchmark affine warp (OpenCV) (bilinear)")
+  {
     cv::warpAffine(img, img_affine, M_cv, img.size(), cv::INTER_LINEAR);
     return img_affine;
   };
 #endif
 }
 
-TEST_CASE("Benchmark affine warp on color image", "[benchmark]") {
+TEST_CASE("Benchmark affine warp on color image", "[benchmark]")
+{
   std::string imgPath = vpIoTools::createFilePath(ipath, "Klimt/Klimt.ppm");
   REQUIRE(vpIoTools::checkFilename(imgPath));
 
@@ -121,30 +138,38 @@ TEST_CASE("Benchmark affine warp on color image", "[benchmark]") {
   M.eye();
 
   const double theta = vpMath::rad(45);
-  M[0][0] = cos(theta);   M[0][1] = -sin(theta);   M[0][2] = I.getWidth() / 2;
-  M[1][0] = sin(theta);   M[1][1] = cos(theta);   M[1][2] = I.getHeight() / 2;
+  M[0][0] = cos(theta);
+  M[0][1] = -sin(theta);
+  M[0][2] = I.getWidth() / 2;
+  M[1][0] = sin(theta);
+  M[1][1] = cos(theta);
+  M[1][2] = I.getHeight() / 2;
 
-  BENCHMARK("Benchmark affine warp (ref code) (NN)") {
+  BENCHMARK("Benchmark affine warp (ref code) (NN)")
+  {
     vpImageTools::warpImage(I, M, I_affine, vpImageTools::INTERPOLATION_NEAREST, false);
     return I_affine;
   };
 
-  BENCHMARK("Benchmark affine warp (fixed-point) (NN)") {
+  BENCHMARK("Benchmark affine warp (fixed-point) (NN)")
+  {
     vpImageTools::warpImage(I, M, I_affine, vpImageTools::INTERPOLATION_NEAREST);
     return I_affine;
   };
 
-  BENCHMARK("Benchmark affine warp (ref code) (bilinear)") {
+  BENCHMARK("Benchmark affine warp (ref code) (bilinear)")
+  {
     vpImageTools::warpImage(I, M, I_affine, vpImageTools::INTERPOLATION_LINEAR, false);
     return I_affine;
   };
 
-  BENCHMARK("Benchmark affine warp (fixed-point) (bilinear)") {
+  BENCHMARK("Benchmark affine warp (fixed-point) (bilinear)")
+  {
     vpImageTools::warpImage(I, M, I_affine, vpImageTools::INTERPOLATION_LINEAR);
     return I_affine;
   };
 
-#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
+#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(HAVE_OPENCV_IMGPROC)
   cv::Mat img, img_affine;
   vpImageConvert::convert(I, img);
   vpImageConvert::convert(I, img_affine);
@@ -156,19 +181,22 @@ TEST_CASE("Benchmark affine warp on color image", "[benchmark]") {
     }
   }
 
-  BENCHMARK("Benchmark affine warp (OpenCV) (NN)") {
+  BENCHMARK("Benchmark affine warp (OpenCV) (NN)")
+  {
     cv::warpAffine(img, img_affine, M_cv, img.size(), cv::INTER_NEAREST);
     return img_affine;
   };
 
-  BENCHMARK("Benchmark affine warp (OpenCV) (bilinear)") {
+  BENCHMARK("Benchmark affine warp (OpenCV) (bilinear)")
+  {
     cv::warpAffine(img, img_affine, M_cv, img.size(), cv::INTER_LINEAR);
     return img_affine;
   };
 #endif
 }
 
-TEST_CASE("Benchmark perspective warp on grayscale image", "[benchmark]") {
+TEST_CASE("Benchmark perspective warp on grayscale image", "[benchmark]")
+{
   std::string imgPath = vpIoTools::createFilePath(ipath, "Klimt/Klimt.pgm");
   REQUIRE(vpIoTools::checkFilename(imgPath));
 
@@ -181,30 +209,38 @@ TEST_CASE("Benchmark perspective warp on grayscale image", "[benchmark]") {
   M.eye();
 
   const double theta = vpMath::rad(45);
-  M[0][0] = cos(theta);   M[0][1] = -sin(theta);   M[0][2] = I.getWidth() / 2;
-  M[1][0] = sin(theta);   M[1][1] = cos(theta);   M[1][2] = I.getHeight() / 2;
+  M[0][0] = cos(theta);
+  M[0][1] = -sin(theta);
+  M[0][2] = I.getWidth() / 2;
+  M[1][0] = sin(theta);
+  M[1][1] = cos(theta);
+  M[1][2] = I.getHeight() / 2;
 
-  BENCHMARK("Benchmark perspective warp (ref code) (NN)") {
+  BENCHMARK("Benchmark perspective warp (ref code) (NN)")
+  {
     vpImageTools::warpImage(I, M, I_perspective, vpImageTools::INTERPOLATION_NEAREST, false);
     return I_perspective;
   };
 
-  BENCHMARK("Benchmark perspective warp (fixed-point) (NN)") {
+  BENCHMARK("Benchmark perspective warp (fixed-point) (NN)")
+  {
     vpImageTools::warpImage(I, M, I_perspective, vpImageTools::INTERPOLATION_NEAREST);
     return I_perspective;
   };
 
-  BENCHMARK("Benchmark perspective warp (ref code) (bilinear)") {
+  BENCHMARK("Benchmark perspective warp (ref code) (bilinear)")
+  {
     vpImageTools::warpImage(I, M, I_perspective, vpImageTools::INTERPOLATION_LINEAR, false);
     return I_perspective;
   };
 
-  BENCHMARK("Benchmark perspective warp (fixed-point) (bilinear)") {
+  BENCHMARK("Benchmark perspective warp (fixed-point) (bilinear)")
+  {
     vpImageTools::warpImage(I, M, I_perspective, vpImageTools::INTERPOLATION_LINEAR);
     return I_perspective;
   };
 
-#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
+#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(HAVE_OPENCV_IMGPROC)
   cv::Mat img, img_perspective;
   vpImageConvert::convert(I, img);
   vpImageConvert::convert(I, img_perspective);
@@ -216,19 +252,22 @@ TEST_CASE("Benchmark perspective warp on grayscale image", "[benchmark]") {
     }
   }
 
-  BENCHMARK("Benchmark perspective warp (OpenCV) (NN)") {
+  BENCHMARK("Benchmark perspective warp (OpenCV) (NN)")
+  {
     cv::warpPerspective(img, img_perspective, M_cv, img.size(), cv::INTER_NEAREST);
     return img_perspective;
   };
 
-  BENCHMARK("Benchmark perspective warp (OpenCV) (bilinear)") {
+  BENCHMARK("Benchmark perspective warp (OpenCV) (bilinear)")
+  {
     cv::warpPerspective(img, img_perspective, M_cv, img.size(), cv::INTER_LINEAR);
     return img_perspective;
   };
 #endif
 }
 
-TEST_CASE("Benchmark perspective warp on color image", "[benchmark]") {
+TEST_CASE("Benchmark perspective warp on color image", "[benchmark]")
+{
   std::string imgPath = vpIoTools::createFilePath(ipath, "Klimt/Klimt.ppm");
   REQUIRE(vpIoTools::checkFilename(imgPath));
 
@@ -241,30 +280,38 @@ TEST_CASE("Benchmark perspective warp on color image", "[benchmark]") {
   M.eye();
 
   const double theta = vpMath::rad(45);
-  M[0][0] = cos(theta);   M[0][1] = -sin(theta);   M[0][2] = I.getWidth() / 2;
-  M[1][0] = sin(theta);   M[1][1] = cos(theta);   M[1][2] = I.getHeight() / 2;
+  M[0][0] = cos(theta);
+  M[0][1] = -sin(theta);
+  M[0][2] = I.getWidth() / 2;
+  M[1][0] = sin(theta);
+  M[1][1] = cos(theta);
+  M[1][2] = I.getHeight() / 2;
 
-  BENCHMARK("Benchmark perspective warp (ref code) (NN)") {
+  BENCHMARK("Benchmark perspective warp (ref code) (NN)")
+  {
     vpImageTools::warpImage(I, M, I_perspective, vpImageTools::INTERPOLATION_NEAREST, false);
     return I_perspective;
   };
 
-  BENCHMARK("Benchmark perspective warp (fixed-point) (NN)") {
+  BENCHMARK("Benchmark perspective warp (fixed-point) (NN)")
+  {
     vpImageTools::warpImage(I, M, I_perspective, vpImageTools::INTERPOLATION_NEAREST);
     return I_perspective;
   };
 
-  BENCHMARK("Benchmark perspective warp (ref code) (bilinear)") {
+  BENCHMARK("Benchmark perspective warp (ref code) (bilinear)")
+  {
     vpImageTools::warpImage(I, M, I_perspective, vpImageTools::INTERPOLATION_LINEAR, false);
     return I_perspective;
   };
 
-  BENCHMARK("Benchmark perspective warp (fixed-point) (bilinear)") {
+  BENCHMARK("Benchmark perspective warp (fixed-point) (bilinear)")
+  {
     vpImageTools::warpImage(I, M, I_perspective, vpImageTools::INTERPOLATION_LINEAR);
     return I_perspective;
   };
 
-#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
+#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x030000) && defined(HAVE_OPENCV_IMGPROC)
   cv::Mat img, img_perspective;
   vpImageConvert::convert(I, img);
   vpImageConvert::convert(I, img_perspective);
@@ -276,12 +323,14 @@ TEST_CASE("Benchmark perspective warp on color image", "[benchmark]") {
     }
   }
 
-  BENCHMARK("Benchmark perspective warp (OpenCV) (NN)") {
+  BENCHMARK("Benchmark perspective warp (OpenCV) (NN)")
+  {
     cv::warpPerspective(img, img_perspective, M_cv, img.size(), cv::INTER_NEAREST);
     return img_perspective;
   };
 
-  BENCHMARK("Benchmark perspective warp (OpenCV) (bilinear)") {
+  BENCHMARK("Benchmark perspective warp (OpenCV) (bilinear)")
+  {
     cv::warpPerspective(img, img_perspective, M_cv, img.size(), cv::INTER_LINEAR);
     return img_perspective;
   };
@@ -290,28 +339,17 @@ TEST_CASE("Benchmark perspective warp on color image", "[benchmark]") {
 
 int main(int argc, char *argv[])
 {
-  Catch::Session session; // There must be exactly one instance
-
+  Catch::Session session;
   bool runBenchmark = false;
-  // Build a new parser on top of Catch's
-  using namespace Catch::clara;
-  auto cli = session.cli() // Get Catch's composite command line parser
-    | Opt(runBenchmark)    // bind variable to a new option, with a hint string
-    ["--benchmark"]        // the option names it will respond to
-    ("run benchmark?");    // description string for the help output
+  auto cli = session.cli()
+    | Catch::Clara::Opt(runBenchmark)["--benchmark"]("run benchmark?");
 
-  // Now pass the new composite back to Catch so it uses that
   session.cli(cli);
-
-  // Let Catch (using Clara) parse the command line
   session.applyCommandLine(argc, argv);
 
   if (runBenchmark) {
     int numFailed = session.run();
 
-    // numFailed is clamped to 255 as some unices only use the lower 8 bits.
-    // This clamping has already been applied, so just return it here
-    // You can also do any post run clean-up here
     return numFailed;
   }
 
@@ -320,8 +358,5 @@ int main(int argc, char *argv[])
 #else
 #include <iostream>
 
-int main()
-{
-  return 0;
-}
+int main() { return EXIT_SUCCESS; }
 #endif

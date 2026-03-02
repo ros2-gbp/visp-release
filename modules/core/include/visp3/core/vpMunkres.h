@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2022 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,22 +29,15 @@
  *
  * Description:
  * Class for Munkres Assignment Algorithm.
- *
- * Authors:
- * Souriya Trinh
- * Julien Dufour
- *
- *****************************************************************************/
+ */
 
 #pragma once
 
 #include <visp3/core/vpConfig.h>
 
-#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_17) && \
-    (!defined(_MSC_VER) || ( (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_17) && (_MSC_VER >= 1911) ) )
-
-// Visual Studio: Optionals are available from Visual Studio 2017 RTW (15.0)	[1910]
-// Visual Studio: Structured bindings are available from Visual Studio 2017 version 15.3 [1911]
+// Check if std:c++17 or higher.
+// Here we cannot use (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_17) in the declaration of the class
+#if ((__cplusplus >= 201703L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L)))
 
 // System
 #include <optional>
@@ -54,6 +46,7 @@
 // Internal
 #include "vpMath.h"
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpMunkres
   \ingroup group_core_munkres
@@ -61,7 +54,14 @@
   Implements the Munkres Assignment Algorithm described [here](https://en.wikipedia.org/wiki/Hungarian_algorithm).
 
   \note This class is only available with c++17 enabled.
- */
+
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in using using the Munkres algorithm, you may have a look at:</span><br>
+
+  - \ref tutorial-munkres
+*/
 class VISP_EXPORT vpMunkres
 {
 public:
@@ -104,8 +104,8 @@ private:
   static STEP_T stepThree(const std::vector<std::vector<ZERO_T> > &mask, std::vector<bool> &col_cover);
   template <typename Type>
   static std::tuple<STEP_T, std::optional<std::pair<unsigned int, unsigned int> > >
-  stepFour(const std::vector<std::vector<Type> > &costs, std::vector<std::vector<ZERO_T> > &mask,
-           std::vector<bool> &row_cover, std::vector<bool> &col_cover);
+    stepFour(const std::vector<std::vector<Type> > &costs, std::vector<std::vector<ZERO_T> > &mask,
+             std::vector<bool> &row_cover, std::vector<bool> &col_cover);
   static STEP_T stepFive(std::vector<std::vector<ZERO_T> > &mask, const std::pair<unsigned int, unsigned int> &path_0,
                          std::vector<bool> &row_cover, std::vector<bool> &col_cover);
   template <typename Type>
@@ -113,7 +113,7 @@ private:
                         const std::vector<bool> &col_cover);
 
 private:
-  static constexpr auto ZeroEpsilon{1e-6};
+  static constexpr auto ZeroEpsilon { 1e-6 };
 };
 
 enum vpMunkres::ZERO_T : unsigned int { NA = 0, STARRED = 1, PRIMED = 2 };
@@ -123,7 +123,7 @@ enum vpMunkres::STEP_T : unsigned int { ENTRY = 0, ONE = 1, TWO = 2, THREE = 3, 
 /*!
  * Ensure that the cost matrix is square by the addition of dummy rows/columns.
  *
- * \param[in,out] costs: Cost matrix.
+ * \param[in,out] costs : Cost matrix.
  */
 template <typename Type> inline void vpMunkres::padCostMatrix(std::vector<std::vector<Type> > &costs)
 {
@@ -143,9 +143,9 @@ template <typename Type> inline void vpMunkres::padCostMatrix(std::vector<std::v
 /*!
  * Find a zero in the cost matrix.
  *
- * \param[in] costs: Cost matrix.
- * \param[in] row_cover: Row coverage array.
- * \param[in] col_cover: Col coverage array.
+ * \param[in] costs : Cost matrix.
+ * \param[in] row_cover : Row coverage array.
+ * \param[in] col_cover : Col coverage array.
  * \return Index of the Zero [<row,col>] or std::nullopt if the cost matrix does not contain a zero.
  */
 template <typename Type>
@@ -166,9 +166,9 @@ vpMunkres::findAZero(const std::vector<std::vector<Type> > &costs, const std::ve
 /*!
  * Find the smallest value of the cost matrix.
  *
- * \param[in] costs: Cost matrix.
- * \param[in] row_cover: Row coverage array.
- * \param[in] col_cover: Col coverage array.
+ * \param[in] costs : Cost matrix.
+ * \param[in] row_cover : Row coverage array.
+ * \param[in] col_cover : Col coverage array.
  * \return Smallest value of the cost matrix.
  */
 template <typename Type>
@@ -190,7 +190,7 @@ inline Type vpMunkres::findSmallest(const std::vector<std::vector<Type> > &costs
  * For each col of the cost matrix, find the smallest element and subtract it from every element in its col.
  * When finished, Go to Step 2.
  *
- * \param[in,out] costs: Cost matrix.
+ * \param[in,out] costs : Cost matrix.
  * \return Next step.
  */
 template <typename Type> inline vpMunkres::STEP_T vpMunkres::stepOne(std::vector<std::vector<Type> > &costs)
@@ -206,7 +206,7 @@ template <typename Type> inline vpMunkres::STEP_T vpMunkres::stepOne(std::vector
   for (auto col = 0u; col < costs.size(); ++col) {
     auto minval = std::numeric_limits<Type>::max();
     for (const auto &cost_row : costs) {
-      minval = std::min(minval, cost_row.at(col));
+      minval = std::min<Type>(minval, cost_row.at(col));
     }
 
     for (auto &cost_row : costs) {
@@ -222,10 +222,10 @@ template <typename Type> inline vpMunkres::STEP_T vpMunkres::stepOne(std::vector
  * element in the cost matrix.
  * When finished, Go to Step 3.
  *
- * \param[in,out] costs: Cost matrix.
- * \param[in] mask: Mask matrix.
- * \param[in,out] row_cover: Row coverage array.
- * \param[in,out] col_cover: Col coverage array.
+ * \param[in,out] costs : Cost matrix.
+ * \param[in] mask : Mask matrix.
+ * \param[in,out] row_cover : Row coverage array.
+ * \param[in,out] col_cover : Col coverage array.
  * \return Next step.
  */
 template <typename Type>
@@ -255,10 +255,10 @@ inline vpMunkres::STEP_T vpMunkres::stepTwo(std::vector<std::vector<Type> > &cos
  * Otherwise, cover this row and uncover the column containing the starred zero. Continue in this manner until there
  * are no uncovered zeros left. Go to Step 6.
  *
- * \param[in] costs: Cost matrix.
- * \param[in,out] mask: Mask matrix.
- * \param[in,out] row_cover: Row coverage array.
- * \param[in,out] col_cover: Col coverage array.
+ * \param[in] costs : Cost matrix.
+ * \param[in,out] mask : Mask matrix.
+ * \param[in,out] row_cover : Row coverage array.
+ * \param[in,out] col_cover : Col coverage array.
  * \return Tuple(Next step, pair(path_row_0 path_col_0)).
  */
 template <typename Type>
@@ -273,12 +273,14 @@ vpMunkres::stepFour(const std::vector<std::vector<Type> > &costs, std::vector<st
     if (const auto star_in_row = findStarInRow(mask, row)) {
       row_cover.at(row) = true;
       col_cover.at(*star_in_row) = false;
-      return {vpMunkres::STEP_T(4), std::nullopt}; // Repeat
-    } else {
-      return {vpMunkres::STEP_T(5), std::make_optional<std::pair<unsigned int, unsigned int> >(row, col)};
+      return { vpMunkres::STEP_T(4), std::nullopt }; // Repeat
     }
-  } else {
-    return {vpMunkres::STEP_T(6), std::nullopt};
+    else {
+      return { vpMunkres::STEP_T(5), std::make_optional<std::pair<unsigned int, unsigned int> >(row, col) };
+    }
+  }
+  else {
+    return { vpMunkres::STEP_T(6), std::nullopt };
   }
 }
 
@@ -286,9 +288,9 @@ vpMunkres::stepFour(const std::vector<std::vector<Type> > &costs, std::vector<st
  * Add the smallest value of the cost matrix to every element of each covered row, and subtract it from every element
  * of each uncovered column. Return to Step 4 without altering any stars, primes, or covered lines.
  *
- * \param[in,out] costs: Cost matrix.
- * \param[in] row_cover: Row coverage array.
- * \param[in] col_cover: Col coverage array.
+ * \param[in,out] costs : Cost matrix.
+ * \param[in] row_cover : Row coverage array.
+ * \param[in] col_cover : Col coverage array.
  * \return Next step.
  */
 template <typename Type>
@@ -314,24 +316,23 @@ inline vpMunkres::STEP_T vpMunkres::stepSix(std::vector<std::vector<Type> > &cos
 /*!
  * Munkres FSM.
  *
- * \param[in] costs: Cost matrix.
+ * \param[in] costs : Cost matrix.
  * \return List of associated pairs [<row_idx,col_idx>].
  */
 template <typename Type>
 inline std::vector<std::pair<unsigned int, unsigned int> > vpMunkres::run(std::vector<std::vector<Type> > costs)
 {
-  const auto original_row_size = costs.size();
-  const auto original_col_size = costs.front().size();
-  const auto sq_size = std::max(original_row_size, original_col_size);
+  const auto original_row_size = static_cast<Type>(costs.size());
+  const auto original_col_size = static_cast<Type>(costs.front().size());
+  const size_t sq_size = static_cast<size_t>(std::max<Type>(original_row_size, original_col_size));
 
-  auto mask = std::vector<std::vector<vpMunkres::ZERO_T> >(
-      sq_size, std::vector<vpMunkres::ZERO_T>(sq_size, vpMunkres::ZERO_T::NA));
+  auto mask = std::vector<std::vector<vpMunkres::ZERO_T> >(sq_size, std::vector<vpMunkres::ZERO_T>(sq_size, vpMunkres::ZERO_T::NA));
   auto row_cover = std::vector<bool>(sq_size, false);
   auto col_cover = std::vector<bool>(sq_size, false);
 
-  std::optional<std::pair<unsigned int, unsigned int> > path_0{std::nullopt};
+  std::optional<std::pair<unsigned int, unsigned int> > path_0 { std::nullopt };
 
-  auto step{vpMunkres::STEP_T::ENTRY};
+  auto step { vpMunkres::STEP_T::ENTRY };
   while (step != vpMunkres::STEP_T::DONE) {
     switch (step) {
     case vpMunkres::STEP_T::ENTRY:
@@ -363,7 +364,7 @@ inline std::vector<std::pair<unsigned int, unsigned int> > vpMunkres::run(std::v
   }
 
   // Compute the pairs
-  std::vector<std::pair<unsigned int, unsigned int> > ret{};
+  std::vector<std::pair<unsigned int, unsigned int> > ret {};
   for (auto i = 0u; i < original_row_size; i++) {
     if (const auto it = std::find(begin(mask.at(i)), end(mask.at(i)), vpMunkres::ZERO_T::STARRED);
         it != end(mask.at(i))) {
@@ -376,5 +377,5 @@ inline std::vector<std::pair<unsigned int, unsigned int> > vpMunkres::run(std::v
 
   return ret;
 }
-
+END_VISP_NAMESPACE
 #endif
