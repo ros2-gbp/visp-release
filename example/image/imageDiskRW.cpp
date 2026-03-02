@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Reading and writting images on the disk.
- *
- * Authors:
- * Eric Marchand
- *
- *****************************************************************************/
+ */
 
 /*!
   \file imageDiskRW.cpp
@@ -45,24 +40,29 @@
   write in a directory that does no exist
  */
 
-/*!
-  \example imageDiskRW.cpp
-  Reading and writting of PPM image using vpImageIo class.
+ /*!
+   \example imageDiskRW.cpp
+   Reading and writting of PPM image using vpImageIo class.
 
-  Example of exception handling the exception :
-  read an image that does not exist,
-  write in a directory that does no exist
- */
+   Example of exception handling the exception :
+   read an image that does not exist,
+   write in a directory that does no exist
+  */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDebug.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpIoTools.h>
 #include <visp3/io/vpImageIo.h>
 #include <visp3/io/vpParseArgv.h>
-// List of allowed command line options
+  // List of allowed command line options
 #define GETOPTARGS "i:o:h"
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 /*!
 
@@ -75,15 +75,16 @@ Print the program options.
 \param user : Username.
 
  */
-void usage(const char *name, const char *badparam, std::string ipath, std::string opath, std::string user)
+void usage(const char *name, const char *badparam, const std::string &ipath, std::string opath, std::string user)
 {
   fprintf(stdout, "\n\
 Read and write PGM images on the disk. Also test exceptions.\n\
 \n\
 SYNOPSIS\n\
   %s [-i <input image path>] [-o <output image path>]\n\
-     [-h]\n						      \
-", name);
+     [-h]\n\
+",
+name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               Default\n\
@@ -102,7 +103,8 @@ OPTIONS:                                               Default\n\
      Klimt_grey.pgm output image is written.\n\
 \n\
   -h\n\
-     Print the help.\n\n", ipath.c_str(), opath.c_str(), user.c_str());
+     Print the help.\n\n",
+          ipath.c_str(), opath.c_str(), user.c_str());
 
   if (badparam) {
     fprintf(stderr, "ERROR: \n");
@@ -135,20 +137,18 @@ bool getOptions(int argc, const char **argv, std::string &ipath, std::string &op
       opath = optarg_;
       break;
     case 'h':
-      usage(argv[0], NULL, ipath, opath, user);
+      usage(argv[0], nullptr, ipath, opath, user);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg_, ipath, opath, user);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL, ipath, opath, user);
+    usage(argv[0], nullptr, ipath, opath, user);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -185,7 +185,7 @@ int main(int argc, const char **argv)
     if (!env_ipath.empty())
       ipath = env_ipath;
 
-// Set the default output path
+    // Set the default output path
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
     opt_opath = "/tmp";
 #elif defined(_WIN32)
@@ -214,8 +214,9 @@ int main(int argc, const char **argv)
       try {
         // Create the dirname
         vpIoTools::makeDirectory(dirname);
-      } catch (...) {
-        usage(argv[0], NULL, ipath, opath, username);
+      }
+      catch (...) {
+        usage(argv[0], nullptr, ipath, opath, username);
         std::cerr << std::endl << "ERROR:" << std::endl;
         std::cerr << "  Cannot create " << dirname << std::endl;
         std::cerr << "  Check your -o " << opath << " option " << std::endl;
@@ -224,24 +225,24 @@ int main(int argc, const char **argv)
     }
 
     // Compare ipath and env_ipath. If they differ, we take into account
-    // the input path comming from the command line option
+    // the input path coming from the command line option
     if (!opt_ipath.empty() && !env_ipath.empty()) {
       if (ipath != env_ipath) {
         std::cout << std::endl << "WARNING: " << std::endl;
         std::cout << "  Since -i <visp image path=" << ipath << "> "
-                  << "  is different from VISP_IMAGE_PATH=" << env_ipath << std::endl
-                  << "  we skip the environment variable." << std::endl;
+          << "  is different from VISP_IMAGE_PATH=" << env_ipath << std::endl
+          << "  we skip the environment variable." << std::endl;
       }
     }
 
     // Test if an input path is set
     if (opt_ipath.empty() && env_ipath.empty()) {
-      usage(argv[0], NULL, ipath, opath, username);
+      usage(argv[0], nullptr, ipath, opath, username);
       std::cerr << std::endl << "ERROR:" << std::endl;
       std::cerr << "  Use -i <visp image path> option or set VISP_INPUT_IMAGE_PATH " << std::endl
-                << "  environment variable to specify the location of the " << std::endl
-                << "  image path where test images are located." << std::endl
-                << std::endl;
+        << "  environment variable to specify the location of the " << std::endl
+        << "  image path where test images are located." << std::endl
+        << std::endl;
       return EXIT_SUCCESS;
     }
 
@@ -268,7 +269,8 @@ int main(int argc, const char **argv)
     try {
       filename = vpIoTools::createFilePath(ipath, "image-that-does-not-exist.ppm");
       vpImageIo::read(I, filename);
-    } catch (const vpException &e) {
+    }
+    catch (const vpException &e) {
       std::cout << "Catch an expected exception: " << e << std::endl;
     }
 
@@ -277,7 +279,8 @@ int main(int argc, const char **argv)
     try {
       filename = vpIoTools::createFilePath(dirname, "directory-that-does-not-exist/Klimt.ppm");
       vpImageIo::write(I, filename);
-    } catch (const vpException &e) {
+    }
+    catch (const vpException &e) {
       std::cout << "Catch an expected exception: " << e << std::endl;
     }
 
@@ -300,7 +303,8 @@ int main(int argc, const char **argv)
     try {
       filename = vpIoTools::createFilePath(ipath, "image-that-does-not-exist.ppm");
       vpImageIo::read(Irgba, filename);
-    } catch (const vpException &e) {
+    }
+    catch (const vpException &e) {
       std::cout << "Catch an expected exception: " << e << std::endl;
     }
 
@@ -313,7 +317,8 @@ int main(int argc, const char **argv)
       std::cout << "Catch an expected exception: " << e << std::endl;
     }
     return EXIT_SUCCESS;
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an unexpected exception: " << e << std::endl;
     return EXIT_FAILURE;
   }
