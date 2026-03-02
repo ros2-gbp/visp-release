@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,8 @@
  *
  * Description:
  * Example of sequential calls to QP solver with constant equality constraint
- *
- * Authors:
- * Olivier Kermorgant
- *
- *****************************************************************************/
+ */
+
 /*!
   \file quadprog_eq.cpp
 
@@ -50,67 +46,75 @@
 #include <iostream>
 #include <visp3/core/vpConfig.h>
 
-#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11) && defined(VISP_HAVE_LAPACK)
+#if defined(VISP_HAVE_LAPACK) && (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
 
+#include "qp_plot.h"
 #include <visp3/core/vpQuadProg.h>
 #include <visp3/core/vpTime.h>
-#include "qp_plot.h"
 
-int main (int argc, char **argv)
+int main(int argc, char **argv)
 {
-  const int n = 20;   // x dim
-  const int m = 10;   // equality m < n
-  const int p = 30;   // inequality
-  const int o = 16;   // cost function
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
+
+  const int n = 20; // x dim
+  const int m = 10; // equality m < n
+  const int p = 30; // inequality
+  const int o = 16; // cost function
 #ifdef VISP_HAVE_DISPLAY
   bool opt_display = true;
   bool opt_click_allowed = true;
 #endif
 
-  for (int i = 0; i < argc; i++) {
+  for (int i = 1; i < argc; i++) {
 #ifdef VISP_HAVE_DISPLAY
-    if (std::string(argv[i]) == "-d")
+    if (std::string(argv[i]) == "-d") {
       opt_display = false;
-    else if (std::string(argv[i]) == "-c")
+    }
+    else if (std::string(argv[i]) == "-c") {
       opt_click_allowed = false;
+    }
     else
 #endif
-    if (std::string(argv[i]) == "-h") {
-      std::cout << "\nUsage: " << argv[0] << " [-d] [-c] [-h] [--help]" << std::endl;
-      std::cout << "\nOptions: \n"
+      if (std::string(argv[i]) == "-h") {
+        std::cout << "\nUsage: " << argv[0] << " [-d] [-c] [-h] [--help]" << std::endl;
+        std::cout << "\nOptions: \n"
 #ifdef VISP_HAVE_DISPLAY
-                   "  -d \n"
-                   "     Disable the image display. This can be useful \n"
-                   "     for automatic tests using crontab under Unix or \n"
-                   "     using the task manager under Windows.\n"
-                   "\n"
-                   "  -c \n"
-                   "     Disable the mouse click. Useful to automate the \n"
-                   "     execution of this program without humain intervention.\n"
-                   "\n"
+          "  -d \n"
+          "     Disable the image display. This can be useful \n"
+          "     for automatic tests using crontab under Unix or \n"
+          "     using the task manager under Windows.\n"
+          "\n"
+          "  -c \n"
+          "     Disable the mouse click. Useful to automate the \n"
+          "     execution of this program without human intervention.\n"
+          "\n"
 #endif
-                   "  -h, --help\n"
-                   "     Print the help.\n"<< std::endl;
+          "  -h, --help\n"
+          "     Print the help.\n"
+          << std::endl;
 
-      return EXIT_SUCCESS;
-    }
+        return EXIT_SUCCESS;
+      }
   }
-  std::srand((long) vpTime::measureTimeMs());
+  std::srand((long)vpTime::measureTimeMs());
 
   vpMatrix A, Q, C;
   vpColVector b, d, r;
 
-  A = randM(m,n)*5;
-  b = randV(m)*5;
-  Q = randM(o,n)*5;
-  r = randV(o)*5;
-  C = randM(p,n)*5;
+  A = randM(m, n) * 5;
+  b = randV(m) * 5;
+  Q = randM(o, n) * 5;
+  r = randV(o) * 5;
+  C = randM(p, n) * 5;
 
   // make sure Cx <= d has a solution within Ax = b
+
   vpColVector x = A.solveBySVD(b);
-  d = C*x;
-  for(int i = 0; i < p; ++i)
-    d[i] += (5.*rand())/RAND_MAX;
+  d = C * x;
+  for (int i = 0; i < p; ++i)
+    d[i] += (5. * rand()) / RAND_MAX;
 
   // solver with stored equality and warm start
   vpQuadProg qp_WS;
@@ -125,17 +129,17 @@ int main (int argc, char **argv)
   const double eps = 1e-2;
 
 #ifdef VISP_HAVE_DISPLAY
-  QPlot *plot = NULL;
+  QPlot *plot = nullptr;
   if (opt_display)
-    plot = new QPlot(2, total, {"only equalities", "pre-solving", "equalities + inequalities", "pre-solving / warm start"});
+    plot = new QPlot(2, total,
+                     { "only equalities", "pre-solving", "equalities + inequalities", "pre-solving / warm start" });
 #endif
 
-  for(int k = 0; k < total; ++k)
-  {
+  for (int k = 0; k < total; ++k) {
     // small change on QP data (A and b are constant)
-    Q += eps * randM(o,n);
+    Q += eps * randM(o, n);
     r += eps * randV(o);
-    C += eps * randM(p,n);
+    C += eps * randM(p, n);
     d += eps * randV(p);
 
     // solve only equalities
@@ -188,12 +192,13 @@ int main (int argc, char **argv)
 
   std::cout.precision(3);
   std::cout << "With only equality constraints\n";
-  std::cout << "   pre-solving: t = " << t_WS << " ms (for 1 QP = " << t_WS/total << " ms)\n";
-  std::cout << "   no pre-solving: t = " << t_noWS << " ms (for 1 QP = " << t_noWS/total << " ms)\n\n";
+  std::cout << "   pre-solving: t = " << t_WS << " ms (for 1 QP = " << t_WS / total << " ms)\n";
+  std::cout << "   no pre-solving: t = " << t_noWS << " ms (for 1 QP = " << t_noWS / total << " ms)\n\n";
 
   std::cout << "With inequality constraints\n";
-  std::cout << "   Warm start: t = " << t_ineq_WS << " ms (for 1 QP = " << t_ineq_WS/total << " ms)\n";
-  std::cout << "   No warm start: t = " << t_ineq_noWS << " ms (for 1 QP = " << t_ineq_noWS/total << " ms)" << std::endl;
+  std::cout << "   Warm start: t = " << t_ineq_WS << " ms (for 1 QP = " << t_ineq_WS / total << " ms)\n";
+  std::cout << "   No warm start: t = " << t_ineq_noWS << " ms (for 1 QP = " << t_ineq_noWS / total << " ms)"
+    << std::endl;
 
 #ifdef VISP_HAVE_DISPLAY
   if (opt_display) {

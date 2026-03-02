@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,26 +29,22 @@
  *
  * Description:
  * Kalman filtering.
- *
- * Authors:
- * Eric Marchand
- * Fabien Spindler
- *
- *****************************************************************************/
-
-#ifndef vpKalmanFilter_h
-#define vpKalmanFilter_h
-
-#include <visp3/core/vpColVector.h>
-#include <visp3/core/vpMatrix.h>
-
-#include <math.h>
+ */
 
 /*!
   \file vpKalmanFilter.h
   \brief Generic kalman filtering implementation
 */
 
+#ifndef VP_KALMAN_FILTER_H
+#define VP_KALMAN_FILTER_H
+
+#include <visp3/core/vpColVector.h>
+#include <visp3/core/vpMatrix.h>
+
+#include <math.h>
+
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpKalmanFilter
   \ingroup group_core_kalman
@@ -128,10 +123,15 @@ protected:
 
 public:
   vpKalmanFilter();
-  explicit vpKalmanFilter(unsigned int n_signal);
+  VP_EXPLICIT vpKalmanFilter(unsigned int n_signal);
   vpKalmanFilter(unsigned int size_state, unsigned int size_measure, unsigned int n_signal);
   /*! Destructor that does noting. */
-  virtual ~vpKalmanFilter(){};
+#if (VISP_CXX_STANDARD > VISP_CXX_STANDARD_98)
+  vpKalmanFilter(const vpKalmanFilter &) = default;
+  virtual ~vpKalmanFilter() = default;
+#else
+  virtual ~vpKalmanFilter() { }
+#endif
   /*!
     Set the number of signal to filter.
   */
@@ -144,25 +144,29 @@ public:
   /*!
     Return the size of the state vector \f${\bf x}_{(k)}\f$ for one signal.
   */
-  unsigned int getStateSize() { return size_state; };
+  unsigned int getStateSize() { return size_state; }
   /*!
     Return the size of the measure vector \f${\bf z}_{(k)}\f$ for one signal.
   */
-  unsigned int getMeasureSize() { return size_measure; };
+  unsigned int getMeasureSize() { return size_measure; }
   /*!
     Return the number of signal to filter.
   */
-  unsigned int getNumberOfSignal() { return nsignal; };
+  unsigned int getNumberOfSignal() { return nsignal; }
   /*!
     Return the iteration number.
   */
   long getIteration() { return iter; }
+
+#if (VISP_CXX_STANDARD > VISP_CXX_STANDARD_98)
+  vpKalmanFilter &operator=(const vpKalmanFilter &) = default;
+#endif
   /*!
     Sets the verbose mode.
     \param on : If true, activates the verbose mode which consists in printing
     the Kalman filter internal values.
   */
-  void verbose(bool on) { verbose_mode = on; };
+  void verbose(bool on) { verbose_mode = on; }
 
 public:
   /*!
@@ -217,5 +221,5 @@ protected:
   //! Identity matrix \f$ \bf I\f$.
   vpMatrix I;
 };
-
+END_VISP_NAMESPACE
 #endif

@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2024 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -31,14 +31,11 @@
 # Description:
 # ViSP configuration file.
 #
-# Authors:
-# Fabien Spindler
-#
 #############################################################################
 
-project(example-servo-afma6)
+cmake_minimum_required(VERSION 3.10)
 
-cmake_minimum_required(VERSION 3.0)
+project(example-servo-afma6)
 
 if(CMAKE_SYSTEM_NAME MATCHES WindowsPhone OR CMAKE_SYSTEM_NAME MATCHES WindowsStore)
   set(WINRT TRUE)
@@ -67,11 +64,13 @@ if(WINRT)
   endif()
 endif()
 
-find_package(VISP REQUIRED visp_core visp_blob visp_vs visp_robot visp_sensor visp_vision visp_gui)
+find_package(VISP REQUIRED visp_core visp_blob visp_detection visp_vs visp_robot visp_sensor visp_vision visp_gui)
 
 set(example_cpp
   servoAfma6Ellipse2DCamVelocity.cpp
   servoAfma6FourPoints2DArtVelocity.cpp
+  servoAfma6AprilTagIBVS.cpp
+  servoAfma6AprilTagPBVS.cpp
   servoAfma6Line2DCamVelocity.cpp
   servoAfma6Point2DArtVelocity.cpp
   servoAfma6Point2DCamVelocity.cpp
@@ -81,11 +80,13 @@ set(example_cpp
   servoAfma62DhalfCamVelocity.cpp
   servoAfma6Cylinder2DCamVelocity.cpp
   servoAfma6Segment2DCamVelocity.cpp
+  servoAfma6MegaposePBVS.cpp
 )
 
 if(NOT DEFINED WINRT_8_1)
   list(APPEND example_cpp servoAfma6FourPoints2DCamVelocityLs_des.cpp)
   list(APPEND example_cpp servoAfma6FourPoints2DCamVelocityLs_cur.cpp)
+  list(APPEND example_cpp servoAfma6FourPoints2DCamVelocityLs_cur_integrator.cpp)
   list(APPEND example_cpp servoAfma6Cylinder2DCamVelocitySecondaryTask.cpp)
 endif()
 
