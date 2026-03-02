@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>visp</name>
+  <version>:{version}</version>
+  <description>
+    ViSP standing for Visual Servoing Platform is a modular cross
+    platform library that allows prototyping and developing applications
+    using visual tracking and visual servoing technics at the heart of the
+    researches done by Inria Lagadic team. ViSP is able to compute control
+    laws that can be applied to robotic systems. It provides a set of visual
+    features that can be tracked using real time image processing or computer
+    vision algorithms. ViSP provides also simulation capabilities.
+
+    ViSP can be useful in robotics, computer vision, augmented reality
+    and computer animation.
+  </description>
+
+  <author>Fabien Spindler</author>
+  <maintainer email="Fabien.Spindler@inria.fr">Fabien Spindler</maintainer>
+  <license>GPL-2.0-or-later</license>
+
+  <url type="website">https://visp.inria.fr</url>
+  <url type="bugtracker">https://github.com/lagadic/visp/issues</url>
+  <url type="repository">https://github.com/lagadic/visp-release</url>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <depend>bzip2</depend>
+  <depend>comedi</depend>
+  <depend>eigen</depend>
+  <depend>libcoin80-dev</depend>
+  <depend>libdc1394-dev</depend>
+  <depend>libdmtx-dev</depend>
+  <depend>libgsl</depend>
+  <depend>libjpeg</depend>
+  <depend>liblapack-dev</depend>
+  <depend>libogre</depend>
+  <depend>libois-dev</depend>
+  <depend>libomp-dev</depend>
+  <depend>libopenblas-dev</depend>
+  <depend>libopencv-dev</depend>
+  <depend>libpcl-all-dev</depend>
+  <depend>libpng-dev</depend>
+  <depend>librealsense2</depend>
+  <depend>libv4l-dev</depend>
+  <depend>libxml2</depend>
+  <depend>libx11-dev</depend>
+  <depend>nlohmann-json-dev</depend>
+  <depend>zbar</depend>
+  
+  <build_depend>doxygen</build_depend>
+  
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>
