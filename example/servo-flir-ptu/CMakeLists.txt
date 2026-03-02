@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -31,14 +31,11 @@
 # Description:
 # ViSP configuration file.
 #
-# Authors:
-# AKOURIM Youness (ENS Rennes)
-#
 #############################################################################
 
-project(example-servo-flir-ptu)
+cmake_minimum_required(VERSION 3.10)
 
-cmake_minimum_required(VERSION 3.0)
+project(example-servo-flir-ptu)
 
 find_package(VISP REQUIRED visp_core visp_robot visp_sensor visp_vision visp_gui visp_vs visp_visual_features visp_detection)
 
@@ -56,11 +53,6 @@ foreach(cpp ${example_cpp})
     visp_add_dependency(${cpp} "examples")
   endif()
 endforeach()
-
-if(VISP_HAVE_FLYCAPTURE)
-  # Add specific build flag to turn off warnings coming from Flir Flycapture 3rd party
-  visp_set_source_file_compile_flag(servoFlirPtuIBVS.cpp -Wno-unknown-pragmas -Wno-ignored-qualifiers)
-endif()
 
 # Copy the data files to the same location than the target
 foreach(data ${example_data})

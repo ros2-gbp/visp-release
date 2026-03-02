@@ -1,6 +1,6 @@
-project(tutorial-simulation-image)
+cmake_minimum_required(VERSION 3.10)
 
-cmake_minimum_required(VERSION 3.0)
+project(tutorial-simulation-image)
 
 find_package(VISP REQUIRED visp_core visp_robot visp_io visp_gui)
 
@@ -8,7 +8,7 @@ find_package(VISP REQUIRED visp_core visp_robot visp_io visp_gui)
 set(tutorial_cpp
   tutorial-image-simulator.cpp)
 
-list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/target_square.pgm" )
+list(APPEND tutorial_data "${CMAKE_CURRENT_SOURCE_DIR}/target_square.jpg" )
 
 foreach(cpp ${tutorial_cpp})
   visp_add_target(${cpp})

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,14 +29,14 @@
  *
  * Description:
  * Display testing.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
+/*!
+  \example testDisplayScaled.cpp
+ */
 #include <sstream>
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpImageTools.h>
 #include <visp3/core/vpIoTools.h>
 #include <visp3/gui/vpDisplayD3D.h>
@@ -47,12 +46,16 @@
 #include <visp3/gui/vpDisplayX.h>
 #include <visp3/io/vpImageIo.h>
 
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+
 template <typename Type> bool test(const std::string &display, vpImage<Type> &I, unsigned int scale, bool click)
 {
   bool success = true;
   unsigned int radius(I.getHeight() / 4);
-  int scale_ = (int)scale;
-  int radius_ = (int)radius;
+  int scale_ = static_cast<int>(scale);
+  int radius_ = static_cast<int>(radius);
   unsigned int thickness = 2;
   vpImagePoint center(I.getHeight() / 2, I.getWidth() / 2);
   vpImagePoint offset(30, 160);
@@ -64,24 +67,28 @@ template <typename Type> bool test(const std::string &display, vpImage<Type> &I,
   // backup the input image
   vpImage<Type> Ibackup(I);
 
-  vpDisplay *d = NULL;
+  vpDisplay *d = nullptr;
   if (display == "GDI") {
 #ifdef VISP_HAVE_GDI
     d = new vpDisplayGDI;
 #endif
-  } else if (display == "GTK") {
+  }
+  else if (display == "GTK") {
 #ifdef VISP_HAVE_GTK
     d = new vpDisplayGTK;
 #endif
-  } else if (display == "X") {
+  }
+  else if (display == "X") {
 #ifdef VISP_HAVE_X11
     d = new vpDisplayX;
 #endif
-  } else if (display == "OpenCV") {
-#ifdef VISP_HAVE_OPENCV
+  }
+  else if (display == "OpenCV") {
+#ifdef HAVE_OPENCV_HIGHGUI
     d = new vpDisplayOpenCV;
 #endif
-  } else if (display == "D3D9") {
+  }
+  else if (display == "D3D9") {
 #ifdef VISP_HAVE_D3D9
     d = new vpDisplayD3D;
 #endif
@@ -94,7 +101,7 @@ template <typename Type> bool test(const std::string &display, vpImage<Type> &I,
   vpDisplay::flush(I);
 
   vpImage<Type> crop;
-  vpImageTools::crop(I, vpImagePoint(0, 245), (unsigned int)roi.getHeight(), (unsigned int)roi.getWidth(), crop);
+  vpImageTools::crop(I, vpImagePoint(0, 245), static_cast<unsigned int>(roi.getHeight()), static_cast<unsigned int>(roi.getWidth()), crop);
   I.insert(crop, roi.getTopLeft());
   vpDisplay::displayROI(I, roi);
   vpDisplay::flush(I);
@@ -148,10 +155,12 @@ template <typename Type> bool test(const std::string &display, vpImage<Type> &I,
 #endif
 
       vpImageIo::write(Idiff, ss.str());
-    } else {
+    }
+    else {
       std::cout << "  ++ Test width scale= " << scale << " type= " << itype << ": succeed" << std::endl;
     }
-  } else {
+  }
+  else {
     itype = "rgba";
     vpImage<Type> Iinsert = I;
     vpImage<Type> Isampled; // vpRGBa necessary
@@ -200,7 +209,8 @@ template <typename Type> bool test(const std::string &display, vpImage<Type> &I,
 
       vpImageIo::write(Idiff, ss.str());
 
-    } else {
+    }
+    else {
       std::cout << "  ++ Test width scale= " << scale << " type= " << itype << ": succeed" << std::endl;
     }
   }
@@ -215,7 +225,7 @@ template <typename Type> bool test(const std::string &display, vpImage<Type> &I,
   vpDisplay::displayCross(I, center - radius / 2., radius, vpColor::green, thickness);
   vpDisplay::displayDotLine(I, center - v_offset - h_offset, center, vpColor::cyan, thickness);
   vpDisplay::displayLine(I, center + v_offset - h_offset, center - v_offset + h_offset, vpColor::cyan, thickness);
-  int nbpoints = (int)(radius * sqrt(2.) / 8 / scale);
+  int nbpoints = static_cast<int>(radius * sqrt(2.) / 8 / scale);
   for (int i = 0; i < nbpoints; i++) {
     vpDisplay::displayPoint(
         I, center - h_offset / 2. + vpImagePoint(-i * radius_ / (nbpoints * 2), i * radius_ / (nbpoints * 2)),
@@ -252,7 +262,7 @@ template <typename Type> bool test(const std::string &display, vpImage<Type> &I,
 
   vpDisplay::close(I);
 
-  if (d != NULL)
+  if (d != nullptr)
     delete d;
 
   if (success)
@@ -269,25 +279,28 @@ int main(int argc, const char *argv[])
   std::string env_ipath;
   std::string ipath;
 
-  for (int i = 0; i < argc; i++) {
-    if (std::string(argv[i]) == "-c")
+  for (int i = 1; i < argc; i++) {
+    if (std::string(argv[i]) == "-c") {
       opt_click = false;
-    else if (std::string(argv[i]) == "-d")
+    }
+    else if (std::string(argv[i]) == "-d") {
       opt_display = false;
-    else if (std::string(argv[i]) == "-i")
-      opt_ipath = std::string(argv[i + 1]);
+    }
+    else if (std::string(argv[i]) == "-i" && i + 1 < argc) {
+      opt_ipath = std::string(argv[++i]);
+    }
     else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
       std::cout << "\nUsage: " << argv[0] << " [-i <image path>] [-c] [-d] [--help]\n" << std::endl;
       std::cout << "\nOptions: " << std::endl;
       std::cout << "  -i <input image path> : set image input path.\n"
-                << "       From this path read \"Klimt/Klimt.pgm\" image.\n"
-                << "       Setting the VISP_INPUT_IMAGE_PATH environment\n"
-                << "       variable produces the same behaviour than using\n"
-                << "       this option." << std::endl;
+        << "       From this path read \"Klimt/Klimt.pgm\" image.\n"
+        << "       Setting the VISP_INPUT_IMAGE_PATH environment\n"
+        << "       variable produces the same behaviour than using\n"
+        << "       this option." << std::endl;
       std::cout << "  -c : disable mouse click" << std::endl;
       std::cout << "  -d : disable display" << std::endl;
       std::cout << "  -h, --help : print this help\n" << std::endl;
-      return 0;
+      return EXIT_SUCCESS;
     }
   }
 
@@ -316,7 +329,7 @@ int main(int argc, const char *argv[])
 #ifdef VISP_HAVE_X11
     display.push_back("X");
 #endif
-#ifdef VISP_HAVE_OPENCV
+#if defined(VISP_HAVE_OPENCV) && !defined(VISP_HAVE_OPENCV_HEADLESS)
     display.push_back("OpenCV");
 #endif
 #ifdef VISP_HAVE_D3D9
@@ -325,7 +338,7 @@ int main(int argc, const char *argv[])
 
     if (display.size() == 0) {
       std::cout << "No display available. We stop here." << std::endl;
-      return 0;
+      return EXIT_FAILURE;
     }
     vpImage<unsigned char> I;
     filename = vpIoTools::createFilePath(ipath, "Klimt/Klimt.pgm");
@@ -352,5 +365,5 @@ int main(int argc, const char *argv[])
       std::cout << "Test failed with " << nbfailure << " failures" << std::endl;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
