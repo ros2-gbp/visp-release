@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,14 +33,13 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #ifndef vpTemplateTrackerZone_hh
 #define vpTemplateTrackerZone_hh
 
 #include <vector>
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDisplay.h>
 #include <visp3/core/vpException.h>
 #include <visp3/core/vpImage.h>
@@ -49,6 +47,7 @@
 #include <visp3/tt/vpTemplateTrackerHeader.h>
 #include <visp3/tt/vpTemplateTrackerTriangle.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpTemplateTrackerZone
   \ingroup group_tt_tools
@@ -58,7 +57,14 @@
   A zone can be initialized either by user interaction using mouse click in a
   display device throw initClick(), or by a list of points throw
   initFromPoints().
- */
+
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in the Template Tracker  (TT), you may have a look at:</span><br>
+
+  - \ref tutorial-tracking-tt
+*/
 class VISP_EXPORT vpTemplateTrackerZone
 {
 protected:
@@ -97,7 +103,7 @@ public:
 
   /*! Return the number of triangles that define the zone. \sa getTriangle()
    */
-  unsigned int getNbTriangle() const { return (unsigned int)Zone.size(); }
+  unsigned int getNbTriangle() const { return static_cast<unsigned int>(Zone.size()); }
   vpTemplateTrackerZone getPyramidDown() const;
   // renvoie le ieme triangle de la zone
   void getTriangle(unsigned int i, vpTemplateTrackerTriangle &T) const;
@@ -120,4 +126,5 @@ public:
 
   vpTemplateTrackerZone &operator=(const vpTemplateTrackerZone &z);
 };
+END_VISP_NAMESPACE
 #endif

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,14 +29,7 @@
  *
  * Description:
  * Interface for Kinova Jaco robot.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
-
-#ifndef vpRobotKinova_h
-#define vpRobotKinova_h
+ */
 
 /*!
 
@@ -47,30 +39,59 @@
 
 */
 
+#ifndef vpRobotKinova_h
+#define vpRobotKinova_h
+
 #include <visp3/core/vpConfig.h>
 
 #ifdef VISP_HAVE_JACOSDK
 
 #include <KinovaTypes.h>
 
-#ifdef __linux__ 
-#include <dlfcn.h>
-#include <vector>
-#include <stdio.h>
-#include <unistd.h>
+#ifdef __linux__
 #include <Kinova.API.CommLayerUbuntu.h>
 #include <Kinova.API.UsbCommandLayerUbuntu.h>
+#include <dlfcn.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <vector>
 #elif _WIN32
-#include <Windows.h>
+#include <CommandLayer.h>
+#include <CommunicationLayer.h>
+
+#if defined(__clang__)
+// Mute warning : non-portable path to file '<WinSock2.h>'; specified path differs in case from file name on disk [-Wnonportable-system-include-path]
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wnonportable-system-include-path"
+#endif
+
+#include <winsock2.h>
+
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#endif
+
+// Mute warning with clang-cl
+// warning : non-portable path to file '<Windows.h>'; specified path differs in case from file name on disk [-Wnonportable-system-include-path]
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wnonportable-system-include-path"
+#endif
+
+#include <windows.h>
+
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#endif
+
 #include <conio.h>
 #include <iostream>
-#include <CommunicationLayer.h>
-#include <CommandLayer.h>
 #endif
 
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/robot/vpRobot.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
 
   \class vpRobotKinova
@@ -91,19 +112,15 @@
 class VISP_EXPORT vpRobotKinova : public vpRobot
 {
 public:
-  typedef enum {
-    CMD_LAYER_USB,
-    CMD_LAYER_ETHERNET,
-    CMD_LAYER_UNSET
-  } CommandLayer;
+  typedef enum { CMD_LAYER_USB, CMD_LAYER_ETHERNET, CMD_LAYER_UNSET } CommandLayer;
 
   vpRobotKinova();
-  virtual ~vpRobotKinova();
+  virtual ~vpRobotKinova() VP_OVERRIDE;
 
   int connect();
 
-  void get_eJe(vpMatrix &eJe);
-  void get_fJe(vpMatrix &fJe);
+  void get_eJe(vpMatrix &eJe) VP_OVERRIDE;
+  void get_fJe(vpMatrix &fJe) VP_OVERRIDE;
 
   /*!
    * Return constant transformation between end-effector and tool frame.
@@ -113,8 +130,8 @@ public:
 
   int getActiveDevice() const { return m_active_device; }
   int getNumDevices() const { return m_devices_count; }
-  void getDisplacement(const vpRobot::vpControlFrameType frame, vpColVector &q);
-  void getPosition(const vpRobot::vpControlFrameType frame, vpColVector &position);
+  void getDisplacement(const vpRobot::vpControlFrameType frame, vpColVector &q) VP_OVERRIDE;
+  void getPosition(const vpRobot::vpControlFrameType frame, vpColVector &position) VP_OVERRIDE;
   void getPosition(const vpRobot::vpControlFrameType frame, vpPoseVector &pose);
 
   void homing();
@@ -131,20 +148,20 @@ public:
    */
   void setCommandLayer(CommandLayer command_layer) { m_command_layer = command_layer; }
   void setDoF(unsigned int dof);
-  void setPosition(const vpRobot::vpControlFrameType frame, const vpColVector &q);
+  void setPosition(const vpRobot::vpControlFrameType frame, const vpColVector &q) VP_OVERRIDE;
   /*!
    * \param[in] plugin_location: Path to Jaco SDK plugins (ie. `Kinova.API.USBCommandLayerUbuntu.so` on
    * unix-like platform or `CommandLayerWindows.dll` on Windows platform). By default this location is empty,
    * meaning that we suppose that the plugins are located in the same folder as the binary that want to use
    * them.
    */
-  void setPluginLocation(const std::string &plugin_location) { m_plugin_location = plugin_location;  }
-  void setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &vel);
+  void setPluginLocation(const std::string &plugin_location) { m_plugin_location = plugin_location; }
+  void setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &vel) VP_OVERRIDE;
   /*!
    * Enable or disable verbose mode to print to stdout additional information.
    * \param[in] verbose : true to enable verbose, false to disable. By default verbose
    * mode is disabled.
-  */
+   */
   void setVerbose(bool verbose) { m_verbose = verbose; }
 
 protected:
@@ -165,8 +182,8 @@ protected:
   int m_active_device;
   CommandLayer m_command_layer;
 
-#ifdef __linux__ 
-  void * m_command_layer_handle;    //!< A handle to the API.
+#ifdef __linux__
+  void *m_command_layer_handle; //!< A handle to the API.
 #elif _WIN32
   HINSTANCE m_command_layer_handle; //!< A handle to the API.
 #endif
@@ -184,6 +201,6 @@ private:
   int (*KinovaSetAngularControl)();
   int (*KinovaSetCartesianControl)();
 };
-
+END_VISP_NAMESPACE
 #endif
 #endif

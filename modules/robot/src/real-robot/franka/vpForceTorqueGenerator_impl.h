@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -32,11 +31,7 @@
  * Trajectory generator for torque control.
  *
  * Interface for the Franka robot.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #ifndef _vpForceTorqueGenerator_impl_h_
 #define _vpForceTorqueGenerator_impl_h_
 
@@ -44,9 +39,9 @@
 
 #ifdef VISP_HAVE_FRANKA
 #include <array>
-#include <vector>
-#include <iostream>
 #include <atomic>
+#include <iostream>
+#include <vector>
 
 #include <franka/exception.h>
 #include <franka/robot.h>
@@ -57,21 +52,18 @@
 
 #include <visp3/robot/vpRobot.h>
 
-class vpForceTorqueGenerator {
+BEGIN_VISP_NAMESPACE
+class vpForceTorqueGenerator
+{
 public:
-  vpForceTorqueGenerator() {}
-  virtual ~vpForceTorqueGenerator() {}
+  vpForceTorqueGenerator() { }
+  virtual ~vpForceTorqueGenerator() { }
 
-  void control_thread(franka::Robot *robot, std::atomic_bool &stop,
-                      const std::string &log_folder,
-                      const vpRobot::vpControlFrameType &frame,
-                      const std::array<double, 7> &tau_J_des,
-                      const vpColVector &ft_cart_des,
-                      franka::RobotState &robot_state, std::mutex &mutex,
+  void control_thread(franka::Robot *robot, std::atomic_bool &stop, const std::string &log_folder,
+                      const vpRobot::vpControlFrameType &frame, const std::array<double, 7> &tau_J_des,
+                      const vpColVector &ft_cart_des, franka::RobotState &robot_state, std::mutex &mutex,
                       const double &filter_gain, const bool &activate_pi_controller);
-
-
 };
-
+END_VISP_NAMESPACE
 #endif
 #endif

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -31,12 +30,7 @@
  * Description:
  * Acquire images using DirectShow (under Windows only) and display it
  * using GTK or GDI.
- *
- * Authors:
- * Bruno Renier
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDebug.h>
@@ -49,18 +43,21 @@
 */
 
 #if defined(VISP_HAVE_DIRECTSHOW)
-#if (defined(VISP_HAVE_GTK) || defined(VISP_HAVE_GDI))
+#if defined(VISP_HAVE_DISPLAY)
 
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpTime.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayGTK.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/io/vpImageIo.h>
 #include <visp3/io/vpParseArgv.h>
 #include <visp3/sensor/vpDirectShowGrabber.h>
 
 // List of allowed command line options
 #define GETOPTARGS "dhn:o:"
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 /*!
 
@@ -79,7 +76,8 @@ Acquire images using DirectShow (under Windows only) and display\n\
 it using GTK or the windows GDI if GTK is not available.\n\
 \n\
 SYNOPSIS\n\
-  %s [-d] [-n] [-o] [-h] \n", name);
+  %s [-d] [-n] [-o] [-h] \n",
+          name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               Default\n\
@@ -96,7 +94,8 @@ OPTIONS:                                               Default\n\
 \n\
   -h \n\
      Print the help.\n\
-\n", nframes, opath.c_str());
+\n",
+nframes, opath.c_str());
   if (badparam) {
     fprintf(stderr, "ERROR: \n");
     fprintf(stderr, "\nBad parameter [%s]\n", badparam);
@@ -136,20 +135,18 @@ bool getOptions(int argc, const char **argv, bool &display, unsigned &nframes, b
       opath = optarg;
       break;
     case 'h':
-      usage(argv[0], NULL, nframes, opath);
+      usage(argv[0], nullptr, nframes, opath);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg, nframes, opath);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL, nframes, opath);
+    usage(argv[0], nullptr, nframes, opath);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg << std::endl << std::endl;
     return false;
@@ -168,6 +165,9 @@ bool getOptions(int argc, const char **argv, bool &display, unsigned &nframes, b
 */
 int main(int argc, const char **argv)
 {
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+  vpDisplay *display = nullptr;
+#endif
   try {
     bool opt_display = true;
     unsigned nframes = 50;
@@ -192,7 +192,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, opt_display, nframes, save, opath) == false) {
-      exit(-1);
+      return EXIT_FAILURE;
     }
     // Create the grabber
     vpDirectShowGrabber *grabber = new vpDirectShowGrabber();
@@ -212,14 +212,14 @@ int main(int argc, const char **argv)
     std::cout << "Image size: width : " << I.getWidth() << " height: " << I.getHeight() << std::endl;
 
 // Creates a display
-#if defined VISP_HAVE_GTK
-    vpDisplayGTK display;
-#elif defined VISP_HAVE_GDI
-    vpDisplayGDI display;
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+    std::shared_ptr<vpDisplay> display = vpDisplayFactory::createDisplay();
+#else
+    display = vpDisplayFactory::allocateDisplay();
 #endif
 
     if (opt_display) {
-      display.init(I, 100, 100, "DirectShow Framegrabber");
+      display->init(I, 100, 100, "DirectShow Framegrabber");
     }
 
     double tbegin = 0, ttotal = 0;
@@ -239,7 +239,7 @@ int main(int argc, const char **argv)
 
       if (save) {
         char buf[FILENAME_MAX];
-        sprintf(buf, opath.c_str(), i);
+        snprintf(buf, FILENAME_MAX, opath.c_str(), i);
         std::string filename(buf);
         std::cout << "Write: " << filename << std::endl;
         vpImageIo::write(I, filename);
@@ -255,9 +255,20 @@ int main(int argc, const char **argv)
 
     // Release the framegrabber
     delete grabber;
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+    if (display != nullptr) {
+      delete display;
+    }
+#endif
     return EXIT_SUCCESS;
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+    if (display != nullptr) {
+      delete display;
+    }
+#endif
     return EXIT_FAILURE;
   }
 }
@@ -265,7 +276,8 @@ int main(int argc, const char **argv)
 
 int main()
 {
-  std::cout << "You do not have GDI (Graphical Device Interface), or GTK functionalities to display images..." << std::endl;
+  std::cout << "You do not have GDI (Graphical Device Interface), or GTK functionalities to display images..."
+    << std::endl;
   std::cout << "Tip if you are on a windows-like system:" << std::endl;
   std::cout << "- Install GDI, configure again ViSP using cmake and build again this example" << std::endl;
   return EXIT_SUCCESS;

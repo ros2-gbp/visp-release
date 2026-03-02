@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,8 +29,7 @@
  *
  * Description:
  * Franka robot tool.
- *
- *****************************************************************************/
+ */
 
 /*!
   \example frankaMoveToPosition.cpp
@@ -40,13 +38,18 @@
 
 #include <iostream>
 
-#include <visp3/robot/vpRobotFranka.h>
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpIoTools.h>
+#include <visp3/robot/vpRobotFranka.h>
 
 #if defined(VISP_HAVE_FRANKA)
 
 int main(int argc, char **argv)
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
+
   std::string opt_robot_ip = "192.168.1.1";
   std::string opt_position_filename = "";
 
@@ -59,9 +62,10 @@ int main(int argc, char **argv)
     }
     else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
       std::cout << "Move Panda robot to a position specified from a file." << std::endl;
-      std::cout << argv[0] << " [--ip <default " << opt_robot_ip << ">] [--read <position file name>] [--help] [-h]\n" << std::endl;
+      std::cout << argv[0] << " [--ip <default " << opt_robot_ip << ">] [--read <position file name>] [--help] [-h]\n"
+        << std::endl;
       std::cout << "Example:\n" << argv[0] << " --ip 192.168.100.1 --read position.pos\n" << std::endl;
-      
+
       return EXIT_SUCCESS;
     }
   }
@@ -71,8 +75,9 @@ int main(int argc, char **argv)
     std::cout << "Call \"" << argv[0] << " --help\" to get usage" << std::endl;
     return EXIT_FAILURE;
   }
-  if (! vpIoTools::checkFilename(opt_position_filename)) {
-    std::cout << "\nError: position filename \"" << opt_position_filename << "\" given as input doesn't exist. " << std::endl;
+  if (!vpIoTools::checkFilename(opt_position_filename)) {
+    std::cout << "\nError: position filename \"" << opt_position_filename << "\" given as input doesn't exist. "
+      << std::endl;
     std::cout << "Call \"" << argv[0] << " --help\" to get usage" << std::endl;
     return EXIT_FAILURE;
   }
@@ -84,24 +89,25 @@ int main(int argc, char **argv)
 
     robot.move(opt_position_filename);
   }
-  catch(const vpException &e) {
+  catch (const vpException &e) {
     std::cout << "ViSP exception: " << e.what() << std::endl;
     std::cout << "Stop the robot " << std::endl;
     robot.setRobotState(vpRobot::STATE_STOP);
     return EXIT_FAILURE;
   }
-  catch(const franka::NetworkException &e) {
+  catch (const franka::NetworkException &e) {
     std::cout << "Franka network exception: " << e.what() << std::endl;
     std::cout << "Check if you are connected to the Franka robot"
-              << " or if you specified the right IP using --ip command line option set by default to 192.168.1.1. " << std::endl;
+      << " or if you specified the right IP using --ip command line option set by default to 192.168.1.1. "
+      << std::endl;
     return EXIT_FAILURE;
   }
-  catch(const std::exception &e) {
+  catch (const std::exception &e) {
     std::cout << "Franka exception: " << e.what() << std::endl;
     return EXIT_FAILURE;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 #else
 int main()
@@ -109,7 +115,6 @@ int main()
 #if !defined(VISP_HAVE_FRANKA)
   std::cout << "Install libfranka." << std::endl;
 #endif
-  return 0;
+  return EXIT_SUCCESS;
 }
 #endif
-

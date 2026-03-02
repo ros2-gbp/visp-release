@@ -3,43 +3,48 @@
 #include <visp3/detection/vpDetectorDataMatrixCode.h>
 #include <visp3/detection/vpDetectorQRCode.h>
 //! [Include]
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/io/vpImageIo.h>
 
 int main(int argc, const char **argv)
 {
 //! [Macro defined]
-#if (defined(VISP_HAVE_ZBAR) || defined(VISP_HAVE_DMTX)) &&                                                            \
-    (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI) || defined(VISP_HAVE_OPENCV))
+#if (defined(VISP_HAVE_ZBAR) || defined(VISP_HAVE_DMTX)) && \
+    defined(VISP_HAVE_DISPLAY)
   //! [Macro defined]
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  std::shared_ptr<vpDisplay> display;
+#else
+  vpDisplay *display = nullptr;
+#endif
   try {
     vpImage<unsigned char> I;
-    vpImageIo::read(I, "bar-code.pgm");
+    vpImageIo::read(I, "bar-code.jpg");
 
-#ifdef VISP_HAVE_X11
-    vpDisplayX d(I);
-#elif defined(VISP_HAVE_GDI)
-    vpDisplayGDI d(I);
-#elif defined(VISP_HAVE_OPENCV)
-    vpDisplayOpenCV d(I);
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+    display = vpDisplayFactory::createDisplay(I);
+#else
+    display = vpDisplayFactory::allocateDisplay(I);
 #endif
 
     //! [Create base detector]
-    vpDetectorBase *detector = NULL;
-//! [Create base detector]
+    vpDetectorBase *detector = nullptr;
+    //! [Create base detector]
 
 #if (defined(VISP_HAVE_ZBAR) && defined(VISP_HAVE_DMTX))
     int opt_barcode = 0; // 0=QRCode, 1=DataMatrix
 
-    for (int i = 0; i < argc; i++) {
-      if (std::string(argv[i]) == "--code-type")
-        opt_barcode = atoi(argv[i + 1]);
+    for (int i = 1; i < argc; i++) {
+      if (std::string(argv[i]) == "--code-type" && i + 1 < argc) {
+        opt_barcode = atoi(argv[++i]);
+      }
       else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
         std::cout << "Usage: " << argv[0] << " [--code-type <0 for QR code | 1 for DataMatrix code>] [--help] [-h]"
-                  << std::endl;
-        return 0;
+          << std::endl;
+        return EXIT_SUCCESS;
       }
     }
     //! [Create detector]
@@ -65,7 +70,7 @@ int main(int argc, const char **argv)
     //! [Detection]
     std::ostringstream legend;
     legend << detector->getNbObjects() << " bar code detected";
-    vpDisplay::displayText(I, (int)I.getHeight() - 30, 10, legend.str(), vpColor::red);
+    vpDisplay::displayText(I, static_cast<int>(I.getHeight()) - 30, 10, legend.str(), vpColor::red);
 
     //! [Parse detected codes]
     if (status) {
@@ -77,7 +82,7 @@ int main(int argc, const char **argv)
         //! [Get location]
         vpDisplay::displayRectangle(I, bbox, vpColor::green);
         //! [Get message]
-        vpDisplay::displayText(I, (int)(bbox.getTop() - 10), (int)bbox.getLeft(),
+        vpDisplay::displayText(I, static_cast<int>(bbox.getTop() - 10), static_cast<int>(bbox.getLeft()),
                                "Message: \"" + detector->getMessage(i) + "\"", vpColor::red);
         //! [Get message]
         for (size_t j = 0; j < p.size(); j++) {
@@ -88,14 +93,20 @@ int main(int argc, const char **argv)
         }
       }
 
-      vpDisplay::displayText(I, (int)I.getHeight() - 15, 10, "A click to quit...", vpColor::red);
+      vpDisplay::displayText(I, static_cast<int>(I.getHeight()) - 15, 10, "A click to quit...", vpColor::red);
       vpDisplay::flush(I);
       vpDisplay::getClick(I);
     }
     delete detector;
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e.getMessage() << std::endl;
   }
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+  if (display != nullptr) {
+    delete display;
+  }
+#endif
 #else
   (void)argc;
   (void)argv;
