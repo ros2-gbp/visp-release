@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -31,8 +30,7 @@
  * Description:
  * Acquisition of images, odometry and raw motion information with RealSense
  * T265 sensor and librealsense2.
- *
- *****************************************************************************/
+ */
 
 /*!
   \example grabRealSense2_T265.cpp
@@ -42,28 +40,37 @@
   \note IMU X-axis and Z-axis are opposite to pose's frame X and Z axes.
 */
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include <visp3/core/vpMeterPixelConversion.h>
-#include <visp3/gui/vpDisplayX.h>
-#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/sensor/vpRealSense2.h>
 
-#if defined(VISP_HAVE_REALSENSE2) && (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11) && \
-  (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)) && \
-  (RS2_API_VERSION > ((2 * 10000) + (31 * 100) + 0))
+#if defined(VISP_HAVE_REALSENSE2) && (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)&& \
+    defined(VISP_HAVE_DISPLAY) && (RS2_API_VERSION > ((2 * 10000) + (31 * 100) + 0))
 
 int main()
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
+
   vpHomogeneousMatrix cMw, cMw_0;
   vpHomogeneousMatrix cextMw(0, 0, 2, 0, 0, 0); // External camera view for pose visualization
   vpColVector odo_vel, odo_acc, imu_acc, imu_vel;
   unsigned int confidence;
   double ts;
   vpImagePoint frame_origin;
-  std::list< std::pair<unsigned int, vpImagePoint> > frame_origins; // Frame origin's history for trajectory visualization
+  std::list<std::pair<unsigned int, vpImagePoint> >
+    frame_origins; // Frame origin's history for trajectory visualization
   unsigned int display_scale = 2;
+
+#if defined(VISP_HAVE_DISPLAY) && (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+  vpDisplay *display_left = nullptr;
+  vpDisplay *display_right = nullptr;
+  vpDisplay *display_pose = nullptr;
+#endif
 
   try {
     vpRealSense2 rs;
@@ -89,30 +96,32 @@ int main()
     vpImage<unsigned char> I_left, I_right;
     vpImage<unsigned char> I_pose(300, 300, 0);
 
-    vpCameraParameters cam(300., 300., I_pose.getWidth()/2, I_pose.getHeight()/2); // For pose visualization
+    vpCameraParameters cam(300., 300., I_pose.getWidth() / 2, I_pose.getHeight() / 2); // For pose visualization
 
     rs.acquire(&I_left, &I_right, &cMw_0, &odo_vel, &odo_acc, &imu_vel, &imu_acc, &confidence, &ts);
 
-#if defined(VISP_HAVE_X11)
-    vpDisplayX display_left;  // Left image
-    vpDisplayX display_right; // Right image
-    vpDisplayX display_pose;  // Pose visualization
-#elif defined(VISP_HAVE_GDI)
-    vpDisplayGDI display_left;  // Left image
-    vpDisplayGDI display_right; // Right image
-    vpDisplayGDI display_pose;  // Pose visualization
+#if defined(VISP_HAVE_DISPLAY)
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+    std::shared_ptr<vpDisplay> display_left = vpDisplayFactory::createDisplay();
+    std::shared_ptr<vpDisplay> display_right = vpDisplayFactory::createDisplay();
+    std::shared_ptr<vpDisplay> display_pose = vpDisplayFactory::createDisplay();
+#else
+    vpDisplay *display_left = vpDisplayFactory::allocateDisplay();
+    vpDisplay *display_right = vpDisplayFactory::allocateDisplay();
+    vpDisplay *display_pose = vpDisplayFactory::allocateDisplay();
 #endif
 
-#if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)
-    display_left.setDownScalingFactor(display_scale);
-    display_right.setDownScalingFactor(display_scale);
-    display_left.init(I_left, 10, 10, "Left image");
-    display_right.init(I_right, static_cast<int>(I_left.getWidth()/display_scale) + 80, 10, "Right image"); // Right
-    display_pose.init(I_pose, 10, static_cast<int>(I_left.getHeight()/display_scale) + 80, "Pose visualizer"); // visualization
+    display_left->setDownScalingFactor(display_scale);
+    display_right->setDownScalingFactor(display_scale);
+    display_left->init(I_left, 10, 10, "Left image");
+    display_right->init(I_right, static_cast<int>(I_left.getWidth() / display_scale) + 80, 10, "Right image"); // Right
+    display_pose->init(I_pose, 10, static_cast<int>(I_left.getHeight() / display_scale) + 80,
+                      "Pose visualizer"); // visualization
 #endif
 
     vpHomogeneousMatrix cextMc_0 = cextMw * cMw_0.inverse();
-    vpMeterPixelConversion::convertPoint(cam, cextMc_0[0][3] / cextMc_0[2][3], cextMc_0[1][3] / cextMc_0[2][3], frame_origin);
+    vpMeterPixelConversion::convertPoint(cam, cextMc_0[0][3] / cextMc_0[2][3], cextMc_0[1][3] / cextMc_0[2][3],
+                                         frame_origin);
     frame_origins.push_back(std::make_pair(confidence, frame_origin));
 
     while (true) {
@@ -128,26 +137,28 @@ int main()
       vpMeterPixelConversion::convertPoint(cam, cextMc[0][3] / cextMc[2][3], cextMc[1][3] / cextMc[2][3], frame_origin);
       frame_origins.push_back(std::make_pair(confidence, frame_origin));
 
-      vpDisplay::displayText(I_left, 15*display_scale, 15*display_scale, "Click to quit", vpColor::red);
-      vpDisplay::displayText(I_right, 15*display_scale, 15*display_scale, "Click to quit", vpColor::red);
+      vpDisplay::displayText(I_left, 15 * display_scale, 15 * display_scale, "Click to quit", vpColor::red);
+      vpDisplay::displayText(I_right, 15 * display_scale, 15 * display_scale, "Click to quit", vpColor::red);
       vpDisplay::displayText(I_pose, 15, 15, "Click to quit", vpColor::red);
 
       vpDisplay::displayFrame(I_pose, cextMc_0, cam, 0.1, vpColor::none, 2); // First frame
-      vpDisplay::displayFrame(I_pose, cextMc  , cam, 0.1, vpColor::none, 2);
+      vpDisplay::displayFrame(I_pose, cextMc, cam, 0.1, vpColor::none, 2);
 
       // Display frame origin trajectory
       {
-        std::list< std::pair<unsigned int, vpImagePoint> >::const_iterator it = frame_origins.begin();
+        std::list<std::pair<unsigned int, vpImagePoint> >::const_iterator it = frame_origins.begin();
         std::pair<unsigned int, vpImagePoint> frame_origin_pair_prev = *(it++);
         for (; it != frame_origins.end(); ++it) {
           if (vpImagePoint::distance(frame_origin_pair_prev.second, (*it).second) > 1) {
-            vpDisplay::displayLine(I_pose, frame_origin_pair_prev.second, (*it).second,
-                                   (*it).first == 3 ? vpColor::green : ((*it).first == 2 ? vpColor::yellow : vpColor::red), 2);
+            vpDisplay::displayLine(
+                I_pose, frame_origin_pair_prev.second, (*it).second,
+                (*it).first == 3 ? vpColor::green : ((*it).first == 2 ? vpColor::yellow : vpColor::red), 2);
             frame_origin_pair_prev = *it;
           }
         }
       }
-      if (vpDisplay::getClick(I_left, false) || vpDisplay::getClick(I_right, false) || vpDisplay::getClick(I_pose, false)) {
+      if (vpDisplay::getClick(I_left, false) || vpDisplay::getClick(I_right, false) ||
+          vpDisplay::getClick(I_pose, false)) {
         break;
       }
       vpDisplay::flush(I_left);
@@ -155,16 +166,26 @@ int main()
       vpDisplay::flush(I_pose);
 
       std::cout << "Loop time: " << std::setw(8) << vpTime::measureTimeMs() - t << "ms. Confidence = " << confidence;
-      std::cout << " Gyro vel: x = " << std::setw(10) << std::setprecision(3) << imu_vel[0] << " y = " << std::setw(10) << std::setprecision(3) << imu_vel[1] << " z = " << std::setw(8) << imu_vel[2];
-      std::cout << " Accel: x = " << std::setw(10) << std::setprecision(3) << imu_acc[0] << " y = " << std::setw(10) << std::setprecision(3) << imu_acc[1] << " z = " << std::setw(8) << imu_acc[2];
+      std::cout << " Gyro vel: x = " << std::setw(10) << std::setprecision(3) << imu_vel[0] << " y = " << std::setw(10)
+        << std::setprecision(3) << imu_vel[1] << " z = " << std::setw(8) << imu_vel[2];
+      std::cout << " Accel: x = " << std::setw(10) << std::setprecision(3) << imu_acc[0] << " y = " << std::setw(10)
+        << std::setprecision(3) << imu_acc[1] << " z = " << std::setw(8) << imu_acc[2];
       std::cout << std::endl;
     }
 
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cerr << "RealSense error " << e.what() << std::endl;
-  } catch (const std::exception &e) {
+  }
+  catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
+
+#if defined(VISP_HAVE_DISPLAY) && (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+  delete display_left;
+  delete display_right;
+  delete display_pose;
+#endif
 
   return EXIT_SUCCESS;
 }
@@ -176,10 +197,6 @@ int main()
   std::cout << "Tip:" << std::endl;
   std::cout << "- Install librealsense2, configure again ViSP using cmake and build again this example" << std::endl;
   return EXIT_SUCCESS;
-#elif (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
-  std::cout << "You do not build ViSP with c++11 or higher compiler flag" << std::endl;
-  std::cout << "Tip:" << std::endl;
-  std::cout << "- Configure ViSP again using cmake -DUSE_CXX_STANDARD=11, and build again this example" << std::endl;
 #elif !(defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI))
   std::cout << "You don't have X11 or GDI display capabilities" << std::endl;
 #elif !(RS2_API_VERSION > ((2 * 10000) + (31 * 100) + 0))

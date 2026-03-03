@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,8 +33,7 @@
  *
  * Authors:
  * Jean-Luc CORRE
- *
- *****************************************************************************/
+ */
 
 #include "vpToken.h"
 #include "vpMy.h"
@@ -44,6 +42,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+BEGIN_VISP_NAMESPACE
 Keyword keyword_tbl[] = {/* tableau des mots cles termine par NULL*/
                          {"above", T_ABOVE},
                          {"back", T_BACK},
@@ -67,6 +66,6 @@ Keyword keyword_tbl[] = {/* tableau des mots cles termine par NULL*/
                          {"vrp", T_VRP},
                          {"vup", T_VUP},
                          {"window", T_WINDOW},
-                         {NULL, T_NULL}};
-
+                         {NULL, T_NULL} };
+END_VISP_NAMESPACE
 #endif

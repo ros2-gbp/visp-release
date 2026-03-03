@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Test for image roi display.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testDisplayRoi.cpp
@@ -47,15 +42,15 @@
 
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpRect.h>
-#include <visp3/gui/vpDisplayD3D.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/io/vpParseArgv.h>
 
 // List of allowed command line options
 #define GETOPTARGS "cdh"
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 void usage(const char *name, const char *badparam);
 bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display);
@@ -72,17 +67,18 @@ void usage(const char *name, const char *badparam)
 {
   fprintf(stdout, "\n\
 Read an image on the disk, display it using X11, display some\n\
-features (line, circle, caracters) in overlay and finaly write \n\
+features (line, circle, characters) in overlay and finally write \n\
 the image and the overlayed features in an image on the disk.\n\
 \n\
 SYNOPSIS\n\
-  %s [-c] [-d] [-h]\n", name);
+  %s [-c] [-d] [-h]\n",
+          name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               Default\n\
   -c\n\
      Disable the mouse click. Useful to automate the \n\
-     execution of this program without humain intervention.\n\
+     execution of this program without human intervention.\n\
 \n\
   -d                                             \n\
      Disable the image display. This can be useful \n\
@@ -127,20 +123,18 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
       display = false;
       break;
     case 'h':
-      usage(argv[0], NULL);
+      usage(argv[0], nullptr);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg_);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL);
+    usage(argv[0], nullptr);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -157,29 +151,23 @@ int main(int argc, const char **argv)
 
   // Read the command line options
   if (getOptions(argc, argv, opt_click_allowed, opt_display) == false) {
-    exit(-1);
+    return EXIT_FAILURE;
   }
 
   if (opt_display) {
 
     vpImage<unsigned char> I(480, 640, 255);
 
-#if defined(VISP_HAVE_X11)
-    vpDisplayX d;
-#elif defined(VISP_HAVE_GTK)
-    vpDisplayGTK d;
-#elif defined(VISP_HAVE_GDI)
-    vpDisplayGDI d;
-#elif defined(VISP_HAVE_D3D9)
-    vpDisplayD3D d;
-#elif defined(VISP_HAVE_OPENCV)
-    vpDisplayOpenCV d;
+#if(VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+    std::shared_ptr<vpDisplay> d = vpDisplayFactory::createDisplay();
+#else
+    vpDisplay *d = vpDisplayFactory::allocateDisplay();
 #endif
-    d.init(I);
+    d->init(I);
     vpDisplay::display(I);
     vpDisplay::flush(I);
 
-    I = 0;
+    I = 0u;
 
     vpRect roi(I.getWidth() / 4, I.getHeight() / 4, I.getWidth() / 2, I.getHeight() / 2);
     vpDisplay::displayROI(I, roi);
@@ -192,8 +180,7 @@ int main(int argc, const char **argv)
 
     vpImage<vpRGBa> C(480, 640, vpRGBa(255, 0, 0, 0));
 
-    // vpDisplayX d;
-    d.init(C);
+    d->init(C);
     vpDisplay::display(C);
     vpDisplay::flush(C);
 
@@ -205,10 +192,13 @@ int main(int argc, const char **argv)
       std::cout << "A click in the image to exit..." << std::endl;
       vpDisplay::getClick(C);
     }
+#if(VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+    delete d;
+#endif
   }
 #else
   (void)argc;
   (void)argv;
 #endif
-  return 0;
+  return EXIT_SUCCESS;
 }

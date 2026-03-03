@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -31,14 +31,11 @@
 # Description:
 # ViSP configuration file.
 #
-# Authors:
-# Fabien Spindler
-#
 #############################################################################
 
-project(example-servo-franka)
+cmake_minimum_required(VERSION 3.10)
 
-cmake_minimum_required(VERSION 3.0)
+project(example-servo-franka)
 
 find_package(VISP REQUIRED visp_robot visp_vision visp_io visp_gui visp_vs visp_visual_features visp_detection)
 
@@ -47,6 +44,9 @@ set(example_cpp
   frankaMoveToPosition.cpp
   frankaSavePosition.cpp
   servoFrankaIBVS.cpp
+  servoFrankaIBVS-EyeToHand-Lcur_cVe_eJe.cpp
+  servoFrankaIBVS-EyeToHand-Lcur_cVf_fVe_eJe.cpp
+  servoFrankaIBVS-EyeToHand-Ldes_cVf_fVe_eJe.cpp
   servoFrankaPBVS.cpp
 )
 
@@ -56,14 +56,3 @@ foreach(cpp ${example_cpp})
     visp_add_dependency(${cpp} "examples")
   endif()
 endforeach()
-
-if(VISP_HAVE_REALSENSE2)
-  if(UNIX)
-    # Add specific build flag to turn off warnings coming from PCL 3rd party
-    visp_set_source_file_compile_flag(servoFrankaPBVS.cpp -Wno-unused-function -Wno-reorder -Wno-sign-compare -Wno-overloaded-virtual -Wno-ignored-qualifiers -Wno-deprecated-copy)
-    visp_set_source_file_compile_flag(servoFrankaIBVS.cpp -Wno-unused-function -Wno-reorder -Wno-sign-compare -Wno-overloaded-virtual -Wno-ignored-qualifiers -Wno-deprecated-copy)
-  else()
-    visp_set_source_file_compile_flag(servoFrankaIBVS.cpp /wd4244 /wd4267)
-    visp_set_source_file_compile_flag(servoFrankaPBVS.cpp /wd4244 /wd4267)
-  endif()
-endif()

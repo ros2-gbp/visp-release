@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Centered moment descriptor
- *
- * Authors:
- * Filip Novotny
- *
- *****************************************************************************/
+ */
 
 #include <cassert>
 #include <exception>
@@ -42,6 +37,7 @@
 #include <visp3/core/vpMomentGravityCenter.h>
 #include <visp3/core/vpMomentObject.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   To set the values of centred moments. Required when normalizing the moment
   values.
@@ -68,7 +64,7 @@ void vpMomentCentered::compute()
   values.resize((getObject().getOrder() + 1) * (getObject().getOrder() + 1));
 
   const vpMomentGravityCenter &momentGravity =
-      static_cast<const vpMomentGravityCenter &>(getMoments().get("vpMomentGravityCenter", found_moment_gravity));
+    static_cast<const vpMomentGravityCenter &>(getMoments().get("vpMomentGravityCenter", found_moment_gravity));
   if (!found_moment_gravity)
     throw vpException(vpException::notInitialized, "vpMomentGravityCenter not found");
 
@@ -78,11 +74,11 @@ void vpMomentCentered::compute()
       unsigned int c = order * j + i;
       values[c] = 0;
       for (unsigned int k = 0; k <= i; k++) {
-        double Xg_i_k = pow(-momentGravity.get()[0], (int)(i - k));
+        double Xg_i_k = pow(-momentGravity.get()[0], static_cast<int>(i - k));
         double comb_i_k = static_cast<double>(vpMath::comb(i, k));
         for (unsigned int l = 0; l <= j; l++) {
           values[c] += static_cast<double>(comb_i_k * vpMath::comb(j, l) * Xg_i_k *
-                                           pow(-momentGravity.get()[1], (int)(j - l)) * getObject().get(k, l));
+                                           pow(-momentGravity.get()[1], static_cast<int>(j - l)) * getObject().get(k, l));
         }
       }
     }
@@ -92,13 +88,13 @@ void vpMomentCentered::compute()
 /*!
   Default constructor.
 */
-vpMomentCentered::vpMomentCentered() : vpMoment() {}
+vpMomentCentered::vpMomentCentered() : vpMoment() { }
 
 /*!
   Gets the desired moment using indexes.
-  \param i : first index of the centered moment.
-  \param j : second index of the centered moment.
-  \return \f$\mu_{ij}\f$ moment.
+  \param i : First index of the centered moment.
+  \param j : Second index of the centered moment.
+  \return Moment \f$\mu_{ij}\f$.
 */
 double vpMomentCentered::get(unsigned int i, unsigned int j) const
 {
@@ -110,6 +106,48 @@ double vpMomentCentered::get(unsigned int i, unsigned int j) const
                                              "specify a higher order.");
 
   return values[j * (order + 1) + i];
+}
+
+/*!
+  Print in a readable form which looks better than output from << operator
+*/
+void vpMomentCentered::printWithIndices(std::ostream &os) const
+{
+  unsigned int orderp1 = getObject().getOrder() + 1;
+  for (unsigned int k = 0; k < orderp1; k++) {
+    for (unsigned int l = 0; l < orderp1 - k; l++) {
+      os << "mu[" << k << "," << l << "] = " << this->get(k, l) << "\t";
+    }
+    os << std::endl;
+  }
+  os << std::endl;
+}
+
+/*!
+Prints moments required for calculation of vpMomentCentered,
+which are
+1. Raw geometric moments (vpMomentObject) and
+2. Centre of gravity (vpMomentGravityCentered)
+*/
+void vpMomentCentered::printDependencies(std::ostream &os) const
+{
+  os << (__FILE__) << std::endl;
+  /*
+  Retreive the raw moments
+  */
+  const vpMomentObject objt = getObject();
+  vpMomentObject::printWithIndices(objt, os);
+
+  /*
+  Get xg,yg
+  */
+  bool found_moment_gravity;
+  const vpMomentGravityCenter &momentGravity =
+    static_cast<const vpMomentGravityCenter &>(getMoments().get("vpMomentGravityCenter", found_moment_gravity));
+  if (!found_moment_gravity)
+    throw vpException(vpException::notInitialized, "vpMomentGravityCenter not found");
+  os << "Xg = " << momentGravity.getXg() << "\t"
+    << "Yg = " << momentGravity.getYg() << std::endl;
 }
 
 /*!
@@ -147,45 +185,4 @@ VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpMomentCentered &m
   m.printWithIndices(os);
   return os;
 }
-
-/*!
-Print in a readable form which looks better than output from << operator
-*/
-void vpMomentCentered::printWithIndices(std::ostream &os) const
-{
-  unsigned int orderp1 = getObject().getOrder() + 1;
-  for (unsigned int k = 0; k < orderp1; k++) {
-    for (unsigned int l = 0; l < orderp1 - k; l++) {
-      os << "mu[" << k << "," << l << "] = " << this->get(k, l) << "\t";
-    }
-    os << std::endl;
-  }
-  os << std::endl;
-}
-
-/*!
-Prints moments required for calculation of vpMomentCentered,
-which are
-1. Raw geometric moments (vpMomentObject) and
-2. Centre of gravity (vpMomentGravityCentered)
-*/
-void vpMomentCentered::printDependencies(std::ostream &os) const
-{
-  os << (__FILE__) << std::endl;
-  /*
-  Retreive the raw moments
-  */
-  const vpMomentObject objt = getObject();
-  vpMomentObject::printWithIndices(objt, os);
-
-  /*
-  Get xg,yg
-  */
-  bool found_moment_gravity;
-  const vpMomentGravityCenter &momentGravity =
-      static_cast<const vpMomentGravityCenter &>(getMoments().get("vpMomentGravityCenter", found_moment_gravity));
-  if (!found_moment_gravity)
-    throw vpException(vpException::notInitialized, "vpMomentGravityCenter not found");
-  os << "Xg = " << momentGravity.getXg() << "\t"
-     << "Yg = " << momentGravity.getYg() << std::endl;
-}
+END_VISP_NAMESPACE

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,13 +29,12 @@
  *
  * Description:
  * Manage depth dense features for a particular face.
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpCPUFeatures.h>
 #include <visp3/mbt/vpMbtFaceDepthDense.h>
 
-#ifdef VISP_HAVE_PCL
+#if defined(VISP_HAVE_PCL) && defined(VISP_HAVE_PCL_COMMON)
 #include <pcl/common/point_tests.h>
 #endif
 
@@ -45,22 +43,186 @@
 #define VISP_HAVE_SSE2 1
 #endif
 
-#define USE_SSE_CODE 1
-#if VISP_HAVE_SSE2 && USE_SSE_CODE
+// https://stackoverflow.com/a/40765925
+#if !defined(__FMA__) && defined(__AVX2__)
+#define __FMA__ 1
+#endif
+
+#if defined _WIN32 && defined(_M_ARM64)
+#define _ARM64_DISTINCT_NEON_TYPES
+#include <Intrin.h>
+#include <arm_neon.h>
+#define VISP_HAVE_NEON 1
+#elif (defined(__ARM_NEON__) || defined (__ARM_NEON)) && defined(__aarch64__)
+#include <arm_neon.h>
+#define VISP_HAVE_NEON 1
+#else
+#define VISP_HAVE_NEON 0
+#endif
+
+#define USE_SIMD_CODE 1
+
+#if VISP_HAVE_SSE2 && USE_SIMD_CODE
 #define USE_SSE 1
 #else
 #define USE_SSE 0
 #endif
 
-vpMbtFaceDepthDense::vpMbtFaceDepthDense()
-  : m_cam(), m_clippingFlag(vpPolygon3D::NO_CLIPPING), m_distFarClip(100), m_distNearClip(0.001), m_hiddenFace(NULL),
-    m_planeObject(), m_polygon(NULL), m_useScanLine(false),
-    m_depthDenseFilteringMethod(DEPTH_OCCUPANCY_RATIO_FILTERING), m_depthDenseFilteringMaxDist(3.0),
-    m_depthDenseFilteringMinDist(0.8), m_depthDenseFilteringOccupancyRatio(0.3), m_isTrackedDepthDenseFace(true),
-    m_isVisible(false), m_listOfFaceLines(), m_planeCamera(), m_pointCloudFace(), m_polygonLines()
+#if VISP_HAVE_NEON && USE_SIMD_CODE
+#define USE_NEON 1
+#else
+#define USE_NEON 0
+#endif
+
+#if defined(VISP_HAVE_OPENCV) && \
+    (VISP_HAVE_OPENCV_VERSION >= 0x040101 || (VISP_HAVE_OPENCV_VERSION < 0x040000 && VISP_HAVE_OPENCV_VERSION >= 0x030407)) && USE_SIMD_CODE
+
+// See: https://github.com/lagadic/visp/issues/1606
+// 0x040B00 --> (4<<16 | 11<<8 | 0)
+// Only starting from OpenCV 4.11 cv::v_mul is available for all the platforms
+// So if OpenCV >= 4.11 || OpenCV < 4.9 --> use OpenCV HAL API
+// Otherwise, only if between >= 4.9 && < 4.11 and on regular platform (X86 && ARM64) --> use OpenCV HAL API
+#if (VISP_HAVE_OPENCV_VERSION >= 0x040B00) || (VISP_HAVE_OPENCV_VERSION < 0x040900) || \
+  ( (VISP_HAVE_OPENCV_VERSION >= 0x040900) && (VISP_HAVE_OPENCV_VERSION < 0x040B00) && (USE_SSE || USE_NEON) )
+#    define USE_OPENCV_HAL 1
+#    include <opencv2/core/simd_intrinsics.hpp>
+#    include <opencv2/core/hal/intrin.hpp>
+#  else
+#    define USE_OPENCV_HAL 0
+#  endif
+#else
+#  define USE_OPENCV_HAL 0
+#endif
+
+#if !USE_OPENCV_HAL && (USE_SSE || USE_NEON)
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+#include <cstdint>
+#endif
+
+namespace
 {
+#if USE_SSE
+inline void v_load_deinterleave(const uint64_t *ptr, __m128i &a, __m128i &b, __m128i &c)
+{
+  __m128i t0 = _mm_loadu_si128((const __m128i *)ptr);       // a0, b0
+  __m128i t1 = _mm_loadu_si128((const __m128i *)(ptr + 2)); // c0, a1
+  __m128i t2 = _mm_loadu_si128((const __m128i *)(ptr + 4)); // b1, c1
+
+  t1 = _mm_shuffle_epi32(t1, 0x4e); // a1, c0
+
+  a = _mm_unpacklo_epi64(t0, t1);
+  b = _mm_unpacklo_epi64(_mm_unpackhi_epi64(t0, t0), t2);
+  c = _mm_unpackhi_epi64(t1, t2);
 }
 
+inline void v_load_deinterleave(const double *ptr, __m128d &a0, __m128d &b0, __m128d &c0)
+{
+  __m128i a1, b1, c1;
+  v_load_deinterleave((const uint64_t *)ptr, a1, b1, c1);
+  a0 = _mm_castsi128_pd(a1);
+  b0 = _mm_castsi128_pd(b1);
+  c0 = _mm_castsi128_pd(c1);
+}
+
+inline __m128d v_combine_low(const __m128d &a, const __m128d &b)
+{
+  __m128i a1 = _mm_castpd_si128(a), b1 = _mm_castpd_si128(b);
+  return _mm_castsi128_pd(_mm_unpacklo_epi64(a1, b1));
+}
+
+inline __m128d v_combine_high(const __m128d &a, const __m128d &b)
+{
+  __m128i a1 = _mm_castpd_si128(a), b1 = _mm_castpd_si128(b);
+  return _mm_castsi128_pd(_mm_unpackhi_epi64(a1, b1));
+}
+
+inline __m128d v_fma(const __m128d &a, const __m128d &b, const __m128d &c)
+{
+#if __FMA__
+  return _mm_fmadd_pd(a, b, c);
+#else
+  return _mm_add_pd(_mm_mul_pd(a, b), c);
+#endif
+}
+#else
+inline void v_load_deinterleave(const double *ptr, float64x2_t &a0, float64x2_t &b0, float64x2_t &c0)
+{
+  float64x2x3_t v = vld3q_f64(ptr);
+  a0 = v.val[0];
+  b0 = v.val[1];
+  c0 = v.val[2];
+}
+
+inline float64x2_t v_combine_low(const float64x2_t &a, const float64x2_t &b)
+{
+  return vcombine_f64(vget_low_f64(a), vget_low_f64(b));
+}
+
+inline float64x2_t v_combine_high(const float64x2_t &a, const float64x2_t &b)
+{
+  return vcombine_f64(vget_high_f64(a), vget_high_f64(b));
+}
+
+inline float64x2_t v_fma(const float64x2_t &a, const float64x2_t &b, const float64x2_t &c)
+{
+  return vfmaq_f64(c, a, b);
+}
+#endif
+}
+#endif // !USE_OPENCV_HAL && (USE_SSE || USE_NEON)
+
+BEGIN_VISP_NAMESPACE
+
+/*!
+ * Default constructor.
+ */
+  vpMbtFaceDepthDense::vpMbtFaceDepthDense()
+  : m_cam(), m_clippingFlag(vpPolygon3D::NO_CLIPPING), m_distFarClip(100), m_distNearClip(0.001), m_hiddenFace(nullptr),
+  m_planeObject(), m_polygon(nullptr), m_useScanLine(false),
+  m_depthDenseFilteringMethod(DEPTH_OCCUPANCY_RATIO_FILTERING), m_depthDenseFilteringMaxDist(3.0),
+  m_depthDenseFilteringMinDist(0.8), m_depthDenseFilteringOccupancyRatio(0.3), m_isTrackedDepthDenseFace(true),
+  m_isVisible(false), m_listOfFaceLines(), m_planeCamera(), m_pointCloudFace(), m_polygonLines()
+{ }
+
+/*!
+ * Copy constructor.
+ * @param mbt_face : MBT face to copy.
+ */
+vpMbtFaceDepthDense::vpMbtFaceDepthDense(const vpMbtFaceDepthDense &mbt_face)
+{
+  *this = mbt_face;
+}
+
+/*!
+ * Copy operator.
+ * @param mbt_face : MBT face to copy.
+ */
+vpMbtFaceDepthDense &vpMbtFaceDepthDense::operator=(const vpMbtFaceDepthDense &mbt_face)
+{
+  m_cam = mbt_face.m_cam;
+  m_clippingFlag = mbt_face.m_clippingFlag;
+  m_distFarClip = mbt_face.m_distFarClip;
+  m_distNearClip = mbt_face.m_distNearClip;
+  m_hiddenFace = mbt_face.m_hiddenFace;
+  m_planeObject = mbt_face.m_planeObject;
+  m_polygon = mbt_face.m_polygon;
+  m_useScanLine = mbt_face.m_useScanLine;
+  m_depthDenseFilteringMethod = mbt_face.m_depthDenseFilteringMethod;
+  m_depthDenseFilteringMaxDist = mbt_face.m_depthDenseFilteringMaxDist;
+  m_depthDenseFilteringMinDist = mbt_face.m_depthDenseFilteringMinDist;
+  m_depthDenseFilteringOccupancyRatio = mbt_face.m_depthDenseFilteringOccupancyRatio;
+  m_isTrackedDepthDenseFace = mbt_face.m_isTrackedDepthDenseFace;
+  m_isVisible = mbt_face.m_isVisible;
+  m_listOfFaceLines = mbt_face.m_listOfFaceLines;
+  m_planeCamera = mbt_face.m_planeCamera;
+  m_pointCloudFace = mbt_face.m_pointCloudFace;
+  m_polygonLines = mbt_face.m_polygonLines;
+  return *this;
+}
+
+/*!
+ * Destructor.
+ */
 vpMbtFaceDepthDense::~vpMbtFaceDepthDense()
 {
   for (size_t i = 0; i < m_listOfFaceLines.size(); i++) {
@@ -72,7 +234,7 @@ vpMbtFaceDepthDense::~vpMbtFaceDepthDense()
   Add a line belonging to the \f$ index \f$ the polygon to the list of lines.
   It is defined by its two extremities.
 
-  If the line already exists, the ploygone's index is added to the list of
+  If the line already exists, the polygon's index is added to the list of
   polygon to which it belongs.
 
   \param P1 : The first extremity of the line.
@@ -82,8 +244,8 @@ vpMbtFaceDepthDense::~vpMbtFaceDepthDense()
   \param polygon : The index of the polygon to which the line belongs.
   \param name : the optional name of the line
 */
-void vpMbtFaceDepthDense::addLine(vpPoint &P1, vpPoint &P2, vpMbHiddenFaces<vpMbtPolygon> *const faces, vpUniRand& rand_gen, int polygon,
-                                  std::string name)
+void vpMbtFaceDepthDense::addLine(vpPoint &P1, vpPoint &P2, vpMbHiddenFaces<vpMbtPolygon> *const faces,
+                                  vpUniRand &rand_gen, int polygon, std::string name)
 {
   // Build a PolygonLine to be able to easily display the lines model
   PolygonLine polygon_line;
@@ -126,7 +288,7 @@ void vpMbtFaceDepthDense::addLine(vpPoint &P1, vpPoint &P2, vpMbHiddenFaces<vpMb
     l->hiddenface = faces;
     l->useScanLine = m_useScanLine;
 
-    l->setIndex((unsigned int)m_listOfFaceLines.size());
+    l->setIndex(static_cast<unsigned int>(m_listOfFaceLines.size()));
     l->setName(name);
 
     if (m_clippingFlag != vpPolygon3D::NO_CLIPPING)
@@ -142,7 +304,7 @@ void vpMbtFaceDepthDense::addLine(vpPoint &P1, vpPoint &P2, vpMbHiddenFaces<vpMb
   }
 }
 
-#ifdef VISP_HAVE_PCL
+#if defined(VISP_HAVE_PCL) && defined(VISP_HAVE_PCL_COMMON)
 bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
                                                  const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &point_cloud,
                                                  unsigned int stepX, unsigned int stepY
@@ -151,8 +313,8 @@ bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
                                                  vpImage<unsigned char> &debugImage,
                                                  std::vector<std::vector<vpImagePoint> > &roiPts_vec
 #endif
-                                                 , const vpImage<bool> *mask
-)
+                                                 ,
+                                                 const vpImage<bool> *mask)
 {
   unsigned int width = point_cloud->width, height = point_cloud->height;
   m_pointCloudFace.clear();
@@ -185,10 +347,10 @@ bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
   vpPolygon polygon_2d(roiPts);
   vpRect bb = polygon_2d.getBoundingBox();
 
-  unsigned int top = (unsigned int)std::max(0.0, bb.getTop());
-  unsigned int bottom = (unsigned int)std::min((double)height, std::max(0.0, bb.getBottom()));
-  unsigned int left = (unsigned int)std::max(0.0, bb.getLeft());
-  unsigned int right = (unsigned int)std::min((double)width, std::max(0.0, bb.getRight()));
+  unsigned int top = static_cast<unsigned int>(std::max<double>(0.0, bb.getTop()));
+  unsigned int bottom = static_cast<unsigned int>(std::min<double>(static_cast<double>(height), std::max<double>(0.0, bb.getBottom())));
+  unsigned int left = static_cast<unsigned int>(std::max<double>(0.0, bb.getLeft()));
+  unsigned int right = static_cast<unsigned int>(std::min<double>(static_cast<double>(width), std::max<double>(0.0, bb.getRight())));
 
   bb.setTop(top);
   bb.setBottom(bottom);
@@ -199,15 +361,7 @@ bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
     return false;
   }
 
-  m_pointCloudFace.reserve((size_t)(bb.getWidth() * bb.getHeight()));
-
-  bool checkSSE2 = vpCPUFeatures::checkSSE2();
-#if !USE_SSE
-  checkSSE2 = false;
-#else
-  bool push = false;
-  double prev_x = 0.0, prev_y = 0.0, prev_z = 0.0;
-#endif
+  m_pointCloudFace.reserve(static_cast<size_t>(bb.getWidth() * bb.getHeight()));
 
   int totalTheoreticalPoints = 0, totalPoints = 0;
   for (unsigned int i = top; i < bottom; i += stepY) {
@@ -215,36 +369,15 @@ bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
       if ((m_useScanLine ? (i < m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs().getHeight() &&
                             j < m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs().getWidth() &&
                             m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs()[i][j] == m_polygon->getIndex())
-                         : polygon_2d.isInside(vpImagePoint(i, j)))) {
+           : polygon_2d.isInside(vpImagePoint(i, j)))) {
         totalTheoreticalPoints++;
 
-        if (vpMeTracker::inMask(mask, i, j) && pcl::isFinite((*point_cloud)(j, i)) && (*point_cloud)(j, i).z > 0) {
+        if (vpMeTracker::inRoiMask(mask, i, j) && pcl::isFinite((*point_cloud)(j, i)) && (*point_cloud)(j, i).z > 0) {
           totalPoints++;
 
-          if (checkSSE2) {
-#if USE_SSE
-            if (!push) {
-              push = true;
-              prev_x = (*point_cloud)(j, i).x;
-              prev_y = (*point_cloud)(j, i).y;
-              prev_z = (*point_cloud)(j, i).z;
-            } else {
-              push = false;
-              m_pointCloudFace.push_back(prev_x);
-              m_pointCloudFace.push_back((*point_cloud)(j, i).x);
-
-              m_pointCloudFace.push_back(prev_y);
-              m_pointCloudFace.push_back((*point_cloud)(j, i).y);
-
-              m_pointCloudFace.push_back(prev_z);
-              m_pointCloudFace.push_back((*point_cloud)(j, i).z);
-            }
-#endif
-          } else {
-            m_pointCloudFace.push_back((*point_cloud)(j, i).x);
-            m_pointCloudFace.push_back((*point_cloud)(j, i).y);
-            m_pointCloudFace.push_back((*point_cloud)(j, i).z);
-          }
+          m_pointCloudFace.push_back((*point_cloud)(j, i).x);
+          m_pointCloudFace.push_back((*point_cloud)(j, i).y);
+          m_pointCloudFace.push_back((*point_cloud)(j, i).z);
 
 #if DEBUG_DISPLAY_DEPTH_DENSE
           debugImage[i][j] = 255;
@@ -254,16 +387,8 @@ bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
     }
   }
 
-#if USE_SSE
-  if (checkSSE2 && push) {
-    m_pointCloudFace.push_back(prev_x);
-    m_pointCloudFace.push_back(prev_y);
-    m_pointCloudFace.push_back(prev_z);
-  }
-#endif
-
   if (totalPoints == 0 || ((m_depthDenseFilteringMethod & DEPTH_OCCUPANCY_RATIO_FILTERING) &&
-                           totalPoints / (double)totalTheoreticalPoints < m_depthDenseFilteringOccupancyRatio)) {
+                           totalPoints / static_cast<double>(totalTheoreticalPoints) < m_depthDenseFilteringOccupancyRatio)) {
     return false;
   }
 
@@ -279,8 +404,8 @@ bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
                                                  vpImage<unsigned char> &debugImage,
                                                  std::vector<std::vector<vpImagePoint> > &roiPts_vec
 #endif
-                                                 , const vpImage<bool> *mask
-)
+                                                 ,
+                                                 const vpImage<bool> *mask)
 {
   m_pointCloudFace.clear();
 
@@ -312,25 +437,17 @@ bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
   vpPolygon polygon_2d(roiPts);
   vpRect bb = polygon_2d.getBoundingBox();
 
-  unsigned int top = (unsigned int)std::max(0.0, bb.getTop());
-  unsigned int bottom = (unsigned int)std::min((double)height, std::max(0.0, bb.getBottom()));
-  unsigned int left = (unsigned int)std::max(0.0, bb.getLeft());
-  unsigned int right = (unsigned int)std::min((double)width, std::max(0.0, bb.getRight()));
+  unsigned int top = static_cast<unsigned int>(std::max<double>(0.0, bb.getTop()));
+  unsigned int bottom = static_cast<unsigned int>(std::min<double>(static_cast<double>(height), std::max<double>(0.0, bb.getBottom())));
+  unsigned int left = static_cast<unsigned int>(std::max<double>(0.0, bb.getLeft()));
+  unsigned int right = static_cast<unsigned int>(std::min<double>(static_cast<double>(width), std::max<double>(0.0, bb.getRight())));
 
   bb.setTop(top);
   bb.setBottom(bottom);
   bb.setLeft(left);
   bb.setRight(right);
 
-  m_pointCloudFace.reserve((size_t)(bb.getWidth() * bb.getHeight()));
-
-  bool checkSSE2 = vpCPUFeatures::checkSSE2();
-#if !USE_SSE
-  checkSSE2 = false;
-#else
-  bool push = false;
-  double prev_x = 0.0, prev_y = 0.0, prev_z = 0.0;
-#endif
+  m_pointCloudFace.reserve(static_cast<size_t>(bb.getWidth() * bb.getHeight()));
 
   int totalTheoreticalPoints = 0, totalPoints = 0;
   for (unsigned int i = top; i < bottom; i += stepY) {
@@ -338,36 +455,15 @@ bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
       if ((m_useScanLine ? (i < m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs().getHeight() &&
                             j < m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs().getWidth() &&
                             m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs()[i][j] == m_polygon->getIndex())
-                         : polygon_2d.isInside(vpImagePoint(i, j)))) {
+           : polygon_2d.isInside(vpImagePoint(i, j)))) {
         totalTheoreticalPoints++;
 
-        if (vpMeTracker::inMask(mask, i, j) && point_cloud[i * width + j][2] > 0) {
+        if (vpMeTracker::inRoiMask(mask, i, j) && point_cloud[i * width + j][2] > 0) {
           totalPoints++;
 
-          if (checkSSE2) {
-#if USE_SSE
-            if (!push) {
-              push = true;
-              prev_x = point_cloud[i * width + j][0];
-              prev_y = point_cloud[i * width + j][1];
-              prev_z = point_cloud[i * width + j][2];
-            } else {
-              push = false;
-              m_pointCloudFace.push_back(prev_x);
-              m_pointCloudFace.push_back(point_cloud[i * width + j][0]);
-
-              m_pointCloudFace.push_back(prev_y);
-              m_pointCloudFace.push_back(point_cloud[i * width + j][1]);
-
-              m_pointCloudFace.push_back(prev_z);
-              m_pointCloudFace.push_back(point_cloud[i * width + j][2]);
-            }
-#endif
-          } else {
-            m_pointCloudFace.push_back(point_cloud[i * width + j][0]);
-            m_pointCloudFace.push_back(point_cloud[i * width + j][1]);
-            m_pointCloudFace.push_back(point_cloud[i * width + j][2]);
-          }
+          m_pointCloudFace.push_back(point_cloud[i * width + j][0]);
+          m_pointCloudFace.push_back(point_cloud[i * width + j][1]);
+          m_pointCloudFace.push_back(point_cloud[i * width + j][2]);
 
 #if DEBUG_DISPLAY_DEPTH_DENSE
           debugImage[i][j] = 255;
@@ -377,16 +473,93 @@ bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo,
     }
   }
 
-#if USE_SSE
-  if (checkSSE2 && push) {
-    m_pointCloudFace.push_back(prev_x);
-    m_pointCloudFace.push_back(prev_y);
-    m_pointCloudFace.push_back(prev_z);
+  if (totalPoints == 0 || ((m_depthDenseFilteringMethod & DEPTH_OCCUPANCY_RATIO_FILTERING) &&
+                           totalPoints / static_cast<double>(totalTheoreticalPoints) < m_depthDenseFilteringOccupancyRatio)) {
+    return false;
   }
+
+  return true;
+}
+
+bool vpMbtFaceDepthDense::computeDesiredFeatures(const vpHomogeneousMatrix &cMo, unsigned int width,
+                                                 unsigned int height, const vpMatrix &point_cloud,
+                                                 unsigned int stepX, unsigned int stepY
+#if DEBUG_DISPLAY_DEPTH_DENSE
+                                                 ,
+                                                 vpImage<unsigned char> &debugImage,
+                                                 std::vector<std::vector<vpImagePoint> > &roiPts_vec
 #endif
+                                                 ,
+                                                 const vpImage<bool> *mask)
+{
+  m_pointCloudFace.clear();
+
+  if (width == 0 || height == 0)
+    return 0;
+
+  std::vector<vpImagePoint> roiPts;
+  double distanceToFace;
+  computeROI(cMo, width, height, roiPts
+#if DEBUG_DISPLAY_DEPTH_DENSE
+             ,
+             roiPts_vec
+#endif
+             ,
+             distanceToFace);
+
+  if (roiPts.size() <= 2) {
+#ifndef NDEBUG
+    std::cerr << "Error: roiPts.size() <= 2 in computeDesiredFeatures" << std::endl;
+#endif
+    return false;
+  }
+
+  if (((m_depthDenseFilteringMethod & MAX_DISTANCE_FILTERING) && distanceToFace > m_depthDenseFilteringMaxDist) ||
+      ((m_depthDenseFilteringMethod & MIN_DISTANCE_FILTERING) && distanceToFace < m_depthDenseFilteringMinDist)) {
+    return false;
+  }
+
+  vpPolygon polygon_2d(roiPts);
+  vpRect bb = polygon_2d.getBoundingBox();
+
+  unsigned int top = static_cast<unsigned int>(std::max<double>(0.0, bb.getTop()));
+  unsigned int bottom = static_cast<unsigned int>(std::min<double>(static_cast<double>(height), std::max<double>(0.0, bb.getBottom())));
+  unsigned int left = static_cast<unsigned int>(std::max<double>(0.0, bb.getLeft()));
+  unsigned int right = static_cast<unsigned int>(std::min<double>(static_cast<double>(width), std::max<double>(0.0, bb.getRight())));
+
+  bb.setTop(top);
+  bb.setBottom(bottom);
+  bb.setLeft(left);
+  bb.setRight(right);
+
+  m_pointCloudFace.reserve(static_cast<size_t>(bb.getWidth() * bb.getHeight()));
+
+  int totalTheoreticalPoints = 0, totalPoints = 0;
+  for (unsigned int i = top; i < bottom; i += stepY) {
+    for (unsigned int j = left; j < right; j += stepX) {
+      if ((m_useScanLine ? (i < m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs().getHeight() &&
+                            j < m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs().getWidth() &&
+                            m_hiddenFace->getMbScanLineRenderer().getPrimitiveIDs()[i][j] == m_polygon->getIndex())
+           : polygon_2d.isInside(vpImagePoint(i, j)))) {
+        totalTheoreticalPoints++;
+
+        if (vpMeTracker::inRoiMask(mask, i, j) && point_cloud[i * width + j][2] > 0) {
+          totalPoints++;
+
+          m_pointCloudFace.push_back(point_cloud[i * width + j][0]);
+          m_pointCloudFace.push_back(point_cloud[i * width + j][1]);
+          m_pointCloudFace.push_back(point_cloud[i * width + j][2]);
+
+#if DEBUG_DISPLAY_DEPTH_DENSE
+          debugImage[i][j] = 255;
+#endif
+        }
+      }
+    }
+  }
 
   if (totalPoints == 0 || ((m_depthDenseFilteringMethod & DEPTH_OCCUPANCY_RATIO_FILTERING) &&
-                           totalPoints / (double)totalTheoreticalPoints < m_depthDenseFilteringOccupancyRatio)) {
+                           totalPoints / static_cast<double>(totalTheoreticalPoints) < m_depthDenseFilteringOccupancyRatio)) {
     return false;
   }
 
@@ -409,8 +582,9 @@ void vpMbtFaceDepthDense::computeVisibilityDisplay()
       int index = *itindex;
       if (index == -1) {
         isvisible = true;
-      } else {
-        if (line->hiddenface->isVisible((unsigned int)index)) {
+      }
+      else {
+        if (line->hiddenface->isVisible(static_cast<unsigned int>(index))) {
           isvisible = true;
         }
       }
@@ -422,7 +596,8 @@ void vpMbtFaceDepthDense::computeVisibilityDisplay()
 
     if (isvisible) {
       line->setVisible(true);
-    } else {
+    }
+    else {
       line->setVisible(false);
     }
   }
@@ -449,69 +624,149 @@ void vpMbtFaceDepthDense::computeInteractionMatrixAndResidu(const vpHomogeneousM
   double nz = m_planeCamera.getC();
   double D = m_planeCamera.getD();
 
-  bool checkSSE2 = vpCPUFeatures::checkSSE2();
-#if !USE_SSE
-  checkSSE2 = false;
+#if defined(VISP_HAVE_SIMDLIB)
+  bool useSIMD = vpCPUFeatures::checkSSE2() || vpCPUFeatures::checkNeon();
+#else
+  bool useSIMD = vpCPUFeatures::checkSSE2();
+#endif
+#if USE_OPENCV_HAL
+  useSIMD = true;
+#endif
+#if !USE_SSE && !USE_NEON && !USE_OPENCV_HAL
+  useSIMD = false;
 #endif
 
-  if (checkSSE2) {
-#if USE_SSE
+  if (useSIMD) {
+#if USE_SSE || USE_NEON || USE_OPENCV_HAL
     size_t cpt = 0;
     if (getNbFeatures() >= 2) {
       double *ptr_point_cloud = &m_pointCloudFace[0];
       double *ptr_L = L.data;
       double *ptr_error = error.data;
 
+#if USE_OPENCV_HAL
+      const cv::v_float64x2 vnx = cv::v_setall_f64(nx);
+      const cv::v_float64x2 vny = cv::v_setall_f64(ny);
+      const cv::v_float64x2 vnz = cv::v_setall_f64(nz);
+      const cv::v_float64x2 vd = cv::v_setall_f64(D);
+#elif USE_SSE
       const __m128d vnx = _mm_set1_pd(nx);
       const __m128d vny = _mm_set1_pd(ny);
       const __m128d vnz = _mm_set1_pd(nz);
       const __m128d vd = _mm_set1_pd(D);
-
-      double tmp_a1[2], tmp_a2[2], tmp_a3[2];
+#else
+      const float64x2_t vnx = vdupq_n_f64(nx);
+      const float64x2_t vny = vdupq_n_f64(ny);
+      const float64x2_t vnz = vdupq_n_f64(nz);
+      const float64x2_t vd = vdupq_n_f64(D);
+#endif
 
       for (; cpt <= m_pointCloudFace.size() - 6; cpt += 6, ptr_point_cloud += 6) {
-        const __m128d vx = _mm_loadu_pd(ptr_point_cloud);
-        const __m128d vy = _mm_loadu_pd(ptr_point_cloud + 2);
-        const __m128d vz = _mm_loadu_pd(ptr_point_cloud + 4);
+#if USE_OPENCV_HAL
+        cv::v_float64x2 vx, vy, vz;
+        cv::v_load_deinterleave(ptr_point_cloud, vx, vy, vz);
 
-        const __m128d va1 = _mm_sub_pd(_mm_mul_pd(vnz, vy), _mm_mul_pd(vny, vz));
-        const __m128d va2 = _mm_sub_pd(_mm_mul_pd(vnx, vz), _mm_mul_pd(vnz, vx));
-        const __m128d va3 = _mm_sub_pd(_mm_mul_pd(vny, vx), _mm_mul_pd(vnx, vy));
+#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x040900)
+        cv::v_float64x2 va1 = cv::v_sub(cv::v_mul(vnz, vy), cv::v_mul(vny, vz)); // vnz*vy - vny*vz
+        cv::v_float64x2 va2 = cv::v_sub(cv::v_mul(vnx, vz), cv::v_mul(vnz, vx)); // vnx*vz - vnz*vx
+        cv::v_float64x2 va3 = cv::v_sub(cv::v_mul(vny, vx), cv::v_mul(vnx, vy)); // vny*vx - vnx*vy
+#elif defined(VISP_HAVE_OPENCV)
+        cv::v_float64x2 va1 = vnz*vy - vny*vz;
+        cv::v_float64x2 va2 = vnx*vz - vnz*vx;
+        cv::v_float64x2 va3 = vny*vx - vnx*vy;
+#endif
 
-        _mm_storeu_pd(tmp_a1, va1);
-        _mm_storeu_pd(tmp_a2, va2);
-        _mm_storeu_pd(tmp_a3, va3);
+        cv::v_float64x2 vnxy = cv::v_combine_low(vnx, vny);
+        cv::v_store(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = cv::v_combine_low(vnz, va1);
+        cv::v_store(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = cv::v_combine_low(va2, va3);
+        cv::v_store(ptr_L, vnxy);
+        ptr_L += 2;
 
-        *ptr_L = nx;
-        ptr_L++;
-        *ptr_L = ny;
-        ptr_L++;
-        *ptr_L = nz;
-        ptr_L++;
-        *ptr_L = tmp_a1[0];
-        ptr_L++;
-        *ptr_L = tmp_a2[0];
-        ptr_L++;
-        *ptr_L = tmp_a3[0];
-        ptr_L++;
+        vnxy = cv::v_combine_high(vnx, vny);
+        cv::v_store(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = cv::v_combine_high(vnz, va1);
+        cv::v_store(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = cv::v_combine_high(va2, va3);
+        cv::v_store(ptr_L, vnxy);
+        ptr_L += 2;
 
-        *ptr_L = nx;
-        ptr_L++;
-        *ptr_L = ny;
-        ptr_L++;
-        *ptr_L = nz;
-        ptr_L++;
-        *ptr_L = tmp_a1[1];
-        ptr_L++;
-        *ptr_L = tmp_a2[1];
-        ptr_L++;
-        *ptr_L = tmp_a3[1];
-        ptr_L++;
+#if (VISP_HAVE_OPENCV_VERSION >= 0x040900)
+        cv::v_float64x2 verr = cv::v_add(vd, cv::v_muladd(vnx, vx, cv::v_muladd(vny, vy, cv::v_mul(vnz, vz))));
+#else
+        cv::v_float64x2 verr = vd + cv::v_muladd(vnx, vx, cv::v_muladd(vny, vy, vnz*vz));
+#endif
 
-        const __m128d verror =
-            _mm_add_pd(_mm_add_pd(vd, _mm_mul_pd(vnx, vx)), _mm_add_pd(_mm_mul_pd(vny, vy), _mm_mul_pd(vnz, vz)));
+        cv::v_store(ptr_error, verr);
+        ptr_error += 2;
+#elif USE_SSE
+        __m128d vx, vy, vz;
+        v_load_deinterleave(ptr_point_cloud, vx, vy, vz);
+
+        __m128d va1 = _mm_sub_pd(_mm_mul_pd(vnz, vy), _mm_mul_pd(vny, vz));
+        __m128d va2 = _mm_sub_pd(_mm_mul_pd(vnx, vz), _mm_mul_pd(vnz, vx));
+        __m128d va3 = _mm_sub_pd(_mm_mul_pd(vny, vx), _mm_mul_pd(vnx, vy));
+
+        __m128d vnxy = v_combine_low(vnx, vny);
+        _mm_storeu_pd(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = v_combine_low(vnz, va1);
+        _mm_storeu_pd(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = v_combine_low(va2, va3);
+        _mm_storeu_pd(ptr_L, vnxy);
+        ptr_L += 2;
+
+        vnxy = v_combine_high(vnx, vny);
+        _mm_storeu_pd(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = v_combine_high(vnz, va1);
+        _mm_storeu_pd(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = v_combine_high(va2, va3);
+        _mm_storeu_pd(ptr_L, vnxy);
+        ptr_L += 2;
+
+        const __m128d verror = _mm_add_pd(vd, v_fma(vnx, vx, v_fma(vny, vy, _mm_mul_pd(vnz, vz))));
         _mm_storeu_pd(ptr_error, verror);
         ptr_error += 2;
+#else
+        float64x2_t vx, vy, vz;
+        v_load_deinterleave(ptr_point_cloud, vx, vy, vz);
+
+        float64x2_t va1 = vsubq_f64(vmulq_f64(vnz, vy), vmulq_f64(vny, vz));
+        float64x2_t va2 = vsubq_f64(vmulq_f64(vnx, vz), vmulq_f64(vnz, vx));
+        float64x2_t va3 = vsubq_f64(vmulq_f64(vny, vx), vmulq_f64(vnx, vy));
+
+        float64x2_t vnxy = v_combine_low(vnx, vny);
+        vst1q_f64(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = v_combine_low(vnz, va1);
+        vst1q_f64(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = v_combine_low(va2, va3);
+        vst1q_f64(ptr_L, vnxy);
+        ptr_L += 2;
+
+        vnxy = v_combine_high(vnx, vny);
+        vst1q_f64(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = v_combine_high(vnz, va1);
+        vst1q_f64(ptr_L, vnxy);
+        ptr_L += 2;
+        vnxy = v_combine_high(va2, va3);
+        vst1q_f64(ptr_L, vnxy);
+        ptr_L += 2;
+
+        const float64x2_t verror = vaddq_f64(vd, v_fma(vnx, vx, v_fma(vny, vy, vmulq_f64(vnz, vz))));
+        vst1q_f64(ptr_error, verror);
+        ptr_error += 2;
+#endif
       }
     }
 
@@ -525,12 +780,12 @@ void vpMbtFaceDepthDense::computeInteractionMatrixAndResidu(const vpHomogeneousM
       double _a3 = (ny * x) - (nx * y);
 
       // L
-      L[(unsigned int)(cpt / 3)][0] = nx;
-      L[(unsigned int)(cpt / 3)][1] = ny;
-      L[(unsigned int)(cpt / 3)][2] = nz;
-      L[(unsigned int)(cpt / 3)][3] = _a1;
-      L[(unsigned int)(cpt / 3)][4] = _a2;
-      L[(unsigned int)(cpt / 3)][5] = _a3;
+      L[static_cast<unsigned int>(cpt / 3)][0] = nx;
+      L[static_cast<unsigned int>(cpt / 3)][1] = ny;
+      L[static_cast<unsigned int>(cpt / 3)][2] = nz;
+      L[static_cast<unsigned int>(cpt / 3)][3] = _a1;
+      L[static_cast<unsigned int>(cpt / 3)][4] = _a2;
+      L[static_cast<unsigned int>(cpt / 3)][5] = _a3;
 
       vpColVector normal(3);
       normal[0] = nx;
@@ -543,10 +798,11 @@ void vpMbtFaceDepthDense::computeInteractionMatrixAndResidu(const vpHomogeneousM
       pt[2] = z;
 
       // Error
-      error[(unsigned int)(cpt / 3)] = D + (normal.t() * pt);
+      error[static_cast<unsigned int>(cpt / 3)] = D + (normal.t() * pt);
     }
 #endif
-  } else {
+  }
+  else {
     vpColVector normal(3);
     normal[0] = nx;
     normal[1] = ny;
@@ -580,8 +836,8 @@ void vpMbtFaceDepthDense::computeInteractionMatrixAndResidu(const vpHomogeneousM
   }
 }
 
-void vpMbtFaceDepthDense::computeROI(const vpHomogeneousMatrix &cMo, unsigned int width,
-                                     unsigned int height, std::vector<vpImagePoint> &roiPts
+void vpMbtFaceDepthDense::computeROI(const vpHomogeneousMatrix &cMo, unsigned int width, unsigned int height,
+                                     std::vector<vpImagePoint> &roiPts
 #if DEBUG_DISPLAY_DEPTH_DENSE
                                      ,
                                      std::vector<std::vector<vpImagePoint> > &roiPts_vec
@@ -643,19 +899,21 @@ void vpMbtFaceDepthDense::computeROI(const vpHomogeneousMatrix &cMo, unsigned in
 
         if (linesLst.empty()) {
           distanceToFace = std::numeric_limits<double>::max();
-        } else {
+        }
+        else {
           faceCentroid.set_X(faceCentroid.get_X() / (2 * linesLst.size()));
           faceCentroid.set_Y(faceCentroid.get_Y() / (2 * linesLst.size()));
           faceCentroid.set_Z(faceCentroid.get_Z() / (2 * linesLst.size()));
 
           distanceToFace =
-              sqrt(faceCentroid.get_X() * faceCentroid.get_X() + faceCentroid.get_Y() * faceCentroid.get_Y() +
-                   faceCentroid.get_Z() * faceCentroid.get_Z());
+            sqrt(faceCentroid.get_X() * faceCentroid.get_X() + faceCentroid.get_Y() * faceCentroid.get_Y() +
+                 faceCentroid.get_Z() * faceCentroid.get_Z());
         }
       }
     }
-  } else {
-    // Get polygon clipped
+  }
+  else {
+ // Get polygon clipped
     m_polygon->getRoiClipped(m_cam, roiPts, cMo);
 
     // Get 3D polygon clipped
@@ -664,7 +922,8 @@ void vpMbtFaceDepthDense::computeROI(const vpHomogeneousMatrix &cMo, unsigned in
 
     if (polygonsClipped.empty()) {
       distanceToFace = std::numeric_limits<double>::max();
-    } else {
+    }
+    else {
       vpPoint faceCentroid;
 
       for (size_t i = 0; i < polygonsClipped.size(); i++) {
@@ -691,7 +950,8 @@ void vpMbtFaceDepthDense::display(const vpImage<unsigned char> &I, const vpHomog
                                   const vpCameraParameters &cam, const vpColor &col, unsigned int thickness,
                                   bool displayFullModel)
 {
-  std::vector<std::vector<double> > models = getModelForDisplay(I.getWidth(), I.getHeight(), cMo, cam, displayFullModel);
+  std::vector<std::vector<double> > models =
+    getModelForDisplay(I.getWidth(), I.getHeight(), cMo, cam, displayFullModel);
 
   for (size_t i = 0; i < models.size(); i++) {
     vpImagePoint ip1(models[i][1], models[i][2]);
@@ -704,7 +964,8 @@ void vpMbtFaceDepthDense::display(const vpImage<vpRGBa> &I, const vpHomogeneousM
                                   const vpCameraParameters &cam, const vpColor &col, unsigned int thickness,
                                   bool displayFullModel)
 {
-  std::vector<std::vector<double> > models = getModelForDisplay(I.getWidth(), I.getHeight(), cMo, cam, displayFullModel);
+  std::vector<std::vector<double> > models =
+    getModelForDisplay(I.getWidth(), I.getHeight(), cMo, cam, displayFullModel);
 
   for (size_t i = 0; i < models.size(); i++) {
     vpImagePoint ip1(models[i][1], models[i][2]);
@@ -716,14 +977,12 @@ void vpMbtFaceDepthDense::display(const vpImage<vpRGBa> &I, const vpHomogeneousM
 void vpMbtFaceDepthDense::displayFeature(const vpImage<unsigned char> & /*I*/, const vpHomogeneousMatrix & /*cMo*/,
                                          const vpCameraParameters & /*cam*/, const double /*scale*/,
                                          const unsigned int /*thickness*/)
-{
-}
+{ }
 
 void vpMbtFaceDepthDense::displayFeature(const vpImage<vpRGBa> & /*I*/, const vpHomogeneousMatrix & /*cMo*/,
                                          const vpCameraParameters & /*cam*/, const double /*scale*/,
                                          const unsigned int /*thickness*/)
-{
-}
+{ }
 
 /*!
   Return a list of line parameters to display the primitive at a given pose and camera parameters.
@@ -749,7 +1008,8 @@ std::vector<std::vector<double> > vpMbtFaceDepthDense::getModelForDisplay(unsign
     for (std::vector<vpMbtDistanceLine *>::const_iterator it = m_listOfFaceLines.begin(); it != m_listOfFaceLines.end();
          ++it) {
       vpMbtDistanceLine *line = *it;
-      std::vector<std::vector<double> > lineModels = line->getModelForDisplay(width, height, cMo, cam, displayFullModel);
+      std::vector<std::vector<double> > lineModels =
+        line->getModelForDisplay(width, height, cMo, cam, displayFullModel);
       models.insert(models.end(), lineModels.begin(), lineModels.end());
     }
   }
@@ -798,3 +1058,4 @@ void vpMbtFaceDepthDense::setScanLineVisibilityTest(bool v)
     (*it)->useScanLine = v;
   }
 }
+END_VISP_NAMESPACE

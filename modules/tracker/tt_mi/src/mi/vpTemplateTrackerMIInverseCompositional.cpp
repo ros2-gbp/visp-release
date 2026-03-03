@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,17 +33,16 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #include <visp3/core/vpTrackingException.h>
 #include <visp3/tt_mi/vpTemplateTrackerMIInverseCompositional.h>
 
 #include <memory>
 
+BEGIN_VISP_NAMESPACE
 vpTemplateTrackerMIInverseCompositional::vpTemplateTrackerMIInverseCompositional(vpTemplateTrackerWarp *_warp)
   : vpTemplateTrackerMI(_warp), minimizationMethod(USE_LMA), CompoInitialised(false), useTemplateSelect(false),
-    p_prec(), G_prec(), KQuasiNewton()
+  p_prec(), G_prec(), KQuasiNewton()
 {
   useInverse = true;
 }
@@ -66,7 +64,8 @@ void vpTemplateTrackerMIInverseCompositional::initTemplateRefBspline(unsigned in
     ptBspFct = &vpTemplateTrackerMIBSpline::Bspline3;
     ptdBspFct = &vpTemplateTrackerMIBSpline::dBspline3;
     ptd2BspFct = &vpTemplateTrackerMIBSpline::d2Bspline3;
-  } else {
+  }
+  else {
     ptBspFct = &vpTemplateTrackerBSpline::Bspline4;
     ptdBspFct = &vpTemplateTrackerMIBSpline::dBspline4;
     ptd2BspFct = &vpTemplateTrackerMIBSpline::d2Bspline4;
@@ -77,10 +76,11 @@ void vpTemplateTrackerMIInverseCompositional::initTemplateRefBspline(unsigned in
     ptTemplateSupp[ptIndex].BtInit[index++] = (*ptBspFct)(static_cast<double>(-it) + et);
 
     for (unsigned int ip = 0; ip < nbParam; ++ip) {
-      ptTemplateSupp[ptIndex].BtInit[index++] = (*ptdBspFct)(static_cast<double>(-it) + et) * ptTemplate[ptIndex].dW[ip] * (-1.0);
+      ptTemplateSupp[ptIndex].BtInit[index++] =
+        (*ptdBspFct)(static_cast<double>(-it) + et) * ptTemplate[ptIndex].dW[ip] * (-1.0);
       for (unsigned int ip2 = 0; ip2 < nbParam; ++ip2) {
         ptTemplateSupp[ptIndex].BtInit[index++] =
-            (*ptd2BspFct)(static_cast<double>(-it) + et) * ptTemplate[ptIndex].dW[ip] * ptTemplate[ptIndex].dW[ip2];
+          (*ptd2BspFct)(static_cast<double>(-it) + et) * ptTemplate[ptIndex].dW[ip] * ptTemplate[ptIndex].dW[ip2];
       }
     }
   }
@@ -166,14 +166,17 @@ void vpTemplateTrackerMIInverseCompositional::initHessienDesired(const vpImage<u
       if (ApproxHessian == HESSIAN_NONSECOND && (ptTemplateSelect[point] || !useTemplateSelect)) {
         vpTemplateTrackerMIBSpline::PutTotPVBsplineNoSecond(PrtTout, cr, er, ct, et, Nc, ptTemplate[point].dW, nbParam,
                                                             bspline);
-      } else if ((ApproxHessian == HESSIAN_0 || ApproxHessian == HESSIAN_NEW) &&
-                 (ptTemplateSelect[point] || !useTemplateSelect)) {
+      }
+      else if ((ApproxHessian == HESSIAN_0 || ApproxHessian == HESSIAN_NEW) &&
+              (ptTemplateSelect[point] || !useTemplateSelect)) {
         if (bspline == 3) {
           vpTemplateTrackerMIBSpline::PutTotPVBspline3(PrtTout, cr, er, ct, et, Nc, ptTemplate[point].dW, nbParam);
-        } else {
+        }
+        else {
           vpTemplateTrackerMIBSpline::PutTotPVBspline4(PrtTout, cr, er, ct, et, Nc, ptTemplate[point].dW, nbParam);
         }
-      } else if (ptTemplateSelect[point] || !useTemplateSelect)
+      }
+      else if (ptTemplateSelect[point] || !useTemplateSelect)
         vpTemplateTrackerMIBSpline::PutTotPVBsplinePrt(PrtTout, cr, er, ct, et, Nc, nbParam, bspline);
     }
   }
@@ -264,15 +267,18 @@ void vpTemplateTrackerMIInverseCompositional::trackNoPyr(const vpImage<unsigned 
             (ptTemplateSelect[point] || !useTemplateSelect)) {
           vpTemplateTrackerMIBSpline::PutTotPVBsplineNoSecond(Prt, dPrt, cr, er, ct, et, Ncb, ptTemplate[point].dW,
                                                               nbParam, bspline);
-        } else if (ptTemplateSelect[point] || !useTemplateSelect) {
+        }
+        else if (ptTemplateSelect[point] || !useTemplateSelect) {
           if (bspline == 3) {
-            vpTemplateTrackerMIBSpline::PutTotPVBspline3(Prt, dPrt, d2Prt, cr, er, ct, et, Ncb,
-                                                         ptTemplate[point].dW, nbParam);
-          } else {
-            vpTemplateTrackerMIBSpline::PutTotPVBspline4(Prt, dPrt, d2Prt, cr, er, ct, et, Ncb,
-                                                         ptTemplate[point].dW, nbParam);
+            vpTemplateTrackerMIBSpline::PutTotPVBspline3(Prt, dPrt, d2Prt, cr, er, ct, et, Ncb, ptTemplate[point].dW,
+                                                         nbParam);
           }
-        } else {
+          else {
+            vpTemplateTrackerMIBSpline::PutTotPVBspline4(Prt, dPrt, d2Prt, cr, er, ct, et, Ncb, ptTemplate[point].dW,
+                                                         nbParam);
+          }
+        }
+        else {
           vpTemplateTrackerMIBSpline::PutTotPVBsplinePrt(Prt, cr, er, ct, et, Ncb, nbParam, bspline);
         }
       }
@@ -283,7 +289,8 @@ void vpTemplateTrackerMIInverseCompositional::trackNoPyr(const vpImage<unsigned 
       MI = 0;
       throw(vpTrackingException(vpTrackingException::notEnoughPointError, "No points in the template"));
 
-    } else {
+    }
+    else {
       unsigned int indd, indd2;
       indd = indd2 = 0;
       unsigned int Ncb_ = static_cast<unsigned int>(Ncb);
@@ -323,7 +330,8 @@ void vpTemplateTrackerMIInverseCompositional::trackNoPyr(const vpImage<unsigned 
           dp = gain * 0.2 * HLM.inverseByLU() * G;
           break;
         }
-      } catch (const vpException &e) {
+      }
+      catch (const vpException &e) {
         throw(e);
       }
     }
@@ -342,7 +350,8 @@ void vpTemplateTrackerMIInverseCompositional::trackNoPyr(const vpImage<unsigned 
       if (MI_LMA > MI) {
         dp = dp_test_LMA;
         lambda = (lambda / 10. < 1e-6) ? lambda / 10. : 1e-6;
-      } else {
+      }
+      else {
         dp = 0;
         lambda = (lambda * 10. < 1e6) ? 1e6 : lambda * 10.;
       }
@@ -374,7 +383,7 @@ void vpTemplateTrackerMIInverseCompositional::trackNoPyr(const vpImage<unsigned 
         dp = alpha * dp;
       }
       if (ApproxHessian == HESSIAN_NONSECOND)
-        dp = - dp;
+        dp = -dp;
 
       break;
     }
@@ -393,8 +402,8 @@ void vpTemplateTrackerMIInverseCompositional::trackNoPyr(const vpImage<unsigned 
     evolRMS_delta = std::fabs(evolRMS - evolRMS_prec);
     evolRMS_prec = evolRMS;
 
-  } while ((!diverge) && (std::fabs(MI - MIprec) > std::fabs(MI) *std::numeric_limits<double>::epsilon()) &&
-           (iteration < iterationMax) && (evolRMS_delta > std::fabs(evolRMS_init)*evolRMS_eps) );
+  } while ((!diverge) && (std::fabs(MI - MIprec) > std::fabs(MI) * std::numeric_limits<double>::epsilon()) &&
+           (iteration < iterationMax) && (evolRMS_delta > std::fabs(evolRMS_init) * evolRMS_eps));
 
   nbIteration = iteration;
 
@@ -405,7 +414,8 @@ void vpTemplateTrackerMIInverseCompositional::trackNoPyr(const vpImage<unsigned 
       MI_postEstimation = -1;
       NMI_postEstimation = -1;
     }
-  } else {
+  }
+  else {
     MI_postEstimation = -getCost(I, p);
     NMI_postEstimation = -getNormalizedCost(I, p);
 
@@ -420,7 +430,8 @@ void vpTemplateTrackerMIInverseCompositional::trackNoPyr(const vpImage<unsigned 
     if (computeCovariance) {
       try {
         covarianceMatrix = (-H).inverseByLU();
-      } catch (...) {
+      }
+      catch (...) {
         covarianceMatrix = vpMatrix(Warp->getNbParam(), Warp->getNbParam());
         covarianceMatrix = -1;
         MI_postEstimation = -1;
@@ -429,3 +440,4 @@ void vpTemplateTrackerMIInverseCompositional::trackNoPyr(const vpImage<unsigned 
     }
   }
 }
+END_VISP_NAMESPACE

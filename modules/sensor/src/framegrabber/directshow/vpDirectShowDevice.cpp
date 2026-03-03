@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * DirectShow device description.
- *
- * Authors:
- * Bruno Renier
- *
- *****************************************************************************/
+ */
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -44,6 +39,7 @@
 
 #include <visp3/sensor/vpDirectShowDevice.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
         Initialize the vpDirectShowDevice with the moniker's information
         \param pMoniker The moniker that contains the device's information
@@ -70,7 +66,7 @@ bool vpDirectShowDevice::init(const CComPtr<IMoniker> &pMoniker)
 
   // successfully got the name
   if (SUCCEEDED(hr)) {
-    sprintf(tmp, "%S", varName.bstrVal);
+    snprintf(tmp, FILENAME_MAX, "%S", varName.bstrVal);
     name = tmp;
   }
 
@@ -80,7 +76,7 @@ bool vpDirectShowDevice::init(const CComPtr<IMoniker> &pMoniker)
 
   // successfully got the description
   if (SUCCEEDED(hr)) {
-    sprintf(tmp, "%S", varDesc.bstrVal);
+    snprintf(tmp, FILENAME_MAX, "%S", varDesc.bstrVal);
     desc = tmp;
   }
 
@@ -90,7 +86,7 @@ bool vpDirectShowDevice::init(const CComPtr<IMoniker> &pMoniker)
 
   // successfully got the device path
   if (SUCCEEDED(hr)) {
-    sprintf(tmp, "%S", varDevPath.bstrVal);
+    snprintf(tmp, FILENAME_MAX, "%S", varDevPath.bstrVal);
     devPath = tmp;
   }
 
@@ -114,10 +110,10 @@ VISP_EXPORT std::ostream &operator<<(std::ostream &os, vpDirectShowDevice &dev)
 {
   return os << dev.name << std::endl << dev.desc << std::endl << dev.devPath;
 }
-
+END_VISP_NAMESPACE
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_sensor.a(vpDirectShowDevice.cpp.o)
+// Work around to avoid warning: libvisp_sensor.a(vpDirectShowDevice.cpp.o)
 // has no symbols
-void dummy_vpDirectShowDevice(){};
+void dummy_vpDirectShowDevice() { }
 #endif
 #endif
