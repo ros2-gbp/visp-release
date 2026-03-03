@@ -399,6 +399,7 @@ tracks:
     last_version: 3.5.0
     name: upstream
     patches: rolling
+    source_path: .
     release_inc: '3'
     release_repo_url: null
     release_tag: :{ask}
