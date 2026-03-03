@@ -265,7 +265,8 @@ tracks:
     last_release: v3.7.0
     last_version: 3.7.0
     name: upstream
-    patches: rolling
+    patches: kilted
+    source_path: .
     release_inc: '2'
     release_repo_url: null
     release_tag: :{ask}
