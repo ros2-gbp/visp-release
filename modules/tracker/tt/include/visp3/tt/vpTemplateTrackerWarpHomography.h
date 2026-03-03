@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,9 +33,7 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 /*!
  \file vpTemplateTrackerWarpHomography.h
  \brief warping function of an homography: the homography is directly defined
@@ -46,16 +43,17 @@
 #ifndef vpTemplateTrackerWarpHomography_hh
 #define vpTemplateTrackerWarpHomography_hh
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/tt/vpTemplateTrackerWarp.h>
 #include <visp3/vision/vpHomography.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpTemplateTrackerWarpHomography
   \ingroup group_tt_warp
 
-  This class consider the homography warping model \f$M\f$ with parameters \f$p=(h_1, h_2, h_3, h_4, h_5, h_6, h_7, h_8)\f$ such as
-  \f[M(p) = \left[
-  \begin{array}{ccc}
+  This class consider the homography warping model \f$M\f$ with parameters \f$p=(h_1, h_2, h_3, h_4, h_5, h_6, h_7,
+  h_8)\f$ such as \f[M(p) = \left[ \begin{array}{ccc}
   h_1 + 1 & h_4 & h_7 \\
   h_2 & h_5 + 1 & h_8 \\
   h_3 & h_6 & 1
@@ -63,9 +61,15 @@
   \right]
   \f]
 
-  We recall that u axis is the image horizontal axis, and v axis is the image vertical axis. A point (u,v) with coordinates
-  (0,0) is located in the top left image corner.
+  We recall that u axis is the image horizontal axis, and v axis is the image vertical axis. A point (u,v) with
+  coordinates (0,0) is located in the top left image corner.
 
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in the Template Tracker  (TT), you may have a look at:</span><br>
+
+  - \ref tutorial-tracking-tt
 */
 class VISP_EXPORT vpTemplateTrackerWarpHomography : public vpTemplateTrackerWarp
 {
@@ -73,14 +77,13 @@ public:
   vpTemplateTrackerWarpHomography();
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-  void computeCoeff(const vpColVector &) {}
+  void computeCoeff(const vpColVector &) { }
 #endif
 
   void computeDenom(vpColVector &X, const vpColVector &p);
 
   void dWarp(const vpColVector &, const vpColVector &X, const vpColVector &, vpMatrix &dW);
-  void dWarpCompo(const vpColVector &X, const vpColVector &, const vpColVector &p, const double *dwdp0,
-                  vpMatrix &dW);
+  void dWarpCompo(const vpColVector &X, const vpColVector &, const vpColVector &p, const double *dwdp0, vpMatrix &dW);
 
   void getdW0(const int &v, const int &u, const double &dv, const double &du, double *dIdW);
   void getdWdp0(const int &v, const int &u, double *dIdW);
@@ -106,4 +109,5 @@ public:
   void warpX(const int &v1, const int &u1, double &v2, double &u2, const vpColVector &p);
   void warpXInv(const vpColVector &X1, vpColVector &X2, const vpColVector &p);
 };
+END_VISP_NAMESPACE
 #endif
