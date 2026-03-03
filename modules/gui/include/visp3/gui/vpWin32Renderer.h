@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,28 +29,38 @@
  *
  * Description:
  * Windows 32 renderer base class
- *
- * Authors:
- * Bruno Renier
- *
- *****************************************************************************/
+ */
+
+#ifndef VP_WIN32_RENDERER_H
+#define VP_WIN32_RENDERER_H
 
 #include <visp3/core/vpConfig.h>
 
 #if (defined(VISP_HAVE_GDI) || defined(VISP_HAVE_D3D9))
 
-#ifndef vpWin32Renderer_HH
-#define vpWin32Renderer_HH
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <visp3/core/vpColor.h>
 #include <visp3/core/vpImage.h>
+
+// Mute warning with clang-cl
+// warning : non-portable path to file '<WinSock2.h>'; specified path differs in case from file name on disk [-Wnonportable-system-include-path]
+// warning : non-portable path to file '<Windows.h>'; specified path differs in case from file name on disk [-Wnonportable-system-include-path]
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wnonportable-system-include-path"
+#endif
+
 // Include WinSock2.h before windows.h to ensure that winsock.h is not
 // included by windows.h since winsock.h and winsock2.h are incompatible
 #include <WinSock2.h>
-#include <visp3/core/vpDebug.h>
 #include <windows.h>
+
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#endif
+
+BEGIN_VISP_NAMESPACE
 
 class VISP_EXPORT vpWin32Renderer
 {
@@ -63,9 +72,34 @@ protected:
   unsigned int m_rscale;
 
 public:
-  vpWin32Renderer() : m_rwidth(0), m_rheight(0), m_rscale(1){};
-  //! Destructor.
-  virtual ~vpWin32Renderer(){};
+  /*!
+   * Default constructor;
+   */
+  vpWin32Renderer() : m_rwidth(0), m_rheight(0), m_rscale(1) { }
+
+  /*!
+   * Copy constructor;
+   */
+  vpWin32Renderer(const vpWin32Renderer &renderer)
+  {
+    *this = renderer;
+  }
+
+  /*!
+   * Destructor.
+   */
+  virtual ~vpWin32Renderer() { }
+
+  /*!
+   * Copy operator;
+   */
+  vpWin32Renderer &operator=(const vpWin32Renderer &renderer)
+  {
+    m_rwidth = renderer.m_rwidth;
+    m_rheight = renderer.m_rheight;
+    m_rscale = renderer.m_rscale;
+    return *this;
+  }
 
   //! Inits the display .
   virtual bool init(HWND hWnd, unsigned int w, unsigned int h) = 0;
@@ -155,11 +189,12 @@ public:
 
   /*!
     Draws an arrow.
-    \param ip1 it's starting point coordinates
-    \param ip2 it's ending point coordinates
-    \param color The line's color
-    \param w,h Width and height of the arrow
-    \param thickness Thickness of the drawing
+    \param[in] ip1 It's starting point coordinates.
+    \param[in] ip2 It's ending point coordinates.
+    \param[in] color The line's color.
+    \param[in] w Arrow width.
+    \param[in] h Arrow height.
+    \param[in] thickness Thickness of the drawing
   */
   virtual void drawArrow(const vpImagePoint &ip1, const vpImagePoint &ip2, const vpColor &color, unsigned int w,
                          unsigned int h, unsigned int thickness) = 0;
@@ -171,6 +206,8 @@ public:
   virtual void getImage(vpImage<vpRGBa> &I) = 0;
 };
 
+
+END_VISP_NAMESPACE
 #endif
 #endif
 #endif

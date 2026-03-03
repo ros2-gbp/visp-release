@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,30 +29,28 @@
  *
  * Description:
  * Generic virtual robot.
- *
- * Authors:
- * Eric Marchand
- *
- *****************************************************************************/
-
-#ifndef vpRobot_H
-#define vpRobot_H
+ */
 
 /*!
   \file vpRobot.h
   \brief class that defines a generic virtual robot
 */
 
+#ifndef vpRobot_H
+#define vpRobot_H
+
 #include <visp3/core/vpColVector.h>
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpMatrix.h>
 #include <visp3/core/vpPoseVector.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpRobot
-  \ingroup group_robot_real_gantry group_robot_real_cylindrical
-  group_robot_real_arm \ingroup group_robot_real_ptu group_robot_real_unicycle
-  group_robot_real_template \brief Class that defines a generic virtual robot.
+  \ingroup group_robot_real_gantry group_robot_real_arm group_robot_real_ptu group_robot_real_unicycle
+  group_robot_real_template
+  \brief Class that defines a generic virtual robot.
 */
 class VISP_EXPORT vpRobot
 {
@@ -61,7 +58,8 @@ public:
   /*!
     Robot control states.
   */
-  typedef enum {
+  typedef enum
+  {
     STATE_STOP,                 //!< Stops robot motion especially in velocity and acceleration control.
     STATE_VELOCITY_CONTROL,     //!< Initialize the velocity controller.
     STATE_POSITION_CONTROL,     //!< Initialize the position controller.
@@ -72,20 +70,21 @@ public:
   /*!
     Robot control frames.
   */
-  typedef enum {
-    REFERENCE_FRAME, /*!< Corresponds to a fixed reference frame
-  attached to the robot structure. */
-    ARTICULAR_FRAME, /*!< Corresponds to the joint state. This value is deprecated.
-  You should rather use vpRobot::JOINT_STATE. */
+  typedef enum
+  {
+    REFERENCE_FRAME,               /*!< Corresponds to a fixed reference frame
+                attached to the robot structure. */
+    ARTICULAR_FRAME,               /*!< Corresponds to the joint state. This value is deprecated.
+                You should rather use vpRobot::JOINT_STATE. */
     JOINT_STATE = ARTICULAR_FRAME, /*!< Corresponds to the joint state. */
-    END_EFFECTOR_FRAME,    /*!< Corresponds to robot end-effector frame. */
-    CAMERA_FRAME,    /*!< Corresponds to a frame attached to the
-  camera mounted on the robot end-effector. */
-    TOOL_FRAME = CAMERA_FRAME,    /*!< Corresponds to a frame attached to the
-  tool (camera, gripper...) mounted on the robot end-effector. This value is equal to vpRobot::CAMERA_FRAME. */
-    MIXT_FRAME       /*!< Corresponds to a "virtual" frame where
-        translations are expressed in the reference frame, and
-        rotations in the camera frame.*/
+    END_EFFECTOR_FRAME,            /*!< Corresponds to robot end-effector frame. */
+    CAMERA_FRAME,                  /*!< Corresponds to a frame attached to the
+                camera mounted on the robot end-effector. */
+    TOOL_FRAME = CAMERA_FRAME,     /*!< Corresponds to a frame attached to the
+   tool (camera, gripper...) mounted on the robot end-effector. This value is equal to vpRobot::CAMERA_FRAME. */
+    MIXT_FRAME                     /*!< Corresponds to a "virtual" frame where
+                      translations are expressed in the reference frame, and
+                      rotations in the camera frame.*/
   } vpControlFrameType;
 
 private: /* Membres privees */
@@ -136,8 +135,17 @@ public:
 
   double getMaxTranslationVelocity(void) const;
   double getMaxRotationVelocity(void) const;
+
+  /*!
+   * Return robot degrees of freedom number.
+   */
+  int getNDof() const
+  {
+    return nDof;
+  }
+
   //! Get the robot position (frame has to be specified).
-  virtual void getPosition(const vpRobot::vpControlFrameType frame, vpColVector &q) = 0;
+  virtual void getPosition(const vpRobot::vpControlFrameType frame, vpColVector &position) = 0;
 
   // Return the robot position (frame has to be specified).
   vpColVector getPosition(const vpRobot::vpControlFrameType frame);
@@ -156,7 +164,7 @@ public:
   //! Set the velocity (frame has to be specified) that will be applied to the
   //! velocity controller.
   virtual void setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &vel) = 0;
-  inline void setVerbose(bool verbose) { verbose_ = verbose; };
+  inline void setVerbose(bool verbose) { verbose_ = verbose; }
 
   //@}
 
@@ -172,5 +180,5 @@ protected:
   vpControlFrameType getRobotFrame(void) const { return frameRobot; }
   //@}
 };
-
+END_VISP_NAMESPACE
 #endif

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,20 +29,17 @@
  *
  * Description:
  * Conversion between tracker and visual feature.
- *
- * Authors:
- * Eric Marchand
- * Fabien Spindler
- *
- *****************************************************************************/
-
-#ifndef vpFeatureBuilder_H
-#define vpFeatureBuilder_H
+ */
 
 /*!
   \file vpFeatureBuilder.h
   \brief  class  that defines conversion between tracker and visual feature
 */
+
+#ifndef vpFeatureBuilder_H
+#define vpFeatureBuilder_H
+
+
 #include <visp3/core/vpConfig.h>
 
 // tracker
@@ -83,11 +79,21 @@
 #include <visp3/core/vpMeterPixelConversion.h>
 #include <visp3/core/vpPixelMeterConversion.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpFeatureBuilder
 
   \ingroup group_visual_features_builder
   \brief Class that defines conversion between trackers and visual features.
+
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in how to use this class, you may have a look at:</span><br>
+
+  - \ref tutorial-ibvs
+  - \ref tutorial-simu-robot-pioneer
+  - \ref tutorial-franka-ibvs-eth
 */
 class VISP_EXPORT vpFeatureBuilder
 {
@@ -143,11 +149,18 @@ public:
   static void create(vpFeatureEllipse &s, const vpCameraParameters &cam, const vpMeEllipse &ellipse);
 #endif
 
-  // To keep compat with previous releases, we set cartesian coordinates as default initialising select var to selectX() or selectY()
-  static void create(vpFeatureVanishingPoint &s, const vpPoint &p, unsigned int select = (vpFeatureVanishingPoint::selectX() | vpFeatureVanishingPoint::selectY()));
-  static void create(vpFeatureVanishingPoint &s, const vpFeatureLine &l1, const vpFeatureLine &l2, unsigned int select = (vpFeatureVanishingPoint::selectX() | vpFeatureVanishingPoint::selectY()));
-  static void create(vpFeatureVanishingPoint &s, const vpLine &l1, const vpLine &l2, unsigned int select = (vpFeatureVanishingPoint::selectX() | vpFeatureVanishingPoint::selectY()));
+  // To keep compat with previous releases, we set cartesian coordinates as default initialising select var to selectX()
+  // or selectY()
+  static void create(vpFeatureVanishingPoint &s, const vpPoint &p,
+                     unsigned int select = (vpFeatureVanishingPoint::selectX() | vpFeatureVanishingPoint::selectY()));
+  static void create(vpFeatureVanishingPoint &s, const vpFeatureLine &l1, const vpFeatureLine &l2,
+                     unsigned int select = (vpFeatureVanishingPoint::selectX() | vpFeatureVanishingPoint::selectY()));
+  static void create(vpFeatureVanishingPoint &s, const vpLine &l1, const vpLine &l2,
+                     unsigned int select = (vpFeatureVanishingPoint::selectX() | vpFeatureVanishingPoint::selectY()));
   // This function is new that's why select is not initialized
-  static void create(vpFeatureVanishingPoint &s, const vpCameraParameters &cam, const vpImagePoint &line1_ip1, const vpImagePoint &line1_ip2, const vpImagePoint &line2_ip1, const vpImagePoint &line2_ip2, unsigned int select);
+  static void create(vpFeatureVanishingPoint &s, const vpCameraParameters &cam, const vpImagePoint &line1_ip1,
+                     const vpImagePoint &line1_ip2, const vpImagePoint &line2_ip1, const vpImagePoint &line2_ip2,
+                     unsigned int select);
 };
+END_VISP_NAMESPACE
 #endif

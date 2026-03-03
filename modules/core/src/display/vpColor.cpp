@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,15 +29,11 @@
  *
  * Description:
  * Color definition.
- *
- * Authors:
- * Nicolas Melchior
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpColor.h>
 
+BEGIN_VISP_NAMESPACE
 // FS: Sould be improved to avoid the #if preprocessor line. Not a good idea
 // to define colors in static.
 //     See also vpColor.h where things need to be improved.
@@ -102,7 +97,7 @@ vpColor const vpColor::none = vpColor(0, 0, 0, id_unknown);
 const unsigned int vpColor::nbColors = 18;
 
 /*!< Array of available colors. */
-vpColor const vpColor::allColors[vpColor::nbColors] = {vpColor::blue,       // 12
+vpColor const vpColor::allColors[vpColor::nbColors] = { vpColor::blue,       // 12
                                                        vpColor::green,      // 9
                                                        vpColor::red,        // 6
                                                        vpColor::cyan,       // 15
@@ -119,17 +114,16 @@ vpColor const vpColor::allColors[vpColor::nbColors] = {vpColor::blue,       // 1
                                                        vpColor::gray,       // 3
                                                        vpColor::darkGray,   // 4
                                                        vpColor::black,      // 0
-                                                       vpColor::white};     // 17
+                                                       vpColor::white };     // 17
 #endif
-
-vpColor colors[6] = {vpColor::blue, vpColor::green, vpColor::red, vpColor::cyan, vpColor::orange, vpColor::purple};
 
 /*!
   Compare two colors.
 
   Return true if the R,G,B components are the same.
 
-  \param c1,c2 : Color to compare.
+  \param c1 : First color to compare.
+  \param c2 : Second color to compare.
 */
 VISP_EXPORT bool operator==(const vpColor &c1, const vpColor &c2)
 {
@@ -142,9 +136,12 @@ VISP_EXPORT bool operator==(const vpColor &c1, const vpColor &c2)
 
   Return true if the R,G,B components are different.
 
-  \param c1,c2 : Color to compare.
+  \param c1 : First color to compare.
+  \param c2 : Second color to compare.
 */
 VISP_EXPORT bool operator!=(const vpColor &c1, const vpColor &c2)
 {
   return ((c1.R != c2.R) || (c1.G != c2.G) || (c1.B == c2.B));
 }
+
+END_VISP_NAMESPACE

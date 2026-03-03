@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,32 +29,25 @@
  *
  * Description:
  * Template tracker.
- *
- * Authors:
- * Amaury Dame
- * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
-
-#include <limits> // numeric_limits
+ */
 
 #include <visp3/core/vpConfig.h>
 
-#if VISP_HAVE_OPENCV_VERSION >= 0x020300
+#if defined(VISP_HAVE_OPENCV) && defined(HAVE_OPENCV_IMGPROC)
 #include <opencv2/imgproc/imgproc.hpp>
 #endif
 
 #include <visp3/tt/vpTemplateTrackerZone.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
    Default constructor.
  */
-vpTemplateTrackerZone::vpTemplateTrackerZone() : Zone(), min_x(-1), min_y(-1), max_x(-1), max_y(-1) {}
+  vpTemplateTrackerZone::vpTemplateTrackerZone() : Zone(), min_x(-1), min_y(-1), max_x(-1), max_y(-1) { }
 
-/*!
-   Copy constructor.
- */
+  /*!
+     Copy constructor.
+   */
 vpTemplateTrackerZone::vpTemplateTrackerZone(const vpTemplateTrackerZone &z)
   : Zone(), min_x(-1), min_y(-1), max_x(-1), max_y(-1)
 {
@@ -128,7 +120,8 @@ void vpTemplateTrackerZone::initClick(const vpImage<unsigned char> &I, bool dela
         if (delaunay) {
           // Draw a line between the 2 last points
           vpDisplay::displayLine(I, p, vip[vip.size() - 2], vpColor::blue, 3);
-        } else {
+        }
+        else {
           if (vip.size() % 3 == 2)
             // draw line between point 2-1
             vpDisplay::displayLine(I, p, vip[vip.size() - 2], vpColor::blue, 3);
@@ -171,7 +164,8 @@ void vpTemplateTrackerZone::initFromPoints(const vpImage<unsigned char> &I, cons
   if (delaunay) {
     if (vip.size() == 3) {
       initFromPoints(I, vip, false);
-    } else if (vip.size() == 4) {
+    }
+    else if (vip.size() == 4) {
       std::vector<vpImagePoint> vip_delaunay;
       vip_delaunay.push_back(vip[0]);
       vip_delaunay.push_back(vip[1]);
@@ -180,12 +174,13 @@ void vpTemplateTrackerZone::initFromPoints(const vpImage<unsigned char> &I, cons
       vip_delaunay.push_back(vip[3]);
       vip_delaunay.push_back(vip[0]);
       initFromPoints(I, vip_delaunay, false);
-    } else {
-#if VISP_HAVE_OPENCV_VERSION >= 0x020300
+    }
+    else {
+#if defined(VISP_HAVE_OPENCV) && defined(HAVE_OPENCV_IMGPROC)
       // Init Delaunay
-      cv::Subdiv2D subdiv(cv::Rect(0, 0, (int)I.getWidth(), (int)I.getHeight()));
+      cv::Subdiv2D subdiv(cv::Rect(0, 0, static_cast<int>(I.getWidth()), static_cast<int>(I.getHeight())));
       for (size_t i = 0; i < vip.size(); i++) {
-        cv::Point2f fp((float)vip[i].get_u(), (float)vip[i].get_v());
+        cv::Point2f fp(static_cast<float>(vip[i].get_u()), static_cast<float>(vip[i].get_v()));
         // std::cout << "Click point: " << vip[i] << std::endl;
         subdiv.insert(fp);
       }
@@ -218,7 +213,8 @@ void vpTemplateTrackerZone::initFromPoints(const vpImage<unsigned char> &I, cons
       throw vpException(vpException::functionNotImplementedError, "Delaunay triangulation is not available!");
 #endif
     }
-  } else {
+  }
+  else {
     Zone.clear();
     for (unsigned int i = 0; i < vip.size(); i += 3) {
       vpTemplateTrackerTriangle triangle(vip[i], vip[i + 1], vip[i + 2]);
@@ -231,13 +227,13 @@ void vpTemplateTrackerZone::initFromPoints(const vpImage<unsigned char> &I, cons
 
       // Update the bounding box
       if ((triangle.getMinx() < min_x) || (min_x == -1))
-        min_x = (int)triangle.getMinx();
+        min_x = static_cast<int>(triangle.getMinx());
       if ((triangle.getMaxx() > max_x) || (max_x == -1))
-        max_x = (int)triangle.getMaxx();
+        max_x = static_cast<int>(triangle.getMaxx());
       if ((triangle.getMiny() < min_y) || (min_y == -1))
-        min_y = (int)triangle.getMiny();
+        min_y = static_cast<int>(triangle.getMiny());
       if ((triangle.getMaxy() > max_y) || (max_y == -1))
-        max_y = (int)triangle.getMaxy();
+        max_y = static_cast<int>(triangle.getMaxy());
     }
   }
 }
@@ -252,18 +248,19 @@ void vpTemplateTrackerZone::add(const vpTemplateTrackerTriangle &t)
 
   // Update the bounding box
   if ((t.getMinx() < min_x) || (min_x == -1))
-    min_x = (int)t.getMinx();
+    min_x = static_cast<int>(t.getMinx());
   if ((t.getMaxx() > max_x) || (max_x == -1))
-    max_x = (int)t.getMaxx();
+    max_x = static_cast<int>(t.getMaxx());
   if ((t.getMiny() < min_y) || (min_y == -1))
-    min_y = (int)t.getMiny();
+    min_y = static_cast<int>(t.getMiny());
   if ((t.getMaxy() > max_y) || (max_y == -1))
-    max_y = (int)t.getMaxy();
+    max_y = static_cast<int>(t.getMaxy());
 }
 
 /*!
-  Test if a pixel with coordinates (i,j) is in the zone..
-  \param i, j : Coordinates of the pixel to test.
+  Test if a pixel with coordinates (i,j) is in the zone.
+  \param i : Coordinate i of the pixel to test.
+  \param j : Coordinate j of the pixel to test.
   \return true if the pixel with coordinates (i,j) is in the zone defined by a
   set of triangles, false otherwise.
  */
@@ -278,8 +275,10 @@ bool vpTemplateTrackerZone::inZone(const int &i, const int &j) const
 }
 
 /*!
-  Test if a pixel with coordinates (i,j) is in the zone..
-  \param i, j : Coordinates of the pixel to test.
+  Test if a pixel with coordinates (i,j) is in the zone.
+
+  \param i : Coordinate i of the pixel to test.
+  \param j : Coordinate j of the pixel to test.
   \return true if the pixel with coordinates (i,j) is in the zone defined by a
   set of triangles, false otherwise.
  */
@@ -295,9 +294,12 @@ bool vpTemplateTrackerZone::inZone(const double &i, const double &j) const
 
 /*!
   Test if a pixel with coordinates (i,j) is in the zone and returns also the
-  index of the triangle that contains the pixel. \param i, j : Coordinates of
-  the pixel to test. \param id_triangle : Index of the triangle that contains
-  the pixel (i,j). \return true if the pixel with coordinates (i,j) is in the
+  index of the triangle that contains the pixel.
+
+  \param i : Coordinate i of the pixel to test.
+  \param j : Coordinate j of the pixel to test.
+  \param id_triangle : Index of the triangle that contains the pixel (i,j).
+  \return true if the pixel with coordinates (i,j) is in the
   zone defined by a set of triangles, false otherwise.
  */
 bool vpTemplateTrackerZone::inZone(const int &i, const int &j, unsigned int &id_triangle) const
@@ -316,9 +318,12 @@ bool vpTemplateTrackerZone::inZone(const int &i, const int &j, unsigned int &id_
 
 /*!
   Test if a pixel with coordinates (i,j) is in the zone and returns also the
-  index of the triangle that contains the pixel. \param i, j : Coordinates of
-  the pixel to test. \param id_triangle : Index of the triangle that contains
-  the pixel (i,j). \return true if the pixel with coordinates (i,j) is in the
+  index of the triangle that contains the pixel.
+
+  \param i : Coordinate i of the pixel to test.
+  \param j : Coordinate j of the pixel to test.
+  \param id_triangle : Index of the triangle that contains the pixel (i,j).
+  \return true if the pixel with coordinates (i,j) is in the
   zone defined by a set of triangles, false otherwise.
  */
 bool vpTemplateTrackerZone::inZone(const double &i, const double &j, unsigned int &id_triangle) const
@@ -337,9 +342,11 @@ bool vpTemplateTrackerZone::inZone(const double &i, const double &j, unsigned in
 
 /*!
   A zone is defined by a set of triangles. This function returns the ith
-  triangle. \param i : Index of the triangle to return. \param T : The
-  triangle corresponding to index i. \return true if the triangle with index i
-  was found, false otherwise.
+  triangle.
+  \param[in] i : Index of the triangle to return.
+  \param[out] T : The triangle corresponding to index i.
+  \exception  pException::badValue When the triangle with index i
+  was not found.
 
   The following sample code shows how to use this function:
   \code
@@ -360,8 +367,10 @@ void vpTemplateTrackerZone::getTriangle(unsigned int i, vpTemplateTrackerTriangl
 }
 /*!
   A zone is defined by a set of triangles. This function returns the ith
-  triangle. \param i : Index of the triangle to return. \return The triangle
-  corresponding to index i.
+  triangle.
+
+  \param i : Index of the triangle to return.
+  \return The triangle corresponding to index i.
 
   The following sample code shows how to use this function:
   \code
@@ -440,8 +449,11 @@ vpRect vpTemplateTrackerZone::getBoundingBox() const
 
 /*!
   If a display device is associated to image \c I, display in overlay the
-  triangles that define the zone. \param I : Image. \param col : Color used to
-  display the triangles. \param thickness : Thickness of the triangle lines.
+  triangles that define the zone.
+
+  \param I : Image.
+  \param col : Color used to display the triangles.
+  \param thickness : Thickness of the triangle lines.
  */
 void vpTemplateTrackerZone::display(const vpImage<unsigned char> &I, const vpColor &col, unsigned int thickness)
 {
@@ -457,8 +469,11 @@ void vpTemplateTrackerZone::display(const vpImage<unsigned char> &I, const vpCol
 
 /*!
   If a display device is associated to image \c I, display in overlay the
-  triangles that define the zone. \param I : Image. \param col : Color used to
-  display the triangles. \param thickness : Thickness of the triangle lines.
+  triangles that define the zone.
+
+  \param I : Image.
+  \param col : Color used to display the triangles.
+  \param thickness : Thickness of the triangle lines.
  */
 void vpTemplateTrackerZone::display(const vpImage<vpRGBa> &I, const vpColor &col, unsigned int thickness)
 {
@@ -479,18 +494,18 @@ vpTemplateTrackerZone::~vpTemplateTrackerZone() { clear(); }
 
 /*!
    Modify all the pixels inside a triangle with a given gray level.
-   \param I: Output image.
-   \param id: Triangle id. This value should be less than the number
+   \param I : Output image.
+   \param id : Triangle id. This value should be less than the number
    of triangles used to define the zone and available using getNbTriangle().
-   \param gray_level: Color used to fill the triangle with.
+   \param gray_level : Color used to fill the triangle with.
  */
 void vpTemplateTrackerZone::fillTriangle(vpImage<unsigned char> &I, unsigned int id, unsigned char gray_level)
 {
   assert(id < getNbTriangle());
   vpTemplateTrackerTriangle triangle;
   getTriangle(id, triangle);
-  for (int i = 0; i < (int)I.getHeight(); i++) {
-    for (int j = 0; j < (int)I.getWidth(); j++) {
+  for (int i = 0; i < static_cast<int>(I.getHeight()); i++) {
+    for (int j = 0; j < static_cast<int>(I.getWidth()); j++) {
       if (triangle.inTriangle(i, j)) {
         I[i][j] = gray_level;
       }
@@ -527,13 +542,13 @@ void vpTemplateTrackerZone::copy(const vpTemplateTrackerZone &z)
     add(triangle);
     // Update the bounding box
     if ((triangle.getMinx() < min_x) || (min_x == -1))
-      min_x = (int)triangle.getMinx();
+      min_x = static_cast<int>(triangle.getMinx());
     if ((triangle.getMaxx() > max_x) || (max_x == -1))
-      max_x = (int)triangle.getMaxx();
+      max_x = static_cast<int>(triangle.getMaxx());
     if ((triangle.getMiny() < min_y) || (min_y == -1))
-      min_y = (int)triangle.getMiny();
+      min_y = static_cast<int>(triangle.getMiny());
     if ((triangle.getMaxy() > max_y) || (max_y == -1))
-      max_y = (int)triangle.getMaxy();
+      max_y = static_cast<int>(triangle.getMaxy());
   }
 }
 
@@ -568,7 +583,7 @@ vpImagePoint vpTemplateTrackerZone::getCenter(int borne_x, int borne_y) const
 }
 
 /*!
- Return the area of the template zone.
+  Return the area of the template zone.
  */
 double vpTemplateTrackerZone::getArea() const
 {
@@ -580,3 +595,4 @@ double vpTemplateTrackerZone::getArea() const
   }
   return area;
 }
+END_VISP_NAMESPACE
