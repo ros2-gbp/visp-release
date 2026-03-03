@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,60 +29,64 @@
  *
  * Description:
  * Moving edges.
- *
- * Authors:
- * Eric Marchand
- *
- *****************************************************************************/
+ */
 
 /*!
-  \file vpMbtMeEllipse.h
-  \brief Moving edges on an ellipse
-*/
+ * \file vpMbtMeEllipse.h
+ * \brief Moving edges on an ellipse
+ */
 
-#ifndef vpMbtMeEllipse_HH
-#define vpMbtMeEllipse_HH
+#ifndef VP_MBT_ME_ELLIPSE_H
+#define VP_MBT_ME_ELLIPSE_H
 
 #include <list>
 #include <math.h>
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/me/vpMeEllipse.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-
+BEGIN_VISP_NAMESPACE
 /*!
-  \class vpMbtMeEllipse
-  \ingroup group_mbt_features
-
-  \brief Class that tracks an ellipse moving edges with specific capabilities for
-  model-based tracking.
+ * \class vpMbtMeEllipse
+ * \ingroup group_mbt_features
+ *
+ * \brief Class that tracks an ellipse moving edges with specific capabilities for
+ * model-based tracking.
+ *
+ * <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+ *
+ * <b>Tutorials</b><br>
+ * <span style="margin-left:2em"> If you are interested in using a MBT tracker in your applications, you may have a look at:</span><br>
+ *
+ * - \ref tutorial-tracking-mb-generic
+ * - \ref tutorial-tracking-mb-generic-stereo
+ * - \ref tutorial-tracking-mb-generic-rgbd
+ * - \ref tutorial-tracking-mb-generic-apriltag-live
+ * - \ref tutorial-mb-generic-json
+ * - \ref tutorial-tracking-mb-generic-rgbd-Blender
 */
 class VISP_EXPORT vpMbtMeEllipse : public vpMeEllipse
 {
 public:
   using vpMeTracker::display;
 
-  vpMbtMeEllipse();
-  vpMbtMeEllipse(const vpMbtMeEllipse &me_ellipse);
-  virtual ~vpMbtMeEllipse();
-
   void computeProjectionError(const vpImage<unsigned char> &_I, double &_sumErrorRad, unsigned int &_nbFeatures,
-                              const vpMatrix &SobelX, const vpMatrix &SobelY, bool display,
-                              unsigned int length, unsigned int thickness);
+                              const vpMatrix &SobelX, const vpMatrix &SobelY, bool display, unsigned int length,
+                              unsigned int thickness);
 
-  void initTracking(const vpImage<unsigned char> &I,
-                    const vpImagePoint &ic, double n20_p, double n11_p, double n02_p, bool doNotTrack,
-                    vpImagePoint *pt1 = NULL, const vpImagePoint *pt2 = NULL);
+  void initTracking(const vpImage<unsigned char> &I, const vpImagePoint &ic, double n20_p, double n11_p, double n02_p,
+                    bool doNotTrack, vpImagePoint *pt1 = nullptr, const vpImagePoint *pt2 = nullptr);
 
   void track(const vpImage<unsigned char> &I);
-  void updateParameters(const vpImage<unsigned char> &I,
-                        const vpImagePoint &center_p, double n20_p, double n11_p, double n02_p);
+  void updateParameters(const vpImage<unsigned char> &I, const vpImagePoint &center_p, double n20_p, double n11_p,
+                        double n02_p);
 
 private:
   void reSample(const vpImage<unsigned char> &I);
-  void sample(const vpImage<unsigned char> &I, bool doNotTrack=false);
+  void sample(const vpImage<unsigned char> &I, bool doNotTrack = false) VP_OVERRIDE;
   void suppressPoints();
 };
-
+END_VISP_NAMESPACE
 #endif // #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #endif

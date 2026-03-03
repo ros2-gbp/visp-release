@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -31,14 +31,11 @@
 # Description:
 # ViSP configuration file.
 #
-# Authors:
-# Fabien Spindler
-#
 #############################################################################
 
-project(example-device-framegrabber)
+cmake_minimum_required(VERSION 3.10)
 
-cmake_minimum_required(VERSION 3.0)
+project(example-device-framegrabber)
 
 find_package(VISP REQUIRED visp_core visp_sensor visp_io visp_gui)
 
@@ -47,42 +44,15 @@ set(example_cpp
   grab1394Two.cpp
   grab1394CMU.cpp
   grabDisk.cpp
+  grabDiskFloat.cpp
   grabV4l2.cpp
   grabDirectShow.cpp
   grabDirectShowMulti.cpp
   grabFlyCapture.cpp
-  grabOpenCV.cpp
-  grabRealSense.cpp
   grabRealSense2.cpp
   grabRealSense2_T265.cpp
   grabV4l2MultiCpp11Thread.cpp
-  readRealSenseData.cpp
-  saveRealSenseData.cpp
 )
-
-if(VISP_HAVE_FLYCAPTURE)
-  # Add specific build flag to turn off warnings coming from PointGrey flycapture 3rd party
-  visp_set_source_file_compile_flag(grabFlyCapture.cpp -Wno-unknown-pragmas -Wno-ignored-qualifiers)
-endif()
-
-if(VISP_HAVE_REALSENSE OR VISP_HAVE_REALSENSE2)
-  if(UNIX)
-    visp_set_source_file_compile_flag(getRealSense2Info.cpp -Wno-unused-function -Wno-sign-compare -Wno-reorder -Wno-overloaded-virtual -Wno-ignored-qualifiers -Wno-deprecated-copy)
-    # Add specific build flag to turn off warnings coming from PCL 3rd party
-    visp_set_source_file_compile_flag(grabRealSense.cpp -Wno-deprecated-declarations -Wno-inconsistent-missing-override -Wno-sign-conversion -Wno-float-equal -Wno-unused-parameter -Wno-pessimizing-move -Wno-comment -Wno-deprecated-copy)
-    visp_set_source_file_compile_flag(grabRealSense2.cpp -Wno-sign-compare -Wno-reorder -Wno-unused-function -Wno-pessimizing-move -Wno-unused-parameter -Wno-deprecated-declarations -Wno-inconsistent-missing-override -Wno-comment -Wno-overloaded-virtual -Wno-ignored-qualifiers -Wno-deprecated-copy)
-    visp_set_source_file_compile_flag(grabRealSense2_T265.cpp -Wno-sign-compare -Wno-reorder -Wno-unused-function -Wno-pessimizing-move -Wno-unused-parameter -Wno-deprecated-declarations -Wno-inconsistent-missing-override -Wno-comment -Wno-overloaded-virtual -Wno-ignored-qualifiers -Wno-deprecated-copy)
-    visp_set_source_file_compile_flag(readRealSenseData.cpp -Wno-deprecated-declarations -Wno-inconsistent-missing-override -Wno-missing-field-initializers -Wno-comment -Wno-float-equal -Wno-shadow)
-    visp_set_source_file_compile_flag(saveRealSenseData.cpp -Wno-sign-compare -Wno-reorder -Wno-unused-function -Wno-pessimizing-move -Wno-unused-parameter -Wno-comment -Wno-overloaded-virtual -Wno-missing-field-initializers -Wno-shadow -Wno-ignored-qualifiers -Wno-deprecated-copy)
-  else()
-    visp_set_source_file_compile_flag(getRealSense2Info.cpp /wd4244 /wd4267)
-    visp_set_source_file_compile_flag(grabRealSense2.cpp /wd4244 /wd4267)
-    visp_set_source_file_compile_flag(grabRealSense2_T265.cpp /wd4244 /wd4267)
-    visp_set_source_file_compile_flag(saveRealSenseData.cpp /wd4244 /wd4267)
-  endif()
-else()
-  visp_set_source_file_compile_flag(readRealSenseData.cpp -Wno-deprecated-declarations -Wno-comment -Wno-float-equal -Wno-shadow)
-endif()
 
 foreach(cpp ${example_cpp})
   visp_add_target(${cpp})
