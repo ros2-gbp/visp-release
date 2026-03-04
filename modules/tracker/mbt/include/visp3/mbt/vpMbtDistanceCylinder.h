@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -32,12 +31,9 @@
  * Manage a cylinder used in the model-based tracker.
  *
  * Authors:
- * Nicolas Melchior
  * Romain Tallonneau
- * Eric Marchand
  * Bertrand Delabarre
- *
- *****************************************************************************/
+ */
 
 /*!
  \file vpMbtDistanceCylinder.h
@@ -48,6 +44,7 @@
 #define vpMbtDistanceCylinder_HH
 
 #include <visp3/core/vpCircle.h>
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpCylinder.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpLine.h>
@@ -56,12 +53,25 @@
 #include <visp3/mbt/vpMbtMeLine.h>
 #include <visp3/visual_features/vpFeatureLine.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpMbtDistanceCylinder
 
   \brief Manage a cylinder used in the model-based tracker.
 
   \ingroup group_mbt_features
+
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in using a MBT tracker in your applications, you may have a look at:</span><br>
+
+  - \ref tutorial-tracking-mb-generic
+  - \ref tutorial-tracking-mb-generic-stereo
+  - \ref tutorial-tracking-mb-generic-rgbd
+  - \ref tutorial-tracking-mb-generic-apriltag-live
+  - \ref tutorial-mb-generic-json
+  - \ref tutorial-tracking-mb-generic-rgbd-Blender
 */
 class VISP_EXPORT vpMbtDistanceCylinder
 {
@@ -120,12 +130,12 @@ public:
   // private:
   //#ifndef DOXYGEN_SHOULD_SKIP_THIS
   //    vpMbtDistanceCylinder(const vpMbtDistanceCylinder &)
-  //      : name(), index(0), cam(), me(NULL), wmean1(1), wmean2(1),
+  //      : name(), index(0), cam(), me(nullptr), wmean1(1), wmean2(1),
   //        featureline1(), featureline2(), isTrackedCylinder(true),
-  //        meline1(NULL), meline2(NULL), cercle1(NULL), cercle2(NULL),
-  //        radius(0), p1(NULL), p2(NULL), L(), error(), nbFeature(0),
-  //        nbFeaturel1(0), nbFeaturel2(0), Reinit(false), c(NULL),
-  //        hiddenface(NULL), index_polygon(-1), isvisible(false)
+  //        meline1(nullptr), meline2(nullptr), cercle1(nullptr), cercle2(nullptr),
+  //        radius(0), p1(nullptr), p2(nullptr), L(), error(), nbFeature(0),
+  //        nbFeaturel1(0), nbFeaturel2(0), Reinit(false), c(nullptr),
+  //        hiddenface(nullptr), index_polygon(-1), isvisible(false)
   //    {
   //      throw vpException(vpException::functionNotImplementedError, "Not
   //      implemented!");
@@ -135,6 +145,11 @@ public:
   //      implemented!"); return *this;
   //    }
   //#endif
+
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  vpMbtDistanceCylinder(const vpMbtDistanceCylinder &) = delete; // non construction-copyable
+  vpMbtDistanceCylinder &operator=(const vpMbtDistanceCylinder &) = delete; // non copyable
+#endif
 
 public:
   vpMbtDistanceCylinder();
@@ -152,7 +167,7 @@ public:
   void displayMovingEdges(const vpImage<vpRGBa> &I);
 
   /*!
-   Get the camera paramters.
+   Get the camera parameters.
 
    \param camera : The vpCameraParameters used to store the camera parameters.
   */
@@ -186,8 +201,7 @@ public:
   std::vector<std::vector<double> > getFeaturesForDisplay();
 
   std::vector<std::vector<double> > getModelForDisplay(unsigned int width, unsigned int height,
-                                                       const vpHomogeneousMatrix &cMo,
-                                                       const vpCameraParameters &cam,
+                                                       const vpHomogeneousMatrix &cMo, const vpCameraParameters &cam,
                                                        bool displayFullModel = false);
 
   /*!
@@ -200,7 +214,7 @@ public:
   void initInteractionMatrixError();
 
   bool initMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo, bool doNotTrack,
-                      const vpImage<bool> *mask = NULL);
+                      const vpImage<bool> *mask = nullptr, const int &initRange = 0);
 
   /*!
    Return if the cylinder is used for tracking.
@@ -217,10 +231,10 @@ public:
   inline bool isVisible() const { return isvisible; }
 
   void reinitMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &cMo,
-                        const vpImage<bool> *mask = NULL);
+                        const vpImage<bool> *mask = nullptr);
 
   /*!
-   Set the camera paramters.
+   Set the camera parameters.
    \param camera : The camera parameters.
   */
   inline void setCameraParameters(const vpCameraParameters &camera) { this->cam = camera; }
@@ -284,5 +298,5 @@ public:
 private:
   void project(const vpHomogeneousMatrix &cMo);
 };
-
+END_VISP_NAMESPACE
 #endif

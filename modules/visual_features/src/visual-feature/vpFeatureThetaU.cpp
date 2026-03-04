@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,12 +29,12 @@
  *
  * Description:
  * ThetaU visual feature.
- *
- * Authors:
- * Eric Marchand
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
+
+/*!
+  \file vpFeatureThetaU.cpp
+  \brief class that defines the ThetaU visual feature
+*/
 
 #include <visp3/core/vpMath.h>
 #include <visp3/visual_features/vpBasicFeature.h>
@@ -48,10 +47,6 @@
 // Debug trace
 #include <visp3/core/vpDebug.h>
 
-/*!
-  \file vpFeatureThetaU.cpp
-  \brief class that defines the ThetaU visual feature
-*/
 /*
 
 attributes and members directly related to the vpBasicFeature needs
@@ -59,6 +54,7 @@ other functionalities are useful but not mandatory
 
 */
 
+BEGIN_VISP_NAMESPACE
 /*!
 
   Initialise the memory space requested for 3D \f$ \theta u \f$ visual
@@ -72,7 +68,7 @@ void vpFeatureThetaU::init()
 
   // memory allocation
   s.resize(dim_s);
-  if (flags == NULL)
+  if (flags == nullptr)
     flags = new bool[nbParameters];
   for (unsigned int i = 0; i < nbParameters; i++)
     flags[i] = false;
@@ -202,13 +198,15 @@ vpFeatureThetaU::vpFeatureThetaU(vpHomogeneousMatrix &M, vpFeatureThetaURotation
   to the desired one (\f$ ^{c}R_{c^*}\f$).
 
 */
-void vpFeatureThetaU::buildFrom(vpThetaUVector &tu)
+vpFeatureThetaU &vpFeatureThetaU::buildFrom(const vpThetaUVector &tu)
 {
   s[0] = tu[0];
   s[1] = tu[1];
   s[2] = tu[2];
-  for (unsigned int i = 0; i < nbParameters; i++)
+  for (unsigned int i = 0; i < nbParameters; ++i) {
     flags[i] = true;
+  }
+  return *this;
 }
 
 /*!
@@ -226,10 +224,11 @@ void vpFeatureThetaU::buildFrom(vpThetaUVector &tu)
   to the desired one (\f$ ^{c}R_{c^*}\f$).
 
 */
-void vpFeatureThetaU::buildFrom(const vpRotationMatrix &R)
+vpFeatureThetaU &vpFeatureThetaU::buildFrom(const vpRotationMatrix &R)
 {
   vpThetaUVector tu(R);
   buildFrom(tu);
+  return *this;
 }
 
 /*!
@@ -250,12 +249,13 @@ void vpFeatureThetaU::buildFrom(const vpRotationMatrix &R)
 
 
 */
-void vpFeatureThetaU::buildFrom(const vpHomogeneousMatrix &M)
+vpFeatureThetaU &vpFeatureThetaU::buildFrom(const vpHomogeneousMatrix &M)
 {
   vpRotationMatrix R;
   M.extract(R);
   vpThetaUVector tu(R);
   buildFrom(tu);
+  return *this;
 }
 
 /*!
@@ -459,7 +459,8 @@ vpMatrix vpFeatureThetaU::interaction(unsigned int select)
 
   if (rotation == cdRc) {
     Lw += U2;
-  } else {
+  }
+  else {
     Lw -= U2;
   }
 
@@ -767,3 +768,4 @@ unsigned int vpFeatureThetaU::selectTUy() { return FEATURE_LINE[1]; }
   \sa selectTUx(), selectTUy()
 */
 unsigned int vpFeatureThetaU::selectTUz() { return FEATURE_LINE[2]; }
+END_VISP_NAMESPACE

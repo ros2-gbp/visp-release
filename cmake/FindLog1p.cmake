@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -31,32 +31,8 @@
 # Description:
 # Try to find log1p function.
 #
-# Authors:
-# Fabien Spindler
-#
 #############################################################################
 
-include(CheckCXXSourceCompiles)
+include(VISPFindUtils)
 
-macro(check_math_expr _expr _var)
-    unset(${_var} CACHE)
-    # Since check_cxx_source_compiles() doesn't consider CXX_STANDARD we add the corresponding flag manually
-    if((VISP_CXX_STANDARD EQUAL VISP_CXX_STANDARD_11) AND CXX11_CXX_FLAGS)
-      set(CMAKE_REQUIRED_FLAGS ${CXX11_CXX_FLAGS})
-    elseif((VISP_CXX_STANDARD EQUAL VISP_CXX_STANDARD_14) AND CXX14_CXX_FLAGS)
-      set(CMAKE_REQUIRED_FLAGS ${CXX14_CXX_FLAGS})
-    elseif((VISP_CXX_STANDARD EQUAL VISP_CXX_STANDARD_17) AND CXX17_CXX_FLAGS)
-      set(CMAKE_REQUIRED_FLAGS ${CXX17_CXX_FLAGS})
-    endif()
-    check_cxx_source_compiles("
-#include <math.h>
-int main(int argc, char ** argv)
-{
-    (void)${_expr};
-    return 0;
-}
-" ${_var})
-endmacro()
-
-check_math_expr("log1p(1.0)"       HAVE_FUNC_LOG1P)
-
+check_math_expr("log1p(1.0)"          "<math.h>"        HAVE_FUNC_LOG1P)
