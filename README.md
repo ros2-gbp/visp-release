@@ -1,3 +1,26 @@
+## visp (kilted) - 3.7.0-5
+
+The packages in the `visp` repository were released into the `kilted` distro by running `/usr/bin/bloom-release --rosdistro kilted --track kilted visp` on `Wed, 04 Mar 2026 15:46:31 -0000`
+
+The `visp` package was released.
+
+Version of package(s) in repository `visp`:
+
+- upstream repository: https://github.com/lagadic/visp.git
+- release repository: https://github.com/ros2-gbp/visp-release.git
+- rosdistro version: `3.7.0-4`
+- old version: `3.7.0-4`
+- new version: `3.7.0-5`
+
+Versions of tools used:
+
+- bloom version: `0.13.0`
+- catkin_pkg version: `1.1.0`
+- rosdep version: `0.26.0`
+- rosdistro version: `1.0.1`
+- vcstools version: `0.1.42`
+
+
 ## visp (humble) - 3.7.0-6
 
 The packages in the `visp` repository were released into the `humble` distro by running `/usr/bin/bloom-release --rosdistro humble --track humble visp` on `Wed, 04 Mar 2026 15:39:45 -0000`
