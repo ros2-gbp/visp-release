@@ -27,22 +27,15 @@
   <buildtool_depend>cmake</buildtool_depend>
 
   <depend>bzip2</depend>
-  <depend>comedi</depend>
   <depend>eigen</depend>
-  <depend>libcoin80-dev</depend>
-  <depend>libdc1394-dev</depend>
-  <depend>libdmtx-dev</depend>
   <depend>libgsl</depend>
   <depend>libjpeg</depend>
   <depend>liblapack-dev</depend>
-  <depend>libogre</depend>
-  <depend>libois-dev</depend>
   <depend>libomp-dev</depend>
   <depend>libopenblas-dev</depend>
   <depend>libopencv-dev</depend>
   <depend>libpcl-all-dev</depend>
   <depend>libpng-dev</depend>
-  <depend>librealsense2</depend>
   <depend>libv4l-dev</depend>
   <depend>libxml2</depend>
   <depend>libx11-dev</depend>
