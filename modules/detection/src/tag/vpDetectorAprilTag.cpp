@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -29,15 +28,18 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Description:
- * Base class for April Tag detection.
- *
- *****************************************************************************/
+ * Base class for AprilTag detection.
+ */
 #include <visp3/core/vpConfig.h>
 
 #ifdef VISP_HAVE_APRILTAG
 #include <map>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <apriltag.h>
+#include <apriltag_pose.h>
 #include <common/homography.h>
 #include <tag16h5.h>
 #include <tag25h7.h>
@@ -45,28 +47,49 @@
 #include <tag36h10.h>
 #include <tag36h11.h>
 #include <tagCircle21h7.h>
-#include <tagStandard41h12.h>
-#include <apriltag_pose.h>
-#include <visp3/detection/vpDetectorAprilTag.h>
 #if defined(VISP_HAVE_APRILTAG_BIG_FAMILY)
 #include <tagCircle49h12.h>
 #include <tagCustom48h12.h>
 #include <tagStandard41h12.h>
 #include <tagStandard52h13.h>
 #endif
+#include <tagAruco4x4_50.h>
+#include <tagAruco4x4_100.h>
+#include <tagAruco4x4_250.h>
+#include <tagAruco4x4_1000.h>
+#include <tagAruco5x5_50.h>
+#include <tagAruco5x5_100.h>
+#include <tagAruco5x5_250.h>
+#include <tagAruco5x5_1000.h>
+#include <tagAruco6x6_50.h>
+#include <tagAruco6x6_100.h>
+#include <tagAruco6x6_250.h>
+#include <tagAruco6x6_1000.h>
+#include <tagAruco7x7_50.h>
+#include <tagAruco7x7_100.h>
+#include <tagAruco7x7_250.h>
+#include <tagAruco7x7_1000.h>
+#include <tagAruco_MIP_36h12.h>
+#ifdef __cplusplus
+}
+#endif
 
 #include <visp3/core/vpDisplay.h>
 #include <visp3/core/vpPixelMeterConversion.h>
 #include <visp3/core/vpPoint.h>
+#include <visp3/detection/vpDetectorAprilTag.h>
 #include <visp3/vision/vpPose.h>
+
+BEGIN_VISP_NAMESPACE
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 class vpDetectorAprilTag::Impl
 {
 public:
   Impl(const vpAprilTagFamily &tagFamily, const vpPoseEstimationMethod &method)
-    : m_poseEstimationMethod(method), m_tagsId(), m_tagFamily(tagFamily),
-      m_td(NULL), m_tf(NULL), m_detections(NULL), m_zAlignedWithCameraFrame(false)
+    : m_poseEstimationMethod(method), m_tagsId(), m_tagFamily(tagFamily), m_tagsDecisionMargin(),
+    m_tagsHammingDistance(), m_td(nullptr), m_tf(nullptr),
+    m_detections(nullptr), m_decisionMarginThreshold(-1), m_hammingDistanceThreshold(2), m_zAlignedWithCameraFrame(false)
   {
     switch (m_tagFamily) {
     case TAG_36h11:
@@ -120,13 +143,82 @@ public:
 #endif
       break;
 
+    case TAG_ARUCO_4x4_50:
+      m_tf = tagAruco4x4_50_create();
+      break;
+
+    case TAG_ARUCO_4x4_100:
+      m_tf = tagAruco4x4_100_create();
+      break;
+
+    case TAG_ARUCO_4x4_250:
+      m_tf = tagAruco4x4_250_create();
+      break;
+
+    case TAG_ARUCO_4x4_1000:
+      m_tf = tagAruco4x4_1000_create();
+      break;
+
+    case TAG_ARUCO_5x5_50:
+      m_tf = tagAruco5x5_50_create();
+      break;
+
+    case TAG_ARUCO_5x5_100:
+      m_tf = tagAruco5x5_100_create();
+      break;
+
+    case TAG_ARUCO_5x5_250:
+      m_tf = tagAruco5x5_250_create();
+      break;
+
+    case TAG_ARUCO_5x5_1000:
+      m_tf = tagAruco5x5_1000_create();
+      break;
+
+    case TAG_ARUCO_6x6_50:
+      m_tf = tagAruco6x6_50_create();
+      break;
+
+    case TAG_ARUCO_6x6_100:
+      m_tf = tagAruco6x6_100_create();
+      break;
+
+    case TAG_ARUCO_6x6_250:
+      m_tf = tagAruco6x6_250_create();
+      break;
+
+    case TAG_ARUCO_6x6_1000:
+      m_tf = tagAruco6x6_1000_create();
+      break;
+
+    case TAG_ARUCO_7x7_50:
+      m_tf = tagAruco7x7_50_create();
+      break;
+
+    case TAG_ARUCO_7x7_100:
+      m_tf = tagAruco7x7_100_create();
+      break;
+
+    case TAG_ARUCO_7x7_250:
+      m_tf = tagAruco7x7_250_create();
+      break;
+
+    case TAG_ARUCO_7x7_1000:
+      m_tf = tagAruco7x7_1000_create();
+      break;
+
+    case TAG_ARUCO_MIP_36h12:
+      m_tf = tagArucoMIP_36h12_create();
+      break;
+
     default:
       throw vpException(vpException::fatalError, "Unknown Tag family!");
     }
 
-    if (m_tagFamily != TAG_36ARTOOLKIT && m_tf) {
+    if ((m_tagFamily != TAG_36ARTOOLKIT) && m_tf) {
       m_td = apriltag_detector_create();
-      apriltag_detector_add_family(m_td, m_tf);
+      int bits_corrected = (m_tagFamily == TAG_ARUCO_4x4_1000) ? 1 : 2;
+      apriltag_detector_add_family(m_td, m_tf, bits_corrected);
     }
 
     m_mapOfCorrespondingPoseMethods[DEMENTHON_VIRTUAL_VS] = vpPose::DEMENTHON;
@@ -135,7 +227,9 @@ public:
 
   Impl(const Impl &o)
     : m_poseEstimationMethod(o.m_poseEstimationMethod), m_tagsId(o.m_tagsId), m_tagFamily(o.m_tagFamily),
-      m_td(NULL), m_tf(NULL), m_detections(NULL), m_zAlignedWithCameraFrame(o.m_zAlignedWithCameraFrame)
+    m_tagsDecisionMargin(o.m_tagsDecisionMargin), m_tagsHammingDistance(o.m_tagsHammingDistance), m_td(nullptr),
+    m_tf(nullptr), m_detections(nullptr), m_decisionMarginThreshold(o.m_decisionMarginThreshold),
+    m_hammingDistanceThreshold(o.m_hammingDistanceThreshold), m_zAlignedWithCameraFrame(o.m_zAlignedWithCameraFrame)
   {
     switch (m_tagFamily) {
     case TAG_36h11:
@@ -189,19 +283,88 @@ public:
 #endif
       break;
 
+    case TAG_ARUCO_4x4_50:
+      m_tf = tagAruco4x4_50_create();
+      break;
+
+    case TAG_ARUCO_4x4_100:
+      m_tf = tagAruco4x4_100_create();
+      break;
+
+    case TAG_ARUCO_4x4_250:
+      m_tf = tagAruco4x4_250_create();
+      break;
+
+    case TAG_ARUCO_4x4_1000:
+      m_tf = tagAruco4x4_1000_create();
+      break;
+
+    case TAG_ARUCO_5x5_50:
+      m_tf = tagAruco5x5_50_create();
+      break;
+
+    case TAG_ARUCO_5x5_100:
+      m_tf = tagAruco5x5_100_create();
+      break;
+
+    case TAG_ARUCO_5x5_250:
+      m_tf = tagAruco5x5_250_create();
+      break;
+
+    case TAG_ARUCO_5x5_1000:
+      m_tf = tagAruco5x5_1000_create();
+      break;
+
+    case TAG_ARUCO_6x6_50:
+      m_tf = tagAruco6x6_50_create();
+      break;
+
+    case TAG_ARUCO_6x6_100:
+      m_tf = tagAruco6x6_100_create();
+      break;
+
+    case TAG_ARUCO_6x6_250:
+      m_tf = tagAruco6x6_250_create();
+      break;
+
+    case TAG_ARUCO_6x6_1000:
+      m_tf = tagAruco6x6_1000_create();
+      break;
+
+    case TAG_ARUCO_7x7_50:
+      m_tf = tagAruco7x7_50_create();
+      break;
+
+    case TAG_ARUCO_7x7_100:
+      m_tf = tagAruco7x7_100_create();
+      break;
+
+    case TAG_ARUCO_7x7_250:
+      m_tf = tagAruco7x7_250_create();
+      break;
+
+    case TAG_ARUCO_7x7_1000:
+      m_tf = tagAruco7x7_1000_create();
+      break;
+
+    case TAG_ARUCO_MIP_36h12:
+      m_tf = tagArucoMIP_36h12_create();
+      break;
+
     default:
       throw vpException(vpException::fatalError, "Unknown Tag family!");
     }
 
-    if (m_tagFamily != TAG_36ARTOOLKIT && m_tf) {
-      m_td = apriltag_detector_create();
-      apriltag_detector_add_family(m_td, m_tf);
+    if ((m_tagFamily != TAG_36ARTOOLKIT) && m_tf) {
+      m_td = apriltag_detector_copy(o.m_td);
+      int bits_corrected = (m_tagFamily == TAG_ARUCO_4x4_1000) ? 1 : 2;
+      apriltag_detector_add_family(m_td, m_tf, bits_corrected);
     }
 
     m_mapOfCorrespondingPoseMethods[DEMENTHON_VIRTUAL_VS] = vpPose::DEMENTHON;
     m_mapOfCorrespondingPoseMethods[LAGRANGE_VIRTUAL_VS] = vpPose::LAGRANGE;
 
-    if (o.m_detections != NULL) {
+    if (o.m_detections != nullptr) {
       m_detections = apriltag_detections_copy(o.m_detections);
     }
   }
@@ -242,27 +405,95 @@ public:
         break;
 
       case TAG_CIRCLE49h12:
-  #if defined(VISP_HAVE_APRILTAG_BIG_FAMILY)
+#if defined(VISP_HAVE_APRILTAG_BIG_FAMILY)
         tagCustom48h12_destroy(m_tf);
-  #endif
+#endif
         break;
 
       case TAG_CUSTOM48h12:
-  #if defined(VISP_HAVE_APRILTAG_BIG_FAMILY)
+#if defined(VISP_HAVE_APRILTAG_BIG_FAMILY)
         tagCustom48h12_destroy(m_tf);
-  #endif
+#endif
         break;
 
       case TAG_STANDARD52h13:
-  #if defined(VISP_HAVE_APRILTAG_BIG_FAMILY)
+#if defined(VISP_HAVE_APRILTAG_BIG_FAMILY)
         tagStandard52h13_destroy(m_tf);
-  #endif
+#endif
         break;
 
       case TAG_STANDARD41h12:
-  #if defined(VISP_HAVE_APRILTAG_BIG_FAMILY)
+#if defined(VISP_HAVE_APRILTAG_BIG_FAMILY)
         tagStandard41h12_destroy(m_tf);
-  #endif
+#endif
+        break;
+
+      case TAG_ARUCO_4x4_50:
+        tagAruco4x4_50_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_4x4_100:
+        tagAruco4x4_100_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_4x4_250:
+        tagAruco4x4_250_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_4x4_1000:
+        tagAruco4x4_1000_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_5x5_50:
+        tagAruco5x5_50_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_5x5_100:
+        tagAruco5x5_100_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_5x5_250:
+        tagAruco5x5_250_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_5x5_1000:
+        tagAruco5x5_1000_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_6x6_50:
+        tagAruco6x6_50_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_6x6_100:
+        tagAruco6x6_100_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_6x6_250:
+        tagAruco6x6_250_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_6x6_1000:
+        tagAruco6x6_1000_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_7x7_50:
+        tagAruco7x7_50_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_7x7_100:
+        tagAruco7x7_100_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_7x7_250:
+        tagAruco7x7_250_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_7x7_1000:
+        tagAruco7x7_1000_destroy(m_tf);
+        break;
+
+      case TAG_ARUCO_MIP_36h12:
+        tagArucoMIP_36h12_destroy(m_tf);
         break;
 
       default:
@@ -272,71 +503,90 @@ public:
 
     if (m_detections) {
       apriltag_detections_destroy(m_detections);
-      m_detections = NULL;
+      m_detections = nullptr;
     }
   }
 
-  void convertHomogeneousMatrix(const apriltag_pose_t &pose, vpHomogeneousMatrix &cMo) {
-    for (unsigned int i = 0; i < 3; i++) {
-      for (unsigned int j = 0; j < 3; j++) {
+  void convertHomogeneousMatrix(const apriltag_pose_t &pose, vpHomogeneousMatrix &cMo)
+  {
+    const unsigned int val_3 = 3;
+    for (unsigned int i = 0; i < val_3; ++i) {
+      for (unsigned int j = 0; j < val_3; ++j) {
         cMo[i][j] = MATD_EL(pose.R, i, j);
       }
-      cMo[i][3] = MATD_EL(pose.t, i, 0);
+      cMo[i][val_3] = MATD_EL(pose.t, i, 0);
     }
   }
 
   bool detect(const vpImage<unsigned char> &I, double tagSize, const vpCameraParameters &cam,
-              std::vector<std::vector<vpImagePoint> > &polygons,
-              std::vector<std::string> &messages, bool displayTag, const vpColor color,
-              unsigned int thickness, std::vector<vpHomogeneousMatrix> *cMo_vec,
+              std::vector<std::vector<vpImagePoint> > &polygons, std::vector<std::string> &messages, bool displayTag,
+              const vpColor color, unsigned int thickness, std::vector<vpHomogeneousMatrix> *cMo_vec,
               std::vector<vpHomogeneousMatrix> *cMo_vec2, std::vector<double> *projErrors,
               std::vector<double> *projErrors2)
   {
     if (m_tagFamily == TAG_36ARTOOLKIT) {
-      //TAG_36ARTOOLKIT is not available anymore
+      // TAG_36ARTOOLKIT is not available anymore
       std::cerr << "TAG_36ARTOOLKIT detector is not available anymore." << std::endl;
       return false;
     }
 #if !defined(VISP_HAVE_APRILTAG_BIG_FAMILY)
-    if (m_tagFamily == TAG_CIRCLE49h12 || m_tagFamily == TAG_CUSTOM48h12 || m_tagFamily == TAG_STANDARD41h12 || m_tagFamily == TAG_STANDARD52h13) {
-      std::cerr << "TAG_CIRCLE49h12, TAG_CUSTOM48h12, TAG_STANDARD41h12 and TAG_STANDARD52h13 are disabled." << std::endl;
+    if ((m_tagFamily == TAG_CIRCLE49h12) || (m_tagFamily == TAG_CUSTOM48h12) || (m_tagFamily == TAG_STANDARD41h12) ||
+        (m_tagFamily == TAG_STANDARD52h13)) {
+      std::cerr << "TAG_CIRCLE49h12, TAG_CUSTOM48h12, TAG_STANDARD41h12 and TAG_STANDARD52h13 are disabled."
+        << std::endl;
       return false;
     }
 #endif
 
-    const bool computePose = (cMo_vec != NULL);
+    const bool computePose = (cMo_vec != nullptr);
 
-    image_u8_t im = {/*.width =*/(int32_t)I.getWidth(),
-                     /*.height =*/(int32_t)I.getHeight(),
-                     /*.stride =*/(int32_t)I.getWidth(),
-                     /*.buf =*/I.bitmap};
+    image_u8_t im = {/*.width =*/static_cast<int32_t>(I.getWidth()),
+      /*.height =*/static_cast<int32_t>(I.getHeight()),
+      /*.stride =*/static_cast<int32_t>(I.getWidth()),
+      /*.buf =*/I.bitmap };
 
     if (m_detections) {
       apriltag_detections_destroy(m_detections);
-      m_detections = NULL;
+      m_detections = nullptr;
     }
 
     m_detections = apriltag_detector_detect(m_td, &im);
     int nb_detections = zarray_size(m_detections);
     bool detected = nb_detections > 0;
 
-    polygons.resize(static_cast<size_t>(nb_detections));
-    messages.resize(static_cast<size_t>(nb_detections));
-    m_tagsId.resize(static_cast<size_t>(nb_detections));
+    polygons.clear(); messages.clear(); m_tagsId.clear(); m_tagsDecisionMargin.clear(); m_tagsHammingDistance.clear();
+    polygons.reserve(static_cast<size_t>(nb_detections));
+    messages.reserve(static_cast<size_t>(nb_detections));
+    m_tagsId.reserve(static_cast<size_t>(nb_detections));
+    m_tagsDecisionMargin.reserve(static_cast<size_t>(nb_detections));
+    m_tagsHammingDistance.reserve(static_cast<size_t>(nb_detections));
 
-    for (int i = 0; i < zarray_size(m_detections); i++) {
+    int zarray_size_m_detections = zarray_size(m_detections);
+    for (int i = 0; i < zarray_size_m_detections; ++i) {
       apriltag_detection_t *det;
       zarray_get(m_detections, i, &det);
 
+      if (m_decisionMarginThreshold > 0) {
+        if (det->decision_margin < m_decisionMarginThreshold) {
+          continue;
+        }
+      }
+      if (det->hamming > m_hammingDistanceThreshold) {
+        continue;
+      }
+
       std::vector<vpImagePoint> polygon;
-      for (int j = 0; j < 4; j++) {
+      const int polygonSize = 4;
+      for (int j = 0; j < polygonSize; ++j) {
         polygon.push_back(vpImagePoint(det->p[j][1], det->p[j][0]));
       }
-      polygons[static_cast<size_t>(i)] = polygon;
+      polygons.push_back(polygon);
       std::stringstream ss;
       ss << m_tagFamily << " id: " << det->id;
-      messages[static_cast<size_t>(i)] = ss.str();
-      m_tagsId[static_cast<size_t>(i)] = det->id;
+      messages.push_back(ss.str());
+      m_tagsId.push_back(det->id);
+      m_tagsDecisionMargin.push_back(det->decision_margin);
+      m_tagsHammingDistance.push_back(det->hamming);
 
       if (displayTag) {
         vpColor Ox = (color == vpColor::none) ? vpColor::red : color;
@@ -344,21 +594,22 @@ public:
         vpColor Ox2 = (color == vpColor::none) ? vpColor::yellow : color;
         vpColor Oy2 = (color == vpColor::none) ? vpColor::blue : color;
 
-        vpDisplay::displayLine(I, (int)det->p[0][1], (int)det->p[0][0], (int)det->p[1][1], (int)det->p[1][0],
-                               Ox, thickness);
-        vpDisplay::displayLine(I, (int)det->p[0][1], (int)det->p[0][0], (int)det->p[3][1], (int)det->p[3][0],
-                               Oy, thickness);
-        vpDisplay::displayLine(I, (int)det->p[1][1], (int)det->p[1][0], (int)det->p[2][1], (int)det->p[2][0],
-                               Ox2, thickness);
-        vpDisplay::displayLine(I, (int)det->p[2][1], (int)det->p[2][0], (int)det->p[3][1], (int)det->p[3][0],
-                               Oy2, thickness);
+        const unsigned int polyId0 = 0, polyId1 = 1, polyId2 = 2, polyId3 = 3;
+        vpDisplay::displayLine(I, static_cast<int>(det->p[polyId0][1]), static_cast<int>(det->p[polyId0][0]),
+            static_cast<int>(det->p[polyId1][1]), static_cast<int>(det->p[polyId1][0]), Ox, thickness);
+        vpDisplay::displayLine(I, static_cast<int>(det->p[polyId0][1]), static_cast<int>(det->p[polyId0][0]),
+            static_cast<int>(det->p[polyId3][1]), static_cast<int>(det->p[polyId3][0]), Oy, thickness);
+        vpDisplay::displayLine(I, static_cast<int>(det->p[polyId1][1]), static_cast<int>(det->p[polyId1][0]),
+            static_cast<int>(det->p[polyId2][1]), static_cast<int>(det->p[polyId2][0]), Ox2, thickness);
+        vpDisplay::displayLine(I, static_cast<int>(det->p[polyId2][1]), static_cast<int>(det->p[polyId2][0]),
+            static_cast<int>(det->p[polyId3][1]), static_cast<int>(det->p[polyId3][0]), Oy2, thickness);
       }
 
       if (computePose) {
         vpHomogeneousMatrix cMo, cMo2;
         double err1, err2;
-        if (getPose(static_cast<size_t>(i), tagSize, cam, cMo, cMo_vec2 ? &cMo2 : NULL,
-                    projErrors ? &err1 : NULL, projErrors2 ? &err2 : NULL)) {
+        if (getPose(static_cast<size_t>(i), tagSize, cam, cMo, cMo_vec2 ? &cMo2 : nullptr, projErrors ? &err1 : nullptr,
+                    projErrors2 ? &err2 : nullptr)) {
           cMo_vec->push_back(cMo);
           if (cMo_vec2) {
             cMo_vec2->push_back(cMo2);
@@ -377,19 +628,130 @@ public:
     return detected;
   }
 
-  bool getPose(size_t tagIndex, double tagSize, const vpCameraParameters &cam, vpHomogeneousMatrix &cMo, vpHomogeneousMatrix *cMo2,
-               double *projErrors, double *projErrors2) {
-    if (m_detections == NULL) {
+  void displayFrames(const vpImage<unsigned char> &I, const std::vector<vpHomogeneousMatrix> &cMo_vec,
+                     const vpCameraParameters &cam, double size, const vpColor &color, unsigned int thickness) const
+  {
+    size_t cmo_vec_size = cMo_vec.size();
+    for (size_t i = 0; i < cmo_vec_size; ++i) {
+      const vpHomogeneousMatrix &cMo = cMo_vec[i];
+      vpDisplay::displayFrame(I, cMo, cam, size, color, thickness);
+    }
+  }
+
+  void displayFrames(const vpImage<vpRGBa> &I, const std::vector<vpHomogeneousMatrix> &cMo_vec,
+                     const vpCameraParameters &cam, double size, const vpColor &color, unsigned int thickness) const
+  {
+    size_t cmo_vec_size = cMo_vec.size();
+    for (size_t i = 0; i < cmo_vec_size; ++i) {
+      const vpHomogeneousMatrix &cMo = cMo_vec[i];
+      vpDisplay::displayFrame(I, cMo, cam, size, color, thickness);
+    }
+  }
+
+  void displayTags(const vpImage<unsigned char> &I, const std::vector<std::vector<vpImagePoint> > &tagsCorners,
+                   const vpColor &color, unsigned int thickness) const
+  {
+    size_t tagscorners_size = tagsCorners.size();
+    for (size_t i = 0; i < tagscorners_size; ++i) {
+      const vpColor Ox = (color == vpColor::none) ? vpColor::red : color;
+      const vpColor Oy = (color == vpColor::none) ? vpColor::green : color;
+      const vpColor Ox2 = (color == vpColor::none) ? vpColor::yellow : color;
+      const vpColor Oy2 = (color == vpColor::none) ? vpColor::blue : color;
+
+      const std::vector<vpImagePoint> &corners = tagsCorners[i];
+      assert(corners.size() == 4);
+      const unsigned int cornerId0 = 0, cornerId1 = 1, cornerId2 = 2, cornerId3 = 3;
+      const double line0_length_8 = vpImagePoint::distance(corners[cornerId0], corners[cornerId1]) / 8;
+      unsigned int rect_size = static_cast<unsigned int>(line0_length_8);
+      if (line0_length_8 < 2) {
+        rect_size = 2;
+      }
+      vpDisplay::displayRectangle(I, corners[cornerId0], 0, rect_size, rect_size, vpColor::red, thickness);
+
+      vpDisplay::displayLine(I, static_cast<int>(corners[cornerId0].get_i()), static_cast<int>(corners[cornerId0].get_j()),
+          static_cast<int>(corners[cornerId1].get_i()), static_cast<int>(corners[cornerId1].get_j()), Ox, thickness);
+      vpDisplay::displayLine(I, static_cast<int>(corners[cornerId0].get_i()), static_cast<int>(corners[cornerId0].get_j()),
+          static_cast<int>(corners[cornerId3].get_i()), static_cast<int>(corners[cornerId3].get_j()), Oy, thickness);
+      vpDisplay::displayLine(I, static_cast<int>(corners[cornerId1].get_i()), static_cast<int>(corners[cornerId1].get_j()),
+          static_cast<int>(corners[cornerId2].get_i()), static_cast<int>(corners[cornerId2].get_j()), Ox2, thickness);
+      vpDisplay::displayLine(I, static_cast<int>(corners[cornerId2].get_i()), static_cast<int>(corners[cornerId2].get_j()),
+          static_cast<int>(corners[cornerId3].get_i()), static_cast<int>(corners[cornerId3].get_j()), Oy2, thickness);
+    }
+  }
+
+  void displayTags(const vpImage<vpRGBa> &I, const std::vector<std::vector<vpImagePoint> > &tagsCorners,
+                   const vpColor &color, unsigned int thickness) const
+  {
+    size_t tagscorners_size = tagsCorners.size();
+    for (size_t i = 0; i < tagscorners_size; ++i) {
+      const vpColor Ox = (color == vpColor::none) ? vpColor::red : color;
+      const vpColor Oy = (color == vpColor::none) ? vpColor::green : color;
+      const vpColor Ox2 = (color == vpColor::none) ? vpColor::yellow : color;
+      const vpColor Oy2 = (color == vpColor::none) ? vpColor::blue : color;
+
+      const std::vector<vpImagePoint> &corners = tagsCorners[i];
+      assert(corners.size() == 4);
+      const unsigned int cornerId0 = 0, cornerId1 = 1, cornerId2 = 2, cornerId3 = 3;
+      const double line0_length_8 = vpImagePoint::distance(corners[cornerId0], corners[cornerId1]) / 8;
+      unsigned int rect_size = static_cast<unsigned int>(line0_length_8);
+      if (line0_length_8 < 2) {
+        rect_size = 2;
+      }
+      vpDisplay::displayRectangle(I, corners[cornerId0], 0, rect_size, rect_size, vpColor::red, thickness);
+
+      vpDisplay::displayLine(I, static_cast<int>(corners[cornerId0].get_i()), static_cast<int>(corners[cornerId0].get_j()),
+          static_cast<int>(corners[cornerId1].get_i()), static_cast<int>(corners[cornerId1].get_j()), Ox, thickness);
+      vpDisplay::displayLine(I, static_cast<int>(corners[cornerId0].get_i()), static_cast<int>(corners[cornerId0].get_j()),
+          static_cast<int>(corners[cornerId3].get_i()), static_cast<int>(corners[cornerId3].get_j()), Oy, thickness);
+      vpDisplay::displayLine(I, static_cast<int>(corners[cornerId1].get_i()), static_cast<int>(corners[cornerId1].get_j()),
+          static_cast<int>(corners[cornerId2].get_i()), static_cast<int>(corners[cornerId2].get_j()), Ox2, thickness);
+      vpDisplay::displayLine(I, static_cast<int>(corners[cornerId2].get_i()), static_cast<int>(corners[cornerId2].get_j()),
+          static_cast<int>(corners[cornerId3].get_i()), static_cast<int>(corners[cornerId3].get_j()), Oy2, thickness);
+    }
+  }
+
+  /*!
+   * Create an image of a marker corresponding to the current tag family with a given id.
+   *
+   * @param[out] I : Image with the created marker.
+   * @param[in] id : Marker id.
+   * \return true when image created successfully, false otherwise.
+   */
+  bool getTagImage(vpImage<unsigned char> &I, int id)
+  {
+    if (id >= static_cast<int>(m_tf->ncodes)) {
+      std::cerr << "Cannot get tag image with id " << id << " for family " << m_tagFamily << std::endl;
+      return false;
+    }
+    image_u8_t *img_8u = apriltag_to_image(m_tf, id);
+
+    I.init(img_8u->height, img_8u->width);
+    for (int i = 0; i < img_8u->height; i++) {
+      for (int j = 0; j < img_8u->width; j++) {
+        I[i][j] = img_8u->buf[i*img_8u->stride + j];
+      }
+    }
+
+    image_u8_destroy(img_8u);
+    return true;
+  }
+
+  bool getPose(size_t tagIndex, double tagSize, const vpCameraParameters &cam, vpHomogeneousMatrix &cMo,
+               vpHomogeneousMatrix *cMo2, double *projErrors, double *projErrors2)
+  {
+    if (m_detections == nullptr) {
       throw(vpException(vpException::fatalError, "Cannot get tag index=%d pose: detection empty", tagIndex));
     }
     if (m_tagFamily == TAG_36ARTOOLKIT) {
-      //TAG_36ARTOOLKIT is not available anymore
+      // TAG_36ARTOOLKIT is not available anymore
       std::cerr << "TAG_36ARTOOLKIT detector is not available anymore." << std::endl;
-      return  false;
+      return false;
     }
 #if !defined(VISP_HAVE_APRILTAG_BIG_FAMILY)
-    if (m_tagFamily == TAG_CIRCLE49h12 || m_tagFamily == TAG_CUSTOM48h12 || m_tagFamily == TAG_STANDARD41h12 || m_tagFamily == TAG_STANDARD52h13) {
-      std::cerr << "TAG_CIRCLE49h12, TAG_CUSTOM48h12, TAG_STANDARD41h12 and TAG_STANDARD52h13 are disabled." << std::endl;
+    if ((m_tagFamily == TAG_CIRCLE49h12) || (m_tagFamily == TAG_CUSTOM48h12) || (m_tagFamily == TAG_STANDARD41h12) ||
+        (m_tagFamily == TAG_STANDARD52h13)) {
+      std::cerr << "TAG_CIRCLE49h12, TAG_CUSTOM48h12, TAG_STANDARD41h12 and TAG_STANDARD52h13 are disabled."
+        << std::endl;
       return false;
     }
 #endif
@@ -398,19 +760,19 @@ public:
     zarray_get(m_detections, static_cast<int>(tagIndex), &det);
 
     int nb_detections = zarray_size(m_detections);
-    if (tagIndex >= (size_t)nb_detections) {
+    if (tagIndex >= static_cast<size_t>(nb_detections)) {
       return false;
     }
 
-    //In AprilTag3, estimate_pose_for_tag_homography() and estimate_tag_pose() have been added.
-    //They use a tag frame aligned with the camera frame
-    //Before the release of AprilTag3, convention used was to define the z-axis of the tag going upward.
-    //To keep compatibility, we maintain the same convention than before and there is setZAlignedWithCameraAxis().
-    //Under the hood, we use aligned frames everywhere and transform the pose according to the option.
+    // In AprilTag3, estimate_pose_for_tag_homography() and estimate_tag_pose() have been added.
+    // They use a tag frame aligned with the camera frame
+    // Before the release of AprilTag3, convention used was to define the z-axis of the tag going upward.
+    // To keep compatibility, we maintain the same convention than before and there is setZAlignedWithCameraAxis().
+    // Under the hood, we use aligned frames everywhere and transform the pose according to the option.
 
     vpHomogeneousMatrix cMo_homography_ortho_iter;
-    if (m_poseEstimationMethod == HOMOGRAPHY_ORTHOGONAL_ITERATION ||
-        m_poseEstimationMethod == BEST_RESIDUAL_VIRTUAL_VS) {
+    if ((m_poseEstimationMethod == HOMOGRAPHY_ORTHOGONAL_ITERATION) ||
+        (m_poseEstimationMethod == BEST_RESIDUAL_VIRTUAL_VS)) {
       double fx = cam.get_px(), fy = cam.get_py();
       double cx = cam.get_u0(), cy = cam.get_v0();
 
@@ -422,14 +784,14 @@ public:
       info.cx = cx;
       info.cy = cy;
 
-      //projErrors and projErrors2 will be override later
+      // projErrors and projErrors2 will be override later
       getPoseWithOrthogonalMethod(info, cMo, cMo2, projErrors, projErrors2);
       cMo_homography_ortho_iter = cMo;
     }
 
     vpHomogeneousMatrix cMo_homography;
-    if (m_poseEstimationMethod == HOMOGRAPHY || m_poseEstimationMethod == HOMOGRAPHY_VIRTUAL_VS ||
-        m_poseEstimationMethod == BEST_RESIDUAL_VIRTUAL_VS) {
+    if ((m_poseEstimationMethod == HOMOGRAPHY) || (m_poseEstimationMethod == HOMOGRAPHY_VIRTUAL_VS) ||
+        (m_poseEstimationMethod == BEST_RESIDUAL_VIRTUAL_VS)) {
       double fx = cam.get_px(), fy = cam.get_py();
       double cx = cam.get_u0(), cy = cam.get_v0();
 
@@ -472,29 +834,31 @@ public:
     pt.set_y(y);
     pts[1] = pt;
 
+    const int idCorner2 = 2;
     pt.setWorldCoordinates(tagSize / 2.0, -tagSize / 2.0, 0.0);
-    imPt.set_uv(det->p[2][0], det->p[2][1]);
+    imPt.set_uv(det->p[idCorner2][0], det->p[idCorner2][1]);
     vpPixelMeterConversion::convertPoint(cam, imPt, x, y);
     pt.set_x(x);
     pt.set_y(y);
-    pts[2] = pt;
+    pts[idCorner2] = pt;
 
+    const int idCorner3 = 3;
     pt.setWorldCoordinates(-tagSize / 2.0, -tagSize / 2.0, 0.0);
-    imPt.set_uv(det->p[3][0], det->p[3][1]);
+    imPt.set_uv(det->p[idCorner3][0], det->p[idCorner3][1]);
     vpPixelMeterConversion::convertPoint(cam, imPt, x, y);
     pt.set_x(x);
     pt.set_y(y);
-    pts[3] = pt;
+    pts[idCorner3] = pt;
 
     pose.addPoints(pts);
 
-    if (m_poseEstimationMethod != HOMOGRAPHY && m_poseEstimationMethod != HOMOGRAPHY_VIRTUAL_VS &&
-        m_poseEstimationMethod != HOMOGRAPHY_ORTHOGONAL_ITERATION) {
+    if ((m_poseEstimationMethod != HOMOGRAPHY) && (m_poseEstimationMethod != HOMOGRAPHY_VIRTUAL_VS) &&
+        (m_poseEstimationMethod != HOMOGRAPHY_ORTHOGONAL_ITERATION)) {
       if (m_poseEstimationMethod == BEST_RESIDUAL_VIRTUAL_VS) {
         vpHomogeneousMatrix cMo_dementhon, cMo_lagrange;
 
         double residual_dementhon = std::numeric_limits<double>::max(),
-               residual_lagrange = std::numeric_limits<double>::max();
+          residual_lagrange = std::numeric_limits<double>::max();
         double residual_homography = pose.computeResidual(cMo_homography);
         double residual_homography_ortho_iter = pose.computeResidual(cMo_homography_ortho_iter);
 
@@ -519,44 +883,46 @@ public:
 
         std::ptrdiff_t minIndex = std::min_element(residuals.begin(), residuals.end()) - residuals.begin();
         cMo = *(poses.begin() + minIndex);
-      } else {
+      }
+      else {
         pose.computePose(m_mapOfCorrespondingPoseMethods[m_poseEstimationMethod], cMo);
       }
     }
 
-    if (m_poseEstimationMethod != HOMOGRAPHY &&
-        m_poseEstimationMethod != HOMOGRAPHY_ORTHOGONAL_ITERATION) {
+    if ((m_poseEstimationMethod != HOMOGRAPHY) && (m_poseEstimationMethod != HOMOGRAPHY_ORTHOGONAL_ITERATION)) {
       // Compute final pose using VVS
       pose.computePose(vpPose::VIRTUAL_VS, cMo);
     }
 
-    //Only with HOMOGRAPHY_ORTHOGONAL_ITERATION we can directly get two solutions
+    // Only with HOMOGRAPHY_ORTHOGONAL_ITERATION we can directly get two solutions
     if (m_poseEstimationMethod != HOMOGRAPHY_ORTHOGONAL_ITERATION) {
       if (cMo2) {
-        double scale = tagSize/2.0;
-        double data_p0[] = {-scale, scale, 0};
-        double data_p1[] = {scale, scale, 0};
-        double data_p2[] = {scale, -scale, 0};
-        double data_p3[] = {-scale, -scale, 0};
-        matd_t* p[4] = {matd_create_data(3, 1, data_p0),
-                        matd_create_data(3, 1, data_p1),
-                        matd_create_data(3, 1, data_p2),
-                        matd_create_data(3, 1, data_p3)};
-        matd_t* v[4];
-        for (int i = 0; i < 4; i++) {
-          double data_v[] = {(det->p[i][0] - cam.get_u0())/cam.get_px(), (det->p[i][1] - cam.get_v0())/cam.get_py(), 1};
-          v[i] = matd_create_data(3, 1, data_v);
+        double scale = tagSize / 2.0;
+        double data_p0[] = { -scale, scale, 0 };
+        double data_p1[] = { scale, scale, 0 };
+        double data_p2[] = { scale, -scale, 0 };
+        double data_p3[] = { -scale, -scale, 0 };
+        const unsigned int nbPoints = 4;
+        const int nbRows = 3;
+        matd_t *p[nbPoints] = { matd_create_data(nbRows, 1, data_p0), matd_create_data(nbRows, 1, data_p1),
+                        matd_create_data(nbRows, 1, data_p2), matd_create_data(nbRows, 1, data_p3) };
+        matd_t *v[nbPoints];
+        for (unsigned int i = 0; i < nbPoints; ++i) {
+          double data_v[] = { (det->p[i][0] - cam.get_u0()) / cam.get_px(), (det->p[i][1] - cam.get_v0()) / cam.get_py(),
+                             1 };
+          v[i] = matd_create_data(nbRows, 1, data_v);
         }
 
         apriltag_pose_t solution1, solution2;
         const int nIters = 50;
-        solution1.R = matd_create_data(3, 3, cMo.getRotationMatrix().data);
-        solution1.t = matd_create_data(3, 1, cMo.getTranslationVector().data);
+        const int nbCols = 3;
+        solution1.R = matd_create_data(nbRows, nbCols, cMo.getRotationMatrix().data);
+        solution1.t = matd_create_data(nbRows, 1, cMo.getTranslationVector().data);
 
         double err2;
         get_second_solution(v, p, &solution1, &solution2, nIters, &err2);
 
-        for (int i = 0; i < 4; i++) {
+        for (unsigned int i = 0; i < nbPoints; ++i) {
           matd_destroy(p[i]);
           matd_destroy(v[i]);
         }
@@ -573,7 +939,7 @@ public:
       }
     }
 
-    //Compute projection error with vpPose::computeResidual() for consistency
+    // Compute projection error with vpPose::computeResidual() for consistency
     if (projErrors) {
       *projErrors = pose.computeResidual(cMo);
     }
@@ -582,35 +948,46 @@ public:
     }
 
     if (!m_zAlignedWithCameraFrame) {
+      const unsigned int idX = 0, idY = 1, idZ = 2;
       vpHomogeneousMatrix oMo;
       // Apply a rotation of 180deg around x axis
-      oMo[0][0] = 1; oMo[0][1] =  0; oMo[0][2] = 0;
-      oMo[1][0] = 0; oMo[1][1] = -1; oMo[1][2] = 0;
-      oMo[2][0] = 0; oMo[2][1] =  0; oMo[2][2] = -1;
-      cMo = cMo*oMo;
+      oMo[idX][idX] = 1;
+      oMo[idX][idY] = 0;
+      oMo[idX][idZ] = 0;
+      oMo[idY][idX] = 0;
+      oMo[idY][idY] = -1;
+      oMo[idY][idZ] = 0;
+      oMo[idZ][idX] = 0;
+      oMo[idZ][idY] = 0;
+      oMo[idZ][idZ] = -1;
+      cMo = cMo * oMo;
       if (cMo2) {
-        *cMo2 = *cMo2*oMo;
+        *cMo2 = *cMo2 * oMo;
       }
     }
 
     return true;
   }
 
-  void getPoseWithOrthogonalMethod(apriltag_detection_info_t &info, vpHomogeneousMatrix &cMo1, vpHomogeneousMatrix *cMo2,
-                                   double *err1, double *err2) {
+  void getPoseWithOrthogonalMethod(apriltag_detection_info_t &info, vpHomogeneousMatrix &cMo1,
+                                   vpHomogeneousMatrix *cMo2, double *err1, double *err2)
+  {
     apriltag_pose_t pose1, pose2;
     double err_1, err_2;
-    estimate_tag_pose_orthogonal_iteration(&info, &err_1, &pose1, &err_2, &pose2, 50);
+    const unsigned int nbIters = 50;
+    estimate_tag_pose_orthogonal_iteration(&info, &err_1, &pose1, &err_2, &pose2, nbIters);
     if (err_1 <= err_2) {
       convertHomogeneousMatrix(pose1, cMo1);
       if (cMo2) {
         if (pose2.R) {
           convertHomogeneousMatrix(pose2, *cMo2);
-        } else {
+        }
+        else {
           *cMo2 = cMo1;
         }
       }
-    } else {
+    }
+    else {
       convertHomogeneousMatrix(pose2, cMo1);
       if (cMo2) {
         convertHomogeneousMatrix(pose1, *cMo2);
@@ -624,15 +1001,28 @@ public:
     }
     matd_destroy(pose2.R);
 
-    if (err1)
+    if (err1) {
       *err1 = err_1;
-    if (err2)
+    }
+    if (err2) {
       *err2 = err_2;
+    }
   }
 
   bool getZAlignedWithCameraAxis() { return m_zAlignedWithCameraFrame; }
 
-  bool getAprilTagDecodeSharpening(double &decodeSharpening) const {
+  float getAprilTagDecisionMarginThreshold() const
+  {
+    return m_decisionMarginThreshold;
+  }
+
+  int getAprilTagHammingDistanceThreshold() const
+  {
+    return m_hammingDistanceThreshold;
+  }
+
+  bool getAprilTagDecodeSharpening(double &decodeSharpening) const
+  {
     if (m_td) {
       decodeSharpening = m_td->decode_sharpening;
       return true;
@@ -640,7 +1030,8 @@ public:
     return false;
   }
 
-  bool getNbThreads(int &nThreads) const {
+  bool getNbThreads(int &nThreads) const
+  {
     if (m_td) {
       nThreads = m_td->nthreads;
       return true;
@@ -648,15 +1039,17 @@ public:
     return false;
   }
 
-  bool getQuadDecimate(float &quadDecimate) const {
+  bool getQuadDecimate(float &quadDecimate) const
+  {
     if (m_td) {
       quadDecimate = m_td->quad_decimate;
       return true;
     }
     return false;
   }
-  
-  bool getQuadSigma(float &quadSigma) const {
+
+  bool getQuadSigma(float &quadSigma) const
+  {
     if (m_td) {
       quadSigma = m_td->quad_sigma;
       return true;
@@ -664,7 +1057,8 @@ public:
     return false;
   }
 
-  bool getRefineEdges(bool &refineEdges) const {
+  bool getRefineEdges(bool &refineEdges) const
+  {
     if (m_td) {
       refineEdges = (m_td->refine_edges ? true : false);
       return true;
@@ -672,31 +1066,54 @@ public:
     return false;
   }
 
-  bool getZAlignedWithCameraAxis() const {
-    return m_zAlignedWithCameraFrame;
-  }
+  bool getZAlignedWithCameraAxis() const { return m_zAlignedWithCameraFrame; }
+
+  std::vector<float> getTagsDecisionMargin() const { return m_tagsDecisionMargin; }
+
+  std::vector<int> getTagsHammingDistance() const { return m_tagsHammingDistance; }
 
   std::vector<int> getTagsId() const { return m_tagsId; }
 
-  void setAprilTagDecodeSharpening(double decodeSharpening) {
+  void setAprilTagDecisionMarginThreshold(float decisionMarginThreshold)
+  {
+    m_decisionMarginThreshold = decisionMarginThreshold;
+  }
+
+  void setAprilTagHammingDistanceThreshold(int hammingDistanceThreshold)
+  {
+    m_hammingDistanceThreshold = hammingDistanceThreshold;
+  }
+
+  void setAprilTagDecodeSharpening(double decodeSharpening)
+  {
     if (m_td) {
       m_td->decode_sharpening = decodeSharpening;
     }
   }
 
-  void setNbThreads(int nThreads) {
+  void setDebugFlag(bool flag)
+  {
+    if (m_td) {
+      m_td->debug = flag;
+    }
+  }
+
+  void setNbThreads(int nThreads)
+  {
     if (m_td) {
       m_td->nthreads = nThreads;
     }
   }
 
-  void setQuadDecimate(float quadDecimate) {
+  void setQuadDecimate(float quadDecimate)
+  {
     if (m_td) {
       m_td->quad_decimate = quadDecimate;
     }
   }
 
-  void setQuadSigma(float quadSigma) {
+  void setQuadSigma(float quadSigma)
+  {
     if (m_td) {
       m_td->quad_sigma = quadSigma;
     }
@@ -704,45 +1121,63 @@ public:
 
   void setRefineDecode(bool) { }
 
-  void setRefineEdges(bool refineEdges) {
+  void setRefineEdges(bool refineEdges)
+  {
     if (m_td) {
-      m_td->refine_edges = refineEdges ? 1 : 0;
+      m_td->refine_edges = (refineEdges ? true : false);
     }
   }
 
   void setRefinePose(bool) { }
 
-  void setPoseEstimationMethod(const vpPoseEstimationMethod &method) { m_poseEstimationMethod = method; }
+  void setPoseEstimationMethod(const vpPoseEstimationMethod &method)
+  {
+    m_poseEstimationMethod = method;
+  }
 
-  void setZAlignedWithCameraAxis(bool zAlignedWithCameraFrame) { m_zAlignedWithCameraFrame = zAlignedWithCameraFrame; }
+  void setZAlignedWithCameraAxis(bool zAlignedWithCameraFrame)
+  {
+    m_zAlignedWithCameraFrame = zAlignedWithCameraFrame;
+  }
+
+  bool isZAlignedWithCameraAxis() const
+  {
+    return m_zAlignedWithCameraFrame;
+  }
 
 protected:
   std::map<vpPoseEstimationMethod, vpPose::vpPoseMethodType> m_mapOfCorrespondingPoseMethods;
   vpPoseEstimationMethod m_poseEstimationMethod;
   std::vector<int> m_tagsId;
   vpAprilTagFamily m_tagFamily;
+  std::vector<float> m_tagsDecisionMargin;
+  std::vector<int> m_tagsHammingDistance;
   apriltag_detector_t *m_td;
   apriltag_family_t *m_tf;
   zarray_t *m_detections;
+  float m_decisionMarginThreshold;
+  int m_hammingDistanceThreshold;
   bool m_zAlignedWithCameraFrame;
 };
+
+namespace
+{
+const unsigned int def_tagThickness = 2;
+}
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 vpDetectorAprilTag::vpDetectorAprilTag(const vpAprilTagFamily &tagFamily,
                                        const vpPoseEstimationMethod &poseEstimationMethod)
-  : m_displayTag(false), m_displayTagColor(vpColor::none), m_displayTagThickness(2),
-    m_poseEstimationMethod(poseEstimationMethod), m_tagFamily(tagFamily), m_defaultCam(),
-    m_impl(new Impl(tagFamily, poseEstimationMethod))
-{
-}
+  : m_displayTag(false), m_displayTagColor(vpColor::none), m_displayTagThickness(def_tagThickness),
+  m_poseEstimationMethod(poseEstimationMethod), m_tagFamily(tagFamily), m_defaultCam(),
+  m_impl(new Impl(tagFamily, poseEstimationMethod))
+{ }
 
 vpDetectorAprilTag::vpDetectorAprilTag(const vpDetectorAprilTag &o)
-  : vpDetectorBase (o),
-    m_displayTag(false), m_displayTagColor(vpColor::none), m_displayTagThickness(2),
-    m_poseEstimationMethod(o.m_poseEstimationMethod), m_tagFamily(o.m_tagFamily), m_defaultCam(),
-    m_impl(new Impl(*o.m_impl))
-{
-}
+  : vpDetectorBase(o), m_displayTag(false), m_displayTagColor(vpColor::none), m_displayTagThickness(def_tagThickness),
+  m_poseEstimationMethod(o.m_poseEstimationMethod), m_tagFamily(o.m_tagFamily), m_defaultCam(),
+  m_impl(new Impl(*o.m_impl))
+{ }
 
 vpDetectorAprilTag &vpDetectorAprilTag::operator=(vpDetectorAprilTag o)
 {
@@ -767,9 +1202,8 @@ bool vpDetectorAprilTag::detect(const vpImage<unsigned char> &I)
 
   std::vector<vpHomogeneousMatrix> cMo_vec;
   const double tagSize = 1.0;
-  bool detected = m_impl->detect(I, tagSize, m_defaultCam, m_polygon, m_message, m_displayTag,
-                                 m_displayTagColor, m_displayTagThickness,
-                                 NULL, NULL, NULL, NULL);
+  bool detected = m_impl->detect(I, tagSize, m_defaultCam, m_polygon, m_message, m_displayTag, m_displayTagColor,
+                                 m_displayTagThickness, nullptr, nullptr, nullptr, nullptr);
   m_nb_objects = m_message.size();
 
   return detected;
@@ -787,8 +1221,8 @@ bool vpDetectorAprilTag::detect(const vpImage<unsigned char> &I)
   \param[out] cMo_vec : List of tag poses.
   \param[out] cMo_vec2 : Optional second list of tag poses, since there are 2 solutions for planar pose estimation.
   \param[out] projErrors : Optional (sum of squared) projection errors in the normalized camera frame.
-  \param[out] projErrors2 : Optional (sum of squared) projection errors for the 2nd solution in the normalized camera frame.
-  \return true if at least one tag is detected.
+  \param[out] projErrors2 : Optional (sum of squared) projection errors for the 2nd solution in the normalized camera
+  frame. \return true if at least one tag is detected.
 
   \sa getPose()
 */
@@ -804,12 +1238,71 @@ bool vpDetectorAprilTag::detect(const vpImage<unsigned char> &I, double tagSize,
   if (cMo_vec2) {
     cMo_vec2->clear();
   }
-  bool detected = m_impl->detect(I, tagSize, cam, m_polygon, m_message, m_displayTag,
-                                 m_displayTagColor, m_displayTagThickness,
-                                 &cMo_vec, cMo_vec2, projErrors, projErrors2);
+  bool detected = m_impl->detect(I, tagSize, cam, m_polygon, m_message, m_displayTag, m_displayTagColor,
+                                 m_displayTagThickness, &cMo_vec, cMo_vec2, projErrors, projErrors2);
   m_nb_objects = m_message.size();
 
   return detected;
+}
+
+/*!
+  Display the tag frames on a grayscale image.
+
+  \param[in] I : The image.
+  \param[in] cMo_vec : The vector of computed tag poses.
+  \param[in] cam : Camera intrinsic parameters.
+  \param[out] size : Size of the frame.
+  \param[out] color : The desired color, if none the X-axis is red, the Y-axis green and the Z-axis blue.
+  \param[out] thickness : The thickness of the lines.
+ */
+void vpDetectorAprilTag::displayFrames(const vpImage<unsigned char> &I, const std::vector<vpHomogeneousMatrix> &cMo_vec,
+                                       const vpCameraParameters &cam, double size, const vpColor &color, unsigned int thickness) const
+{
+  m_impl->displayFrames(I, cMo_vec, cam, size, color, thickness);
+}
+
+/*!
+  Display the tag frames on a vpRGBa image.
+
+  \param[in] I : The image.
+  \param[in] cMo_vec : The vector of computed tag poses.
+  \param[in] cam : Camera intrinsic parameters.
+  \param[out] size : Size of the frame.
+  \param[out] color : The desired color, if none the X-axis is red, the Y-axis green and the Z-axis blue.
+  \param[out] thickness : The thickness of the lines.
+ */
+void vpDetectorAprilTag::displayFrames(const vpImage<vpRGBa> &I, const std::vector<vpHomogeneousMatrix> &cMo_vec,
+                                       const vpCameraParameters &cam, double size, const vpColor &color, unsigned int thickness) const
+{
+  m_impl->displayFrames(I, cMo_vec, cam, size, color, thickness);
+}
+
+/*!
+  Display the tag contours on a grayscale image.
+
+  \param[in] I : The image.
+  \param[in] tagsCorners : The vector of tag contours.
+  \param[out] color : The desired color, if none RGBY colors are used.
+  \param[out] thickness : The thickness of the lines.
+ */
+void vpDetectorAprilTag::displayTags(const vpImage<unsigned char> &I, const std::vector<std::vector<vpImagePoint> > &tagsCorners,
+                                     const vpColor &color, unsigned int thickness) const
+{
+  m_impl->displayTags(I, tagsCorners, color, thickness);
+}
+
+/*!
+  Display the tag contours on a vpRGBa image.
+
+  \param[in] I : The image.
+  \param[in] tagsCorners : The vector of tag contours.
+  \param[out] color : The desired color, if none RGBY colors are used.
+  \param[out] thickness : The thickness of the lines.
+ */
+void vpDetectorAprilTag::displayTags(const vpImage<vpRGBa> &I, const std::vector<std::vector<vpImagePoint> > &tagsCorners,
+                                     const vpColor &color, unsigned int thickness) const
+{
+  m_impl->displayTags(I, tagsCorners, color, thickness);
 }
 
 /*!
@@ -825,8 +1318,8 @@ bool vpDetectorAprilTag::detect(const vpImage<unsigned char> &I, double tagSize,
   \param[out] cMo : Pose of the tag.
   \param[out] cMo2 : Optional second pose of the tag.
   \param[out] projError : Optional (sum of squared) projection errors in the normalized camera frame.
-  \param[out] projError2 : Optional (sum of squared) projection errors for the 2nd solution in the normalized camera frame.
-  \return true if success, false otherwise.
+  \param[out] projError2 : Optional (sum of squared) projection errors for the 2nd solution in the normalized camera
+  frame. \return true if success, false otherwise.
 
   The following code shows how to use this function:
   \code
@@ -844,8 +1337,8 @@ bool vpDetectorAprilTag::detect(const vpImage<unsigned char> &I, double tagSize,
              std::vector<vpHomogeneousMatrix> *, std::vector<double> *, std::vector<double> *)
  */
 bool vpDetectorAprilTag::getPose(size_t tagIndex, double tagSize, const vpCameraParameters &cam,
-                                 vpHomogeneousMatrix &cMo, vpHomogeneousMatrix *cMo2,
-                                 double *projError, double *projError2)
+                                 vpHomogeneousMatrix &cMo, vpHomogeneousMatrix *cMo2, double *projError,
+                                 double *projError2)
 {
   return m_impl->getPose(tagIndex, tagSize, cam, cMo, cMo2, projError, projError2);
 }
@@ -867,39 +1360,45 @@ bool vpDetectorAprilTag::getPose(size_t tagIndex, double tagSize, const vpCamera
 
   \sa getTagsCorners(), getTagsId()
  */
-std::vector<std::vector<vpPoint> > vpDetectorAprilTag::getTagsPoints3D(const std::vector<int>& tagsId,
-                                                                       const std::map<int, double>& tagsSize) const
+std::vector<std::vector<vpPoint> > vpDetectorAprilTag::getTagsPoints3D(const std::vector<int> &tagsId,
+                                                                       const std::map<int, double> &tagsSize) const
 {
   std::vector<std::vector<vpPoint> > tagsPoints3D;
 
   double default_size = -1;
-  {
-    std::map<int, double>::const_iterator it = tagsSize.find(-1);
-    if (it != tagsSize.end()) {
-      default_size = it->second; // Default size
-    }
+
+  std::map<int, double>::const_iterator it = tagsSize.find(-1);
+  if (it != tagsSize.end()) {
+    default_size = it->second; // Default size
   }
-  for (size_t i = 0; i < tagsId.size(); i++) {
-    std::map<int, double>::const_iterator it = tagsSize.find(tagsId[i]);
+
+  size_t tagsid_size = tagsId.size();
+  for (size_t i = 0; i < tagsid_size; ++i) {
+    it = tagsSize.find(tagsId[i]);
     double tagSize = default_size; // Default size
     if (it == tagsSize.end()) {
       if (default_size < 0) { // no default size found
-        throw(vpException(vpException::fatalError, "Tag with id %d has no 3D size or there is no default 3D size defined", tagsId[i]));
+        throw(vpException(vpException::fatalError,
+                          "Tag with id %d has no 3D size or there is no default 3D size defined", tagsId[i]));
       }
-    } else {
+    }
+    else {
       tagSize = it->second;
     }
     std::vector<vpPoint> points3D(4);
+    const unsigned int idX = 0, idY = 1, idZ = 2, idHomogen = 3;
+    const double middleFactor = 2.0;
     if (m_impl->getZAlignedWithCameraAxis()) {
-      points3D[0] = vpPoint(-tagSize/2,  tagSize/2, 0);
-      points3D[1] = vpPoint( tagSize/2,  tagSize/2, 0);
-      points3D[2] = vpPoint( tagSize/2, -tagSize/2, 0);
-      points3D[3] = vpPoint(-tagSize/2, -tagSize/2, 0);
-    } else {
-      points3D[0] = vpPoint(-tagSize/2, -tagSize/2, 0);
-      points3D[1] = vpPoint( tagSize/2, -tagSize/2, 0);
-      points3D[2] = vpPoint( tagSize/2,  tagSize/2, 0);
-      points3D[3] = vpPoint(-tagSize/2,  tagSize/2, 0);
+      points3D[idX] = vpPoint(-tagSize / middleFactor, tagSize / middleFactor, 0);
+      points3D[idY] = vpPoint(tagSize / middleFactor, tagSize / middleFactor, 0);
+      points3D[idZ] = vpPoint(tagSize / middleFactor, -tagSize / middleFactor, 0);
+      points3D[idHomogen] = vpPoint(-tagSize / middleFactor, -tagSize / middleFactor, 0);
+    }
+    else {
+      points3D[idX] = vpPoint(-tagSize / middleFactor, -tagSize / middleFactor, 0);
+      points3D[idY] = vpPoint(tagSize / middleFactor, -tagSize / middleFactor, 0);
+      points3D[idZ] = vpPoint(tagSize / middleFactor, tagSize / middleFactor, 0);
+      points3D[idHomogen] = vpPoint(-tagSize / middleFactor, tagSize / middleFactor, 0);
     }
     tagsPoints3D.push_back(points3D);
   }
@@ -908,33 +1407,168 @@ std::vector<std::vector<vpPoint> > vpDetectorAprilTag::getTagsPoints3D(const std
 }
 
 /*!
+  Get the decision margin threshold to filter out false detections.
+  Higher is the decision margin for each detected tag, better is the detection.
+  When the decision margin threshold is equal to -1, tags decision margin values are not used to
+  filter potential false positive detection.
+
+  \sa setAprilTagDecisionMarginThreshold(), setAprilTagHammingDistanceThreshold()
+*/
+float vpDetectorAprilTag::getAprilTagDecisionMarginThreshold() const
+{
+  return m_impl->getAprilTagDecisionMarginThreshold();
+}
+
+/*!
+  Get the hamming distance threshold to filter out false detections.
+  For each tag detected, the hamming distance is between 0 and 255 and indicates the number of bit-error that are
+  corrected. A value of 0 indicates that no correction was applied when the tag was detected, while a value of 2
+  indicates that 2 bits were corrected to achieve detection. The lower the Hamming distance, the more reliable the
+  detection.
+
+  Default value is 2, meaning that we don't filter out detections with corrected bits.
+
+  This threshold could be used to filter out detections where the hamming distance is greater than this threshold.
+
+  \sa setAprilTagHammingDistanceThreshold(), setAprilTagDecisionMarginThreshold()
+*/
+int vpDetectorAprilTag::getAprilTagHammingDistanceThreshold() const
+{
+  return m_impl->getAprilTagHammingDistanceThreshold();
+}
+
+/*!
   Return the corners coordinates for the detected tags.
 
   \sa getTagsId(), getTagsPoints3D()
 */
-std::vector<std::vector<vpImagePoint> > vpDetectorAprilTag::getTagsCorners() const
+std::vector<std::vector<vpImagePoint> > vpDetectorAprilTag::getTagsCorners() const { return m_polygon; }
+
+/*!
+ * Using this option allows debugging the AprilTag marker detection process.
+ * This can be used to understand why a marker is not detected for instance.
+ *
+ * It will generate in the exe folder different debugging images, among others:
+ *   - 'debug_preprocess.pnm' corresponding to 'decimation, sharp/blur' preprocessing
+ *   - 'debug_threshold.pnm' corresponding to 'step 1. threshold the image, creating the edge image.'
+ *   - 'debug_segmentation.pnm' corresponding to 'step 2. find connected components.'
+ *   - 'debug_clusters.pnm' corresponding to the 'gradient_clusters()' function
+ *   - 'debug_quads_raw.pnm' corresponding to the detected quad shapes
+ *   - 'debug_samples.pnm' corresponding to the successfully decoded quad
+ *   - 'debug_output.pnm' corresponding to the final output after post-processing (non-overlapping duplicate detections)
+ *
+ * @param[in] flag : Debug flag.
+ */
+void vpDetectorAprilTag::setAprilTagDebugOption(bool flag)
 {
-  return m_polygon;
+  m_impl->setDebugFlag(flag);
 }
+
+/*!
+ * Create an image of a marker corresponding to the current tag family with a given id.
+ *
+ * @param[out] I : Image with the created marker.
+ * @param[in] id : Marker id.
+ * \return true when image created successfully, false otherwise.
+ */
+bool vpDetectorAprilTag::getTagImage(vpImage<unsigned char> &I, int id)
+{
+  return m_impl->getTagImage(I, id);
+}
+
+/*!
+  Return the decision marging for each detection. It could be seen as a quality detection indicator.
+  The higher the value, the greater the confidence in detection.
+
+  \note When the decision margin threshold set using setAprilTagDecisionMargin() differs from -1,
+  this decision margin is used internally to filter out false detections.
+
+  \sa getTagsCorners(), getTagsPoints3D(), getTagsId(), getTagsHammingDistance(), setAprilTagDecisionMargin()
+*/
+std::vector<float> vpDetectorAprilTag::getTagsDecisionMargin() const { return m_impl->getTagsDecisionMargin(); }
+
+/*!
+  Return the hamming distance for each detection in range 0 - 255.
+  This hamming distance corresponds to the number of bits that were corrected.
+  Having values greater than 0 leads to greatly increased false positive rates.
+  Thus it could be seen as a quality detection indicator.
+
+  \note As of this implementation, the detector cannot detect tags with a hamming distance greater than 2.
+
+  \sa getTagsCorners(), getTagsPoints3D(), getTagsId(), getTagsDecisionMargin()
+*/
+std::vector<int> vpDetectorAprilTag::getTagsHammingDistance() const { return m_impl->getTagsHammingDistance(); }
 
 /*!
   Return the decoded Apriltag id for each detection.
 
-  \sa getTagsCorners(), getTagsPoints3D()
+  \sa getTagsCorners(), getTagsPoints3D(), getTagsDecisionMargin(), getTagsHammingDistance()
 */
-std::vector<int> vpDetectorAprilTag::getTagsId() const
-{
-  return m_impl->getTagsId();
-}
+std::vector<int> vpDetectorAprilTag::getTagsId() const { return m_impl->getTagsId(); }
 
 void vpDetectorAprilTag::setAprilTagDecodeSharpening(double decodeSharpening)
 {
   return m_impl->setAprilTagDecodeSharpening(decodeSharpening);
 }
 
+/*!
+  See the AprilTag documentation:
+    > A measure of the quality of the binary decoding process: the
+    > average difference between the intensity of a data bit versus
+    > the decision threshold. Higher numbers roughly indicate better
+    > decodes. This is a reasonable measure of detection accuracy
+    > only for very small tags-- not effective for larger tags (where
+    > we could have sampled anywhere within a bit cell and still
+    > gotten a good detection.)
+
+  It has been experimentally observed that using the AprilTag detection and decoding pipeline,
+  lots of false positives arise with 16h5, 4x4, 5x5, 6x6 and 7x7 ArUco dictionnaries.
+  A decision margin threshold can be used to filter these detections.
+
+  \param[in] decisionMarginThreshold : Decision margin threshold used to filter false positive detections.
+  - When this threshold is set to -1, the decision margin threshold is not used to eliminate detections whose detection
+    margin is lower than this threshold.
+  - When set, we recommand a value of 100 that makes especially 16h5, 4x4, 5x5, 6x6 and 7x7 ArUco families detection more
+    reliable.
+  - Default value is set to -1.
+
+  \sa getAprilTagDecisionMarginThreshold(), getTagsDecisionMargin()
+*/
+void vpDetectorAprilTag::setAprilTagDecisionMarginThreshold(float decisionMarginThreshold)
+{
+  m_impl->setAprilTagDecisionMarginThreshold(decisionMarginThreshold);
+}
+
+/*!
+  See the AprilTag documentation:
+    > How many error bits were corrected? Note: accepting large numbers of
+    > corrected errors leads to greatly increased false positive rates.
+    > NOTE: As of this implementation, the detector cannot detect tags with
+    > a hamming distance greater than 2.
+
+  It has been experimentally observed that using the AprilTag detection and decoding pipeline,
+  lots of false positives arise with 16h5, 4x4, 5x5, 6x6 and 7x7 ArUco dictionnaries. Their hamming distance is than
+  usually set to 2.
+  A hamming distance threshold can be used to filter these detections using setAprilTagHammingDistanceThreshold().
+
+  \param[in] hammingDistanceThreshold : Threshold between 0 and 255 used to filter tags whose hamming
+  distance is greater than this threshold.
+  - When this threshold is set to 0, only tags for which no bits are corrected are detected.
+  - When set to 2, it means that we keep all the tags that have up to 2 corrected bits. It will lead to false positive
+    detections.
+  - Default value is set to 2.
+
+  \sa getAprilTagDecisionMarginThreshold(), getTagsDecisionMargin()
+*/
+void vpDetectorAprilTag::setAprilTagHammingDistanceThreshold(int hammingDistanceThreshold)
+{
+  assert((hammingDistanceThreshold > -1) && (hammingDistanceThreshold < 256));
+  m_impl->setAprilTagHammingDistanceThreshold(hammingDistanceThreshold);
+}
+
 void vpDetectorAprilTag::setAprilTagFamily(const vpAprilTagFamily &tagFamily)
 {
-  //back-up settings
+  // back-up settings
   double decodeSharpening = 0.25;
   m_impl->getAprilTagDecodeSharpening(decodeSharpening);
   int nThreads = 1;
@@ -992,10 +1626,7 @@ void vpDetectorAprilTag::setAprilTagPoseEstimationMethod(const vpPoseEstimationM
 
   \param quadDecimate : Value for quad_decimate.
 */
-void vpDetectorAprilTag::setAprilTagQuadDecimate(float quadDecimate)
-{
-  m_impl->setQuadDecimate(quadDecimate);
-}
+void vpDetectorAprilTag::setAprilTagQuadDecimate(float quadDecimate) { m_impl->setQuadDecimate(quadDecimate); }
 
 /*!
   From the AprilTag code:
@@ -1009,16 +1640,14 @@ void vpDetectorAprilTag::setAprilTagQuadDecimate(float quadDecimate)
 
   \param quadSigma : Value for quad_sigma.
 */
-void vpDetectorAprilTag::setAprilTagQuadSigma(float quadSigma)
-{
-  m_impl->setQuadSigma(quadSigma);
-}
+void vpDetectorAprilTag::setAprilTagQuadSigma(float quadSigma) { m_impl->setQuadSigma(quadSigma); }
 
 #if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
 /*!
-  Deprecated parameter from AprilTag 2 version.
+  \deprecated Deprecated parameter from AprilTag 2 version.
 */
-vp_deprecated void vpDetectorAprilTag::setAprilTagRefineDecode(bool refineDecode) {
+void vpDetectorAprilTag::setAprilTagRefineDecode(bool refineDecode)
+{
   m_impl->setRefineDecode(refineDecode);
 }
 #endif
@@ -1035,42 +1664,42 @@ vp_deprecated void vpDetectorAprilTag::setAprilTagRefineDecode(bool refineDecode
   </blockquote>
   Default is 1.
 
-  \param refineEdges : If true, set refine_edges to 1.
+  \param refineEdges : If true, set refine edges parameter.
 */
-void vpDetectorAprilTag::setAprilTagRefineEdges(bool refineEdges)
-{
-  m_impl->setRefineEdges(refineEdges);
-}
+void vpDetectorAprilTag::setAprilTagRefineEdges(bool refineEdges) { m_impl->setRefineEdges(refineEdges); }
 
 #if defined(VISP_BUILD_DEPRECATED_FUNCTIONS)
 /*!
-  Deprecated parameter from AprilTag 2 version.
+  \deprecated Deprecated parameter from AprilTag 2 version.
 */
-vp_deprecated void vpDetectorAprilTag::setAprilTagRefinePose(bool refinePose)
-{
-  m_impl->setRefinePose(refinePose);
-}
+void vpDetectorAprilTag::setAprilTagRefinePose(bool refinePose) { m_impl->setRefinePose(refinePose); }
 #endif
 
-void swap(vpDetectorAprilTag &o1, vpDetectorAprilTag &o2)
-{
-  using std::swap;
-
-  swap(o1.m_impl, o2.m_impl);
-}
-
 /*!
- * Modify the resulting tag pose returned by getPose() in order to get
- * a pose where z-axis is aligned when the camera plane is parallel to the tag.
- * \param zAlignedWithCameraFrame : Flag to get a pose where z-axis is aligned with the camera frame.
+ * Modify the resulting tag pose returned by getPose() or
+ * detect(const vpImage<unsigned char> &, double, const vpCameraParameters &, std::vector<vpHomogeneousMatrix> &, std::vector<vpHomogeneousMatrix> *, std::vector<double> *, std::vector<double> *)
+ * in order to get a pose where z-axis is aligned when the camera plane is parallel to the tag.
+ *
+ * \image html img-tag-frame.jpg Tag 36h11_00000 with location of the 4 corners and tag frame
+ * \param zAlignedWithCameraFrame : When set to true, estimated tag pose has a z-axis aligned with the
+ * camera frame.
  */
 void vpDetectorAprilTag::setZAlignedWithCameraAxis(bool zAlignedWithCameraFrame)
 {
   m_impl->setZAlignedWithCameraAxis(zAlignedWithCameraFrame);
 }
 
+/*!
+ * Indicate it z-axis of the tag frame is aligned with the camera frame or not.
+ * @return When true, z-axis are aligned, false otherwise
+ */
+bool vpDetectorAprilTag::isZAlignedWithCameraAxis() const
+{
+  return m_impl->isZAlignedWithCameraAxis();
+}
+END_VISP_NAMESPACE
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_core.a(vpDetectorAprilTag.cpp.o) has
+// Work around to avoid warning: libvisp_core.a(vpDetectorAprilTag.cpp.o) has
 // no symbols
-void dummy_vpDetectorAprilTag() {}
+void dummy_vpDetectorAprilTag() { }
 #endif

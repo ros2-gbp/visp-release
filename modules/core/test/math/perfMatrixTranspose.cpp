@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,19 +29,21 @@
  *
  * Description:
  * Benchmark matrix transpose.
- *
- *****************************************************************************/
+ */
+
+/*!
+  \example perfMatrixTranspose.cpp
+ */
 
 #include <visp3/core/vpConfig.h>
 
-#ifdef VISP_HAVE_CATCH2
-#define CATCH_CONFIG_ENABLE_BENCHMARKING
-#define CATCH_CONFIG_RUNNER
-#include <catch.hpp>
+#if defined(VISP_HAVE_CATCH2)
+
+#include <catch_amalgamated.hpp>
 
 #include <visp3/core/vpMatrix.h>
 
-#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
+#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x030000)
 #include <opencv2/core.hpp>
 #endif
 
@@ -50,7 +51,12 @@
 #include <Eigen/Dense>
 #endif
 
-namespace {
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+
+namespace
+{
 
 bool g_runBenchmark = false;
 int g_tileSize = 16;
@@ -81,7 +87,7 @@ vpMatrix generateMatrixTranspose(unsigned int sz1, unsigned int sz2)
   return M;
 }
 
-vpMatrix transposeIterateSrc(const vpMatrix& A)
+vpMatrix transposeIterateSrc(const vpMatrix &A)
 {
   vpMatrix At;
 
@@ -97,7 +103,7 @@ vpMatrix transposeIterateSrc(const vpMatrix& A)
   return At;
 }
 
-vpMatrix transposeIterateDst(const vpMatrix& A)
+vpMatrix transposeIterateDst(const vpMatrix &A)
 {
   vpMatrix At;
 
@@ -113,7 +119,7 @@ vpMatrix transposeIterateDst(const vpMatrix& A)
   return At;
 }
 
-vpMatrix transposeTilingSO(const vpMatrix& A, unsigned int tileSize=16)
+vpMatrix transposeTilingSO(const vpMatrix &A, unsigned int tileSize = 16)
 {
   vpMatrix At;
 
@@ -130,7 +136,7 @@ vpMatrix transposeTilingSO(const vpMatrix& A, unsigned int tileSize=16)
   return At;
 }
 
-vpMatrix transposeTiling(const vpMatrix& A, int tileSize = 16)
+vpMatrix transposeTiling(const vpMatrix &A, int tileSize = 16)
 {
   vpMatrix At;
 
@@ -167,15 +173,15 @@ vpMatrix transposeTiling(const vpMatrix& A, int tileSize = 16)
   return At;
 }
 
-}
+} // namespace
 
-TEST_CASE("Benchmark vpMatrix transpose", "[benchmark]") {
+TEST_CASE("Benchmark vpMatrix transpose", "[benchmark]")
+{
   if (g_runBenchmark) {
-    const std::vector<std::pair<int, int>> sizes = { {701, 1503}, {1791, 837}, {1201, 1201}, {1024, 1024}, {2000, 2000},
-                                                 {10, 6}, {25, 6}, {100, 6}, {200, 6}, {500, 6}, {1000, 6}, {1500, 6}, {2000, 6},
-                                                 {6, 10}, {6, 25}, {6, 100}, {6, 200}, {6, 500}, {6, 1000}, {6, 1500}, {6, 2000},
-                                                 {640, 1000}, {800, 640}, {640, 500}, {500, 640}, {640, 837}
-    };
+    const std::vector<std::pair<int, int> > sizes = {
+        {701, 1503}, {1791, 837}, {1201, 1201}, {1024, 1024}, {2000, 2000}, {10, 6},    {25, 6},    {100, 6},  {200, 6},
+        {500, 6},    {1000, 6},   {1500, 6},    {2000, 6},    {6, 10},      {6, 25},    {6, 100},   {6, 200},  {6, 500},
+        {6, 1000},   {6, 1500},   {6, 2000},    {640, 1000},  {800, 640},   {640, 500}, {500, 640}, {640, 837} };
 
     for (auto sz : sizes) {
       vpMatrix M = generateMatrix(sz.first, sz.second);
@@ -184,7 +190,8 @@ TEST_CASE("Benchmark vpMatrix transpose", "[benchmark]") {
       std::ostringstream oss;
       oss << sz.first << "x" << sz.second;
       oss << " - M.t()";
-      BENCHMARK(oss.str().c_str()) {
+      BENCHMARK(oss.str().c_str())
+      {
         vpMatrix Mt = M.t();
         REQUIRE(Mt == Mt_true);
         return Mt;
@@ -193,7 +200,8 @@ TEST_CASE("Benchmark vpMatrix transpose", "[benchmark]") {
       oss.str("");
       oss << sz.first << "x" << sz.second;
       oss << " - transposeIterateSrc(M)";
-      BENCHMARK(oss.str().c_str()) {
+      BENCHMARK(oss.str().c_str())
+      {
         vpMatrix Mt = transposeIterateSrc(M);
         REQUIRE(Mt == Mt_true);
         return Mt;
@@ -202,7 +210,8 @@ TEST_CASE("Benchmark vpMatrix transpose", "[benchmark]") {
       oss.str("");
       oss << sz.first << "x" << sz.second;
       oss << " - transposeIterateDst(M)";
-      BENCHMARK(oss.str().c_str()) {
+      BENCHMARK(oss.str().c_str())
+      {
         vpMatrix Mt = transposeIterateDst(M);
         REQUIRE(Mt == Mt_true);
         return Mt;
@@ -211,7 +220,8 @@ TEST_CASE("Benchmark vpMatrix transpose", "[benchmark]") {
       oss.str("");
       oss << sz.first << "x" << sz.second;
       oss << " - transposeTilingSO(M, tileSize=" << g_tileSize << ")";
-      BENCHMARK(oss.str().c_str()) {
+      BENCHMARK(oss.str().c_str())
+      {
         vpMatrix Mt = transposeTilingSO(M, g_tileSize);
         REQUIRE(Mt == Mt_true);
         return Mt;
@@ -220,13 +230,14 @@ TEST_CASE("Benchmark vpMatrix transpose", "[benchmark]") {
       oss.str("");
       oss << sz.first << "x" << sz.second;
       oss << " - transposeTiling(M, tileSize=" << g_tileSize << ")";
-      BENCHMARK(oss.str().c_str()) {
+      BENCHMARK(oss.str().c_str())
+      {
         vpMatrix Mt = transposeTiling(M, g_tileSize);
         REQUIRE(Mt == Mt_true);
         return Mt;
       };
 
-#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
+#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x030000)
       cv::Mat matM(sz.first, sz.second, CV_64FC1);
 
       for (unsigned int i = 0; i < M.getRows(); i++) {
@@ -238,7 +249,8 @@ TEST_CASE("Benchmark vpMatrix transpose", "[benchmark]") {
       oss.str("");
       oss << sz.first << "x" << sz.second;
       oss << " - OpenCV";
-      BENCHMARK(oss.str().c_str()) {
+      BENCHMARK(oss.str().c_str())
+      {
         cv::Mat matMt = matM.t();
         return matMt;
       };
@@ -256,13 +268,15 @@ TEST_CASE("Benchmark vpMatrix transpose", "[benchmark]") {
       oss.str("");
       oss << sz.first << "x" << sz.second;
       oss << " - Eigen";
-      BENCHMARK(oss.str().c_str()) {
+      BENCHMARK(oss.str().c_str())
+      {
         Eigen::MatrixXd eigenMt = eigenM.transpose();
         return eigenMt;
       };
 #endif
     }
-  } else {
+  }
+  else {
     vpMatrix M = generateMatrix(11, 17);
     vpMatrix Mt_true = generateMatrixTranspose(11, 17);
 
@@ -273,36 +287,20 @@ TEST_CASE("Benchmark vpMatrix transpose", "[benchmark]") {
 
 int main(int argc, char *argv[])
 {
-  Catch::Session session; // There must be exactly one instance
+  Catch::Session session;
+  auto cli = session.cli()
+    | Catch::Clara::Opt(g_runBenchmark)["--benchmark"]("run benchmark?")
+    | Catch::Clara::Opt(g_tileSize, "tileSize")["--tileSize"]("Tile size?");
 
-  // Build a new parser on top of Catch's
-  using namespace Catch::clara;
-  auto cli = session.cli() // Get Catch's composite command line parser
-    | Opt(g_runBenchmark)  // bind variable to a new option, with a hint string
-    ["--benchmark"]        // the option names it will respond to
-    ("run benchmark?")     // description string for the help output
-    | Opt(g_tileSize, "tileSize")
-    ["--tileSize"]
-    ("Tile size?");
-
-  // Now pass the new composite back to Catch so it uses that
   session.cli(cli);
-
-  // Let Catch (using Clara) parse the command line
   session.applyCommandLine(argc, argv);
 
   int numFailed = session.run();
 
-  // numFailed is clamped to 255 as some unices only use the lower 8 bits.
-  // This clamping has already been applied, so just return it here
-  // You can also do any post run clean-up here
   return numFailed;
 }
 #else
 #include <iostream>
 
-int main()
-{
-  return 0;
-}
+int main() { return EXIT_SUCCESS; }
 #endif

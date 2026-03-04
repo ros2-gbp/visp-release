@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -31,10 +30,7 @@
  * Description:
  * Example of ring light control.
  *
- * Author:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \example ringLight.cpp
@@ -58,6 +54,10 @@
 // List of allowed command line options
 #define GETOPTARGS "d:hn:ot:"
 
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+
 /*!
 
   Print the program options.
@@ -77,11 +77,12 @@ during %d s.\n\
 By default, that means without parameters, send a pulse which duration\n\
 is fixed by the harware. To control the duration of the pulse, use \n\
 \"-t <pulse width in ms>\" option. To turn on the light permanently, \n\
-use \"-o -n <on duration in second>]\"\n			       \
+use \"-o -n <on duration in second>]\"\n\
 \n\
 SYNOPSIS\n\
   %s [-o] [-n <on duration in second>] [-t <pulse width in ms>] [-h]\n\
-", nsec, name);
+",
+nsec, name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               Default\n\
@@ -102,7 +103,8 @@ OPTIONS:                                               Default\n\
      This option is to make into realtion with option \"-o\".\n\
 \n\
   -h\n\
-     Print the help.\n\n", nsec, nmsec, nsec);
+     Print the help.\n\n",
+          nsec, nmsec, nsec);
 
   if (badparam) {
     fprintf(stderr, "ERROR: \n");
@@ -141,20 +143,18 @@ bool getOptions(int argc, const char **argv, bool &on, int &nsec, double &nmsec)
       nmsec = atof(optarg);
       break;
     case 'h':
-      usage(argv[0], NULL, nsec, nmsec);
+      usage(argv[0], nullptr, nsec, nmsec);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg, nsec, nmsec);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL, nsec, nmsec);
+    usage(argv[0], nullptr, nsec, nmsec);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg << std::endl << std::endl;
     return false;
@@ -177,7 +177,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, on, nsec, nmsec) == false) {
-      exit(-1);
+      return EXIT_FAILURE;
     }
 
     vpRingLight light;
@@ -193,11 +193,13 @@ int main(int argc, const char **argv)
       light.on();                // Turn the ring light on
       vpTime::wait(nsec * 1000); // Wait 5 s
       light.off();               // and then turn the ring light off
-    } else {
+    }
+    else {
       printf("Send a pulse to activate the ring light\n");
       light.pulse();
     }
-  } catch (vpParallelPortException &e) {
+  }
+  catch (vpParallelPortException &e) {
     switch (e.getCode()) {
     case vpParallelPortException::opening:
       printf("Can't open the parallel port to access to the ring light "
@@ -207,7 +209,8 @@ int main(int argc, const char **argv)
       printf("Can't close the parallel port\n");
       break;
     }
-  } catch (...) {
+  }
+  catch (...) {
     printf("An error occurs...\n");
   }
   return EXIT_SUCCESS;

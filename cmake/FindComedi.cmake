@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -36,9 +36,6 @@
 # COMEDI_LIBRARIES
 # COMEDI_VERSION
 #
-# Authors:
-# Fabien Spindler
-#
 #############################################################################
 
 find_path(COMEDI_INCLUDE_DIRS comedilib.h
@@ -50,7 +47,7 @@ find_path(COMEDI_INCLUDE_DIRS comedilib.h
 
 find_library(COMEDI_LIBRARIES
   NAMES comedi
-  PATHS 
+  PATHS
     $ENV{COMEDI_HOME}/lib
     /usr/lib
     /usr/local/lib
@@ -58,14 +55,12 @@ find_library(COMEDI_LIBRARIES
 
 if(COMEDI_LIBRARIES AND COMEDI_INCLUDE_DIRS)
   set(COMEDI_FOUND TRUE)
-
-  get_filename_component(COMEDI_LIB_DIR ${COMEDI_LIBRARIES} PATH)
-  vp_get_version_from_pkg("comedilib" "${COMEDI_LIB_DIR}/pkgconfig" COMEDI_VERSION)
-
+  vp_parse_header("${COMEDI_INCLUDE_DIRS}/comedilib_version.h" COMEDILIB_VERSION_LINES COMEDILIB_VERSION_MAJOR COMEDILIB_VERSION_MINOR COMEDILIB_VERSION_MICRO)
+  set(COMEDI_VERSION "${COMEDILIB_VERSION_MAJOR}.${COMEDILIB_VERSION_MINOR}.${COMEDILIB_VERSION_MICRO}")
 else()
   set(COMEDI_FOUND FALSE)
 endif()
-  
+
 mark_as_advanced(
   COMEDI_INCLUDE_DIRS
   COMEDI_LIBRARIES

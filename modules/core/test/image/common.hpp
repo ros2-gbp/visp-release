@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,37 +29,35 @@
  *
  * Description:
  * Common functions for color conversion and image resize tests.
- *
- *****************************************************************************/
+ */
 
 #ifndef common_HPP
 #define common_HPP
 
 #include <visp3/core/vpConfig.h>
-#include <visp3/core/vpImageMorphology.h>
 #include <visp3/core/vpImageConvert.h>
+#include <visp3/core/vpImageMorphology.h>
 
-#if VISP_HAVE_OPENCV_VERSION >= 0x020101
-#  if VISP_HAVE_OPENCV_VERSION >= 0x030000
-#    include <opencv2/core.hpp>
-#  else
-#    include <opencv2/core/core.hpp>
-#  endif
+#if defined(VISP_HAVE_OPENCV)
+#include <opencv2/core/core.hpp>
 #endif
 
 namespace common_tools
 {
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 static const int g_nearest_neighbor = 0;
 static const int g_bilinear = 1;
 
-void fill(vpImage<unsigned char>& img)
+void fill(vpImage<unsigned char> &img)
 {
   for (unsigned int i = 0; i < img.getSize(); i++) {
     img.bitmap[i] = static_cast<unsigned char>(i);
   }
 }
 
-void fill(vpImage<vpRGBa>& img)
+void fill(vpImage<vpRGBa> &img)
 {
   for (unsigned int i = 0; i < img.getSize(); i++) {
     img.bitmap[i].R = static_cast<unsigned char>(i);
@@ -70,14 +67,14 @@ void fill(vpImage<vpRGBa>& img)
   }
 }
 
-void fill(std::vector<unsigned char>& img)
+void fill(std::vector<unsigned char> &img)
 {
   for (size_t i = 0; i < img.size(); i++) {
     img[i] = static_cast<unsigned char>(i);
   }
 }
 
-bool almostEqual(const vpImage<unsigned char>& I1, const vpImage<unsigned char>& I2, double threshold, double& error)
+bool almostEqual(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2, double threshold, double &error)
 {
   error = 0.0;
 
@@ -95,13 +92,13 @@ bool almostEqual(const vpImage<unsigned char>& I1, const vpImage<unsigned char>&
   return error < threshold;
 }
 
-bool almostEqual(const vpImage<unsigned char>& I1, const vpImage<unsigned char>& I2, double threshold)
+bool almostEqual(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2, double threshold)
 {
   double error = 0.0;
   return almostEqual(I1, I2, threshold, error);
 }
 
-bool almostEqual(const vpImage<vpRGBa>& I1, const vpImage<vpRGBa>& I2, double threshold, double& error)
+bool almostEqual(const vpImage<vpRGBa> &I1, const vpImage<vpRGBa> &I2, double threshold, double &error)
 {
   error = 0.0;
 
@@ -121,45 +118,43 @@ bool almostEqual(const vpImage<vpRGBa>& I1, const vpImage<vpRGBa>& I2, double th
   return error < threshold;
 }
 
-bool almostEqual(const vpImage<vpRGBa>& I1, const vpImage<vpRGBa>& I2, double threshold)
+bool almostEqual(const vpImage<vpRGBa> &I1, const vpImage<vpRGBa> &I2, double threshold)
 {
   double error = 0.0;
   return almostEqual(I1, I2, threshold, error);
 }
 
 /// Image resize
-unsigned char getPixelClamped(const vpImage<unsigned char>& I, float x, float y)
+unsigned char getPixelClamped(const vpImage<unsigned char> &I, float x, float y)
 {
   int j = vpMath::round(x);
   int i = vpMath::round(y);
-  j = (std::max)(0, (std::min)(j, static_cast<int>(I.getWidth()) - 1));
-  i = (std::max)(0, (std::min)(i, static_cast<int>(I.getHeight()) - 1));
+  j = std::max<int>(0, std::min<int>(j, static_cast<int>(I.getWidth()) - 1));
+  i = std::max<int>(0, std::min<int>(i, static_cast<int>(I.getHeight()) - 1));
 
   return I[i][j];
 }
 
-vpRGBa getPixelClamped(const vpImage<vpRGBa>& I, float x, float y)
+vpRGBa getPixelClamped(const vpImage<vpRGBa> &I, float x, float y)
 {
   int j = vpMath::round(x);
   int i = vpMath::round(y);
-  j = (std::max)(0, (std::min)(j, static_cast<int>(I.getWidth()) - 1));
-  i = (std::max)(0, (std::min)(i, static_cast<int>(I.getHeight()) - 1));
+  j = std::max<int>(0, std::min<int>(j, static_cast<int>(I.getWidth()) - 1));
+  i = std::max<int>(0, std::min<int>(i, static_cast<int>(I.getHeight()) - 1));
 
   return I[i][j];
 }
 
-float lerp(float A, float B, float t) {
-  return A * (1.0f - t) + B * t;
-}
+float lerp(float A, float B, float t) { return A * (1.0f - t) + B * t; }
 
-void resizeBilinear(const vpImage<unsigned char> &I, vpImage<unsigned char> &Ires, unsigned int i,
-  unsigned int j, int u0, int v0, float xFrac, float yFrac)
+void resizeBilinear(const vpImage<unsigned char> &I, vpImage<unsigned char> &Ires, unsigned int i, unsigned int j,
+                    int u0, int v0, float xFrac, float yFrac)
 {
-  int u1 = (std::min)(static_cast<int>(I.getWidth()) - 1, u0 + 1);
+  int u1 = std::min<int>(static_cast<int>(I.getWidth()) - 1, u0 + 1);
   int v1 = v0;
 
   int u2 = u0;
-  int v2 = (std::min)(static_cast<int>(I.getHeight()) - 1, v0 + 1);
+  int v2 = std::min<int>(static_cast<int>(I.getHeight()) - 1, v0 + 1);
 
   int u3 = u1;
   int v3 = v2;
@@ -169,17 +164,17 @@ void resizeBilinear(const vpImage<unsigned char> &I, vpImage<unsigned char> &Ire
   float value = lerp(col0, col1, yFrac);
 
   Ires[i][j] = vpMath::saturate<unsigned char>(value);
-  //Ires[i][j] = static_cast<unsigned char>(value);
+  // Ires[i][j] = static_cast<unsigned char>(value);
 }
 
-void resizeBilinear(const vpImage<vpRGBa> &I, vpImage<vpRGBa> &Ires, unsigned int i,
-  unsigned int j, int u0, int v0, float xFrac, float yFrac)
+void resizeBilinear(const vpImage<vpRGBa> &I, vpImage<vpRGBa> &Ires, unsigned int i, unsigned int j, int u0, int v0,
+                    float xFrac, float yFrac)
 {
-  int u1 = (std::min)(static_cast<int>(I.getWidth()) - 1, u0 + 1);
+  int u1 = std::min<int>(static_cast<int>(I.getWidth()) - 1, u0 + 1);
   int v1 = v0;
 
   int u2 = u0;
-  int v2 = (std::min)(static_cast<int>(I.getHeight()) - 1, v0 + 1);
+  int v2 = std::min<int>(static_cast<int>(I.getHeight()) - 1, v0 + 1);
 
   int u3 = u1;
   int v3 = v2;
@@ -201,7 +196,7 @@ void resizeBilinear(const vpImage<vpRGBa> &I, vpImage<vpRGBa> &Ires, unsigned in
   Ires[i][j].B = vpMath::saturate<unsigned char>(valueB);
 }
 
-void resizeRef(const vpImage<unsigned char>& Isrc, vpImage<unsigned char>& Idst, int method)
+void resizeRef(const vpImage<unsigned char> &Isrc, vpImage<unsigned char> &Idst, int method)
 {
   const float scaleX = Isrc.getWidth() / static_cast<float>(Idst.getWidth());
   const float scaleY = Isrc.getHeight() / static_cast<float>(Idst.getHeight());
@@ -217,18 +212,20 @@ void resizeRef(const vpImage<unsigned char>& Isrc, vpImage<unsigned char>& Idst,
       const int u0 = static_cast<int>(u);
       const float xFrac = u - u0;
 
-      if (method == 0) { //nearest neighbor
+      if (method == 0) { // nearest neighbor
         Idst[i][j] = getPixelClamped(Isrc, u, v);
-      } else if (method == 1) { //bilinear
+      }
+      else if (method == 1) { // bilinear
         resizeBilinear(Isrc, Idst, i, j, u0, v0, xFrac, yFrac);
-      } else { //bicubic
-        //no bicubic ref test for now
+      }
+      else { // bicubic
+     // no bicubic ref test for now
       }
     }
   }
 }
 
-void resizeRef(const vpImage<vpRGBa>& Isrc, vpImage<vpRGBa>& Idst, int method)
+void resizeRef(const vpImage<vpRGBa> &Isrc, vpImage<vpRGBa> &Idst, int method)
 {
   const float scaleX = Isrc.getWidth() / static_cast<float>(Idst.getWidth());
   const float scaleY = Isrc.getHeight() / static_cast<float>(Idst.getHeight());
@@ -244,12 +241,14 @@ void resizeRef(const vpImage<vpRGBa>& Isrc, vpImage<vpRGBa>& Idst, int method)
       const int u0 = static_cast<int>(u);
       const float xFrac = u - u0;
 
-      if (method == 0) { //nearest neighbor
+      if (method == 0) { // nearest neighbor
         Idst[i][j] = getPixelClamped(Isrc, u, v);
-      } else if (method == 1) { //bilinear
+      }
+      else if (method == 1) { // bilinear
         resizeBilinear(Isrc, Idst, i, j, u0, v0, xFrac, yFrac);
-      } else { //bicubic
-        //no bicubic ref test for now
+      }
+      else { // bicubic
+     // no bicubic ref test for now
       }
     }
   }
@@ -258,37 +257,37 @@ void resizeRef(const vpImage<vpRGBa>& Isrc, vpImage<vpRGBa>& Idst, int method)
 /// Color conversion
 void RGBaToBGR(const vpImage<vpRGBa> &rgba, std::vector<unsigned char> &bgr)
 {
-    bgr.resize(rgba.getSize()*3);
+  bgr.resize(rgba.getSize() * 3);
 
-    vpImage<vpRGBa> bgra(rgba.getHeight(), rgba.getWidth());
-    vpImage<unsigned char> R(rgba.getHeight(), rgba.getWidth());
-    vpImage<unsigned char> G(rgba.getHeight(), rgba.getWidth());
-    vpImage<unsigned char> B(rgba.getHeight(), rgba.getWidth());
-    vpImage<unsigned char> A(rgba.getHeight(), rgba.getWidth());
+  vpImage<vpRGBa> bgra(rgba.getHeight(), rgba.getWidth());
+  vpImage<unsigned char> R(rgba.getHeight(), rgba.getWidth());
+  vpImage<unsigned char> G(rgba.getHeight(), rgba.getWidth());
+  vpImage<unsigned char> B(rgba.getHeight(), rgba.getWidth());
+  vpImage<unsigned char> A(rgba.getHeight(), rgba.getWidth());
 
-    vpImageConvert::split(rgba, &R, &G, &B, &A);
-    vpImageConvert::merge(&B, &G, &R, &A, bgra);
+  vpImageConvert::split(rgba, &R, &G, &B, &A);
+  vpImageConvert::merge(&B, &G, &R, &A, bgra);
 
-    vpImageConvert::RGBaToRGB(reinterpret_cast<unsigned char *>(bgra.bitmap),
-                              reinterpret_cast<unsigned char *>(bgr.data()),
-                              bgra.getSize());
+  vpImageConvert::RGBaToRGB(reinterpret_cast<unsigned char *>(bgra.bitmap),
+                            reinterpret_cast<unsigned char *>(bgr.data()), bgra.getSize());
 }
 
 /// Color conversion
 void RGBaToBGRa(const vpImage<vpRGBa> &rgba, std::vector<unsigned char> &bgra)
 {
-    bgra.resize(rgba.getSize()*4);
+  bgra.resize(rgba.getSize() * 4);
 
-    vpImage<vpRGBa> bgra_(rgba.getHeight(), rgba.getWidth());
-    vpImage<unsigned char> R(rgba.getHeight(), rgba.getWidth());
-    vpImage<unsigned char> G(rgba.getHeight(), rgba.getWidth());
-    vpImage<unsigned char> B(rgba.getHeight(), rgba.getWidth());
-    vpImage<unsigned char> A(rgba.getHeight(), rgba.getWidth());
+  vpImage<vpRGBa> bgra_(rgba.getHeight(), rgba.getWidth());
+  vpImage<unsigned char> R(rgba.getHeight(), rgba.getWidth());
+  vpImage<unsigned char> G(rgba.getHeight(), rgba.getWidth());
+  vpImage<unsigned char> B(rgba.getHeight(), rgba.getWidth());
+  vpImage<unsigned char> A(rgba.getHeight(), rgba.getWidth());
 
-    vpImageConvert::split(rgba, &R, &G, &B, &A);
-    vpImageConvert::merge(&B, &G, &R, &A, bgra_);
+  vpImageConvert::split(rgba, &R, &G, &B, &A);
+  vpImageConvert::merge(&B, &G, &R, &A, bgra_);
 
-    memcpy(reinterpret_cast<unsigned char *>(bgra.data()), reinterpret_cast<unsigned char *>(bgra_.bitmap), rgba.getSize()*4);
+  memcpy(reinterpret_cast<unsigned char *>(bgra.data()), reinterpret_cast<unsigned char *>(bgra_.bitmap),
+         rgba.getSize() * 4);
 }
 
 void grayToRGBaRef(unsigned char *grey, unsigned char *rgba, unsigned int size)
@@ -316,7 +315,7 @@ void RGBaToGrayRef(unsigned char *rgba, unsigned char *grey, unsigned int size)
   unsigned char *pt_output = grey;
 
   while (pt_input != pt_end) {
-    *pt_output = (unsigned char)(0.2126 * (*pt_input) + 0.7152 * (*(pt_input + 1)) + 0.0722 * (*(pt_input + 2)));
+    *pt_output = static_cast<unsigned char>(0.2126 * (*pt_input) + 0.7152 * (*(pt_input + 1)) + 0.0722 * (*(pt_input + 2)));
     pt_input += 4;
     pt_output++;
   }
@@ -326,7 +325,7 @@ void RGBToGrayRef(unsigned char *rgb, unsigned char *grey, unsigned int width, u
 {
   // if we have to flip the image, we start from the end last scanline so
   // the  step is negative
-  int lineStep = (flip) ? -(int)(width * 3) : (int)(width * 3);
+  int lineStep = (flip) ? -static_cast<int>(width * 3) : static_cast<int>(width * 3);
 
   // starting source address = last line if we need to flip the image
   unsigned char *src = (flip) ? rgb + (width * height * 3) + lineStep : rgb;
@@ -342,7 +341,7 @@ void RGBToGrayRef(unsigned char *rgb, unsigned char *grey, unsigned int width, u
       r = *(line++);
       g = *(line++);
       b = *(line++);
-      *grey++ = (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
+      *grey++ = static_cast<unsigned char>(0.2126 * r + 0.7152 * g + 0.0722 * b);
     }
 
     // go to the next line
@@ -351,8 +350,8 @@ void RGBToGrayRef(unsigned char *rgb, unsigned char *grey, unsigned int width, u
 }
 
 /// Image Add / Sub
-void imageAddRef(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
-                 vpImage<unsigned char> &Ires, bool saturate)
+void imageAddRef(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2, vpImage<unsigned char> &Ires,
+                 bool saturate)
 {
   if ((I1.getHeight() != I2.getHeight()) || (I1.getWidth() != I2.getWidth())) {
     throw(vpException(vpException::dimensionError, "The two images do not have the same size"));
@@ -371,8 +370,8 @@ void imageAddRef(const vpImage<unsigned char> &I1, const vpImage<unsigned char> 
   }
 }
 
-void imageSubtractRef(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2,
-                      vpImage<unsigned char> &Ires, bool saturate)
+void imageSubtractRef(const vpImage<unsigned char> &I1, const vpImage<unsigned char> &I2, vpImage<unsigned char> &Ires,
+                      bool saturate)
 {
   if ((I1.getHeight() != I2.getHeight()) || (I1.getWidth() != I2.getWidth())) {
     throw(vpException(vpException::dimensionError, "The two images do not have the same size"));
@@ -409,7 +408,8 @@ void imageErosionRef(vpImage<unsigned char> &I,
       for (unsigned int j = 0; j < J.getWidth(); j++) {
         J[i][j] = null_value;
       }
-    } else {
+    }
+    else {
       J[i][0] = null_value;
       memcpy(J[i] + 1, I[i - 1], sizeof(unsigned char) * I.getWidth());
       J[i][J.getWidth() - 1] = null_value;
@@ -417,7 +417,7 @@ void imageErosionRef(vpImage<unsigned char> &I,
   }
 
   if (connexity == vpImageMorphology::CONNEXITY_4) {
-    unsigned int offset[5] = {1, J.getWidth(), J.getWidth() + 1, J.getWidth() + 2, J.getWidth() * 2 + 1};
+    unsigned int offset[5] = { 1, J.getWidth(), J.getWidth() + 1, J.getWidth() + 2, J.getWidth() * 2 + 1 };
 
     for (unsigned int i = 0; i < I.getHeight(); i++) {
       unsigned char *ptr_curr_J = J.bitmap + i * J.getWidth();
@@ -426,15 +426,16 @@ void imageErosionRef(vpImage<unsigned char> &I,
       for (unsigned int j = 0; j < I.getWidth(); j++) {
         unsigned char min_value = null_value;
         for (int k = 0; k < 5; k++) {
-          min_value = (std::min)(min_value, *(ptr_curr_J + j + offset[k]));
+          min_value = std::min<unsigned char>(min_value, *(ptr_curr_J + j + offset[k]));
         }
 
         *(ptr_curr_I + j) = min_value;
       }
     }
-  } else {
-    // CONNEXITY_8
-    unsigned int offset[9] = {0,
+  }
+  else {
+ // CONNEXITY_8
+    unsigned int offset[9] = { 0,
                               1,
                               2,
                               J.getWidth(),
@@ -442,7 +443,7 @@ void imageErosionRef(vpImage<unsigned char> &I,
                               J.getWidth() + 2,
                               J.getWidth() * 2,
                               J.getWidth() * 2 + 1,
-                              J.getWidth() * 2 + 2};
+                              J.getWidth() * 2 + 2 };
 
     for (unsigned int i = 0; i < I.getHeight(); i++) {
       unsigned char *ptr_curr_J = J.bitmap + i * J.getWidth();
@@ -451,7 +452,7 @@ void imageErosionRef(vpImage<unsigned char> &I,
       for (unsigned int j = 0; j < I.getWidth(); j++) {
         unsigned char min_value = null_value;
         for (int k = 0; k < 9; k++) {
-          min_value = (std::min)(min_value, *(ptr_curr_J + j + offset[k]));
+          min_value = std::min<unsigned char>(min_value, *(ptr_curr_J + j + offset[k]));
         }
 
         *(ptr_curr_I + j) = min_value;
@@ -478,7 +479,8 @@ void imageDilatationRef(vpImage<unsigned char> &I,
       for (unsigned int j = 0; j < J.getWidth(); j++) {
         J[i][j] = null_value;
       }
-    } else {
+    }
+    else {
       J[i][0] = null_value;
       memcpy(J[i] + 1, I[i - 1], sizeof(unsigned char) * I.getWidth());
       J[i][J.getWidth() - 1] = null_value;
@@ -486,7 +488,7 @@ void imageDilatationRef(vpImage<unsigned char> &I,
   }
 
   if (connexity == vpImageMorphology::CONNEXITY_4) {
-    unsigned int offset[5] = {1, J.getWidth(), J.getWidth() + 1, J.getWidth() + 2, J.getWidth() * 2 + 1};
+    unsigned int offset[5] = { 1, J.getWidth(), J.getWidth() + 1, J.getWidth() + 2, J.getWidth() * 2 + 1 };
 
     for (unsigned int i = 0; i < I.getHeight(); i++) {
       unsigned char *ptr_curr_J = J.bitmap + i * J.getWidth();
@@ -495,15 +497,16 @@ void imageDilatationRef(vpImage<unsigned char> &I,
       for (unsigned int j = 0; j < I.getWidth(); j++) {
         unsigned char max_value = null_value;
         for (int k = 0; k < 5; k++) {
-          max_value = (std::max)(max_value, *(ptr_curr_J + j + offset[k]));
+          max_value = std::max<unsigned char>(max_value, *(ptr_curr_J + j + offset[k]));
         }
 
         *(ptr_curr_I + j) = max_value;
       }
     }
-  } else {
-    // CONNEXITY_8
-    unsigned int offset[9] = {0,
+  }
+  else {
+ // CONNEXITY_8
+    unsigned int offset[9] = { 0,
                               1,
                               2,
                               J.getWidth(),
@@ -511,7 +514,7 @@ void imageDilatationRef(vpImage<unsigned char> &I,
                               J.getWidth() + 2,
                               J.getWidth() * 2,
                               J.getWidth() * 2 + 1,
-                              J.getWidth() * 2 + 2};
+                              J.getWidth() * 2 + 2 };
 
     for (unsigned int i = 0; i < I.getHeight(); i++) {
       unsigned char *ptr_curr_J = J.bitmap + i * J.getWidth();
@@ -520,7 +523,7 @@ void imageDilatationRef(vpImage<unsigned char> &I,
       for (unsigned int j = 0; j < I.getWidth(); j++) {
         unsigned char max_value = null_value;
         for (int k = 0; k < 9; k++) {
-          max_value = (std::max)(max_value, *(ptr_curr_J + j + offset[k]));
+          max_value = std::max<unsigned char>(max_value, *(ptr_curr_J + j + offset[k]));
         }
 
         *(ptr_curr_I + j) = max_value;
@@ -531,7 +534,7 @@ void imageDilatationRef(vpImage<unsigned char> &I,
 
 void magicSquare(vpImage<unsigned char> &magic_square, int N)
 {
-  magic_square.resize((unsigned int)N, (unsigned int)N, 0);
+  magic_square.resize(static_cast<unsigned int>(N), static_cast<unsigned int>(N), 0);
 
   int n = 1;
   int i = 0, j = N / 2;
@@ -544,7 +547,8 @@ void magicSquare(vpImage<unsigned char> &magic_square, int N)
 
     if (magic_square[newi][newj]) {
       i++;
-    } else {
+    }
+    else {
       i = newi;
       j = newj;
     }
@@ -555,7 +559,7 @@ void BGRToGrayRef(unsigned char *bgr, unsigned char *grey, unsigned int width, u
 {
   // if we have to flip the image, we start from the end last scanline so
   // the  step is negative
-  int lineStep = (flip) ? -(int)(width * 3) : (int)(width * 3);
+  int lineStep = (flip) ? -static_cast<int>(width * 3) : static_cast<int>(width * 3);
 
   // starting source address = last line if we need to flip the image
   unsigned char *src = (flip) ? bgr + (width * height * 3) + lineStep : bgr;
@@ -563,7 +567,7 @@ void BGRToGrayRef(unsigned char *bgr, unsigned char *grey, unsigned int width, u
   for (unsigned int i = 0; i < height; i++) {
     unsigned char *line = src;
     for (unsigned int j = 0; j < width; j++) {
-      *grey++ = (unsigned char)(0.2126 * *(line + 2) + 0.7152 * *(line + 1) + 0.0722 * *(line + 0));
+      *grey++ = static_cast<unsigned char>(0.2126 * *(line + 2) + 0.7152 * *(line + 1) + 0.0722 * *(line + 0));
       line += 3;
     }
 
@@ -576,7 +580,7 @@ void BGRToRGBaRef(unsigned char *bgr, unsigned char *rgba, unsigned int width, u
 {
   // if we have to flip the image, we start from the end last scanline so the
   // step is negative
-  int lineStep = (flip) ? -(int)(width * 3) : (int)(width * 3);
+  int lineStep = (flip) ? -static_cast<int>(width * 3) : static_cast<int>(width * 3);
 
   // starting source address = last line if we need to flip the image
   unsigned char *src = (flip) ? (bgr + (width * height * 3) + lineStep) : bgr;
@@ -600,7 +604,7 @@ void BGRaToRGBaRef(unsigned char *bgra, unsigned char *rgba, unsigned int width,
 {
   // if we have to flip the image, we start from the end last scanline so the
   // step is negative
-  int lineStep = (flip) ? -(int)(width * 4) : (int)(width * 4);
+  int lineStep = (flip) ? -static_cast<int>(width * 4) : static_cast<int>(width * 4);
 
   // starting source address = last line if we need to flip the image
   unsigned char *src = (flip) ? (bgra + (width * height * 4) + lineStep) : bgra;
@@ -620,22 +624,22 @@ void BGRaToRGBaRef(unsigned char *bgra, unsigned char *rgba, unsigned int width,
   }
 }
 
-#if VISP_HAVE_OPENCV_VERSION >= 0x020101
-void fill(cv::Mat& img)
+#if defined(VISP_HAVE_OPENCV)
+void fill(cv::Mat &img)
 {
   for (int i = 0; i < img.rows; i++) {
     for (int j = 0; j < img.cols; j++) {
       if (img.type() == CV_8UC1) {
-        img.at<uchar>(i, j) = static_cast<uchar>(i*img.cols + j);
+        img.at<uchar>(i, j) = static_cast<uchar>(i * img.cols + j);
       }
       else if (img.type() == CV_8UC3) {
-        img.at<cv::Vec3b>(i, j)[0] = static_cast<uchar>((i*img.cols + j) * 3);
-        img.at<cv::Vec3b>(i, j)[1] = static_cast<uchar>((i*img.cols + j) * 3 + 1);
-        img.at<cv::Vec3b>(i, j)[2] = static_cast<uchar>((i*img.cols + j) * 3 + 2);
+        img.at<cv::Vec3b>(i, j)[0] = static_cast<uchar>((i * img.cols + j) * 3);
+        img.at<cv::Vec3b>(i, j)[1] = static_cast<uchar>((i * img.cols + j) * 3 + 1);
+        img.at<cv::Vec3b>(i, j)[2] = static_cast<uchar>((i * img.cols + j) * 3 + 2);
       }
     }
   }
 }
 #endif
-} //namespace
+} // namespace common_tools
 #endif

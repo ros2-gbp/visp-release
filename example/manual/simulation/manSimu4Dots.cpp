@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,12 +29,7 @@
  *
  * Description:
  * Simulation of a visual servoing with visualization and image generation.
- *
- * Authors:
- * Eric Marchand
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \file manSimu4Dots.cpp
@@ -52,7 +46,7 @@
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDebug.h>
 
-#if (defined(VISP_HAVE_COIN3D_AND_GUI) && (defined(VISP_HAVE_GTK) || defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)))
+#if (defined(VISP_HAVE_COIN3D_AND_GUI) && defined(VISP_HAVE_DISPLAY))
 
 #include <visp3/ar/vpSimulator.h>
 #include <visp3/core/vpCameraParameters.h>
@@ -60,13 +54,7 @@
 #include <visp3/core/vpImageConvert.h>
 #include <visp3/core/vpTime.h>
 
-#if defined(VISP_HAVE_X11)
-#include <visp3/gui/vpDisplayX.h>
-#elif defined(VISP_HAVE_GDI)
-#include <visp3/gui/vpDisplayGDI.h>
-#elif defined(VISP_HAVE_GTK)
-#include <visp3/gui/vpDisplayGTK.h>
-#endif
+#include <visp3/gui/vpDisplayFactory.h>
 // You may have strange compiler issues using the simulator based on SoQt
 // and the vpDisplayGTK. In that case prefer to use another display like
 // vpDisplayX under linux or vpDisplayGDI under Windows
@@ -81,10 +69,14 @@
 #include <visp3/vs/vpServo.h>
 #include <visp3/vs/vpServoDisplay.h>
 
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+
 static void *mainLoop(void *_simu)
 {
   // pointer copy of the vpSimulator instance
-  vpSimulator *simu = static_cast<vpSimulator *> (_simu);
+  vpSimulator *simu = static_cast<vpSimulator *>(_simu);
 
   // Simulation initialization
   simu->initMainApplication();
@@ -138,16 +130,13 @@ static void *mainLoop(void *_simu)
   // Create a greyscale image
   vpImage<unsigned char> I(height, width);
 
-// Display initialization
-#if defined(VISP_HAVE_X11)
-  vpDisplayX disp;
-#elif defined(VISP_HAVE_GDI)
-  vpDisplayGDI disp;
-#elif defined(VISP_HAVE_GTK)
-  vpDisplayGTK disp;
+  // Display initialization
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  std::shared_ptr<vpDisplay> disp = vpDisplayFactory::createDisplay(I, 100, 100, "Simulation display");
+#else
+  vpDisplay *disp = vpDisplayFactory::allocateDisplay(I, 100, 100, "Simulation display");
 #endif
-  disp.init(I, 100, 100, "Simulation display");
-  //  disp(I);
+
   // Get the current image
   vpTime::wait(500); // wait to be sure the image is generated
   simu->getInternalImage(I);
@@ -240,7 +229,12 @@ static void *mainLoop(void *_simu)
   task.print();
   simu->closeMainApplication();
 
-  void *a = NULL;
+  void *a = nullptr;
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+  if (disp != nullptr) {
+    delete disp;
+  }
+#endif
   return a;
 }
 
@@ -254,7 +248,7 @@ int main()
     // External view initialization : view from an external camera
     simu.initExternalViewer(300, 300);
 
-    // Inernal camera paramters initialization
+    // Inernal camera parameters initialization
     vpCameraParameters cam(800, 800, 240, 180);
     simu.setInternalCameraParameters(cam);
 
@@ -279,7 +273,8 @@ int main()
     // Run the simulator
     simu.mainLoop();
     return EXIT_SUCCESS;
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return EXIT_FAILURE;
   }
@@ -288,7 +283,9 @@ int main()
 #else
 int main()
 {
-  std::cout << "You do not have X11, GTK, or OpenCV, or GDI (Graphical Device Interface) functionalities to display images..." << std::endl;
+  std::cout
+    << "You do not have X11, GTK, or OpenCV, or GDI (Graphical Device Interface) functionalities to display images..."
+    << std::endl;
   std::cout << "Tip if you are on a unix-like system:" << std::endl;
   std::cout << "- Install X11, configure again ViSP using cmake and build again this example" << std::endl;
   std::cout << "Tip if you are on a windows-like system:" << std::endl;
