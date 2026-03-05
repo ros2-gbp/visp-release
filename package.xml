@@ -34,7 +34,6 @@
   <depend>libomp-dev</depend>
   <depend>libopenblas-dev</depend>
   <depend>libopencv-dev</depend>
-  <depend>libpcl-all-dev</depend>
   <depend>libpng-dev</depend>
   <depend>libv4l-dev</depend>
   <depend>libxml2</depend>
