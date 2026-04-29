@@ -479,15 +479,15 @@ endif()
 # Choose static or shared libraries.
 VP_OPTION(BUILD_SHARED_LIBS  "" "" "Build ViSP shared libraries (.dll/.so) instead of static ones (.lib/.a)" "" NOT (ANDROID OR APPLE_FRAMEWORK))
 # Build apps as an option.
-VP_OPTION(BUILD_APPS "" "" "Build utility applications (used for example for calibration)" "" (NOT ANDROID AND NOT WINRT AND NOT APPLE_FRAMEWORK) )
+VP_OPTION(BUILD_APPS "" "" "Build utility applications (used for example for calibration)" "" OFF )
 # Build examples as an option.
-VP_OPTION(BUILD_EXAMPLES  "" "" "Build ViSP examples" "" ON)
+VP_OPTION(BUILD_EXAMPLES  "" "" "Build ViSP examples" "" OFF)
 # Build examples as an option.
-VP_OPTION(BUILD_TESTS  "" "" "Build ViSP tests" "" ON)
+VP_OPTION(BUILD_TESTS  "" "" "Build ViSP tests" "" OFF)
 VP_OPTION(BUILD_COVERAGE "" "" "Enables test coverage" "" OFF IF (BUILD_TESTS AND (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGCXX)))
 
 # Build java as an option
-VP_OPTION(BUILD_JAVA  "" "" "Enable Java support" "" (ANDROID OR NOT CMAKE_CROSSCOMPILING)  IF (ANDROID OR (NOT APPLE_FRAMEWORK AND NOT WINRT)) )
+VP_OPTION(BUILD_JAVA  "" "" "Enable Java support" "" OFF )
 VP_OPTION(BUILD_FAT_JAVA_LIB  "" "" "Create Java wrapper exporting all functions of ViSP library (requires static build of ViSP modules)" "" ANDROID IF NOT BUILD_SHARED_LIBS)
 VP_OPTION(BUILD_ANDROID_SERVICE   "" "" "Build ViSP Manager for Google Play"          "" OFF IF ANDROID )
 VP_OPTION(BUILD_ANDROID_PROJECTS  "" "" "Build Android projects providing .apk files" "" ON  IF ANDROID )
@@ -495,18 +495,18 @@ VP_OPTION(BUILD_ANDROID_EXAMPLES  "" "" "Build examples for Android platform"   
 VP_OPTION(INSTALL_ANDROID_EXAMPLES "" "" "Install Android examples"  ""                  OFF IF ANDROID )
 
 # Build python bindings as an option
-VP_OPTION(BUILD_PYTHON_BINDINGS  "" "" "Build Python bindings" "" ON IF (PYTHON3INTERP_FOUND AND USE_PYBIND11 AND NOT CMAKE_NOT_OK_FOR_BINDINGS AND VISP_PYTHON_INTERPRETER_ALLOWED AND NOT PYTHON3_NOT_OK_FOR_BINDINGS AND NOT CXX_STANDARD_NOT_OK_FOR_BINDINGS) )
+VP_OPTION(BUILD_PYTHON_BINDINGS  "" "" "Build Python bindings" "" OFF IF (PYTHON3INTERP_FOUND AND USE_PYBIND11 AND NOT CMAKE_NOT_OK_FOR_BINDINGS AND VISP_PYTHON_INTERPRETER_ALLOWED AND NOT PYTHON3_NOT_OK_FOR_BINDINGS AND NOT CXX_STANDARD_NOT_OK_FOR_BINDINGS) )
 VP_OPTION(BUILD_PYTHON_BINDINGS_DOC  "" "" "Build the documentation for the Python bindings" "" ON IF BUILD_PYTHON_BINDINGS )
 
 
 # Build demos as an option.
-VP_OPTION(BUILD_DEMOS  "" "" "Build ViSP demos" "" ON)
+VP_OPTION(BUILD_DEMOS  "" "" "Build ViSP demos" "" OFF)
 # Build tutorials as an option.
-VP_OPTION(BUILD_TUTORIALS  "" "" "Build ViSP tutorials" "" ON)
+VP_OPTION(BUILD_TUTORIALS  "" "" "Build ViSP tutorials" "" OFF)
 # Build apps as an option.
 vp_check_subdirectories(VISP_CONTRIB_MODULES_PATH apps APPS_FOUND)
 if(APPS_FOUND)
-  VP_OPTION(BUILD_APPS  "" "" "Build ViSP apps" "" ON)
+  VP_OPTION(BUILD_APPS  "" "" "Build ViSP apps" "" OFF)
 endif()
 # Build deprecated functions as an option.
 VP_OPTION(BUILD_DEPRECATED_FUNCTIONS  "" "" "Build deprecated functionalities" "" ON)
@@ -538,7 +538,7 @@ VP_OPTION(ENABLE_TEST_WITHOUT_DISPLAY      "" "" "Don't use display feature when
 VP_OPTION(ENABLE_FULL_DOC      "" "" "Build doc with internal classes that are by default not part of the doc" "" OFF)
 
 # Allow introduction of "visp" namespace. By default disabled to keep compat with previous versions
-VP_OPTION(ENABLE_VISP_NAMESPACE "" "" "Enable visp namespace" "" OFF)
+VP_OPTION(ENABLE_VISP_NAMESPACE "" "" "Enable visp namespace" "" ON)
 # Allow introduction of "explicit" keyword. By default disabled to keep compat with previous versions
 VP_OPTION(ENABLE_EXPLICIT_KEYWORD "" "" "Enable c++ explicit keyword" "" OFF)
 # Enable the vpImageTools::warp() methods
@@ -627,7 +627,7 @@ VP_OPTION(USE_DIRECT3D    DIRECT3D    ""    "Include d3d support"             ""
 VP_OPTION(USE_OPENMP      OpenMP      ""    "Include openmp support"           "" ON)
 VP_OPTION(USE_EIGEN3      Eigen3      QUIET "Include eigen3 support"           "" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_COIN3D      Coin3D      ""    "Include coin3d support"           "" ON IF OPENGL_FOUND AND NOT WINRT AND NOT IOS)
-VP_OPTION(USE_PANDA3D     "Panda3D;MyPanda3D;COMPONENTS;Core;Contrib;Direct;Egg;Framework;TinyDisplay" QUIET "Include Panda3D support"          "" ON IF NOT IOS)
+VP_OPTION(USE_PANDA3D     "Panda3D;MyPanda3D;COMPONENTS;Core;Contrib;Direct;Egg;Framework;TinyDisplay" QUIET "Include Panda3D support"          "" OFF IF NOT IOS)
 VP_OPTION(USE_YARP        YARP        QUIET "Include yarp support"             "YARP_DIR" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_OGRE        OGRE        QUIET "Include Ogre3D support"           "OGRE_DIR" ON IF NOT WINRT AND NOT IOS)
 VP_OPTION(USE_OIS         OIS         QUIET "Include Ogre3D/ois support"       "OIS_DIR"  ON IF USE_OGRE AND NOT WINRT AND NOT IOS)
