@@ -354,7 +354,8 @@ tracks:
     source_path: .
     vcs_type: git
     vcs_uri: https://github.com/lagadic/visp.git
-    version: :{ask}
+    version: 3.7.0
+    version_saved: :{ask}
   melodic:
     actions:
     - bloom-export-upstream :{vcs_local_uri} :{vcs_type} --tag :{release_tag} --display-uri
