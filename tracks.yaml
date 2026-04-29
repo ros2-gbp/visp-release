@@ -401,7 +401,7 @@ tracks:
     last_version: 3.7.0
     name: upstream
     patches: rolling
-    release_inc: '4'
+    release_inc: '5'
     release_repo_url: null
     release_tag: v3.7.0
     release_tag_saved: :{ask}
