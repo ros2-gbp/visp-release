@@ -14,6 +14,8 @@ Source0:        %{name}-%{version}.tar.gz
 BuildRequires:  bloom-rpm-macros
 BuildRequires:  cmake
 
+%global __brp_check_rpaths QA_RPATHS=0x0002 %{__brp_check_rpaths}
+
 %{?bloom_package}
 
 %description
