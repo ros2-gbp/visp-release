@@ -1,0 +1,27 @@
+From bbd517e0d51eb57dcedabbf5739827d8bcbd221f Mon Sep 17 00:00:00 2001
+From: Scott K Logan <logans@cottsay.net>
+Date: Thu, 30 Apr 2026 13:18:12 -0500
+Subject: [PATCH] Allow absolute RPATH for workspace library directory
+
+This RPATH isn't necessary when the workspace has been sourced, but it
+should cause any harm either.
+---
+ rpm/ros-lyrical-visp.spec | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/rpm/ros-lyrical-visp.spec b/rpm/ros-lyrical-visp.spec
+index badc2b975fa6..f2a657323fff 100644
+--- a/rpm/ros-lyrical-visp.spec
++++ b/rpm/ros-lyrical-visp.spec
+@@ -14,6 +14,8 @@ Source0:        %{name}-%{version}.tar.gz
+ BuildRequires:  bloom-rpm-macros
+ BuildRequires:  cmake
+ 
++%global __brp_check_rpaths QA_RPATHS=0x0002 %{__brp_check_rpaths}
++
+ %{?bloom_package}
+ 
+ %description
+-- 
+2.53.0
+
