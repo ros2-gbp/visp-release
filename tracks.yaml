@@ -346,7 +346,7 @@ tracks:
     last_release: v3.7.0
     last_version: 3.7.0
     name: upstream
-    patches: rolling
+    patches: lyrical
     release_inc: '6'
     release_repo_url: null
     release_tag: :{ask}
