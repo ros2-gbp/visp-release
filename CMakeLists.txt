@@ -222,7 +222,7 @@ elseif(WIN32 AND CMAKE_HOST_SYSTEM_NAME MATCHES Windows)
   vp_update(VISP_3P_LIB_INSTALL_PATH      "${VISP_INSTALL_BINARIES_PREFIX}staticlib${LIB_SUFFIX}")
   vp_update(VISP_SAMPLES_SRC_INSTALL_PATH samples/native)
   vp_update(VISP_JAR_INSTALL_PATH         java)
-  vp_update(VISP_INC_INSTALL_PATH         "${CMAKE_INSTALL_INCLUDEDIR}")
+  vp_update(VISP_INC_INSTALL_PATH         "${CMAKE_INSTALL_INCLUDEDIR}/visp")
   vp_update(VISP_BIN_INSTALL_PATH         "${VISP_INSTALL_BINARIES_PREFIX}bin")
   vp_update(VISP_INSTALL_DATAROOTDIR      "${CMAKE_INSTALL_DATAROOTDIR}/visp-${VISP_VERSION}")
   vp_update(VISP_CONFIG_INSTALL_PATH      ".")
@@ -243,11 +243,11 @@ else() # UNIX
   # The location where includes and libraries will be installed
   if(ENABLE_MULTIARCH)
     # The 2 following lines should be used to enable multi-arch support.
-    vp_update(VISP_INC_INSTALL_PATH       "${CMAKE_INSTALL_INCLUDEDIR}/${CMAKE_LIBRARY_ARCHITECTURE}")
+    vp_update(VISP_INC_INSTALL_PATH       "${CMAKE_INSTALL_INCLUDEDIR}/${CMAKE_LIBRARY_ARCHITECTURE}/visp")
     vp_update(VISP_LIB_INSTALL_PATH       "${CMAKE_INSTALL_LIBDIR}/${CMAKE_LIBRARY_ARCHITECTURE}")
   else()
     # catkin doesn't support multi-arch; use rather the next 2 lines
-    vp_update(VISP_INC_INSTALL_PATH       "${CMAKE_INSTALL_INCLUDEDIR}")
+    vp_update(VISP_INC_INSTALL_PATH       "${CMAKE_INSTALL_INCLUDEDIR}/visp")
     vp_update(VISP_LIB_INSTALL_PATH       "${CMAKE_INSTALL_LIBDIR}")
   endif()
   vp_update(VISP_BIN_INSTALL_PATH         "${CMAKE_INSTALL_BINDIR}")
