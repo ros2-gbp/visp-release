@@ -109,12 +109,14 @@ tracks:
       :{release_inc} --os-name fedora
     - git-bloom-generate -y rosrpm --prefix release/:{ros_distro} :{ros_distro} -i
       :{release_inc} --os-name rhel
+    - git-bloom-generate -y rosdynrpm --prefix release/:{ros_distro} :{ros_distro}
+      -i :{release_inc} --require-os fedora rhel
     devel_branch: null
     last_release: v3.7.0
     last_version: 3.7.0
     name: upstream
     patches: humble
-    release_inc: '7'
+    release_inc: '8'
     release_repo_url: null
     release_tag: :{ask}
     ros_distro: humble
