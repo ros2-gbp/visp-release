@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,49 +29,49 @@
  *
  * Description:
  * Time management and measurement.
- *
- * Authors:
- * Eric Marchand
- * Fabien Spindler
- *
- *****************************************************************************/
-
-#ifndef vpTime_h
-#define vpTime_h
+ */
 
 /*!
   \file vpTime.h
   \brief Time management and measurement
-*/
-#include <visp3/core/vpConfig.h>
+ */
+
+#ifndef VP_TIME_H
+#define VP_TIME_H
+
 #include <iostream>
 #include <string>
+#include <visp3/core/vpConfig.h>
 #if VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11
 #include <chrono>
 #endif
 
 #include <visp3/core/vpException.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
-  \ingroup group_core_time
-  \brief Time management and measurement.
-
-  The example below shows how to synchronize a loop to a given framerate.
-
-  \code
-#include <visp3/core/vpTime.h>
-
-int main()
-{
-  double t;
-  for ( ; ; ) {
-    t = vpTime::measureTimeMs();
-    ...
-    vpTime::wait(t, 40); // Loop time is set to 40 ms, ie 25 Hz
-  }
-}
-  \endcode
-
+ * \ingroup group_core_time
+ * \brief Time management and measurement.
+ *
+ * The example below shows how to synchronize a loop to a given framerate.
+ *
+ * \code
+ * #include <visp3/core/vpTime.h>
+ *
+ * #ifdef ENABLE_VISP_NAMESPACE
+ * using namespace VISP_NAMESPACE_NAME;
+ * #endif
+ *
+ * int main()
+ * {
+ *   double t;
+ *   for ( ; ; ) {
+ *     t = vpTime::measureTimeMs();
+ *     ...
+ *     vpTime::wait(t, 40); // Loop time is set to 40 ms, ie 25 Hz
+ *   }
+ * }
+ * \endcode
 */
 
 namespace vpTime
@@ -85,7 +84,7 @@ VISP_EXPORT double measureTimeMicros();
 VISP_EXPORT void sleepMs(double t);
 VISP_EXPORT int wait(double t0, double t);
 VISP_EXPORT void wait(double t);
-};
+} // namespace vpTime
 
 class VISP_EXPORT vpChrono
 {
@@ -95,16 +94,16 @@ public:
   double getDurationMicros();
   double getDurationMs();
   double getDurationSeconds();
-  void start(bool reset=true);
+  void start(bool reset = true);
   void stop();
 
 private:
   double m_durationMs;
-#if VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11 && (defined(_MSC_VER) && _MSC_VER >= 1900 /* VS2015 */ || !defined(_MSC_VER))
+#if (VISP_CXX_STANDARD > VISP_CXX_STANDARD_98) && (defined(_MSC_VER) && _MSC_VER >= 1900 /* VS2015 */ || !defined(_MSC_VER))
   std::chrono::steady_clock::time_point m_lastTimePoint;
 #else
   double m_lastTimePoint;
 #endif
 };
-
+END_VISP_NAMESPACE
 #endif

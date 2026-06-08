@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -31,14 +31,11 @@
 # Description:
 # ViSP overall configuration file.
 #
-# Authors:
-# Fabien Spindler
-#
 #############################################################################
 
-project(example-device-display)
+cmake_minimum_required(VERSION 3.10)
 
-cmake_minimum_required(VERSION 3.0)
+project(example-device-display)
 
 find_package(VISP REQUIRED visp_core visp_gui visp_io)
 
@@ -66,10 +63,10 @@ endforeach()
 # https://visp.inria.fr/download/
 
 # Only if dataset found for isolated build
-visp_add_test(displaySequence displaySequence ${OPTION_TO_DESACTIVE_DISPLAY})
-visp_add_test(displayGDI displayGDI -c ${OPTION_TO_DESACTIVE_DISPLAY})
-visp_add_test(displayD3D displayD3D -c ${OPTION_TO_DESACTIVE_DISPLAY})
-visp_add_test(displayGTK displayGTK -c ${OPTION_TO_DESACTIVE_DISPLAY})
-visp_add_test(displayX displayX -c ${OPTION_TO_DESACTIVE_DISPLAY})
-visp_add_test(displayOpenCV displayOpenCV -c ${OPTION_TO_DESACTIVE_DISPLAY})
-visp_add_test(displayXMulti displayXMulti -c ${OPTION_TO_DESACTIVE_DISPLAY})
+visp_add_test(displaySequence displaySequence ${SHORT_OPTION_TO_DISABLE_DISPLAY})
+visp_add_test(displayGDI displayGDI -c ${SHORT_OPTION_TO_DISABLE_DISPLAY})
+visp_add_test(displayD3D displayD3D -c ${SHORT_OPTION_TO_DISABLE_DISPLAY})
+visp_add_test(displayGTK displayGTK -c ${SHORT_OPTION_TO_DISABLE_DISPLAY})
+visp_add_test(displayX displayX -c ${SHORT_OPTION_TO_DISABLE_DISPLAY})
+visp_add_test(displayOpenCV displayOpenCV -c ${SHORT_OPTION_TO_DISABLE_DISPLAY})
+visp_add_test(displayXMulti displayXMulti -c ${SHORT_OPTION_TO_DISABLE_DISPLAY})

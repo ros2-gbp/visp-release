@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,9 +33,7 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 /*!
  \file vpTemplateTrackerMIBSpline.h
  \brief
@@ -55,8 +52,19 @@
 #include <visp3/tt_mi/vpTemplateTrackerMI.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+BEGIN_VISP_NAMESPACE
+/**
+ * \ingroup group_tt_mi_tracker
+ * \brief
+ *
+ * <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
 
-class VISP_EXPORT vpTemplateTrackerMIBSpline
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in the Template Tracker based on Mutual Information (TT-MI), you may have a look at:</span><br>
+
+  - \ref tutorial-tracking-tt
+ */
+  class VISP_EXPORT vpTemplateTrackerMIBSpline
 {
 public:
   static void PutPVBsplineD(double *Prt, int cr, double er, int ct, double et, int Nc, double val, const int &degre);
@@ -115,10 +123,10 @@ public:
   static double d2Bspline3(double diff);
   static double d2Bspline4(double diff);
 
-  static void computeProbabilities(double *Prt, int &cr, double &er, int &ct, double &et,int &Nc, double *dW,
-                                   unsigned int &NbParam, int &bspline, vpTemplateTrackerMI::vpHessienApproximationType &approx, bool use_hessien_des);
-
+  static void computeProbabilities(double *Prt, int &cr, double &er, int &ct, double &et, int &Nc, double *dW,
+                                   unsigned int &NbParam, int &bspline,
+                                   vpTemplateTrackerMI::vpHessienApproximationType &approx, bool use_hessien_des);
 };
-
+END_VISP_NAMESPACE
 #endif
 #endif

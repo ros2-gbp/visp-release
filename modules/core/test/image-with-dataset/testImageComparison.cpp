@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,8 @@
  *
  * Description:
  * Test the comparison of two vpImage objects of the same type.
- *
- * Authors:
- * Souriya Trinh
- *
- *****************************************************************************/
+ */
+
 /*!
   \example testImageComparison.cpp
 
@@ -45,6 +41,10 @@
 #include <visp3/core/vpIoTools.h>
 #include <visp3/io/vpImageIo.h>
 #include <visp3/io/vpParseArgv.h>
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 // List of allowed command line options
 #define GETOPTARGS "cdi:h"
@@ -57,7 +57,7 @@ bool getOptions(int argc, const char **argv, std::string &ipath);
 
   \param name : Program name.
   \param badparam : Bad parameter name.
-  \param ipath: Input image path.
+  \param ipath : Input image path.
  */
 void usage(const char *name, const char *badparam, std::string ipath)
 {
@@ -67,7 +67,8 @@ Test the comparison of two vpImage objects of the same type.\n\
 SYNOPSIS\n\
   %s [-i <input image path>]\n\
      [-h]\n            \
-", name);
+",
+name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               Default\n\
@@ -80,7 +81,8 @@ OPTIONS:                                               Default\n\
      this option.\n\
 \n\
   -h\n\
-     Print the help.\n\n", ipath.c_str());
+     Print the help.\n\n",
+          ipath.c_str());
 
   if (badparam)
     fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
@@ -91,7 +93,7 @@ OPTIONS:                                               Default\n\
 
   \param argc : Command line number of parameters.
   \param argv : Array of command line parameters.
-  \param ipath: Input image path.
+  \param ipath : Input image path.
   \return false if the program has to be stopped, true otherwise.
 */
 bool getOptions(int argc, const char **argv, std::string &ipath)
@@ -105,9 +107,8 @@ bool getOptions(int argc, const char **argv, std::string &ipath)
       ipath = optarg_;
       break;
     case 'h':
-      usage(argv[0], NULL, ipath);
+      usage(argv[0], nullptr, ipath);
       return false;
-      break;
 
     case 'c':
     case 'd':
@@ -116,13 +117,12 @@ bool getOptions(int argc, const char **argv, std::string &ipath)
     default:
       usage(argv[0], optarg_, ipath);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL, ipath);
+    usage(argv[0], nullptr, ipath);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -154,7 +154,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, opt_ipath) == false) {
-      exit(-1);
+      return EXIT_FAILURE;
     }
 
     // Get the option values
@@ -163,24 +163,24 @@ int main(int argc, const char **argv)
     }
 
     // Compare ipath and env_ipath. If they differ, we take into account
-    // the input path comming from the command line option
+    // the input path coming from the command line option
     if (!opt_ipath.empty() && !env_ipath.empty()) {
       if (ipath != env_ipath) {
         std::cout << std::endl << "WARNING: " << std::endl;
         std::cout << "  Since -i <visp image path=" << ipath << "> "
-                  << "  is different from VISP_IMAGE_PATH=" << env_ipath << std::endl
-                  << "  we skip the environment variable." << std::endl;
+          << "  is different from VISP_IMAGE_PATH=" << env_ipath << std::endl
+          << "  we skip the environment variable." << std::endl;
       }
     }
 
     // Test if an input path is set
     if (opt_ipath.empty() && env_ipath.empty()) {
-      usage(argv[0], NULL, ipath);
+      usage(argv[0], nullptr, ipath);
       std::cerr << std::endl << "ERROR:" << std::endl;
       std::cerr << "  Use -i <visp image path> option or set VISP_INPUT_IMAGE_PATH " << std::endl
-                << "  environment variable to specify the location of the " << std::endl
-                << "  image path where test images are located." << std::endl
-                << std::endl;
+        << "  environment variable to specify the location of the " << std::endl
+        << "  image path where test images are located." << std::endl
+        << std::endl;
       exit(EXIT_FAILURE);
     }
 
@@ -215,7 +215,8 @@ int main(int argc, const char **argv)
     // Modify I_Klimt1
     if (I_Klimt1[I_Klimt1.getHeight() / 2][I_Klimt1.getWidth() / 2] < 255) {
       I_Klimt1[I_Klimt1.getHeight() / 2][I_Klimt1.getWidth() / 2]++;
-    } else {
+    }
+    else {
       I_Klimt1[I_Klimt1.getHeight() / 2][I_Klimt1.getWidth() / 2]--;
     }
 
@@ -260,7 +261,8 @@ int main(int argc, const char **argv)
     // Modify I_color_Klimt2
     if (I_color_Klimt2[I_color_Klimt2.getHeight() / 2][I_color_Klimt2.getWidth() / 2].R < 255) {
       I_color_Klimt2[I_color_Klimt2.getHeight() / 2][I_color_Klimt2.getWidth() / 2].R++;
-    } else {
+    }
+    else {
       I_color_Klimt2[I_color_Klimt2.getHeight() / 2][I_color_Klimt2.getWidth() / 2].R--;
     }
 
@@ -278,7 +280,8 @@ int main(int argc, const char **argv)
       throw vpException(vpException::fatalError, ss.str());
     }
 
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cerr << "\nCatch an exception: " << e << std::endl;
     return EXIT_FAILURE;
   }

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,8 +29,7 @@
  *
  * Description:
  * Images acquisition with RealSense T265 sensor and librealsense2.
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testRealSense2_T265_images.cpp
@@ -47,11 +45,13 @@
 #include <visp3/sensor/vpRealSense2.h>
 
 #if defined(VISP_HAVE_REALSENSE2) && (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11) && \
-  (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)) && \
-  (RS2_API_VERSION > ((2 * 10000) + (31 * 100) + 0))
+    (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI)) && (RS2_API_VERSION > ((2 * 10000) + (31 * 100) + 0))
 
 int main()
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
   try {
     double ts;
     unsigned int display_scale = 2;
@@ -70,11 +70,11 @@ int main()
     rs.open(config);
 
     // Creating left and right vpImages
-    vpImage<unsigned char> I_left((unsigned int)rs.getIntrinsics(RS2_STREAM_FISHEYE).height,
-                                  (unsigned int)rs.getIntrinsics(RS2_STREAM_FISHEYE).width);
+    vpImage<unsigned char> I_left(static_cast<unsigned int>(rs.getIntrinsics(RS2_STREAM_FISHEYE).height),
+                                  static_cast<unsigned int>(rs.getIntrinsics(RS2_STREAM_FISHEYE).width));
 
-    vpImage<unsigned char> I_right((unsigned int)rs.getIntrinsics(RS2_STREAM_FISHEYE).height,
-                                   (unsigned int)rs.getIntrinsics(RS2_STREAM_FISHEYE).width);
+    vpImage<unsigned char> I_right(static_cast<unsigned int>(rs.getIntrinsics(RS2_STREAM_FISHEYE).height),
+                                   static_cast<unsigned int>(rs.getIntrinsics(RS2_STREAM_FISHEYE).width));
 
 #if defined(VISP_HAVE_X11)
     vpDisplayX display_left;  // Left image
@@ -88,7 +88,7 @@ int main()
     display_left.setDownScalingFactor(display_scale);
     display_right.setDownScalingFactor(display_scale);
     display_left.init(I_left, 10, 10, "Left image");
-    display_right.init(I_right, static_cast<int>(I_left.getWidth()/display_scale) + 80, 10, "Right image"); // Right
+    display_right.init(I_right, static_cast<int>(I_left.getWidth() / display_scale) + 80, 10, "Right image"); // Right
 #endif
 
     while (true) {
@@ -100,8 +100,8 @@ int main()
       vpDisplay::display(I_left);
       vpDisplay::display(I_right);
 
-      vpDisplay::displayText(I_left, 15*display_scale, 15*display_scale, "Click to quit", vpColor::red);
-      vpDisplay::displayText(I_right, 15*display_scale, 15*display_scale, "Click to quit", vpColor::red);
+      vpDisplay::displayText(I_left, 15 * display_scale, 15 * display_scale, "Click to quit", vpColor::red);
+      vpDisplay::displayText(I_right, 15 * display_scale, 15 * display_scale, "Click to quit", vpColor::red);
 
       if (vpDisplay::getClick(I_left, false) || vpDisplay::getClick(I_right, false)) {
         break;
@@ -112,9 +112,11 @@ int main()
       std::cout << "Loop time: " << vpTime::measureTimeMs() - t << std::endl;
     }
 
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cerr << "RealSense error " << e.what() << std::endl;
-  } catch (const std::exception &e) {
+  }
+  catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
@@ -128,10 +130,6 @@ int main()
   std::cout << "Tip:" << std::endl;
   std::cout << "- Install librealsense2, configure again ViSP using cmake and build again this example" << std::endl;
   return EXIT_SUCCESS;
-#elif (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
-  std::cout << "You do not build ViSP with c++11 or higher compiler flag" << std::endl;
-  std::cout << "Tip:" << std::endl;
-  std::cout << "- Configure ViSP again using cmake -DUSE_CXX_STANDARD=11, and build again this example" << std::endl;
 #elif !(defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI))
   std::cout << "You don't have X11 or GDI display capabilities" << std::endl;
 #elif !(RS2_API_VERSION > ((2 * 10000) + (31 * 100) + 0))

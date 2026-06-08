@@ -17,7 +17,7 @@ In this tutorial you will learn how to build ViSP framework from source on OSX i
 
 We suggest to follow these steps in order to install OpenCV framework in such a way that the resulting ViSP framework builds with OpenCV as 3rd party. This could be useful for users who want to use ViSP and OpenCV together. It will also allow to exploit keypoints throw ViSP classes (vpKltOpencv, vpKeyPoint) or the model-based tracker in his hybrid version (vpMbKltTracker). If you are not interested in capabilities leveraged by using OpenCV as 3rd party, just skip this section.
 
-- Download the latest <a href="http://opencv.org/releases.html">OpenCV for iOS</a> like `opencv-4.5.5-ios-framework.zip`
+- Download the latest <a href="https://opencv.org/releases">OpenCV for iOS</a> like `opencv-4.5.5-ios-framework.zip`
 - Unzip the archive in a directory denoted `<framework_dir>/ios`. If `<framework_dir>` is for example the following folder `$HOME/framework` just do the following:
 \verbatim
 $ mkdir -p $HOME/framework/ios
@@ -55,12 +55,12 @@ $ cd $HOME/framework
 $ git clone https://github.com/lagadic/visp.git
 \endverbatim
 
-- You can also download a <a href="http://visp.inria.fr/download#snapshot">daily snapshot</a>. Once downloaded, uncompress the file using
+- You can also download a <a href="https://visp.inria.fr/download#snapshot">daily snapshot</a>. Once downloaded, uncompress the file using
 \verbatim
 $ tar xvzf visp-snapshot-yyyy-mm-dd.tar.gz -C $HOME/framework
 \endverbatim
 
-- Or you can download the <a href="http://visp.inria.fr/download">latest release</a> as a zip or a tarball. Once downloaded, uncompress the file using either
+- Or you can download the <a href="https://visp.inria.fr/download">latest release</a> as a zip or a tarball. Once downloaded, uncompress the file using either
 \verbatim
 $ tar xvzf visp-x.y.z.tar.gz -C $HOME/framework
 \endverbatim
@@ -87,6 +87,12 @@ $ python3 visp/platforms/ios/build_framework.py ios
 \verbatim
 $ ls $HOME/framework/ios
 build			opencv2.framework	visp3.framework
+\endverbatim
+
+- There is also the possibility to build ViSP framework specifying the deployment target and the arch
+\verbatim
+$ cd $HOME/framework
+$ python3 visp/platforms/ios/build_framework.py ios --iphoneos_deployment_target 11.0 --iphoneos_archs arm64 --build_only_specified_archs True
 \endverbatim
 
 \note ViSP framework is build with capabilities that enables the usage of the following 3rd parties: XML, OpenCV, pthread, apriltag, lapack.

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,8 +29,7 @@
  *
  * Description:
  * Test display polygon lines
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testDisplayPolygonLines.cpp
@@ -45,15 +43,15 @@
 #include <visp3/core/vpImageConvert.h>
 #include <visp3/core/vpPolygon.h>
 #include <visp3/core/vpRect.h>
-#include <visp3/gui/vpDisplayD3D.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/io/vpParseArgv.h>
 
 // List of allowed command line options
 #define GETOPTARGS "cdh"
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 void usage(const char *name, const char *badparam);
 bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display);
@@ -71,13 +69,14 @@ void usage(const char *name, const char *badparam)
 Display polygon lines.\n\
 \n\
 SYNOPSIS\n\
-  %s [-c] [-d] [-h]\n", name);
+  %s [-c] [-d] [-h]\n",
+          name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               Default\n\
   -c\n\
      Disable the mouse click. Useful to automate the \n\
-     execution of this program without humain intervention.\n\
+     execution of this program without human intervention.\n\
 \n\
   -d                                             \n\
      Disable the image display. This can be useful \n\
@@ -120,20 +119,18 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display)
       display = false;
       break;
     case 'h':
-      usage(argv[0], NULL);
+      usage(argv[0], nullptr);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg_);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL);
+    usage(argv[0], nullptr);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -157,18 +154,14 @@ int main(int argc, const char **argv)
     vpImage<unsigned char> I(480, 640, 127);
     vpImage<vpRGBa> I_color(480, 640);
 
-#if defined(VISP_HAVE_X11)
-    vpDisplayX d, d2;
-#elif defined(VISP_HAVE_GTK)
-    vpDisplayGTK d, d2;
-#elif defined(VISP_HAVE_GDI)
-    vpDisplayGDI d, d2;
-#elif defined(VISP_HAVE_D3D9)
-    vpDisplayD3D d, d2;
-#elif defined(VISP_HAVE_OPENCV)
-    vpDisplayOpenCV d, d2;
+#if(VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+    std::shared_ptr<vpDisplay> d = vpDisplayFactory::createDisplay();
+    std::shared_ptr<vpDisplay> d2 = vpDisplayFactory::createDisplay();
+#else
+    vpDisplay *d = vpDisplayFactory::allocateDisplay();
+    vpDisplay *d2 = vpDisplayFactory::allocateDisplay();
 #endif
-    d.init(I, 0, 0, "Grayscale image");
+    d->init(I, 0, 0, "Grayscale image");
 
     vpDisplay::display(I);
     vpDisplay::displayText(I, 20, 20, "Left click to draw a polygon, right click when it is finished.", vpColor::red);
@@ -189,10 +182,10 @@ int main(int argc, const char **argv)
     vpDisplay::flush(I);
     vpDisplay::getClick(I);
 
-    d2.init(I_color, I.getWidth(), 0, "Color image");
+    d2->init(I_color, I.getWidth(), 0, "Color image");
     // Create colormap
     for (unsigned int i = 0; i < I_color.getHeight(); i++) {
-      double hue = i / (double)I_color.getHeight(), saturation = 1.0, value = 1.0;
+      double hue = i / static_cast<double>(I_color.getHeight()), saturation = 1.0, value = 1.0;
       unsigned char rgb[3];
       vpImageConvert::HSVToRGB(&hue, &saturation, &value, rgb, 1);
 
@@ -221,6 +214,10 @@ int main(int argc, const char **argv)
     vpDisplay::displayDotLine(I_color, polygon.getCorners(), false, vpColor::red, 2);
     vpDisplay::flush(I_color);
     vpDisplay::getClick(I_color);
+#if(VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+    delete d;
+    delete d2;
+#endif
   }
 #else
   (void)argc;

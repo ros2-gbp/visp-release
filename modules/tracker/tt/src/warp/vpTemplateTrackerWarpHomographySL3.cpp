@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,15 +29,11 @@
  *
  * Description:
  * Template tracker.
- *
- * Authors:
- * Amaury Dame
- * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
+
 #include <visp3/tt/vpTemplateTrackerWarpHomographySL3.h>
 
+BEGIN_VISP_NAMESPACE
 // findWarp special a SL3 car methode additionnelle ne marche pas (la derivee
 // n est calculable qu en p=0)
 // => resout le probleme de maniere compositionnelle
@@ -52,8 +47,8 @@
  * \param nb_pt : Number of points.
  * \param p : Resulting warping function parameters.
  */
-void vpTemplateTrackerWarpHomographySL3::findWarp(const double *ut0, const double *vt0, const double *u,
-                                                  const double *v, int nb_pt, vpColVector &p)
+  void vpTemplateTrackerWarpHomographySL3::findWarp(const double *ut0, const double *vt0, const double *u,
+                                                    const double *v, int nb_pt, vpColVector &p)
 {
   vpColVector dp(nbParam);
   vpMatrix dW_(2, nbParam);
@@ -62,7 +57,7 @@ void vpTemplateTrackerWarpHomographySL3::findWarp(const double *ut0, const doubl
   vpMatrix G_(nbParam, 1);
 
   // vpMatrix *dW_ddp0=new vpMatrix[nb_pt];
-  double **dW_ddp0 = new double *[(unsigned int)nb_pt];
+  double **dW_ddp0 = new double *[static_cast<unsigned int>(nb_pt)];
   for (int i = 0; i < nb_pt; i++) {
     // dW_ddp0[i].resize(2,nbParam);
     dW_ddp0[i] = new double[2 * nbParam];
@@ -110,8 +105,9 @@ void vpTemplateTrackerWarpHomographySL3::findWarp(const double *ut0, const doubl
     vpMatrix::computeHLM(H, lambda, HLM);
     try {
       dp = HLM.inverseByLU() * G_;
-    } catch (const vpException &e) {
-      // std::cout<<"Cannot inverse the matrix by LU "<<std::endl;
+    }
+    catch (const vpException &e) {
+   // std::cout<<"Cannot inverse the matrix by LU "<<std::endl;
       throw(e);
     }
     pRondp(p, dp, p);
@@ -153,8 +149,6 @@ vpTemplateTrackerWarpHomographySL3::vpTemplateTrackerWarpHomographySL3() : G(), 
   A[6][2][0] = 1;
   A[7][2][1] = 1;
 }
-
-vpTemplateTrackerWarpHomographySL3::~vpTemplateTrackerWarpHomographySL3() {}
 
 // get the parameter corresponding to the lower level of a gaussian pyramid
 // a refaire de facon analytique
@@ -295,8 +289,7 @@ void vpTemplateTrackerWarpHomographySL3::computeCoeff(const vpColVector &p)
  *
  * \sa computeDenom()
  */
-void vpTemplateTrackerWarpHomographySL3::warpX(const vpColVector &X1, vpColVector &X2,
-                                               const vpColVector &)
+void vpTemplateTrackerWarpHomographySL3::warpX(const vpColVector &X1, vpColVector &X2, const vpColVector &)
 {
   double u = X1[0], v = X1[1];
   X2[0] = (u * G[0][0] + v * G[0][1] + G[0][2]) / denom;
@@ -313,7 +306,8 @@ void vpTemplateTrackerWarpHomographySL3::warpX(const vpColVector &X1, vpColVecto
  *
  * \sa computeDenom()
  */
-void vpTemplateTrackerWarpHomographySL3::warpX(const int &v1, const int &u1, double &v2, double &u2, const vpColVector &)
+void vpTemplateTrackerWarpHomographySL3::warpX(const int &v1, const int &u1, double &v2, double &u2,
+                                               const vpColVector &)
 {
   u2 = (u1 * G[0][0] + v1 * G[0][1] + G[0][2]) / denom;
   v2 = (u1 * G[1][0] + v1 * G[1][1] + G[1][2]) / denom;
@@ -345,8 +339,8 @@ vpHomography vpTemplateTrackerWarpHomographySL3::getHomography() const
  *
  * \sa computeDenom()
  */
-void vpTemplateTrackerWarpHomographySL3::dWarp(const vpColVector &X1, const vpColVector &X2,
-                                               const vpColVector &, vpMatrix &dM)
+void vpTemplateTrackerWarpHomographySL3::dWarp(const vpColVector &X1, const vpColVector &X2, const vpColVector &,
+                                               vpMatrix &dM)
 {
   vpMatrix dhdx(2, 3);
   dhdx = 0;
@@ -376,7 +370,8 @@ void vpTemplateTrackerWarpHomographySL3::dWarp(const vpColVector &X1, const vpCo
  * \param du : Derivative on the u-axis (along the columns) of the point (u,v).
  * \param dIdW : Resulting derivative matrix (image according to the warping function).
  */
-void vpTemplateTrackerWarpHomographySL3::getdW0(const int &v, const int &u, const double &dv, const double &du, double *dIdW)
+void vpTemplateTrackerWarpHomographySL3::getdW0(const int &v, const int &u, const double &dv, const double &du,
+                                                double *dIdW)
 {
   vpMatrix dhdx(1, 3);
   dhdx = 0;
@@ -497,8 +492,8 @@ void vpTemplateTrackerWarpHomographySL3::getdWdp0(const double &v, const double 
  * \sa computeDenom()
  */
 
-void vpTemplateTrackerWarpHomographySL3::dWarpCompo(const vpColVector &, const vpColVector &X,
-                                                    const vpColVector &, const double *dwdp0, vpMatrix &dM)
+void vpTemplateTrackerWarpHomographySL3::dWarpCompo(const vpColVector &, const vpColVector &X, const vpColVector &,
+                                                    const double *dwdp0, vpMatrix &dM)
 {
   for (unsigned int i = 0; i < nbParam; i++) {
     dM[0][i] = denom * ((G[0][0] - X[0] * G[2][0]) * dwdp0[i] + (G[0][1] - X[0] * G[2][1]) * dwdp0[i + nbParam]);
@@ -512,10 +507,7 @@ void vpTemplateTrackerWarpHomographySL3::dWarpCompo(const vpColVector &, const v
  * to the transformation to inverse.
  * \param p_inv : 8-dim vector that contains the parameters of the inverse transformation \f$ {M(p)}^{-1}\f$.
  */
-void vpTemplateTrackerWarpHomographySL3::getParamInverse(const vpColVector &p, vpColVector &p_inv) const
-{
-  p_inv = -p;
-}
+void vpTemplateTrackerWarpHomographySL3::getParamInverse(const vpColVector &p, vpColVector &p_inv) const { p_inv = -p; }
 
 /*!
  * Compute the transformation resulting from the composition of two other transformations.
@@ -530,3 +522,4 @@ void vpTemplateTrackerWarpHomographySL3::pRondp(const vpColVector &p1, const vpC
   // vrai que si commutatif ...
   p12 = p1 + p2;
 }
+END_VISP_NAMESPACE

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Test for qbdevice.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testQbSoftHand.cpp
@@ -44,12 +39,15 @@
 
 #include <iostream>
 
-#include <visp3/robot/vpQbSoftHand.h>
 #include <visp3/core/vpTime.h>
+#include <visp3/robot/vpQbSoftHand.h>
 
 int main()
 {
-#ifdef VISP_HAVE_QBDEVICE
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
+#if defined(VISP_HAVE_QBDEVICE) && defined(VISP_HAVE_THREADS)
   std::cout << "Test qbSoftHand device" << std::endl;
   try {
     vpQbSoftHand qbsofthand;
@@ -70,35 +68,35 @@ int main()
     }
 
     {
-      // Call non-blocking positionning functions
+      // Call non-blocking positioning functions
       vpColVector q(1), q_mes, current;
       double max_current = qbsofthand.getCurrentMax();
       int i_max = 0;
       std::cout << "** Close the hand with non-blocking positioning function" << std::endl;
-      for(int i=1; i <= 10; i++) {
+      for (int i = 1; i <= 10; i++) {
         qbsofthand.getPosition(q_mes);
         qbsofthand.getCurrent(current);
-        if (std::fabs(current[0]) > max_current/2) {
-          std::cout << "Stop closure, current > " << max_current/2 << std::endl;
+        if (std::fabs(current[0]) > max_current / 2) {
+          std::cout << "Stop closure, current > " << max_current / 2 << std::endl;
           i_max = i;
           break;
         }
-        q[0] = i/10.0;
+        q[0] = i / 10.0;
         qbsofthand.setPosition(q);
         vpTime::sleepMs(500);
       }
       std::cout << "** Open the hand with non-blocking positioning function" << std::endl;
-      for(int i=i_max; i >= 0; i--) {
+      for (int i = i_max; i >= 0; i--) {
         qbsofthand.getPosition(q_mes);
         qbsofthand.getCurrent(current);
-        q[0] = i/10.0;
+        q[0] = i / 10.0;
         qbsofthand.setPosition(q);
         vpTime::sleepMs(500);
       }
     }
     std::cout << "The end" << std::endl;
   }
-  catch(const vpException &e) {
+  catch (const vpException &e) {
     std::cout << "Catch exception: " << e.getStringMessage() << std::endl;
   }
 #else
@@ -106,4 +104,3 @@ int main()
 #endif
   return EXIT_SUCCESS;
 }
-

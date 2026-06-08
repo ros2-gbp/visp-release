@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,23 +29,20 @@
  *
  * Description:
  * Interface for the qb robotics devices.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 #ifndef _vpQbDevice_h_
 #define _vpQbDevice_h_
 
 #include <visp3/core/vpConfig.h>
-#ifdef VISP_HAVE_QBDEVICE
+#if defined(VISP_HAVE_QBDEVICE) && defined(VISP_HAVE_THREADS)
 
-#include <vector>
 #include <map>
-#include <mutex>
 #include <memory>
+#include <mutex>
+#include <vector>
 
+BEGIN_VISP_NAMESPACE
 /*!
 
   \class vpQbDevice
@@ -83,7 +79,8 @@ protected:
   virtual int getCurrents(const int &id, const int &max_repeats, std::vector<short int> &currents);
 
   virtual int getInfo(const int &id, const int &max_repeats, std::string &info);
-  virtual int getMeasurements(const int &id, const int &max_repeats, std::vector<short int> &currents, std::vector<short int> &positions);
+  virtual int getMeasurements(const int &id, const int &max_repeats, std::vector<short int> &currents,
+                              std::vector<short int> &positions);
 
   virtual int getParameters(const int &id, std::vector<int> &limits, std::vector<int> &resolutions);
   virtual int getPositions(const int &id, const int &max_repeats, std::vector<short int> &positions);
@@ -114,7 +111,6 @@ protected:
   int m_max_repeats; //!< Max number of trials to send a command.
   bool m_init_done;  //!< Flag used to indicate if the device is initialized.
 };
-
-
+END_VISP_NAMESPACE
 #endif
 #endif

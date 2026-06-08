@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Defines a robot just to show which function you must implement.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpConfig.h>
 
@@ -48,10 +43,11 @@
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/robot/vpRobotTemplate.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   Basic initialization.
  */
-void vpRobotTemplate::init()
+  void vpRobotTemplate::init()
 {
   // If you want to control the robot in Cartesian in a tool frame, set the corresponding transformation in m_eMc
   // that is set to identity by default in the constructor.
@@ -66,19 +62,12 @@ void vpRobotTemplate::init()
 /*!
   Default constructor.
  */
-vpRobotTemplate::vpRobotTemplate()
-  : m_eMc()
-{
-  init();
-}
+vpRobotTemplate::vpRobotTemplate() : m_eMc() { init(); }
 
 /*!
   Destructor.
  */
-vpRobotTemplate::~vpRobotTemplate()
-{
-  std::cout << "Not implemented ! " << std::endl;
-}
+vpRobotTemplate::~vpRobotTemplate() { std::cout << "Not implemented ! " << std::endl; }
 
 /*
 
@@ -96,7 +85,7 @@ vpRobotTemplate::~vpRobotTemplate()
 */
 void vpRobotTemplate::get_eJe(vpMatrix &eJe_)
 {
-  (void) eJe_;
+  (void)eJe_;
   std::cout << "Not implemented ! " << std::endl;
 }
 
@@ -107,7 +96,7 @@ void vpRobotTemplate::get_eJe(vpMatrix &eJe_)
 */
 void vpRobotTemplate::get_fJe(vpMatrix &fJe_)
 {
-  (void) fJe_;
+  (void)fJe_;
   std::cout << "Not implemented ! " << std::endl;
 }
 
@@ -122,8 +111,8 @@ void vpRobotTemplate::get_fJe(vpMatrix &fJe_)
 /*!
   Send to the controller a 6-dim velocity twist vector expressed in a Cartesian frame.
 
-  \param[in] frame : Cartesian control frame (either tool frame or end-effector) in which the velocity \e v is expressed.
-  Units are m/s for translation and rad/s for rotation velocities.
+  \param[in] frame : Cartesian control frame (either tool frame or end-effector) in which the velocity \e v is
+  expressed. Units are m/s for translation and rad/s for rotation velocities.
 
   \param[in] v : 6-dim vector that contains the 6 components of the velocity twist to send to the robot.
   Units are m/s and rad/s.
@@ -131,11 +120,12 @@ void vpRobotTemplate::get_fJe(vpMatrix &fJe_)
 void vpRobotTemplate::setCartVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &v)
 {
   if (v.size() != 6) {
-    throw(vpException(vpException::fatalError, "Cannot send a velocity twist vector in tool frame that is not 6-dim (%d)", v.size()));
+    throw(vpException(vpException::fatalError,
+                      "Cannot send a velocity twist vector in tool frame that is not 6-dim (%d)", v.size()));
   }
 
   vpColVector v_e; // This is the velocity that the robot is able to apply in the end-effector frame
-  switch(frame) {
+  switch (frame) {
   case vpRobot::TOOL_FRAME: {
     // We have to transform the requested velocity in the end-effector frame.
     // Knowing that the constant transformation between the tool frame and the end-effector frame obtained
@@ -191,7 +181,7 @@ void vpRobotTemplate::setCartVelocity(const vpRobot::vpControlFrameType frame, c
  */
 void vpRobotTemplate::setJointVelocity(const vpColVector &qdot)
 {
-  (void) qdot;
+  (void)qdot;
 
   // Implement your stuff here to send the joint velocities qdot
 
@@ -219,14 +209,15 @@ void vpRobotTemplate::setVelocity(const vpRobot::vpControlFrameType frame, const
   vpColVector vel_sat(6);
 
   // Velocity saturation
-  switch(frame) {
+  switch (frame) {
   // Saturation in cartesian space
   case vpRobot::TOOL_FRAME:
   case vpRobot::REFERENCE_FRAME:
   case vpRobot::END_EFFECTOR_FRAME:
   case vpRobot::MIXT_FRAME: {
     if (vel.size() != 6) {
-      throw(vpException(vpException::dimensionError, "Cannot apply a Cartesian velocity that is not a 6-dim vector (%d)", vel.size()));
+      throw(vpException(vpException::dimensionError,
+                        "Cannot apply a Cartesian velocity that is not a 6-dim vector (%d)", vel.size()));
     }
     vpColVector vel_max(6);
 
@@ -243,7 +234,8 @@ void vpRobotTemplate::setVelocity(const vpRobot::vpControlFrameType frame, const
   // Saturation in joint space
   case vpRobot::JOINT_STATE: {
     if (vel.size() != static_cast<size_t>(nDof)) {
-      throw(vpException(vpException::dimensionError, "Cannot apply a joint velocity that is not a %-dim vector (%d)", nDof, vel.size()));
+      throw(vpException(vpException::dimensionError, "Cannot apply a joint velocity that is not a %-dim vector (%d)",
+                        nDof, vel.size()));
     }
     vpColVector vel_max(vel.size());
 
@@ -259,7 +251,7 @@ void vpRobotTemplate::setVelocity(const vpRobot::vpControlFrameType frame, const
 
 /*
 
-  THESE FUNCTIONS ARE NOT MENDATORY BUT ARE USUALLY USEFUL
+  THESE FUNCTIONS ARE NOT MANDATORY BUT ARE USUALLY USEFUL
 
 */
 
@@ -270,7 +262,7 @@ void vpRobotTemplate::setVelocity(const vpRobot::vpControlFrameType frame, const
  */
 void vpRobotTemplate::getJointPosition(vpColVector &q)
 {
-  (void) q;
+  (void)q;
   std::cout << "Not implemented ! " << std::endl;
 }
 
@@ -298,8 +290,8 @@ void vpRobotTemplate::getPosition(const vpRobot::vpControlFrameType frame, vpCol
  */
 void vpRobotTemplate::setPosition(const vpRobot::vpControlFrameType frame, const vpColVector &q)
 {
-  (void) frame;
-  (void) q;
+  (void)frame;
+  (void)q;
   std::cout << "Not implemented ! " << std::endl;
 }
 
@@ -311,7 +303,8 @@ void vpRobotTemplate::setPosition(const vpRobot::vpControlFrameType frame, const
  */
 void vpRobotTemplate::getDisplacement(const vpRobot::vpControlFrameType frame, vpColVector &q)
 {
-  (void) frame;
-  (void) q;
+  (void)frame;
+  (void)q;
   std::cout << "Not implemented ! " << std::endl;
 }
+END_VISP_NAMESPACE

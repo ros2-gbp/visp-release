@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,17 +29,14 @@
  *
  * Description:
  * Class which provides a simulator for the robot Afma6.
- *
- * Authors:
- * Nicolas Melchior
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpConfig.h>
-#if defined(VISP_HAVE_MODULE_GUI) && ((defined(_WIN32) && !defined(WINRT_8_0)) || defined(VISP_HAVE_PTHREAD))
+#if defined(VISP_HAVE_MODULE_GUI) && defined(VISP_HAVE_THREADS)
 #include <cmath>  // std::fabs
 #include <limits> // numeric_limits
 #include <string>
+#include <visp3/core/vpDebug.h>
 #include <visp3/core/vpImagePoint.h>
 #include <visp3/core/vpIoTools.h>
 #include <visp3/core/vpMeterPixelConversion.h>
@@ -54,6 +50,7 @@
 #include "../wireframe-simulator/vpScene.h"
 #include "../wireframe-simulator/vpVwstack.h"
 
+BEGIN_VISP_NAMESPACE
 const double vpSimulatorAfma6::defaultPositioningVelocity = 25.0;
 
 /*!
@@ -61,47 +58,14 @@ const double vpSimulatorAfma6::defaultPositioningVelocity = 25.0;
 */
 vpSimulatorAfma6::vpSimulatorAfma6()
   : vpRobotWireFrameSimulator(), vpAfma6(), q_prev_getdis(), first_time_getdis(true),
-    positioningVelocity(defaultPositioningVelocity), zeroPos(), reposPos(), toolCustom(false), arm_dir()
+  positioningVelocity(defaultPositioningVelocity), zeroPos(), reposPos(), toolCustom(false), arm_dir()
 {
   init();
   initDisplay();
 
   tcur = vpTime::measureTimeMs();
 
-#if defined(_WIN32)
-#ifdef WINRT_8_1
-  mutex_fMi = CreateMutexEx(NULL, NULL, 0, NULL);
-  mutex_artVel = CreateMutexEx(NULL, NULL, 0, NULL);
-  mutex_artCoord = CreateMutexEx(NULL, NULL, 0, NULL);
-  mutex_velocity = CreateMutexEx(NULL, NULL, 0, NULL);
-  mutex_display = CreateMutexEx(NULL, NULL, 0, NULL);
-#else
-  mutex_fMi = CreateMutex(NULL, FALSE, NULL);
-  mutex_artVel = CreateMutex(NULL, FALSE, NULL);
-  mutex_artCoord = CreateMutex(NULL, FALSE, NULL);
-  mutex_velocity = CreateMutex(NULL, FALSE, NULL);
-  mutex_display = CreateMutex(NULL, FALSE, NULL);
-#endif
-
-  DWORD dwThreadIdArray;
-  hThread = CreateThread(NULL,              // default security attributes
-                         0,                 // use default stack size
-                         launcher,          // thread function name
-                         this,              // argument to thread function
-                         0,                 // use default creation flags
-                         &dwThreadIdArray); // returns the thread identifier
-#elif defined(VISP_HAVE_PTHREAD)
-  pthread_mutex_init(&mutex_fMi, NULL);
-  pthread_mutex_init(&mutex_artVel, NULL);
-  pthread_mutex_init(&mutex_artCoord, NULL);
-  pthread_mutex_init(&mutex_velocity, NULL);
-  pthread_mutex_init(&mutex_display, NULL);
-
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  pthread_create(&thread, NULL, launcher, (void *)this);
-#endif
+  m_thread = new std::thread(&launcher, std::ref(*this));
 
   compute_fMi();
 }
@@ -114,47 +78,14 @@ vpSimulatorAfma6::vpSimulatorAfma6()
 */
 vpSimulatorAfma6::vpSimulatorAfma6(bool do_display)
   : vpRobotWireFrameSimulator(do_display), q_prev_getdis(), first_time_getdis(true),
-    positioningVelocity(defaultPositioningVelocity), zeroPos(), reposPos(), toolCustom(false), arm_dir()
+  positioningVelocity(defaultPositioningVelocity), zeroPos(), reposPos(), toolCustom(false), arm_dir()
 {
   init();
   initDisplay();
 
   tcur = vpTime::measureTimeMs();
 
-#if defined(_WIN32)
-#ifdef WINRT_8_1
-  mutex_fMi = CreateMutexEx(NULL, NULL, 0, NULL);
-  mutex_artVel = CreateMutexEx(NULL, NULL, 0, NULL);
-  mutex_artCoord = CreateMutexEx(NULL, NULL, 0, NULL);
-  mutex_velocity = CreateMutexEx(NULL, NULL, 0, NULL);
-  mutex_display = CreateMutexEx(NULL, NULL, 0, NULL);
-#else
-  mutex_fMi = CreateMutex(NULL, FALSE, NULL);
-  mutex_artVel = CreateMutex(NULL, FALSE, NULL);
-  mutex_artCoord = CreateMutex(NULL, FALSE, NULL);
-  mutex_velocity = CreateMutex(NULL, FALSE, NULL);
-  mutex_display = CreateMutex(NULL, FALSE, NULL);
-#endif
-
-  DWORD dwThreadIdArray;
-  hThread = CreateThread(NULL,              // default security attributes
-                         0,                 // use default stack size
-                         launcher,          // thread function name
-                         this,              // argument to thread function
-                         0,                 // use default creation flags
-                         &dwThreadIdArray); // returns the thread identifier
-#elif defined(VISP_HAVE_PTHREAD)
-  pthread_mutex_init(&mutex_fMi, NULL);
-  pthread_mutex_init(&mutex_artVel, NULL);
-  pthread_mutex_init(&mutex_artCoord, NULL);
-  pthread_mutex_init(&mutex_velocity, NULL);
-  pthread_mutex_init(&mutex_display, NULL);
-
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  pthread_create(&thread, NULL, launcher, (void *)this);
-#endif
+  m_thread = new std::thread(&launcher, std::ref(*this));
 
   compute_fMi();
 }
@@ -164,41 +95,24 @@ vpSimulatorAfma6::vpSimulatorAfma6(bool do_display)
 */
 vpSimulatorAfma6::~vpSimulatorAfma6()
 {
+  m_mutex_robotStop.lock();
   robotStop = true;
+  m_mutex_robotStop.unlock();
 
-#if defined(_WIN32)
-#if defined(WINRT_8_1)
-  WaitForSingleObjectEx(hThread, INFINITE, FALSE);
-#else // pure win32
-  WaitForSingleObject(hThread, INFINITE);
-#endif
-  CloseHandle(hThread);
-  CloseHandle(mutex_fMi);
-  CloseHandle(mutex_artVel);
-  CloseHandle(mutex_artCoord);
-  CloseHandle(mutex_velocity);
-  CloseHandle(mutex_display);
-#elif defined(VISP_HAVE_PTHREAD)
-  pthread_attr_destroy(&attr);
-  pthread_join(thread, NULL);
-  pthread_mutex_destroy(&mutex_fMi);
-  pthread_mutex_destroy(&mutex_artVel);
-  pthread_mutex_destroy(&mutex_artCoord);
-  pthread_mutex_destroy(&mutex_velocity);
-  pthread_mutex_destroy(&mutex_display);
-#endif
+  m_thread->join();
 
-  if (robotArms != NULL) {
+  if (robotArms != nullptr) {
     for (int i = 0; i < 6; i++)
       free_Bound_scene(&(robotArms[i]));
   }
 
   delete[] robotArms;
   delete[] fMi;
+  delete m_thread;
 }
 
 /*!
-  Method which initialises the parameters linked to the robot caracteristics.
+  Method which initialises the parameters linked to the robot characteristics.
 
   Set the path to the arm files (*.bnd and *.sln) used by the
   simulator.  If the path set in vpConfig.h in VISP_ROBOT_ARMS_DIR macro is
@@ -221,7 +135,8 @@ void vpSimulatorAfma6::init()
     try {
       arm_dir = vpIoTools::getenv("VISP_ROBOT_ARMS_DIR");
       std::cout << "The simulator uses data from VISP_ROBOT_ARMS_DIR=" << arm_dir << std::endl;
-    } catch (...) {
+    }
+    catch (...) {
       std::cout << "Cannot get VISP_ROBOT_ARMS_DIR environment variable" << std::endl;
     }
   }
@@ -256,15 +171,15 @@ void vpSimulatorAfma6::init()
 
   // Software joint limits in radians
   //_joint_min.resize(njoint);
-  _joint_min[0] = -0.6501;
-  _joint_min[1] = -0.6001;
+  _joint_min[0] = -0.7501;
+  _joint_min[1] = -0.6501;
   _joint_min[2] = -0.5001;
   _joint_min[3] = -2.7301;
-  _joint_min[4] = -0.1001;
+  _joint_min[4] = -0.3001;
   _joint_min[5] = -1.5901;
   //_joint_max.resize(njoint);
-  _joint_max[0] = 0.7001;
-  _joint_max[1] = 0.5201;
+  _joint_max[0] = 0.6001;
+  _joint_max[1] = 0.6701;
   _joint_max[2] = 0.4601;
   _joint_max[3] = 2.7301;
   _joint_max[4] = 2.4801;
@@ -276,7 +191,7 @@ void vpSimulatorAfma6::init()
 */
 void vpSimulatorAfma6::initDisplay()
 {
-  robotArms = NULL;
+  robotArms = nullptr;
   robotArms = new Bound_scene[6];
   initArms();
   setExternalCameraPosition(vpHomogeneousMatrix(0, 0, 0, 0, 0, vpMath::rad(180)) *
@@ -311,7 +226,7 @@ void vpSimulatorAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::v
   unsigned int name_length = 30; // the size of this kind of string "/afma6_tool_vacuum.bnd"
   if (arm_dir.size() > FILENAME_MAX)
     throw vpException(vpException::dimensionError, "Cannot initialize Afma6 simulator");
-  unsigned int full_length = (unsigned int)arm_dir.size() + name_length;
+  unsigned int full_length = static_cast<unsigned int>(arm_dir.size()) + name_length;
   if (full_length > FILENAME_MAX)
     throw vpException(vpException::dimensionError, "Cannot initialize Afma6 simulator");
 
@@ -327,7 +242,7 @@ void vpSimulatorAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::v
 
     setCameraParameters(vpCameraParameters(1109.5735473989, 1112.1520168160, 320, 240));
 
-    if (robotArms != NULL) {
+    if (robotArms != nullptr) {
       while (get_displayBusy())
         vpTime::wait(2);
       free_Bound_scene(&(robotArms[5]));
@@ -350,7 +265,7 @@ void vpSimulatorAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::v
 
     setCameraParameters(vpCameraParameters(852.6583228197, 854.8084224761, 320, 240));
 
-    if (robotArms != NULL) {
+    if (robotArms != nullptr) {
       while (get_displayBusy())
         vpTime::wait(2);
       free_Bound_scene(&(robotArms[5]));
@@ -373,7 +288,7 @@ void vpSimulatorAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::v
 
     setCameraParameters(vpCameraParameters(853.4876600807, 856.0339170706, 320, 240));
 
-    if (robotArms != NULL) {
+    if (robotArms != nullptr) {
       while (get_displayBusy())
         vpTime::wait(2);
       free_Bound_scene(&(robotArms[5]));
@@ -388,7 +303,7 @@ void vpSimulatorAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::v
     }
     break;
   }
-  case vpAfma6::TOOL_CUSTOM:  {
+  case vpAfma6::TOOL_CUSTOM: {
     std::cout << "The custom tool is not handled in vpSimulatorAfma6.cpp" << std::endl;
     break;
   }
@@ -403,7 +318,10 @@ void vpSimulatorAfma6::init(vpAfma6::vpAfma6ToolType tool, vpCameraParameters::v
   }
 
   vpRotationMatrix eRc(_erc);
+
+  m_mutex_eMc.lock();
   this->_eMc.buildFrom(_etc, eRc);
+  m_mutex_eMc.unlock();
 
   setToolType(tool);
   return;
@@ -431,9 +349,10 @@ void vpSimulatorAfma6::getCameraParameters(vpCameraParameters &cam, const unsign
     // Set default intrinsic camera parameters for 640x480 images
     if (image_width == 640 && image_height == 480) {
       std::cout << "Get default camera parameters for camera \"" << vpAfma6::CONST_CCMOP_CAMERA_NAME << "\""
-                << std::endl;
+        << std::endl;
       cam.initPersProjWithoutDistortion(1109.5735473989, 1112.1520168160, 320, 240);
-    } else {
+    }
+    else {
       vpTRACE("Cannot get default intrinsic camera parameters for this image "
               "resolution");
     }
@@ -443,9 +362,10 @@ void vpSimulatorAfma6::getCameraParameters(vpCameraParameters &cam, const unsign
     // Set default intrinsic camera parameters for 640x480 images
     if (image_width == 640 && image_height == 480) {
       std::cout << "Get default camera parameters for camera \"" << vpAfma6::CONST_GRIPPER_CAMERA_NAME << "\""
-                << std::endl;
+        << std::endl;
       cam.initPersProjWithoutDistortion(852.6583228197, 854.8084224761, 320, 240);
-    } else {
+    }
+    else {
       vpTRACE("Cannot get default intrinsic camera parameters for this image "
               "resolution");
     }
@@ -520,14 +440,21 @@ void vpSimulatorAfma6::updateArticularPosition()
 {
   double tcur_1 = tcur; // temporary variable used to store the last time
                         // since the last command
-
-  while (!robotStop) {
+  bool stop = false;
+  bool setVelocityCalled_ = false;
+  while (!stop) {
     // Get current time
     tprev = tcur_1;
     tcur = vpTime::measureTimeMs();
 
-    if (setVelocityCalled || !constantSamplingTimeMode) {
+    m_mutex_setVelocityCalled.lock();
+    setVelocityCalled_ = setVelocityCalled;
+    m_mutex_setVelocityCalled.unlock();
+
+    if (setVelocityCalled_ || !constantSamplingTimeMode) {
+      m_mutex_setVelocityCalled.lock();
       setVelocityCalled = false;
+      m_mutex_setVelocityCalled.unlock();
 
       computeArticularVelocity();
 
@@ -546,12 +473,13 @@ void vpSimulatorAfma6::updateArticularPosition()
         if (art <= _joint_min[jointLimitArt - 1] || art >= _joint_max[jointLimitArt - 1]) {
           if (verbose_) {
             std::cout << "Joint " << jointLimitArt - 1
-                      << " reaches a limit: " << vpMath::deg(_joint_min[jointLimitArt - 1]) << " < " << vpMath::deg(art)
-                      << " < " << vpMath::deg(_joint_max[jointLimitArt - 1]) << std::endl;
+              << " reaches a limit: " << vpMath::deg(_joint_min[jointLimitArt - 1]) << " < " << vpMath::deg(art)
+              << " < " << vpMath::deg(_joint_max[jointLimitArt - 1]) << std::endl;
           }
 
           articularVelocities = 0.0;
-        } else
+        }
+        else
           jointLimit = false;
       }
 
@@ -566,17 +494,17 @@ void vpSimulatorAfma6::updateArticularPosition()
 
       if (jl != 0 && jointLimit == false) {
         if (jl < 0)
-          ellapsedTime = (_joint_min[(unsigned int)(-jl - 1)] - articularCoordinates[(unsigned int)(-jl - 1)]) /
-                         (articularVelocities[(unsigned int)(-jl - 1)]);
+          ellapsedTime = (_joint_min[static_cast<unsigned int>(-jl - 1)] - articularCoordinates[static_cast<unsigned int>(-jl - 1)]) /
+          (articularVelocities[static_cast<unsigned int>(-jl - 1)]);
         else
-          ellapsedTime = (_joint_max[(unsigned int)(jl - 1)] - articularCoordinates[(unsigned int)(jl - 1)]) /
-                         (articularVelocities[(unsigned int)(jl - 1)]);
+          ellapsedTime = (_joint_max[static_cast<unsigned int>(jl - 1)] - articularCoordinates[static_cast<unsigned int>(jl - 1)]) /
+          (articularVelocities[static_cast<unsigned int>(jl - 1)]);
 
         for (unsigned int i = 0; i < 6; i++)
           articularCoordinates[i] = articularCoordinates[i] + ellapsedTime * articularVelocities[i];
 
         jointLimit = true;
-        jointLimitArt = (unsigned int)fabs((double)jl);
+        jointLimitArt = static_cast<unsigned int>(fabs(static_cast<double>(jl)));
       }
 
       set_artCoord(articularCoordinates);
@@ -591,13 +519,14 @@ void vpSimulatorAfma6::updateArticularPosition()
       }
 
       if (displayType == MODEL_3D && displayAllowed) {
-        while (get_displayBusy())
+        while (get_displayBusy()) {
           vpTime::wait(2);
+        }
         vpSimulatorAfma6::getExternalImage(I);
         set_displayBusy(false);
       }
 
-      if (0 /*displayType == MODEL_DH && displayAllowed*/) {
+      if (displayType == MODEL_DH && displayAllowed) {
         vpHomogeneousMatrix fMit[8];
         get_fMi(fMit);
 
@@ -629,9 +558,14 @@ void vpSimulatorAfma6::updateArticularPosition()
 
       vpTime::wait(tcur, 1000 * getSamplingTime());
       tcur_1 = tcur;
-    } else {
+    }
+    else {
       vpTime::wait(tcur, vpTime::getMinTimeForUsleepCall());
     }
+
+    m_mutex_robotStop.lock();
+    stop = robotStop;
+    m_mutex_robotStop.unlock();
   }
 }
 
@@ -761,33 +695,25 @@ void vpSimulatorAfma6::compute_fMi()
   fMit[6][1][3] = fMit[5][1][3];
   fMit[6][2][3] = fMit[5][2][3];
 
-  //   vpHomogeneousMatrix cMe;
-  //   get_cMe(cMe);
-  //   cMe = cMe.inverse();
-  //   fMit[7] = fMit[6] * cMe;
+  // vpHomogeneousMatrix cMe;
+  // get_cMe(cMe);
+  // cMe = cMe.inverse();
+  // fMit[7] = fMit[6] * cMe;
+  m_mutex_eMc.lock();
   vpAfma6::get_fMc(q, fMit[7]);
+  m_mutex_eMc.unlock();
 
-#if defined(_WIN32)
-#if defined(WINRT_8_1)
-  WaitForSingleObjectEx(mutex_fMi, INFINITE, FALSE);
-#else // pure win32
-  WaitForSingleObject(mutex_fMi, INFINITE);
-#endif
-  for (int i = 0; i < 8; i++)
+  m_mutex_fMi.lock();
+  for (int i = 0; i < 8; i++) {
     fMi[i] = fMit[i];
-  ReleaseMutex(mutex_fMi);
-#elif defined(VISP_HAVE_PTHREAD)
-  pthread_mutex_lock(&mutex_fMi);
-  for (int i = 0; i < 8; i++)
-    fMi[i] = fMit[i];
-  pthread_mutex_unlock(&mutex_fMi);
-#endif
+  }
+  m_mutex_fMi.unlock();
 }
 
 /*!
-Change the robot state.
+  Change the robot state.
 
-\param newState : New requested robot state.
+  \param newState : New requested robot state.
 */
 vpRobot::vpRobotStateType vpSimulatorAfma6::setRobotState(vpRobot::vpRobotStateType newState)
 {
@@ -803,9 +729,10 @@ vpRobot::vpRobotStateType vpSimulatorAfma6::setRobotState(vpRobot::vpRobotStateT
     if (vpRobot::STATE_VELOCITY_CONTROL == getRobotState()) {
       std::cout << "Change the control mode from velocity to position control.\n";
       stopMotion();
-    } else {
-      // std::cout << "Change the control mode from stop to position
-      // control.\n";
+    }
+    else {
+   // std::cout << "Change the control mode from stop to position
+   // control.\n";
     }
     break;
   }
@@ -827,32 +754,31 @@ vpRobot::vpRobotStateType vpSimulatorAfma6::setRobotState(vpRobot::vpRobotStateT
   Apply a velocity to the robot.
 
   \param frame : Control frame in which the velocity is expressed. Velocities
-  could be expressed in articular, camera frame, reference frame or mixt
-frame.
+  could be expressed in articular, camera frame, reference frame or mixt frame.
 
   \param vel : Velocity vector. The size of this vector
   is always 6.
 
   - In articular, \f$ vel = [\dot{q}_1, \dot{q}_2, \dot{q}_3, \dot{q}_4,
-  \dot{q}_5, \dot{q}_6]^t \f$ correspond to joint velocities in rad/s.
+    \dot{q}_5, \dot{q}_6]^t \f$ correspond to joint velocities in rad/s.
 
   - In camera frame, \f$ vel = [^{c} v_x, ^{c} v_y, ^{c} v_z, ^{c}
-  \omega_x, ^{c} \omega_y, ^{c} \omega_z]^t \f$ is a velocity twist vector
-expressed in the camera frame, with translations velocities \f$ ^{c} v_x, ^{c}
-v_y, ^{c} v_z \f$ in m/s and rotation velocities \f$ ^{c}\omega_x, ^{c}
-\omega_y, ^{c} \omega_z \f$ in rad/s.
+    \omega_x, ^{c} \omega_y, ^{c} \omega_z]^t \f$ is a velocity twist vector
+    expressed in the camera frame, with translations velocities \f$ ^{c} v_x, ^{c}
+    v_y, ^{c} v_z \f$ in m/s and rotation velocities \f$ ^{c}\omega_x, ^{c}
+    \omega_y, ^{c} \omega_z \f$ in rad/s.
 
   - In reference frame, \f$ vel = [^{r} v_x, ^{r} v_y, ^{r} v_z, ^{r}
-  \omega_x, ^{r} \omega_y, ^{r} \omega_z]^t \f$ is a velocity twist vector
-expressed in the reference frame, with translations velocities \f$ ^{c} v_x,
-^{c} v_y, ^{c} v_z \f$ in m/s and rotation velocities \f$ ^{c}\omega_x, ^{c}
-\omega_y, ^{c} \omega_z \f$ in rad/s.
+    \omega_x, ^{r} \omega_y, ^{r} \omega_z]^t \f$ is a velocity twist vector
+    expressed in the reference frame, with translations velocities \f$ ^{c} v_x,
+    ^{c} v_y, ^{c} v_z \f$ in m/s and rotation velocities \f$ ^{c}\omega_x, ^{c}
+    \omega_y, ^{c} \omega_z \f$ in rad/s.
 
   - In mixt frame, \f$ vel = [^{r} v_x, ^{r} v_y, ^{r} v_z, ^{c} \omega_x,
-  ^{c} \omega_y, ^{c} \omega_z]^t \f$ is a velocity twist vector where,
-translations \f$ ^{r} v_x, ^{r} v_y, ^{r} v_z \f$ are expressed in the
-reference frame in m/s and rotations \f$ ^{c} \omega_x, ^{c} \omega_y, ^{c}
-\omega_z \f$ in the camera frame in rad/s.
+    ^{c} \omega_y, ^{c} \omega_z]^t \f$ is a velocity twist vector where,
+    translations \f$ ^{r} v_x, ^{r} v_y, ^{r} v_z \f$ are expressed in the
+    reference frame in m/s and rotations \f$ ^{c} \omega_x, ^{c} \omega_y, ^{c}
+    \omega_z \f$ in the camera frame in rad/s.
 
   \exception vpRobotException::wrongStateError : If a the robot is not
   configured to handle a velocity. The robot can handle a velocity only if the
@@ -860,40 +786,44 @@ reference frame in m/s and rotations \f$ ^{c} \omega_x, ^{c} \omega_y, ^{c}
   vpRobot::STATE_VELOCITY_CONTROL) before setVelocity().
 
   \warning Velocities could be saturated if one of them exceed the
-  maximal autorized speed (see vpRobot::maxTranslationVelocity and
+  maximal authorized speed (see vpRobot::maxTranslationVelocity and
   vpRobot::maxRotationVelocity). To change these values use
   setMaxTranslationVelocity() and setMaxRotationVelocity().
 
   \code
-#include <visp3/core/vpColVector.h>
-#include <visp3/core/vpMath.h>
-#include <visp3/robot/vpSimulatorAfma6.h>
+  #include <visp3/core/vpColVector.h>
+  #include <visp3/core/vpMath.h>
+  #include <visp3/robot/vpSimulatorAfma6.h>
 
-int main()
-{
-  vpSimulatorAfma6 robot;
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  vpColVector qvel(6);
-  // Set a joint velocity
-  qvel[0] = 0.1;             // Joint 1 velocity in m/s
-  qvel[1] = 0.1;             // Joint 2 velocity in m/s
-  qvel[2] = 0.1;             // Joint 3 velocity in m/s
-  qvel[3] = M_PI/8;          // Joint 4 velocity in rad/s
-  qvel[4] = 0;               // Joint 5 velocity in rad/s
-  qvel[5] = 0;               // Joint 6 velocity in rad/s
+  int main()
+  {
+    vpSimulatorAfma6 robot;
 
-  // Initialize the controller to position control
-  robot.setRobotState(vpRobot::STATE_VELOCITY_CONTROL);
+    vpColVector qvel(6);
+    // Set a joint velocity
+    qvel[0] = 0.1;             // Joint 1 velocity in m/s
+    qvel[1] = 0.1;             // Joint 2 velocity in m/s
+    qvel[2] = 0.1;             // Joint 3 velocity in m/s
+    qvel[3] = M_PI/8;          // Joint 4 velocity in rad/s
+    qvel[4] = 0;               // Joint 5 velocity in rad/s
+    qvel[5] = 0;               // Joint 6 velocity in rad/s
 
-  for ( ; ; ) {
-    // Apply a velocity in the joint space
-    robot.setVelocity(vpRobot::ARTICULAR_FRAME, qvel);
+    // Initialize the controller to position control
+    robot.setRobotState(vpRobot::STATE_VELOCITY_CONTROL);
 
-    // Compute new velocities qvel...
+    for ( ; ; ) {
+      // Apply a velocity in the joint space
+      robot.setVelocity(vpRobot::ARTICULAR_FRAME, qvel);
+
+      // Compute new velocities qvel...
+    }
+    // Stop the robot
+    robot.setRobotState(vpRobot::STATE_STOP);
   }
-  // Stop the robot
-  robot.setRobotState(vpRobot::STATE_STOP);
-}
   \endcode
 */
 void vpSimulatorAfma6::setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &vel)
@@ -986,14 +916,20 @@ void vpSimulatorAfma6::setVelocity(const vpRobot::vpControlFrameType frame, cons
                                                               "functionality not implemented");
   }
   case vpRobot::END_EFFECTOR_FRAME: {
-    throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in END_EFFECTOT_FRAME frame:"
+    throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in END_EFFECTOR_FRAME frame:"
                                                               "functionality not implemented");
   }
   }
 
   set_velocity(vel * scale_sat);
+
+  m_mutex_frame.lock();
   setRobotFrame(frame);
+  m_mutex_frame.unlock();
+
+  m_mutex_setVelocityCalled.lock();
   setVelocityCalled = true;
+  m_mutex_setVelocityCalled.unlock();
 }
 
 /*!
@@ -1001,7 +937,11 @@ void vpSimulatorAfma6::setVelocity(const vpRobot::vpControlFrameType frame, cons
 */
 void vpSimulatorAfma6::computeArticularVelocity()
 {
-  vpRobot::vpControlFrameType frame = getRobotFrame();
+  vpRobot::vpControlFrameType frame;
+
+  m_mutex_frame.lock();
+  frame = getRobotFrame();
+  m_mutex_frame.unlock();
 
   double vel_rot_max = getMaxRotationVelocity();
 
@@ -1075,46 +1015,50 @@ void vpSimulatorAfma6::computeArticularVelocity()
 /*!
   Get the robot velocities.
 
-  \param frame : Frame in wich velocities are mesured.
+  \param frame : Frame in which velocities are measured.
 
   \param vel : Measured velocities. Translations are expressed in m/s
   and rotations in rad/s.
 
   \warning In camera frame, reference frame and mixt frame, the representation
   of the rotation is ThetaU. In that cases, \f$velocity = [\dot x, \dot y,
-\dot z, \dot {\theta U}_x, \dot {\theta U}_y, \dot {\theta U}_z]\f$.
+  \dot z, \dot {\theta U}_x, \dot {\theta U}_y, \dot {\theta U}_z]\f$.
 
   \code
-#include <visp3/core/vpColVector.h>
-#include <visp3/robot/vpSimulatorAfma6.h>
+  #include <visp3/core/vpColVector.h>
+  #include <visp3/robot/vpSimulatorAfma6.h>
 
-int main()
-{
-  // Set requested joint velocities
-  vpColVector q_dot(6);
-  q_dot[0] = 0.1;    // Joint 1 velocity in m/s
-  q_dot[1] = 0.2;    // Joint 2 velocity in m/s
-  q_dot[2] = 0.3;    // Joint 3 velocity in m/s
-  q_dot[3] = M_PI/8; // Joint 4 velocity in rad/s
-  q_dot[4] = M_PI/4; // Joint 5 velocity in rad/s
-  q_dot[5] = M_PI/16;// Joint 6 velocity in rad/s
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  vpSimulatorAfma6 robot;
+  int main()
+  {
+    // Set requested joint velocities
+    vpColVector q_dot(6);
+    q_dot[0] = 0.1;    // Joint 1 velocity in m/s
+    q_dot[1] = 0.2;    // Joint 2 velocity in m/s
+    q_dot[2] = 0.3;    // Joint 3 velocity in m/s
+    q_dot[3] = M_PI/8; // Joint 4 velocity in rad/s
+    q_dot[4] = M_PI/4; // Joint 5 velocity in rad/s
+    q_dot[5] = M_PI/16;// Joint 6 velocity in rad/s
 
-  robot.setRobotState(vpRobot::STATE_VELOCITY_CONTROL);
+    vpSimulatorAfma6 robot;
 
-  // Moves the joint in velocity
-  robot.setVelocity(vpRobot::ARTICULAR_FRAME, q_dot);
+    robot.setRobotState(vpRobot::STATE_VELOCITY_CONTROL);
 
-  // Initialisation of the velocity measurement
-  vpColVector q_dot_mes; // Measured velocities
+    // Moves the joint in velocity
+    robot.setVelocity(vpRobot::ARTICULAR_FRAME, q_dot);
 
-  for ( ; ; ) {
-    robot.getVelocity(vpRobot::ARTICULAR_FRAME, q_dot_mes);
-     vpTime::wait(40); // wait 40 ms
-     // here q_dot_mes is equal to [0.1, 0.2, 0.3, M_PI/8, M_PI/4, M_PI/16]
+    // Initialisation of the velocity measurement
+    vpColVector q_dot_mes; // Measured velocities
+
+    for ( ; ; ) {
+      robot.getVelocity(vpRobot::ARTICULAR_FRAME, q_dot_mes);
+      vpTime::wait(40); // wait 40 ms
+      // here q_dot_mes is equal to [0.1, 0.2, 0.3, M_PI/8, M_PI/4, M_PI/16]
+    }
   }
-}
   \endcode
 */
 void vpSimulatorAfma6::getVelocity(const vpRobot::vpControlFrameType frame, vpColVector &vel)
@@ -1157,7 +1101,7 @@ void vpSimulatorAfma6::getVelocity(const vpRobot::vpControlFrameType frame, vpCo
 /*!
   Get the robot time stamped velocities.
 
-  \param frame : Frame in wich velocities are mesured.
+  \param frame : Frame in which velocities are measured.
 
   \param vel : Measured velocities. Translations are expressed in m/s
   and rotations in rad/s.
@@ -1179,42 +1123,46 @@ void vpSimulatorAfma6::getVelocity(const vpRobot::vpControlFrameType frame, vpCo
 /*!
   Get the robot velocities.
 
-  \param frame : Frame in wich velocities are mesured.
+  \param frame : Frame in which velocities are measured.
 
   \return Measured velocities. Translations are expressed in m/s
   and rotations in rad/s.
 
   \code
-#include <visp3/core/vpColVector.h>
-#include <visp3/robot/vpSimulatorAfma6.h>
+  #include <visp3/core/vpColVector.h>
+  #include <visp3/robot/vpSimulatorAfma6.h>
 
-int main()
-{
-  // Set requested joint velocities
-  vpColVector q_dot(6);
-  q_dot[0] = 0.1;    // Joint 1 velocity in rad/s
-  q_dot[1] = 0.2;    // Joint 2 velocity in rad/s
-  q_dot[2] = 0.3;    // Joint 3 velocity in rad/s
-  q_dot[3] = M_PI/8; // Joint 4 velocity in rad/s
-  q_dot[4] = M_PI/4; // Joint 5 velocity in rad/s
-  q_dot[5] = M_PI/16;// Joint 6 velocity in rad/s
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  vpSimulatorAfma6 robot;
+  int main()
+  {
+    // Set requested joint velocities
+    vpColVector q_dot(6);
+    q_dot[0] = 0.1;    // Joint 1 velocity in rad/s
+    q_dot[1] = 0.2;    // Joint 2 velocity in rad/s
+    q_dot[2] = 0.3;    // Joint 3 velocity in rad/s
+    q_dot[3] = M_PI/8; // Joint 4 velocity in rad/s
+    q_dot[4] = M_PI/4; // Joint 5 velocity in rad/s
+    q_dot[5] = M_PI/16;// Joint 6 velocity in rad/s
 
-  robot.setRobotState(vpRobot::STATE_VELOCITY_CONTROL);
+    vpSimulatorAfma6 robot;
 
-  // Moves the joint in velocity
-  robot.setVelocity(vpRobot::ARTICULAR_FRAME, q_dot);
+    robot.setRobotState(vpRobot::STATE_VELOCITY_CONTROL);
 
-  // Initialisation of the velocity measurement
-  vpColVector q_dot_mes; // Measured velocities
+    // Moves the joint in velocity
+    robot.setVelocity(vpRobot::ARTICULAR_FRAME, q_dot);
 
-  for ( ; ; ) {
-     q_dot_mes = robot.getVelocity(vpRobot::ARTICULAR_FRAME);
-     vpTime::wait(40); // wait 40 ms
-     // here q_dot_mes is equal to [0.1, 0.2, 0.3, M_PI/8, M_PI/4, M_PI/16]
+    // Initialisation of the velocity measurement
+    vpColVector q_dot_mes; // Measured velocities
+
+    for ( ; ; ) {
+      q_dot_mes = robot.getVelocity(vpRobot::ARTICULAR_FRAME);
+      vpTime::wait(40); // wait 40 ms
+      // here q_dot_mes is equal to [0.1, 0.2, 0.3, M_PI/8, M_PI/4, M_PI/16]
+    }
   }
-}
   \endcode
 */
 vpColVector vpSimulatorAfma6::getVelocity(vpRobot::vpControlFrameType frame)
@@ -1228,7 +1176,7 @@ vpColVector vpSimulatorAfma6::getVelocity(vpRobot::vpControlFrameType frame)
 /*!
   Get the time stamped robot velocities.
 
-  \param frame : Frame in wich velocities are mesured.
+  \param frame : Frame in which velocities are measured.
 
   \param timestamp : Unix time in second since January 1st 1970.
 
@@ -1293,30 +1241,34 @@ void vpSimulatorAfma6::findHighestPositioningSpeed(vpColVector &q)
   position is out of range.
 
   \code
-#include <visp3/core/vpColVector.h>
-#include <visp3/robot/vpSimulatorAfma6.h>
+  #include <visp3/core/vpColVector.h>
+  #include <visp3/robot/vpSimulatorAfma6.h>
 
-int main()
-{
-  vpColVector position(6);
-  // Set positions in the camera frame
-  position[0] = 0.1;    // x axis, in meter
-  position[1] = 0.2;    // y axis, in meter
-  position[2] = 0.3;    // z axis, in meter
-  position[3] = M_PI/8; // rotation around x axis, in rad
-  position[4] = M_PI/4; // rotation around y axis, in rad
-  position[5] = M_PI;   // rotation around z axis, in rad
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  vpSimulatorAfma6 robot;
+  int main()
+  {
+    vpColVector position(6);
+    // Set positions in the camera frame
+    position[0] = 0.1;    // x axis, in meter
+    position[1] = 0.2;    // y axis, in meter
+    position[2] = 0.3;    // z axis, in meter
+    position[3] = M_PI/8; // rotation around x axis, in rad
+    position[4] = M_PI/4; // rotation around y axis, in rad
+    position[5] = M_PI;   // rotation around z axis, in rad
 
-  robot.setRobotState(vpRobot::STATE_POSITION_CONTROL);
+    vpSimulatorAfma6 robot;
 
-  // Set the max velocity to 20%
-  robot.setPositioningVelocity(20);
+    robot.setRobotState(vpRobot::STATE_POSITION_CONTROL);
 
-  // Moves the robot in the camera frame
-  robot.setPosition(vpRobot::CAMERA_FRAME, position);
-}
+    // Set the max velocity to 20%
+    robot.setPositioningVelocity(20);
+
+    // Moves the robot in the camera frame
+    robot.setPosition(vpRobot::CAMERA_FRAME, position);
+  }
   \endcode
 
   To catch the exception if the position is out of range, modify the code
@@ -1369,7 +1321,11 @@ void vpSimulatorAfma6::setPosition(const vpRobot::vpControlFrameType frame, cons
       articularCoordinates = get_artCoord();
       qdes = articularCoordinates;
       nbSol = getInverseKinematics(fMc2, qdes, true, verbose_);
+
+      m_mutex_setVelocityCalled.lock();
       setVelocityCalled = true;
+      m_mutex_setVelocityCalled.unlock();
+
       if (nbSol > 0) {
         error = qdes - articularCoordinates;
         errsqr = error.sumSquare();
@@ -1382,8 +1338,9 @@ void vpSimulatorAfma6::setPosition(const vpRobot::vpControlFrameType frame, cons
           set_velocity(error);
           break;
         }
-      } else {
-        vpERROR_TRACE("Positionning error.");
+      }
+      else {
+        vpERROR_TRACE("Positioning error.");
         throw vpRobotException(vpRobotException::positionOutOfRangeError, "Position out of range.");
       }
     } while (errsqr > 1e-8 && nbSol > 0);
@@ -1398,7 +1355,9 @@ void vpSimulatorAfma6::setPosition(const vpRobot::vpControlFrameType frame, cons
       errsqr = error.sumSquare();
       // findHighestPositioningSpeed(error);
       set_artVel(error);
+      m_mutex_setVelocityCalled.lock();
       setVelocityCalled = true;
+      m_mutex_setVelocityCalled.unlock();
       if (errsqr < 1e-4) {
         set_artCoord(q);
         error = 0;
@@ -1428,7 +1387,9 @@ void vpSimulatorAfma6::setPosition(const vpRobot::vpControlFrameType frame, cons
       articularCoordinates = get_artCoord();
       qdes = articularCoordinates;
       nbSol = getInverseKinematics(fMc_, qdes, true, verbose_);
+      m_mutex_setVelocityCalled.lock();
       setVelocityCalled = true;
+      m_mutex_setVelocityCalled.unlock();
       if (nbSol > 0) {
         error = qdes - articularCoordinates;
         errsqr = error.sumSquare();
@@ -1441,19 +1402,20 @@ void vpSimulatorAfma6::setPosition(const vpRobot::vpControlFrameType frame, cons
           set_velocity(error);
           break;
         }
-      } else
-        vpERROR_TRACE("Positionning error. Position unreachable");
+      }
+      else
+        vpERROR_TRACE("Positioning error. Position unreachable");
     } while (errsqr > 1e-8 && nbSol > 0);
     break;
   }
   case vpRobot::MIXT_FRAME: {
-    vpERROR_TRACE("Positionning error. Mixt frame not implemented");
-    throw vpRobotException(vpRobotException::lowLevelError, "Positionning error: "
+    vpERROR_TRACE("Positioning error. Mixt frame not implemented");
+    throw vpRobotException(vpRobotException::lowLevelError, "Positioning error: "
                                                             "MIXT_FRAME not implemented.");
   }
   case vpRobot::END_EFFECTOR_FRAME: {
-    vpERROR_TRACE("Positionning error. Mixt frame not implemented");
-    throw vpRobotException(vpRobotException::lowLevelError, "Positionning error: "
+    vpERROR_TRACE("Positioning error. Mixt frame not implemented");
+    throw vpRobotException(vpRobotException::lowLevelError, "Positioning error: "
                                                             "END_EFFECTOR_FRAME not implemented.");
   }
   }
@@ -1465,64 +1427,67 @@ void vpSimulatorAfma6::setPosition(const vpRobot::vpControlFrameType frame, cons
   The position to reach can be specified in joint coordinates, in the
   camera frame or in the reference frame.
 
-  This method overloads setPosition(const
-  vpRobot::vpControlFrameType, const vpColVector &).
+  This method overloads setPosition(const vpRobot::vpControlFrameType, const vpColVector &).
 
-  \warning This method is blocking. It returns only when the position
-  is reached by the robot.
+  \warning This method is blocking. It returns only when the position is reached by the robot.
 
-  \param pos1, pos2, pos3, pos4, pos5, pos6 : The six coordinates of
-  the position to reach. All the positions are expressed in meters for
-  the translations and radians for the rotations.
+  All the positions are expressed in meters for the translations and radians for the rotations.
+
+  \param pos1 : First coordinate of the position to reach.
+  \param pos2 : Second coordinate of the position to reach.
+  \param pos3 : Third coordinate of the position to reach.
+  \param pos4 : Fourth coordinate of the position to reach.
+  \param pos5 : Fifth coordinate of the position to reach.
+  \param pos6 : Sixth coordinate of the position to reach.
 
   \param frame : Frame in which the position is expressed.
 
-  - In the joint space, positions are respectively X (pos1), Y (pos2),
-  Z (pos3), A (pos4), B (pos5), C (pos6), with X,Y,Z the
-  translations, and A,B,C the rotations of the end-effector.
+  - In the joint space, positions are respectively X (pos1), Y (pos2), Z (pos3), A (pos4), B (pos5), C (pos6),
+    with X,Y,Z the translation positions in meters, and A,B,C the rotations in radians of the end-effector.
 
-  - In the camera and the reference frame, rotations [pos4, pos5, pos6] are
-  represented by a vpRxyzVector.
+  - In the camera and the reference frame, rotations [pos4, pos5, pos6] are represented by a vpRxyzVector with
+    values in radians.
 
-  - Mixt frame is not implemented. By mixt frame we mean, translations
-  expressed in the reference frame, and rotations in the camera
-  frame.
+  - Mixt frame is not implemented. By mixt frame we mean, translations expressed in the reference frame,
+    and rotations in the camera frame.
 
-  \exception vpRobotException::lowLevelError : vpRobot::MIXT_FRAME not
-  implemented.
+  \exception vpRobotException::lowLevelError : vpRobot::MIXT_FRAME not implemented.
 
-  \exception vpRobotException::positionOutOfRangeError : The requested
-  position is out of range.
+  \exception vpRobotException::positionOutOfRangeError : The requested position is out of range.
 
   \code
-#include <visp3/robot/vpSimulatorAfma6.h>
+  #include <visp3/robot/vpSimulatorAfma6.h>
 
-int main()
-{
-  // Set positions in the camera frame
-  double pos1 = 0.1;    // x axis, in meter
-  double pos2 = 0.2;    // y axis, in meter
-  double pos3 = 0.3;    // z axis, in meter
-  double pos4 = M_PI/8; // rotation around x axis, in rad
-  double pos5 = M_PI/4; // rotation around y axis, in rad
-  double pos6 = M_PI;   // rotation around z axis, in rad
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  vpSimulatorAfma6 robot;
+  int main()
+  {
+    // Set positions in the camera frame
+    double pos1 = 0.1;    // x axis, in meter
+    double pos2 = 0.2;    // y axis, in meter
+    double pos3 = 0.3;    // z axis, in meter
+    double pos4 = M_PI/8; // rotation around x axis, in rad
+    double pos5 = M_PI/4; // rotation around y axis, in rad
+    double pos6 = M_PI;   // rotation around z axis, in rad
 
-  robot.setRobotState(vpRobot::STATE_POSITION_CONTROL);
+    vpSimulatorAfma6 robot;
 
-  // Set the max velocity to 20%
-  robot.setPositioningVelocity(20);
+    robot.setRobotState(vpRobot::STATE_POSITION_CONTROL);
 
-  // Moves the robot in the camera frame
-  robot.setPosition(vpRobot::CAMERA_FRAME, pos1, pos2, pos3, pos4, pos5, pos6);
-}
+    // Set the max velocity to 20%
+    robot.setPositioningVelocity(20);
+
+    // Moves the robot in the camera frame
+    robot.setPosition(vpRobot::CAMERA_FRAME, pos1, pos2, pos3, pos4, pos5, pos6);
+  }
   \endcode
 
   \sa setPosition()
 */
-void vpSimulatorAfma6::setPosition(const vpRobot::vpControlFrameType frame, double pos1, double pos2,
-                                   double pos3, double pos4, double pos5, double pos6)
+void vpSimulatorAfma6::setPosition(const vpRobot::vpControlFrameType frame, double pos1, double pos2, double pos3,
+                                   double pos4, double pos5, double pos6)
 {
   try {
     vpColVector position(6);
@@ -1534,7 +1499,8 @@ void vpSimulatorAfma6::setPosition(const vpRobot::vpControlFrameType frame, doub
     position[5] = pos6;
 
     setPosition(frame, position);
-  } catch (...) {
+  }
+  catch (...) {
     vpERROR_TRACE("Error caught");
     throw;
   }
@@ -1552,18 +1518,22 @@ void vpSimulatorAfma6::setPosition(const vpRobot::vpControlFrameType frame, doub
 
   This method has the same behavior than the sample code given below;
   \code
-#include <visp3/core/vpColVector.h>
-#include <visp3/robot/vpSimulatorAfma6.h>
+  #include <visp3/core/vpColVector.h>
+  #include <visp3/robot/vpSimulatorAfma6.h>
 
-int main()
-{
-  vpColVector q;
-  vpSimulatorAfma6 robot;
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  robot.readPosFile("MyPositionFilename.pos", q);
-  robot.setRobotState(vpRobot::STATE_POSITION_CONTROL);
-  robot.setPosition(vpRobot::ARTICULAR_FRAME, q);
-}
+  int main()
+  {
+    vpColVector q;
+    vpSimulatorAfma6 robot;
+
+    robot.readPosFile("MyPositionFilename.pos", q);
+    robot.setRobotState(vpRobot::STATE_POSITION_CONTROL);
+    robot.setPosition(vpRobot::ARTICULAR_FRAME, q);
+  }
   \endcode
 
   \exception vpRobotException::lowLevelError : vpRobot::MIXT_FRAME not
@@ -1593,14 +1563,14 @@ void vpSimulatorAfma6::setPosition(const char *filename)
   Get the current position of the robot.
 
   \param frame : Control frame type in which to get the position, either :
-  - in the camera cartesien frame,
+  - in the camera cartesian frame,
   - joint (articular) coordinates of each axes
-  - in a reference or fixed cartesien frame attached to the robot base
-  - in a mixt cartesien frame (translation in reference
+  - in a reference or fixed cartesian frame attached to the robot base
+  - in a mixt cartesian frame (translation in reference
   frame, and rotation in camera frame)
 
   \param q : Measured position of the robot:
-  - in camera cartesien frame, a 6 dimension vector, set to 0.
+  - in camera cartesian frame, a 6 dimension vector, set to 0.
 
   - in articular, a 6 dimension vector corresponding to the joint
   position of each dof in radians.
@@ -1611,41 +1581,44 @@ void vpSimulatorAfma6::setPosition(const char *filename)
   below show how to convert this position into a vpHomogeneousMatrix:
 
   \code
-#include <visp3/core/vpColVector.h>
-#include <visp3/core/vpHomogeneousMatrix.h>
-#include <visp3/core/vpRotationMatrix.h>
-#include <visp3/core/vpRxyzVector.h>
-#include <visp3/core/vpTranslationVector.h>
-#include <visp3/robot/vpSimulatorAfma6.h>
+  #include <visp3/core/vpColVector.h>
+  #include <visp3/core/vpHomogeneousMatrix.h>
+  #include <visp3/core/vpRotationMatrix.h>
+  #include <visp3/core/vpRxyzVector.h>
+  #include <visp3/core/vpTranslationVector.h>
+  #include <visp3/robot/vpSimulatorAfma6.h>
 
-int main()
-{
-  vpSimulatorAfma6 robot;
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  vpColVector position;
-  robot.getPosition(vpRobot::REFERENCE_FRAME, position);
+  int main()
+  {
+    vpSimulatorAfma6 robot;
 
-  vpTranslationVector ftc; // reference frame to camera frame translations
-  vpRxyzVector frc; // reference frame to camera frame rotations
+    vpColVector position;
+    robot.getPosition(vpRobot::REFERENCE_FRAME, position);
 
-  // Update the transformation between reference frame and camera frame
-  for (int i=0; i < 3; i++) {
-    ftc[i] = position[i];   // tx, ty, tz
-    frc[i] = position[i+3]; // ry, ry, rz
+    vpTranslationVector ftc; // reference frame to camera frame translations
+    vpRxyzVector frc; // reference frame to camera frame rotations
+
+    // Update the transformation between reference frame and camera frame
+    for (int i=0; i < 3; i++) {
+      ftc[i] = position[i];   // tx, ty, tz
+      frc[i] = position[i+3]; // ry, ry, rz
+    }
+
+    // Create a rotation matrix from the Rxyz rotation angles
+    vpRotationMatrix fRc(frc); // reference frame to camera frame rotation matrix
+
+    // Create the camera to fix frame transformation in terms of a
+    // homogeneous matrix
+    vpHomogeneousMatrix fMc(fRc, ftc);
   }
-
-  // Create a rotation matrix from the Rxyz rotation angles
-  vpRotationMatrix fRc(frc); // reference frame to camera frame rotation matrix
-
-  // Create the camera to fix frame transformation in terms of a
-  // homogeneous matrix
-  vpHomogeneousMatrix fMc(fRc, ftc);
-}
   \endcode
 
-  \sa getPosition(const vpRobot::vpControlFrameType frame, vpColVector &q,
-double &timestamp) \sa setPosition(const vpRobot::vpControlFrameType frame,
-const vpColVector & r)
+  \sa getPosition(const vpRobot::vpControlFrameType frame, vpColVector &q, double &timestamp)
+  \sa setPosition(const vpRobot::vpControlFrameType frame, const vpColVector & r)
 
 */
 void vpSimulatorAfma6::getPosition(const vpRobot::vpControlFrameType frame, vpColVector &q)
@@ -1682,11 +1655,11 @@ void vpSimulatorAfma6::getPosition(const vpRobot::vpControlFrameType frame, vpCo
   }
 
   case vpRobot::MIXT_FRAME: {
-    throw vpRobotException(vpRobotException::lowLevelError, "Positionning error: "
+    throw vpRobotException(vpRobotException::lowLevelError, "Positioning error: "
                                                             "Mixt frame not implemented.");
   }
   case vpRobot::END_EFFECTOR_FRAME: {
-    throw vpRobotException(vpRobotException::lowLevelError, "Positionning error: "
+    throw vpRobotException(vpRobotException::lowLevelError, "Positioning error: "
                                                             "End-effector frame not implemented.");
   }
   }
@@ -1697,14 +1670,14 @@ void vpSimulatorAfma6::getPosition(const vpRobot::vpControlFrameType frame, vpCo
   Get the current time stamped position of the robot.
 
   \param frame : Control frame type in which to get the position, either :
-  - in the camera cartesien frame,
+  - in the camera cartesian frame,
   - joint (articular) coordinates of each axes
-  - in a reference or fixed cartesien frame attached to the robot base
-  - in a mixt cartesien frame (translation in reference
+  - in a reference or fixed cartesian frame attached to the robot base
+  - in a mixt cartesian frame (translation in reference
   frame, and rotation in camera frame)
 
   \param q : Measured position of the robot:
-  - in camera cartesien frame, a 6 dimension vector, set to 0.
+  - in camera cartesian frame, a 6 dimension vector, set to 0.
 
   - in articular, a 6 dimension vector corresponding to the joint
   position of each dof in radians.
@@ -1842,7 +1815,7 @@ int vpSimulatorAfma6::isInJointLimit()
       difft = _joint_min[i] - articularCoordinates[i];
       if (difft > diff) {
         diff = difft;
-        artNumb = -(int)i - 1;
+        artNumb = -static_cast<int>(i) - 1;
       }
     }
   }
@@ -1852,14 +1825,14 @@ int vpSimulatorAfma6::isInJointLimit()
       difft = articularCoordinates[i] - _joint_max[i];
       if (difft > diff) {
         diff = difft;
-        artNumb = (int)(i + 1);
+        artNumb = static_cast<int>(i + 1);
       }
     }
   }
 
   if (artNumb != 0)
-    std::cout << "\nWarning: Velocity control stopped: axis " << fabs((float)artNumb) << " on joint limit!"
-              << std::endl;
+    std::cout << "\nWarning: Velocity control stopped: axis " << fabs(static_cast<float>(artNumb)) << " on joint limit!"
+    << std::endl;
 
   return artNumb;
 }
@@ -1912,7 +1885,8 @@ void vpSimulatorAfma6::getDisplacement(vpRobot::vpControlFrameType frame, vpColV
       return;
     }
     }
-  } else {
+  }
+  else {
     first_time_getdis = false;
   }
 
@@ -2053,7 +2027,7 @@ bool vpSimulatorAfma6::savePosFile(const std::string &filename, const vpColVecto
 {
   FILE *fd;
   fd = fopen(filename.c_str(), "w");
-  if (fd == NULL)
+  if (fd == nullptr)
     return false;
 
   fprintf(fd, "\
@@ -2076,7 +2050,7 @@ bool vpSimulatorAfma6::savePosFile(const std::string &filename, const vpColVecto
 /*!
   Moves the robot to the joint position specified in the filename.
 
-  \param filename: File containing a joint position.
+  \param filename : File containing a joint position.
 
   \sa readPosFile
 */
@@ -2088,7 +2062,8 @@ void vpSimulatorAfma6::move(const char *filename)
     this->readPosFile(filename, q);
     this->setRobotState(vpRobot::STATE_POSITION_CONTROL);
     this->setPosition(vpRobot::ARTICULAR_FRAME, q);
-  } catch (...) {
+  }
+  catch (...) {
     throw;
   }
 }
@@ -2132,7 +2107,8 @@ void vpSimulatorAfma6::get_eJe(vpMatrix &eJe_)
 {
   try {
     vpAfma6::get_eJe(get_artCoord(), eJe_);
-  } catch (...) {
+  }
+  catch (...) {
     vpERROR_TRACE("catch exception ");
     throw;
   }
@@ -2153,7 +2129,8 @@ void vpSimulatorAfma6::get_fJe(vpMatrix &fJe_)
   try {
     vpColVector articularCoordinates = get_artCoord();
     vpAfma6::get_fJe(articularCoordinates, fJe_);
-  } catch (...) {
+  }
+  catch (...) {
     vpERROR_TRACE("Error caught");
     throw;
   }
@@ -2173,11 +2150,6 @@ void vpSimulatorAfma6::stopMotion()
   set_velocity(stop);
   vpRobot::setRobotState(vpRobot::STATE_STOP);
 }
-
-/**********************************************************************************/
-/**********************************************************************************/
-/**********************************************************************************/
-/**********************************************************************************/
 
 /*!
   Initialise the display of the robot's arms.
@@ -2204,7 +2176,8 @@ void vpSimulatorAfma6::initArms()
     try {
       scene_dir_ = vpIoTools::getenv("VISP_SCENES_DIR");
       std::cout << "The simulator uses data from VISP_SCENES_DIR=" << scene_dir_ << std::endl;
-    } catch (...) {
+    }
+    catch (...) {
       std::cout << "Cannot get VISP_SCENES_DIR environment variable" << std::endl;
     }
   }
@@ -2212,7 +2185,7 @@ void vpSimulatorAfma6::initArms()
   unsigned int name_length = 30; // the size of this kind of string "/afma6_arm2.bnd"
   if (scene_dir_.size() > FILENAME_MAX)
     throw vpException(vpException::dimensionError, "Cannot initialize Afma6 simulator");
-  unsigned int full_length = (unsigned int)scene_dir_.size() + name_length;
+  unsigned int full_length = static_cast<unsigned int>(scene_dir_.size()) + name_length;
   if (full_length > FILENAME_MAX)
     throw vpException(vpException::dimensionError, "Cannot initialize Afma6 simulator");
 
@@ -2224,7 +2197,7 @@ void vpSimulatorAfma6::initArms()
 
   if (arm_dir.size() > FILENAME_MAX)
     throw vpException(vpException::dimensionError, "Cannot initialize Afma6 simulator");
-  full_length = (unsigned int)arm_dir.size() + name_length;
+  full_length = static_cast<unsigned int>(arm_dir.size()) + name_length;
   if (full_length > FILENAME_MAX)
     throw vpException(vpException::dimensionError, "Cannot initialize Afma6 simulator");
 
@@ -2293,6 +2266,7 @@ void vpSimulatorAfma6::initArms()
 
 void vpSimulatorAfma6::getExternalImage(vpImage<vpRGBa> &I_)
 {
+  m_mutex_scene.lock();
   bool changed = false;
   vpHomogeneousMatrix displacement = navigation(I_, changed);
 
@@ -2310,11 +2284,12 @@ void vpSimulatorAfma6::getExternalImage(vpImage<vpRGBa> &I_)
   // we assume px_ext and py_ext > 0
   if ((std::fabs(px_ext - 1.) > vpMath::maximum(px_ext, 1.) * std::numeric_limits<double>::epsilon()) &&
       (std::fabs(py_ext - 1) > vpMath::maximum(py_ext, 1.) * std::numeric_limits<double>::epsilon())) {
-    u = (double)I_.getWidth() / (2 * px_ext);
-    v = (double)I_.getHeight() / (2 * py_ext);
-  } else {
-    u = (double)I_.getWidth() / (vpMath::minimum(I_.getWidth(), I_.getHeight()));
-    v = (double)I_.getHeight() / (vpMath::minimum(I_.getWidth(), I_.getHeight()));
+    u = static_cast<double>(I_.getWidth()) / (2 * px_ext);
+    v = static_cast<double>(I_.getHeight()) / (2 * py_ext);
+  }
+  else {
+    u = static_cast<double>(I_.getWidth()) / (vpMath::minimum(I_.getWidth(), I_.getHeight()));
+    v = static_cast<double>(I_.getHeight()) / (vpMath::minimum(I_.getWidth(), I_.getHeight()));
   }
 
   float w44o[4][4], w44cext[4][4], x, y, z;
@@ -2364,6 +2339,7 @@ void vpSimulatorAfma6::getExternalImage(vpImage<vpRGBa> &I_)
     vp2jlc_matrix(fMo, w44o);
     display_scene(w44o, scene, I_, curColor);
   }
+  m_mutex_scene.unlock();
 }
 
 /*!
@@ -2388,6 +2364,7 @@ bool vpSimulatorAfma6::initialiseCameraRelativeToObject(const vpHomogeneousMatri
   vpColVector stop(6);
   bool status = true;
   stop = 0;
+  m_mutex_scene.lock();
   set_artVel(stop);
   set_velocity(stop);
   vpHomogeneousMatrix fMc_;
@@ -2398,7 +2375,7 @@ bool vpSimulatorAfma6::initialiseCameraRelativeToObject(const vpHomogeneousMatri
 
   if (nbSol == 0) {
     status = false;
-    vpERROR_TRACE("Positionning error. Position unreachable");
+    vpERROR_TRACE("Positioning error. Position unreachable");
   }
 
   if (verbose_)
@@ -2407,6 +2384,7 @@ bool vpSimulatorAfma6::initialiseCameraRelativeToObject(const vpHomogeneousMatri
   set_artCoord(articularCoordinates);
 
   compute_fMi();
+  m_mutex_scene.unlock();
 
   return status;
 }
@@ -2428,11 +2406,13 @@ void vpSimulatorAfma6::initialiseObjectRelativeToCamera(const vpHomogeneousMatri
 {
   vpColVector stop(6);
   stop = 0;
+  m_mutex_scene.lock();
   set_artVel(stop);
   set_velocity(stop);
   vpHomogeneousMatrix fMit[8];
   get_fMi(fMit);
   fMo = fMit[7] * cMo_;
+  m_mutex_scene.unlock();
 }
 
 /*!
@@ -2466,11 +2446,11 @@ bool vpSimulatorAfma6::setPosition(const vpHomogeneousMatrix &cdMo_, vpImage<uns
   vpVelocityTwistMatrix cVe;
 
   unsigned int i, iter = 0;
-  while ((iter++ < 300) & (err.frobeniusNorm() > errMax)) {
+  while ((iter++ < 300) && (err.frobeniusNorm() > errMax)) {
     double t = vpTime::measureTimeMs();
 
     // update image
-    if (Iint != NULL) {
+    if (Iint != nullptr) {
       vpDisplay::display(*Iint);
       getInternalView(*Iint);
       vpDisplay::flush(*Iint);
@@ -2507,9 +2487,9 @@ bool vpSimulatorAfma6::setPosition(const vpHomogeneousMatrix &cdMo_, vpImage<uns
   // std::cout << "setPosition: final error " << err.t() << std::endl;
   return (err.frobeniusNorm() <= errMax);
 }
-
+END_VISP_NAMESPACE
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_robot.a(vpSimulatorAfma6.cpp.o) has
+// Work around to avoid warning: libvisp_robot.a(vpSimulatorAfma6.cpp.o) has
 // no symbols
-void dummy_vpSimulatorAfma6(){};
+void dummy_vpSimulatorAfma6() { }
 #endif

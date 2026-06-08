@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -33,17 +32,13 @@
  *
  * This code was originally part of libfranka and adapted to use ViSP instead
  * of Eigen.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #ifndef _vpJointPosTrajGenerator_impl_h_
 #define _vpJointPosTrajGenerator_impl_h_
 
 #include <array>
-#include <iostream>
 #include <atomic>
+#include <iostream>
 
 #include <visp3/core/vpConfig.h>
 
@@ -57,13 +52,15 @@
 #include <franka/duration.h>
 #include <franka/robot_state.h>
 
+BEGIN_VISP_NAMESPACE
 /**
  * An example showing how to generate a joint pose motion to a goal position. Adapted from:
  * Wisama Khalil and Etienne Dombre. 2002. Modeling, Identification and Control of Robots
  * (Kogan Page Science Paper edition).
- */
-class vpJointPosTrajGenerator {
- public:
+*/
+class vpJointPosTrajGenerator
+{
+public:
   /**
    * Creates a new MotionGenerator instance for a target q.
    *
@@ -80,9 +77,9 @@ class vpJointPosTrajGenerator {
    *
    * @return Joint positions for use inside a control loop.
    */
-  franka::JointPositions operator()(const franka::RobotState& robot_state, franka::Duration period);
+  franka::JointPositions operator()(const franka::RobotState &robot_state, franka::Duration period);
 
- private:
+private:
   bool calculateDesiredValues(double t, vpColVector &delta_q_d) const;
   void calculateSynchronizedValues();
 
@@ -102,6 +99,6 @@ class vpJointPosTrajGenerator {
 
   double m_time = 0.0;
 };
-
+END_VISP_NAMESPACE
 #endif
 #endif

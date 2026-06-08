@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,37 +29,37 @@
  *
  * Description:
  * Pseudo random number generator.
- *
- *****************************************************************************/
- /*
-  * PCG Random Number Generation for C.
-  *
-  * Copyright 2014 Melissa O'Neill <oneill@pcg-random.org>
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *     http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *
-  * For additional information about the PCG random number generation scheme,
-  * including its license and other licensing options, visit
-  *
-  *     http://www.pcg-random.org
-  */
+ */
 
-  /*
-   * This code is derived from the full C implementation, which is in turn
-   * derived from the canonical C++ PCG implementation. The C++ version
-   * has many additional features and is preferable if you can use C++ in
-   * your project.
-   */
+/*
+ * PCG Random Number Generation for C.
+ *
+ * Copyright 2014 Melissa O'Neill <oneill@pcg-random.org>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * For additional information about the PCG random number generation scheme,
+ * including its license and other licensing options, visit
+ *
+ *     http://www.pcg-random.org
+ */
+
+/*
+ * This code is derived from the full C implementation, which is in turn
+ * derived from the canonical C++ PCG implementation. The C++ version
+ * has many additional features and is preferable if you can use C++ in
+ * your project.
+ */
 
 // To ensure UINT32_MAX, INT32_MX are defined on centos, ubuntu 12.04 we define __STDC_LIMIT_MACROS
 
@@ -69,10 +68,10 @@
 #include <stdint.h>
 #include <visp3/core/vpUniRand.h>
 
-vpUniRand::vpUniRand() :
-  m_maxInvDbl(1.0 / static_cast<double>(UINT32_MAX)), m_maxInvFlt(1.0f / static_cast<float>(UINT32_MAX)), m_rng()
-{
-}
+BEGIN_VISP_NAMESPACE
+vpUniRand::vpUniRand()
+  : m_maxInvDbl(1.0 / static_cast<double>(UINT32_MAX)), m_maxInvFlt(1.0f / static_cast<float>(UINT32_MAX)), m_rng()
+{ }
 
 /*!
   Create a pseudorandom number generator with uniform distribution.
@@ -82,8 +81,8 @@ vpUniRand::vpUniRand() :
 
   \sa setSeed
 */
-vpUniRand::vpUniRand(uint64_t seed, uint64_t seq) :
-  m_maxInvDbl(1.0 / static_cast<double>(UINT32_MAX)), m_maxInvFlt(1.0f / static_cast<float>(UINT32_MAX)), m_rng()
+vpUniRand::vpUniRand(uint64_t seed, uint64_t seq)
+  : m_maxInvDbl(1.0 / static_cast<double>(UINT32_MAX)), m_maxInvFlt(1.0f / static_cast<float>(UINT32_MAX)), m_rng()
 {
   setSeed(seed, seq);
 }
@@ -92,10 +91,7 @@ vpUniRand::vpUniRand(uint64_t seed, uint64_t seq) :
   Generates a pseudorandom uniformly distributed double number between [0, 1) range.
   This is equivalent to call uniform(0.0, 1.0);
 */
-double vpUniRand::operator()()
-{
-  return uniform(0.0, 1.0);
-}
+double vpUniRand::operator()() { return uniform(0.0, 1.0); }
 
 /*!
   Generates a uniformly distributed 32-bit unsigned integer less than bound
@@ -104,8 +100,8 @@ double vpUniRand::operator()()
   \note
   <quote>
   Some programmers may think that they can just run rng.next() % bound,
-  but doing so introduces nonuniformity when bound is not a power of two.
-  The code for boundedRand() avoids the nonuniformity by dropping a portion
+  but doing so introduces non uniformity when bound is not a power of two.
+  The code for boundedRand() avoids the non uniformity by dropping a portion
   of the RNG's output.
   </quote>
 */
@@ -125,7 +121,7 @@ uint32_t vpUniRand::boundedRand(uint32_t bound)
   // because this version will calculate the same modulus, but the LHS
   // value is less than 2^32.
 
-  uint32_t threshold = -bound % bound;
+  uint32_t threshold = static_cast<uint64_t>(-static_cast<int64_t>(bound) % bound);
 
   // Uniformity guarantees that this loop will terminate.  In practice, it
   // should usually terminate quickly; on average (assuming all bounds are
@@ -148,11 +144,13 @@ uint32_t vpUniRand::boundedRand(uint32_t bound)
 */
 uint32_t vpUniRand::next()
 {
+  const unsigned long long val_ll = 6364136223846793005ULL;
+  const uint32_t val_31 = 31;
   uint64_t oldstate = m_rng.state;
-  m_rng.state = oldstate * 6364136223846793005ULL + m_rng.inc;
+  m_rng.state = (oldstate * val_ll) + m_rng.inc;
   uint32_t xorshifted = static_cast<uint32_t>(((oldstate >> 18u) ^ oldstate) >> 27u);
   uint32_t rot = oldstate >> 59u;
-  return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
+  return (xorshifted >> rot) | (xorshifted << (static_cast<uint32_t>((-static_cast<int64_t>(rot)) & val_31)));
 }
 
 /*!
@@ -173,20 +171,14 @@ int vpUniRand::uniform(int a, int b)
   \param a : lower inclusive boundary of the returned random number.
   \param b : upper non-inclusive boundary of the returned random number.
 */
-float vpUniRand::uniform(float a, float b)
-{
-  return next()*m_maxInvFlt*(b - a) + a;
-}
+float vpUniRand::uniform(float a, float b) { return (next() * m_maxInvFlt * (b - a)) + a; }
 
 /*!
   Generates a pseudorandom uniformly distributed double number between [a, b) range.
   \param a : lower inclusive boundary of the returned random number.
   \param b : upper non-inclusive boundary of the returned random number.
 */
-double vpUniRand::uniform(double a, double b)
-{
-  return next()*m_maxInvDbl*(b - a) + a;
-}
+double vpUniRand::uniform(double a, double b) { return (next() * m_maxInvDbl * (b - a)) + a; }
 
 /*!
   Initialize the random number generator.
@@ -217,3 +209,23 @@ void vpUniRand::setSeed(uint64_t initstate, uint64_t initseq)
   m_rng.state += initstate;
   next();
 }
+
+
+std::vector<size_t> vpUniRand::sampleWithoutReplacement(size_t count, size_t vectorSize)
+{
+  count = std::min(count, vectorSize);
+  std::vector<size_t> indices(count);
+  size_t added = 0;
+  for (size_t i = 0; i < vectorSize; ++i) {
+    double randomVal = uniform(0.0, 1.0);
+    if ((vectorSize - i) * randomVal < (count - added)) {
+      indices[added++] = i;
+    }
+    if (added == count) {
+      break;
+    }
+  }
+  return indices;
+}
+
+END_VISP_NAMESPACE

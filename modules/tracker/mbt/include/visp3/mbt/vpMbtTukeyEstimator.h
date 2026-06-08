@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,33 +29,52 @@
  *
  * Description:
  * Tukey M-estimator.
- *
- *****************************************************************************/
+ */
 
-#ifndef _vpMbtTukeyEstimator_h_
-#define _vpMbtTukeyEstimator_h_
+#ifndef VP_MBT_TUKEY_ESTIMATOR_H
+#define VP_MBT_TUKEY_ESTIMATOR_H
 
 #include <vector>
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpColVector.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-template <typename T> class vpMbtTukeyEstimator
+BEGIN_VISP_NAMESPACE
+/**
+ * \brief Tukey M-estimator.
+ *
+ * \tparam T
+ *
+ * <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+ *
+ * <b>Tutorials</b><br>
+ * <span style="margin-left:2em"> If you are interested in using a MBT tracker in your applications, you may have a look at:</span><br>
+ *
+ * - \ref tutorial-tracking-mb-generic
+ * - \ref tutorial-tracking-mb-generic-stereo
+ * - \ref tutorial-tracking-mb-generic-rgbd
+ * - \ref tutorial-tracking-mb-generic-apriltag-live
+ * - \ref tutorial-mb-generic-json
+ * - \ref tutorial-tracking-mb-generic-rgbd-Blender
+ */
+  template <typename T> class vpMbtTukeyEstimator
 {
 public:
-  void MEstimator(const std::vector<T> &residues, std::vector<T> &weights, const T NoiseThreshold);
-  void MEstimator(const vpColVector &residues, vpColVector &weights, const double NoiseThreshold);
+  void MEstimator(const std::vector<T> &residues, std::vector<T> &weights, T NoiseThreshold);
+  void MEstimator(const vpColVector &residues, vpColVector &weights, double NoiseThreshold);
 
 private:
   T getMedian(std::vector<T> &vec);
-  void MEstimator_impl(const std::vector<T> &residues, std::vector<T> &weights, const T NoiseThreshold);
-  void MEstimator_impl_ssse3(const std::vector<T> &residues, std::vector<T> &weights, const T NoiseThreshold);
+  void MEstimator_impl(const std::vector<T> &residues, std::vector<T> &weights, T NoiseThreshold);
+  void MEstimator_impl_simd(const std::vector<T> &residues, std::vector<T> &weights, T NoiseThreshold);
   void psiTukey(const T sig, std::vector<T> &x, std::vector<T> &weights);
   void psiTukey(const T sig, std::vector<T> &x, vpColVector &weights);
 
   std::vector<T> m_normres;
   std::vector<T> m_residues;
 };
+END_VISP_NAMESPACE
 #endif //#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 /*
@@ -79,7 +97,7 @@ private:
 #include <visp3/core/vpCPUFeatures.h>
 
 #define USE_TRANSFORM 1
-#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11) && USE_TRANSFORM
+#if ((__cplusplus >= 201103L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201103L))) && USE_TRANSFORM
 #define HAVE_TRANSFORM 1
 #include <functional>
 #endif
@@ -98,21 +116,34 @@ private:
 #endif
 #endif
 
+#if defined _WIN32 && defined(_M_ARM64)
+#   define _ARM64_DISTINCT_NEON_TYPES
+#   include <Intrin.h>
+#   include <arm_neon.h>
+#   define VISP_HAVE_NEON 1
+#elif (defined(__ARM_NEON__) || defined (__ARM_NEON)) && defined(__aarch64__)
+#  include <arm_neon.h>
+#  define VISP_HAVE_NEON 1
+#endif
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #if HAVE_TRANSFORM
-namespace
+  namespace
 {
-#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_14)
+// Check if std:c++14 or higher
+#if ((__cplusplus >= 201402L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201402L)))
 auto AbsDiff = [](const auto &a, const auto &b) { return std::fabs(a - b); };
 #else
-template <typename T> struct AbsDiff : public std::binary_function<T, T, T> {
+template <typename T> struct AbsDiff : public std::binary_function<T, T, T>
+{
   T operator()(const T a, const T b) const { return std::fabs(a - b); }
 };
 #endif
 } // namespace
 #endif
 
+BEGIN_VISP_NAMESPACE
 template class vpMbtTukeyEstimator<float>;
 template class vpMbtTukeyEstimator<double>;
 
@@ -130,8 +161,8 @@ inline __m128 abs_ps(__m128 x)
 template <typename T> T vpMbtTukeyEstimator<T>::getMedian(std::vector<T> &vec)
 {
   // Not the exact median when even number of elements
-  int index = (int)(ceil(vec.size() / 2.0)) - 1;
-  std::nth_element(vec.begin(), vec.begin() + index, vec.end());
+  size_t index = static_cast<size_t>(ceil(static_cast<double>(vec.size()) / 2.0)) - 1;
+  std::nth_element(vec.begin(), vec.begin() + static_cast<long long>(index), vec.end());
   return vec[index];
 }
 
@@ -155,7 +186,8 @@ void vpMbtTukeyEstimator<T>::MEstimator_impl(const std::vector<T> &residues, std
   m_normres.resize(residues.size());
 
 #if HAVE_TRANSFORM
-#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_14)
+// Check if std:c++14 or higher
+#if ((__cplusplus >= 201402L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201402L)))
   std::transform(residues.begin(), residues.end(), m_normres.begin(), std::bind(AbsDiff, std::placeholders::_1, med));
 #else
   std::transform(residues.begin(), residues.end(), m_normres.begin(),
@@ -171,7 +203,7 @@ void vpMbtTukeyEstimator<T>::MEstimator_impl(const std::vector<T> &residues, std
   T normmedian = getMedian(m_residues);
 
   // 1.48 keeps scale estimate consistent for a normal probability dist.
-  T sigma = static_cast<T>(1.4826 * normmedian); // median Absolute Deviation
+  T sigma = static_cast<T>(1.4826) * normmedian; // median Absolute Deviation
 
   // Set a minimum threshold for sigma
   // (when sigma reaches the level of noise in the image)
@@ -183,10 +215,11 @@ void vpMbtTukeyEstimator<T>::MEstimator_impl(const std::vector<T> &residues, std
 }
 
 template <>
-inline void vpMbtTukeyEstimator<float>::MEstimator_impl_ssse3(const std::vector<float> &residues,
-                                                              std::vector<float> &weights, const float NoiseThreshold)
+inline void vpMbtTukeyEstimator<float>::MEstimator_impl_simd(const std::vector<float> &residues,
+                                                             std::vector<float> &weights,
+                                                             float NoiseThreshold)
 {
-#if VISP_HAVE_SSSE3
+#if VISP_HAVE_SSSE3 || VISP_HAVE_NEON
   if (residues.empty()) {
     return;
   }
@@ -197,12 +230,21 @@ inline void vpMbtTukeyEstimator<float>::MEstimator_impl_ssse3(const std::vector<
   m_normres.resize(residues.size());
 
   size_t i = 0;
+#if VISP_HAVE_SSSE3
   __m128 med_128 = _mm_set_ps1(med);
+#else
+  float32x4_t med_128 = vdupq_n_f32(med);
+#endif
 
   if (m_residues.size() >= 4) {
     for (i = 0; i <= m_residues.size() - 4; i += 4) {
+#if VISP_HAVE_SSSE3
       __m128 residues_128 = _mm_loadu_ps(residues.data() + i);
       _mm_storeu_ps(m_normres.data() + i, abs_ps(_mm_sub_ps(residues_128, med_128)));
+#else
+      float32x4_t residues_128 = vld1q_f32(residues.data() + i);
+      vst1q_f32(m_normres.data() + i, vabsq_f32(vsubq_f32(residues_128, med_128)));
+#endif
     }
   }
 
@@ -234,11 +276,11 @@ inline void vpMbtTukeyEstimator<float>::MEstimator_impl_ssse3(const std::vector<
  * \relates vpMbtTukeyEstimator
  */
 template <>
-inline void vpMbtTukeyEstimator<double>::MEstimator_impl_ssse3(const std::vector<double> &residues,
-                                                               std::vector<double> &weights,
-                                                               const double NoiseThreshold)
+inline void vpMbtTukeyEstimator<double>::MEstimator_impl_simd(const std::vector<double> &residues,
+                                                              std::vector<double> &weights,
+                                                              double NoiseThreshold)
 {
-#if VISP_HAVE_SSSE3
+#if VISP_HAVE_SSSE3 || VISP_HAVE_NEON
   if (residues.empty()) {
     return;
   }
@@ -249,7 +291,8 @@ inline void vpMbtTukeyEstimator<double>::MEstimator_impl_ssse3(const std::vector
   m_normres.resize(residues.size());
 
 #if HAVE_TRANSFORM
-#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_14)
+// Check if std:c++14 or higher
+#if ((__cplusplus >= 201402L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201402L)))
   std::transform(residues.begin(), residues.end(), m_normres.begin(), std::bind(AbsDiff, std::placeholders::_1, med));
 #else
   std::transform(residues.begin(), residues.end(), m_normres.begin(),
@@ -286,15 +329,19 @@ inline void vpMbtTukeyEstimator<double>::MEstimator_impl_ssse3(const std::vector
  */
 template <>
 inline void vpMbtTukeyEstimator<float>::MEstimator(const std::vector<float> &residues, std::vector<float> &weights,
-                                                   const float NoiseThreshold)
+                                                   float NoiseThreshold)
 {
-  bool checkSSSE3 = vpCPUFeatures::checkSSSE3();
-#if !VISP_HAVE_SSSE3
-  checkSSSE3 = false;
+#if defined(VISP_HAVE_SIMDLIB)
+  bool checkSimd = vpCPUFeatures::checkSSSE3() || vpCPUFeatures::checkNeon();
+#else
+  bool checkSimd = vpCPUFeatures::checkSSSE3();
+#endif
+#if !VISP_HAVE_SSSE3 && !VISP_HAVE_NEON
+  checkSimd = false;
 #endif
 
-  if (checkSSSE3)
-    MEstimator_impl_ssse3(residues, weights, NoiseThreshold);
+  if (checkSimd)
+    MEstimator_impl_simd(residues, weights, NoiseThreshold);
   else
     MEstimator_impl(residues, weights, NoiseThreshold);
 }
@@ -304,15 +351,19 @@ inline void vpMbtTukeyEstimator<float>::MEstimator(const std::vector<float> &res
  */
 template <>
 inline void vpMbtTukeyEstimator<double>::MEstimator(const std::vector<double> &residues, std::vector<double> &weights,
-                                                    const double NoiseThreshold)
+                                                    double NoiseThreshold)
 {
-  bool checkSSSE3 = vpCPUFeatures::checkSSSE3();
-#if !VISP_HAVE_SSSE3
-  checkSSSE3 = false;
+#if defined(VISP_HAVE_SIMDLIB)
+  bool checkSimd = vpCPUFeatures::checkSSSE3() || vpCPUFeatures::checkNeon();
+#else
+  bool checkSimd = vpCPUFeatures::checkSSSE3();
+#endif
+#if !VISP_HAVE_SSSE3 && !VISP_HAVE_NEON
+  checkSimd = false;
 #endif
 
-  if (checkSSSE3)
-    MEstimator_impl_ssse3(residues, weights, NoiseThreshold);
+  if (checkSimd)
+    MEstimator_impl_simd(residues, weights, NoiseThreshold);
   else
     MEstimator_impl(residues, weights, NoiseThreshold);
 }
@@ -322,16 +373,17 @@ inline void vpMbtTukeyEstimator<double>::MEstimator(const std::vector<double> &r
  */
 template <typename T> void vpMbtTukeyEstimator<T>::psiTukey(const T sig, std::vector<T> &x, vpColVector &weights)
 {
-  double C = sig * 4.6851;
+  double C = static_cast<double>(sig) * 4.6851;
 
   // Here we consider that sig cannot be equal to 0
-  for (unsigned int i = 0; i < (unsigned int)x.size(); i++) {
-    double xi = x[i] / C;
+  for (unsigned int i = 0; i < static_cast<unsigned int>(x.size()); i++) {
+    double xi = static_cast<double>(x[i]) / C;
     xi *= xi;
 
     if (xi > 1.) {
       weights[i] = 0;
-    } else {
+    }
+    else {
       xi = 1 - xi;
       xi *= xi;
       weights[i] = xi;
@@ -344,7 +396,7 @@ template <typename T> void vpMbtTukeyEstimator<T>::psiTukey(const T sig, std::ve
  */
 template <>
 inline void vpMbtTukeyEstimator<double>::MEstimator(const vpColVector &residues, vpColVector &weights,
-                                                    const double NoiseThreshold)
+                                                    double NoiseThreshold)
 {
   if (residues.size() == 0) {
     return;
@@ -358,7 +410,7 @@ inline void vpMbtTukeyEstimator<double>::MEstimator(const vpColVector &residues,
 
   m_normres.resize(residues.size());
   for (size_t i = 0; i < m_residues.size(); i++) {
-    m_normres[i] = std::fabs(residues[(unsigned int)i] - med);
+    m_normres[i] = std::fabs(residues[static_cast<unsigned int>(i)] - med);
   }
 
   m_residues = m_normres;
@@ -381,7 +433,7 @@ inline void vpMbtTukeyEstimator<double>::MEstimator(const vpColVector &residues,
  */
 template <>
 inline void vpMbtTukeyEstimator<float>::MEstimator(const vpColVector &residues, vpColVector &weights,
-                                                   const double NoiseThreshold)
+                                                   double NoiseThreshold)
 {
   if (residues.size() == 0) {
     return;
@@ -390,14 +442,14 @@ inline void vpMbtTukeyEstimator<float>::MEstimator(const vpColVector &residues, 
   m_residues.resize(0);
   m_residues.reserve(residues.size());
   for (unsigned int i = 0; i < residues.size(); i++) {
-    m_residues.push_back((float)residues[i]);
+    m_residues.push_back(static_cast<float>(residues[i]));
   }
 
   float med = getMedian(m_residues);
 
   m_normres.resize(residues.size());
   for (size_t i = 0; i < m_residues.size(); i++) {
-    m_normres[i] = (float)std::fabs(residues[(unsigned int)i] - med);
+    m_normres[i] = static_cast<float>(std::fabs(static_cast<float>(residues[static_cast<unsigned int>(i)]) - med));
   }
 
   m_residues = m_normres;
@@ -405,11 +457,12 @@ inline void vpMbtTukeyEstimator<float>::MEstimator(const vpColVector &residues, 
 
   // 1.48 keeps scale estimate consistent for a normal probability dist.
   float sigma = 1.4826f * normmedian; // median Absolute Deviation
+  float noise_threshold = static_cast<float>(NoiseThreshold);
 
   // Set a minimum threshold for sigma
   // (when sigma reaches the level of noise in the image)
-  if (sigma < NoiseThreshold) {
-    sigma = (float)NoiseThreshold;
+  if (sigma < noise_threshold) {
+    sigma = noise_threshold;
   }
 
   psiTukey(sigma, m_normres, weights);
@@ -422,21 +475,24 @@ template <class T> void vpMbtTukeyEstimator<T>::psiTukey(const T sig, std::vecto
 {
   T C = static_cast<T>(4.6851) * sig;
   weights.resize(x.size());
+  T one = static_cast<T>(1.);
 
   // Here we consider that sig cannot be equal to 0
   for (size_t i = 0; i < x.size(); i++) {
     T xi = x[i] / C;
     xi *= xi;
 
-    if (xi > 1.) {
+    if (xi > one) {
       weights[i] = 0;
-    } else {
+    }
+    else {
       xi = 1 - xi;
       xi *= xi;
       weights[i] = xi;
     }
   }
 }
+END_VISP_NAMESPACE
 #endif //#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #endif

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -33,9 +32,7 @@
  *
  * Authors:
  * Gatien Gaumerais
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpConfig.h>
 
@@ -73,8 +70,9 @@ extern "C" {
     + z : down
 */
 
+BEGIN_VISP_NAMESPACE
 bool vpRobotBebop2::m_running = false;
-ARCONTROLLER_Device_t *vpRobotBebop2::m_deviceController = NULL;
+ARCONTROLLER_Device_t *vpRobotBebop2::m_deviceController = nullptr;
 
 /*!
 
@@ -87,9 +85,9 @@ ARCONTROLLER_Device_t *vpRobotBebop2::m_deviceController = NULL;
   \warning This constructor should be called after the drone is turned on, and after the computer is connected to the
   drone wifi network.
 
-  \warning If the connection to the drone failed, the programm will throw an exception.
+  \warning If the connection to the drone failed, the program will throw an exception.
 
-  After having called this constructor, it is recommanded to check if the drone is running with isRunning() before
+  After having called this constructor, it is recommended to check if the drone is running with isRunning() before
   sending commands to the drone.
 
   \param[in] verbose : turn verbose on or off
@@ -100,7 +98,7 @@ ARCONTROLLER_Device_t *vpRobotBebop2::m_deviceController = NULL;
     If setDefaultSettings is true : the drone is reset to factory settings and the following parameters are set :
       - Resolution of streamed video to 480p (856x480).
       - Max roll and pitch to 10 degrees.
-      - Video stabilisation to 0 (no stabilisation).
+      - Video stabilization to 0 (no stabilization).
       - Video exposure compensation to 0.
       - Video streaming mode to 0 (lowest latency, average reliability).
       - Camera orientation to 0 degrees for tilt and 0 degrees for pan
@@ -124,12 +122,12 @@ vpRobotBebop2::vpRobotBebop2(bool verbose, bool setDefaultSettings, std::string 
   sigaction(SIGQUIT, &m_sigAct, 0);
 
 #ifdef VISP_HAVE_FFMPEG
-  m_codecContext = NULL;
-  m_packet = AVPacket();
-  m_picture = NULL;
-  m_bgr_picture = NULL;
-  m_img_convert_ctx = NULL;
-  m_buffer = NULL;
+  m_codecContext = nullptr;
+  m_packet = nullptr;
+  m_picture = nullptr;
+  m_bgr_picture = nullptr;
+  m_img_convert_ctx = nullptr;
+  m_buffer = nullptr;
   m_videoDecodingStarted = false;
 #endif
 
@@ -185,7 +183,8 @@ vpRobotBebop2::vpRobotBebop2(bool verbose, bool setDefaultSettings, std::string 
                       "Failed to connect to bebop2 with ip %s and port %d. Make sure that the ip address is correct "
                       "and that your computer is connected to the drone Wifi spot before starting",
                       ipAddress.c_str(), discoveryPort));
-  } else {
+  }
+  else {
     m_running = true;
 
 #ifdef VISP_HAVE_FFMPEG
@@ -221,7 +220,7 @@ vpRobotBebop2::~vpRobotBebop2() { cleanUp(); }
 */
 void vpRobotBebop2::doFlatTrim()
 {
-  if (isRunning() && m_deviceController != NULL && isLanded()) {
+  if (isRunning() && m_deviceController != nullptr && isLanded()) {
 
     m_flatTrimFinished = false;
 
@@ -231,7 +230,8 @@ void vpRobotBebop2::doFlatTrim()
     while (!m_flatTrimFinished) {
       vpTime::sleepMs(1);
     }
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't do a flat trim : drone isn't landed.");
   }
 }
@@ -318,7 +318,7 @@ double vpRobotBebop2::getMaxCameraPan() const { return m_maxCameraPan; }
 */
 void vpRobotBebop2::setCameraOrientation(double tilt, double pan, bool blocking)
 {
-  if (isRunning() && m_deviceController != NULL) {
+  if (isRunning() && m_deviceController != nullptr) {
 
     m_deviceController->aRDrone3->sendCameraOrientationV2(m_deviceController->aRDrone3, static_cast<float>(tilt),
                                                           static_cast<float>(pan));
@@ -329,7 +329,8 @@ void vpRobotBebop2::setCameraOrientation(double tilt, double pan, bool blocking)
       }
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set camera orientation : drone isn't running.");
   }
 }
@@ -347,7 +348,7 @@ void vpRobotBebop2::setCameraOrientation(double tilt, double pan, bool blocking)
 */
 void vpRobotBebop2::setCameraTilt(double tilt, bool blocking)
 {
-  if (isRunning() && m_deviceController != NULL) {
+  if (isRunning() && m_deviceController != nullptr) {
 
     m_deviceController->aRDrone3->sendCameraOrientationV2(m_deviceController->aRDrone3, static_cast<float>(tilt),
                                                           static_cast<float>(getCurrentCameraPan()));
@@ -358,7 +359,8 @@ void vpRobotBebop2::setCameraTilt(double tilt, bool blocking)
       }
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set camera tilt value : drone isn't running.");
   }
 }
@@ -376,7 +378,7 @@ void vpRobotBebop2::setCameraTilt(double tilt, bool blocking)
 */
 void vpRobotBebop2::setCameraPan(double pan, bool blocking)
 {
-  if (isRunning() && m_deviceController != NULL) {
+  if (isRunning() && m_deviceController != nullptr) {
 
     m_deviceController->aRDrone3->sendCameraOrientationV2(
         m_deviceController->aRDrone3, static_cast<float>(getCurrentCameraTilt()), static_cast<float>(pan));
@@ -387,7 +389,8 @@ void vpRobotBebop2::setCameraPan(double pan, bool blocking)
       }
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set camera pan value : drone isn't running.");
   }
 }
@@ -398,9 +401,10 @@ void vpRobotBebop2::setCameraPan(double pan, bool blocking)
 */
 bool vpRobotBebop2::isRunning()
 {
-  if (m_deviceController == NULL) {
+  if (m_deviceController == nullptr) {
     return false;
-  } else {
+  }
+  else {
     return m_running;
   }
 }
@@ -454,7 +458,7 @@ bool vpRobotBebop2::isLanded()
 */
 void vpRobotBebop2::takeOff(bool blocking)
 {
-  if (isRunning() && isLanded() && m_deviceController != NULL) {
+  if (isRunning() && isLanded() && m_deviceController != nullptr) {
 
     m_deviceController->aRDrone3->sendPilotingTakeOff(m_deviceController->aRDrone3);
 
@@ -464,7 +468,8 @@ void vpRobotBebop2::takeOff(bool blocking)
       }
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't take off : drone isn't landed.");
   }
 }
@@ -477,7 +482,7 @@ void vpRobotBebop2::takeOff(bool blocking)
 */
 void vpRobotBebop2::land()
 {
-  if (m_deviceController != NULL) {
+  if (m_deviceController != nullptr) {
     m_deviceController->aRDrone3->sendPilotingLanding(m_deviceController->aRDrone3);
   }
 }
@@ -494,16 +499,17 @@ void vpRobotBebop2::land()
 */
 void vpRobotBebop2::setVerticalSpeed(int value)
 {
-  if (isRunning() && m_deviceController != NULL && (isFlying() || isHovering())) {
+  if (isRunning() && m_deviceController != nullptr && (isFlying() || isHovering())) {
     m_errorController =
-        m_deviceController->aRDrone3->setPilotingPCMDGaz(m_deviceController->aRDrone3, static_cast<char>(value));
+      m_deviceController->aRDrone3->setPilotingPCMDGaz(m_deviceController->aRDrone3, static_cast<char>(value));
 
     if (m_errorController != ARCONTROLLER_OK) {
       ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error when sending move command : %s",
                   ARCONTROLLER_Error_ToString(m_errorController));
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set vertical speed : drone isn't flying or hovering.");
   }
 }
@@ -520,17 +526,18 @@ void vpRobotBebop2::setVerticalSpeed(int value)
 */
 void vpRobotBebop2::setYawSpeed(int value)
 {
-  if (isRunning() && m_deviceController != NULL && (isFlying() || isHovering())) {
+  if (isRunning() && m_deviceController != nullptr && (isFlying() || isHovering())) {
 
     m_errorController =
-        m_deviceController->aRDrone3->setPilotingPCMDYaw(m_deviceController->aRDrone3, static_cast<char>(value));
+      m_deviceController->aRDrone3->setPilotingPCMDYaw(m_deviceController->aRDrone3, static_cast<char>(value));
 
     if (m_errorController != ARCONTROLLER_OK) {
       ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error when sending move command : %s",
                   ARCONTROLLER_Error_ToString(m_errorController));
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set yaw speed : drone isn't flying or hovering.");
   }
 }
@@ -547,10 +554,10 @@ void vpRobotBebop2::setYawSpeed(int value)
 */
 void vpRobotBebop2::setPitch(int value)
 {
-  if (isRunning() && m_deviceController != NULL && (isFlying() || isHovering())) {
+  if (isRunning() && m_deviceController != nullptr && (isFlying() || isHovering())) {
 
     m_errorController =
-        m_deviceController->aRDrone3->setPilotingPCMDPitch(m_deviceController->aRDrone3, static_cast<char>(value));
+      m_deviceController->aRDrone3->setPilotingPCMDPitch(m_deviceController->aRDrone3, static_cast<char>(value));
     m_errorController = m_deviceController->aRDrone3->setPilotingPCMDFlag(m_deviceController->aRDrone3, 1);
 
     if (m_errorController != ARCONTROLLER_OK) {
@@ -558,7 +565,8 @@ void vpRobotBebop2::setPitch(int value)
                   ARCONTROLLER_Error_ToString(m_errorController));
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set pitch value : drone isn't flying or hovering.");
   }
 }
@@ -575,10 +583,10 @@ void vpRobotBebop2::setPitch(int value)
 */
 void vpRobotBebop2::setRoll(int value)
 {
-  if (isRunning() && m_deviceController != NULL && (isFlying() || isHovering())) {
+  if (isRunning() && m_deviceController != nullptr && (isFlying() || isHovering())) {
 
     m_errorController =
-        m_deviceController->aRDrone3->setPilotingPCMDRoll(m_deviceController->aRDrone3, static_cast<char>(value));
+      m_deviceController->aRDrone3->setPilotingPCMDRoll(m_deviceController->aRDrone3, static_cast<char>(value));
     m_errorController = m_deviceController->aRDrone3->setPilotingPCMDFlag(m_deviceController->aRDrone3, 1);
 
     if (m_errorController != ARCONTROLLER_OK) {
@@ -586,7 +594,8 @@ void vpRobotBebop2::setRoll(int value)
                   ARCONTROLLER_Error_ToString(m_errorController));
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set roll value : drone isn't flying or hovering.");
   }
 }
@@ -599,7 +608,7 @@ void vpRobotBebop2::setRoll(int value)
 */
 void vpRobotBebop2::cutMotors()
 {
-  if (m_deviceController != NULL) {
+  if (m_deviceController != nullptr) {
     m_errorController = m_deviceController->aRDrone3->sendPilotingEmergency(m_deviceController->aRDrone3);
   }
 }
@@ -621,7 +630,7 @@ void vpRobotBebop2::cutMotors()
 */
 void vpRobotBebop2::setPosition(float dX, float dY, float dZ, float dPsi, bool blocking)
 {
-  if (isRunning() && m_deviceController != NULL && (isFlying() || isHovering())) {
+  if (isRunning() && m_deviceController != nullptr && (isFlying() || isHovering())) {
 
     m_relativeMoveEnded = false;
     m_deviceController->aRDrone3->sendPilotingMoveBy(m_deviceController->aRDrone3, dX, dY, dZ, dPsi);
@@ -633,7 +642,8 @@ void vpRobotBebop2::setPosition(float dX, float dY, float dZ, float dPsi, bool b
         vpTime::sleepMs(1);
       }
     }
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't move : drone isn't flying or hovering.");
   }
 }
@@ -711,7 +721,8 @@ void vpRobotBebop2::setVerbose(bool verbose)
 {
   if (verbose) {
     ARSAL_Print_SetMinimumLevel(ARSAL_PRINT_INFO);
-  } else {
+  }
+  else {
     ARSAL_Print_SetMinimumLevel(ARSAL_PRINT_WARNING);
   }
 }
@@ -722,7 +733,7 @@ void vpRobotBebop2::setVerbose(bool verbose)
 */
 void vpRobotBebop2::resetAllSettings()
 {
-  if (isRunning() && m_deviceController != NULL) {
+  if (isRunning() && m_deviceController != nullptr) {
 
     m_settingsReset = false;
     m_deviceController->common->sendSettingsReset(m_deviceController->common);
@@ -731,7 +742,8 @@ void vpRobotBebop2::resetAllSettings()
       vpTime::sleepMs(1);
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't reset drone settings : drone isn't running.");
   }
 }
@@ -749,10 +761,11 @@ void vpRobotBebop2::resetAllSettings()
 */
 void vpRobotBebop2::setMaxTilt(double maxTilt)
 {
-  if (isRunning() && m_deviceController != NULL) {
+  if (isRunning() && m_deviceController != nullptr) {
     m_deviceController->aRDrone3->sendPilotingSettingsMaxTilt(m_deviceController->aRDrone3,
                                                               static_cast<float>(maxTilt));
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set tilt value : drone isn't running.");
   }
 }
@@ -766,7 +779,7 @@ void vpRobotBebop2::setMaxTilt(double maxTilt)
 */
 void vpRobotBebop2::stopMoving()
 {
-  if (isRunning() && !isLanded() && m_deviceController != NULL) {
+  if (isRunning() && !isLanded() && m_deviceController != nullptr) {
     m_errorController = m_deviceController->aRDrone3->setPilotingPCMD(m_deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
   }
 }
@@ -789,18 +802,20 @@ void vpRobotBebop2::getGrayscaleImage(vpImage<unsigned char> &I)
 {
   if (m_videoDecodingStarted) {
 
-    if (m_bgr_picture->data[0] != NULL) {
+    if (m_bgr_picture->data[0] != nullptr) {
       I.resize(static_cast<unsigned int>(m_videoHeight), static_cast<unsigned int>(m_videoWidth));
 
       m_bgr_picture_mutex.lock();
       vpImageConvert::BGRToGrey(m_bgr_picture->data[0], reinterpret_cast<unsigned char *>(I.bitmap), I.getWidth(),
                                 I.getHeight());
       m_bgr_picture_mutex.unlock();
-    } else {
-      ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Error while getting current grayscale image : image data is NULL");
+    }
+    else {
+      ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Error while getting current grayscale image : image data is nullptr");
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't get current image : video streaming isn't started.");
   }
 }
@@ -817,18 +832,20 @@ void vpRobotBebop2::getRGBaImage(vpImage<vpRGBa> &I)
 {
   if (m_videoDecodingStarted) {
 
-    if (m_bgr_picture->data[0] != NULL) {
+    if (m_bgr_picture->data[0] != nullptr) {
       I.resize(static_cast<unsigned int>(m_videoHeight), static_cast<unsigned int>(m_videoWidth));
 
       m_bgr_picture_mutex.lock();
       vpImageConvert::BGRToRGBa(m_bgr_picture->data[0], reinterpret_cast<unsigned char *>(I.bitmap), I.getWidth(),
                                 I.getHeight());
       m_bgr_picture_mutex.unlock();
-    } else {
-      ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Error while getting current RGBa image : image data is NULL");
+    }
+    else {
+      ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Error while getting current RGBa image : image data is nullptr");
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't get current image : video streaming isn't started.");
   }
 }
@@ -856,8 +873,8 @@ int vpRobotBebop2::getVideoWidth() { return m_videoWidth; }
 */
 void vpRobotBebop2::setExposure(float expo)
 {
-  if (isRunning() && m_deviceController != NULL) {
-    expo = std::min(1.5f, std::max(-1.5f, expo));
+  if (isRunning() && m_deviceController != nullptr) {
+    expo = std::min<float>(1.5f, std::max<float>(-1.5f, expo));
 
     m_exposureSet = false;
     m_deviceController->aRDrone3->sendPictureSettingsExpositionSelection(m_deviceController->aRDrone3, expo);
@@ -866,7 +883,8 @@ void vpRobotBebop2::setExposure(float expo)
     while (!m_exposureSet) {
       vpTime::sleepMs(1);
     }
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set exposure : drone isn't running.");
   }
 }
@@ -887,11 +905,11 @@ void vpRobotBebop2::setExposure(float expo)
 */
 void vpRobotBebop2::setStreamingMode(int mode)
 {
-  if (isRunning() && m_deviceController != NULL) {
+  if (isRunning() && m_deviceController != nullptr) {
 
     if (!isStreaming() && isLanded()) {
       eARCOMMANDS_ARDRONE3_MEDIASTREAMING_VIDEOSTREAMMODE_MODE cmd_mode =
-          ARCOMMANDS_ARDRONE3_MEDIASTREAMING_VIDEOSTREAMMODE_MODE_LOW_LATENCY;
+        ARCOMMANDS_ARDRONE3_MEDIASTREAMING_VIDEOSTREAMMODE_MODE_LOW_LATENCY;
       switch (mode) {
       case 0:
         cmd_mode = ARCOMMANDS_ARDRONE3_MEDIASTREAMING_VIDEOSTREAMMODE_MODE_LOW_LATENCY;
@@ -913,12 +931,14 @@ void vpRobotBebop2::setStreamingMode(int mode)
         vpTime::sleepMs(1);
       }
 
-    } else {
+    }
+    else {
       ARSAL_PRINT(
           ARSAL_PRINT_ERROR, "ERROR",
           "Can't set streaming mode : drone has to be landed and not streaming in order to set streaming mode.");
     }
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set streaming mode : drone isn't running.");
   }
 }
@@ -936,7 +956,7 @@ void vpRobotBebop2::setStreamingMode(int mode)
 */
 void vpRobotBebop2::setVideoResolution(int mode)
 {
-  if (isRunning() && m_deviceController != NULL) {
+  if (isRunning() && m_deviceController != nullptr) {
 
     if (!isStreaming() && isLanded()) {
 
@@ -966,12 +986,14 @@ void vpRobotBebop2::setVideoResolution(int mode)
         vpTime::sleepMs(1);
       }
 
-    } else {
+    }
+    else {
       ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR",
                   "Can't set video resolution : drone has to be landed and not streaming in order to set streaming "
                   "parameters.");
     }
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set video resolution : drone isn't running.");
   }
 }
@@ -989,10 +1011,10 @@ void vpRobotBebop2::setVideoResolution(int mode)
 */
 void vpRobotBebop2::setVideoStabilisationMode(int mode)
 {
-  if (isRunning() && m_deviceController != NULL) {
+  if (isRunning() && m_deviceController != nullptr) {
 
     eARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE cmd_mode =
-        ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_NONE;
+      ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_NONE;
     switch (mode) {
 
     case 0:
@@ -1013,7 +1035,8 @@ void vpRobotBebop2::setVideoStabilisationMode(int mode)
     }
     m_deviceController->aRDrone3->sendPictureSettingsVideoStabilizationMode(m_deviceController->aRDrone3, cmd_mode);
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't set video stabilisation mode : drone isn't running.");
   }
 }
@@ -1028,7 +1051,7 @@ void vpRobotBebop2::setVideoStabilisationMode(int mode)
 */
 void vpRobotBebop2::startStreaming()
 {
-  if (isRunning() && m_deviceController != NULL) {
+  if (isRunning() && m_deviceController != nullptr) {
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- Starting video streaming ... ");
 
     // Sending command to the drone to start the video stream
@@ -1047,11 +1070,13 @@ void vpRobotBebop2::startStreaming()
       decoder is doesn't have time to synchronize with the stream */
       vpTime::sleepMs(4000);
 
-    } else {
+    }
+    else {
       ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(m_errorController));
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't start streaming : drone isn't running.");
   }
 }
@@ -1063,7 +1088,7 @@ void vpRobotBebop2::startStreaming()
 */
 void vpRobotBebop2::stopStreaming()
 {
-  if (m_videoDecodingStarted && m_deviceController != NULL) {
+  if (m_videoDecodingStarted && m_deviceController != nullptr) {
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- Stopping video streaming ... ");
 
     // Sending command to the drone to stop the video stream
@@ -1078,11 +1103,13 @@ void vpRobotBebop2::stopStreaming()
       vpTime::sleepMs(500); // We wait for the streaming to actually stops or else it causes segmentation fault.
       stopVideoDecoding();
 
-    } else {
+    }
+    else {
       ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(m_errorController));
     }
 
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Can't stop streaming : streaming already stopped.");
   }
 }
@@ -1123,7 +1150,7 @@ void vpRobotBebop2::sighandler(int signo)
   vpRobotBebop2::m_running = false;
 
   // Landing the drone
-  if (m_deviceController != NULL) {
+  if (m_deviceController != nullptr) {
     m_deviceController->aRDrone3->sendPilotingLanding(m_deviceController->aRDrone3);
   }
   std::exit(EXIT_FAILURE);
@@ -1135,35 +1162,35 @@ void vpRobotBebop2::sighandler(int signo)
 */
 eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE vpRobotBebop2::getFlyingState()
 {
-  if (m_deviceController != NULL) {
+  if (m_deviceController != nullptr) {
     eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE flyingState =
-        ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_MAX;
+      ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_MAX;
     eARCONTROLLER_ERROR error;
 
     ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary = ARCONTROLLER_ARDrone3_GetCommandElements(
         m_deviceController->aRDrone3, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED, &error);
 
-    if (error == ARCONTROLLER_OK && elementDictionary != NULL) {
-      ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
-      ARCONTROLLER_DICTIONARY_ELEMENT_t *element = NULL;
+    if (error == ARCONTROLLER_OK && elementDictionary != nullptr) {
+      ARCONTROLLER_DICTIONARY_ARG_t *arg = nullptr;
+      ARCONTROLLER_DICTIONARY_ELEMENT_t *element = nullptr;
 
-      HASH_FIND_STR (elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
+      HASH_FIND_STR(elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
 
-      if (element != NULL)
-      {
-        //Suppress warnings
-        // Get the value
-        HASH_FIND_STR(element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE, arg);
+      if (element != nullptr) {
+        // Suppress warnings
+        //  Get the value
+        HASH_FIND_STR(element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE,
+                      arg);
 
-        if (arg != NULL)
-        {
+        if (arg != nullptr) {
           // Enums are stored as I32
           flyingState = static_cast<eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE>(arg->value.I32);
         }
       }
     }
-  return flyingState;
-  } else {
+    return flyingState;
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error when checking flying state : drone isn't connected.");
     return ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_MAX;
   }
@@ -1175,35 +1202,36 @@ eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE vpRobotBebop2::getFl
 */
 eARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED vpRobotBebop2::getStreamingState()
 {
-  if (m_deviceController != NULL) {
+  if (m_deviceController != nullptr) {
     eARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED streamingState =
-        ARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED_MAX;
+      ARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED_MAX;
     eARCONTROLLER_ERROR error;
 
     ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary = ARCONTROLLER_ARDrone3_GetCommandElements(
         m_deviceController->aRDrone3, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED,
         &error);
 
-    if (error == ARCONTROLLER_OK && elementDictionary != NULL) {
-      ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
-      ARCONTROLLER_DICTIONARY_ELEMENT_t *element = NULL;
+    if (error == ARCONTROLLER_OK && elementDictionary != nullptr) {
+      ARCONTROLLER_DICTIONARY_ARG_t *arg = nullptr;
+      ARCONTROLLER_DICTIONARY_ELEMENT_t *element = nullptr;
 
-    HASH_FIND_STR(elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
+      HASH_FIND_STR(elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
 
-    if (element != NULL) {
-      // Get the value
-      HASH_FIND_STR(element->arguments,
-                    ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED, arg);
+      if (element != nullptr) {
+        // Get the value
+        HASH_FIND_STR(element->arguments,
+                      ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED, arg);
 
-      if (arg != NULL) {
-        // Enums are stored as I32
-        streamingState =
+        if (arg != nullptr) {
+          // Enums are stored as I32
+          streamingState =
             static_cast<eARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED>(arg->value.I32);
-      }
+        }
       }
     }
-  return streamingState;
-  } else {
+    return streamingState;
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error when checking streaming state : drone isn't connected.");
     return ARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED_MAX;
   }
@@ -1213,18 +1241,18 @@ eARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED vpRobotBebop
 
   Discovers the drone on the wifi network and returns the detected device.
 */
-ARDISCOVERY_Device_t * vpRobotBebop2::discoverDrone()
+ARDISCOVERY_Device_t *vpRobotBebop2::discoverDrone()
 {
   eARDISCOVERY_ERROR errorDiscovery = ARDISCOVERY_OK;
 
-  ARDISCOVERY_Device_t * device = ARDISCOVERY_Device_New(&errorDiscovery);
+  ARDISCOVERY_Device_t *device = ARDISCOVERY_Device_New(&errorDiscovery);
 
   ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - Starting drone Wifi discovery ...");
-  const char * charIpAddress = m_ipAddress.c_str();
-  errorDiscovery = ARDISCOVERY_Device_InitWifi(device, ARDISCOVERY_PRODUCT_BEBOP_2, "bebop2", charIpAddress, m_discoveryPort);
+  const char *charIpAddress = m_ipAddress.c_str();
+  errorDiscovery =
+    ARDISCOVERY_Device_InitWifi(device, ARDISCOVERY_PRODUCT_BEBOP_2, "bebop2", charIpAddress, m_discoveryPort);
 
-  if (errorDiscovery != ARDISCOVERY_OK)
-  {
+  if (errorDiscovery != ARDISCOVERY_OK) {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Discovery error :%s", ARDISCOVERY_Error_ToString(errorDiscovery));
   }
   ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- Drone controller created.");
@@ -1237,14 +1265,13 @@ Create a drone controller based on a discovered device.
 
 \param[in] discoveredDrone : discovered drone to control with the controller. Deleted at the end of this function.
 */
-void vpRobotBebop2::createDroneController(ARDISCOVERY_Device_t * discoveredDrone)
+void vpRobotBebop2::createDroneController(ARDISCOVERY_Device_t *discoveredDrone)
 {
-  m_deviceController = ARCONTROLLER_Device_New (discoveredDrone, &m_errorController);
-  if (m_errorController != ARCONTROLLER_OK)
-  {
-      ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "Creation of deviceController failed.");
+  m_deviceController = ARCONTROLLER_Device_New(discoveredDrone, &m_errorController);
+  if (m_errorController != ARCONTROLLER_OK) {
+    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Creation of deviceController failed.");
   }
-  ARDISCOVERY_Device_Delete (&discoveredDrone);
+  ARDISCOVERY_Device_Delete(&discoveredDrone);
   ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- Device created.");
 }
 
@@ -1254,27 +1281,25 @@ void vpRobotBebop2::createDroneController(ARDISCOVERY_Device_t * discoveredDrone
 */
 void vpRobotBebop2::setupCallbacks()
 {
-  //Adding stateChanged callback, called when the state of the controller has changed
+  // Adding stateChanged callback, called when the state of the controller has changed
   m_errorController = ARCONTROLLER_Device_AddStateChangedCallback(m_deviceController, stateChangedCallback, this);
-  if(m_errorController != ARCONTROLLER_OK)
-  {
-    ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add State callback failed.");
+  if (m_errorController != ARCONTROLLER_OK) {
+    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "add State callback failed.");
   }
 
-  //Adding commendReceived callback, called when the a command has been received from the device
+  // Adding commendReceived callback, called when the a command has been received from the device
   m_errorController = ARCONTROLLER_Device_AddCommandReceivedCallback(m_deviceController, commandReceivedCallback, this);
 
-  if(m_errorController != ARCONTROLLER_OK)
-  {
-    ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add Command callback failed.");
+  if (m_errorController != ARCONTROLLER_OK) {
+    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "add Command callback failed.");
   }
 
 #ifdef VISP_HAVE_FFMPEG
-  //Adding frame received callback, called when a streaming frame has been received from the device
-  m_errorController = ARCONTROLLER_Device_SetVideoStreamCallbacks (m_deviceController, decoderConfigCallback, didReceiveFrameCallback, NULL , this);
+  // Adding frame received callback, called when a streaming frame has been received from the device
+  m_errorController = ARCONTROLLER_Device_SetVideoStreamCallbacks(m_deviceController, decoderConfigCallback,
+                                                                  didReceiveFrameCallback, nullptr, this);
 
-  if(m_errorController != ARCONTROLLER_OK)
-  {
+  if (m_errorController != ARCONTROLLER_OK) {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error: %s", ARCONTROLLER_Error_ToString(m_errorController));
   }
 #endif
@@ -1287,23 +1312,21 @@ void vpRobotBebop2::setupCallbacks()
 */
 void vpRobotBebop2::startController()
 {
-  //Starts the controller
+  // Starts the controller
   ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Connecting ...");
-  m_errorController = ARCONTROLLER_Device_Start (m_deviceController);
+  m_errorController = ARCONTROLLER_Device_Start(m_deviceController);
 
-  if(m_errorController != ARCONTROLLER_OK)
-  {
+  if (m_errorController != ARCONTROLLER_OK) {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(m_errorController));
   }
 
   // Waits for the stateChangedCallback to unclock the semaphore
-  ARSAL_Sem_Wait (&(m_stateSem));
+  ARSAL_Sem_Wait(&(m_stateSem));
 
-  //Checks the device state
-  m_deviceState = ARCONTROLLER_Device_GetState (m_deviceController, &m_errorController);
+  // Checks the device state
+  m_deviceState = ARCONTROLLER_Device_GetState(m_deviceController, &m_errorController);
 
-  if((m_errorController != ARCONTROLLER_OK) || (m_deviceState != ARCONTROLLER_DEVICE_STATE_RUNNING))
-  {
+  if ((m_errorController != ARCONTROLLER_OK) || (m_deviceState != ARCONTROLLER_DEVICE_STATE_RUNNING)) {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- deviceState :%d", m_deviceState);
     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(m_errorController));
   }
@@ -1318,12 +1341,12 @@ void vpRobotBebop2::startController()
 */
 void vpRobotBebop2::initCodec()
 {
-  av_register_all();
-  avcodec_register_all();
+  // av_register_all();
+  // avcodec_register_all();
   avformat_network_init();
 
   // Finds the correct codec
-  AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_H264);
+  const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_H264);
   if (!codec) {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Codec not found.");
     return;
@@ -1337,7 +1360,7 @@ void vpRobotBebop2::initCodec()
     return;
   }
 
-  // Sets codec parameters (TODO : should be done automaticaly by drone callback decoderConfigCallback)
+  // Sets codec parameters (TODO : should be done automatically by drone callback decoderConfigCallback)
   m_codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
   m_codecContext->skip_frame = AVDISCARD_DEFAULT;
   m_codecContext->error_concealment = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;
@@ -1349,13 +1372,13 @@ void vpRobotBebop2::initCodec()
   m_codecContext->width = m_videoWidth;
   m_codecContext->height = m_videoHeight;
 
-  if (codec->capabilities & AV_CODEC_CAP_TRUNCATED) {
-    m_codecContext->flags |= AV_CODEC_FLAG_TRUNCATED;
-  }
+  // if (codec->capabilities & AV_CODEC_CAP_TRUNCATED) {
+  //   m_codecContext->flags |= AV_CODEC_FLAG_TRUNCATED;
+  // }
   m_codecContext->flags2 |= AV_CODEC_FLAG2_CHUNKS;
 
   // Opens the codec
-  if (avcodec_open2(m_codecContext, codec, NULL) < 0) {
+  if (avcodec_open2(m_codecContext, codec, nullptr) < 0) {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Failed to open codec.");
     return;
   }
@@ -1364,16 +1387,17 @@ void vpRobotBebop2::initCodec()
   int numBytes = av_image_get_buffer_size(pFormat, m_codecContext->width, m_codecContext->height, 1);
   m_buffer = static_cast<uint8_t *>(av_malloc(static_cast<unsigned long>(numBytes) * sizeof(uint8_t)));
 
-  av_init_packet(&m_packet);        // Packed used to send data to the decoder
-  m_picture = av_frame_alloc();     // Frame used to receive data from the decoder
+  //av_init_packet(&m_packet);    // Packed used to send data to the decoder
+  m_packet = av_packet_alloc();
+  m_picture = av_frame_alloc(); // Frame used to receive data from the decoder
 
   m_bgr_picture_mutex.lock();
   m_bgr_picture = av_frame_alloc(); // Frame used to store rescaled frame received from the decoder
   m_bgr_picture_mutex.unlock();
 
   m_img_convert_ctx = sws_getContext(m_codecContext->width, m_codecContext->height, m_codecContext->pix_fmt,
-                                     m_codecContext->width, m_codecContext->height, pFormat, SWS_BICUBIC, NULL, NULL,
-                                     NULL); // Used to rescale frame received from the decoder
+                                     m_codecContext->width, m_codecContext->height, pFormat, SWS_BICUBIC, nullptr, nullptr,
+                                     nullptr); // Used to rescale frame received from the decoder
 }
 
 /*!
@@ -1384,7 +1408,7 @@ void vpRobotBebop2::initCodec()
 void vpRobotBebop2::cleanUpCodec()
 {
   m_videoDecodingStarted = false;
-  av_packet_unref(&m_packet);
+  av_packet_unref(m_packet);
 
   if (m_codecContext) {
     avcodec_flush_buffers(m_codecContext);
@@ -1393,6 +1417,9 @@ void vpRobotBebop2::cleanUpCodec()
 
   if (m_picture) {
     av_frame_free(&m_picture);
+  }
+  if (m_packet) {
+    av_packet_free(&m_packet);
   }
 
   if (m_bgr_picture) {
@@ -1419,7 +1446,8 @@ void vpRobotBebop2::startVideoDecoding()
   if (!m_videoDecodingStarted) {
     initCodec();
     m_videoDecodingStarted = true;
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Video decoding is already started.");
   }
 }
@@ -1433,7 +1461,8 @@ void vpRobotBebop2::stopVideoDecoding()
 {
   if (m_videoDecodingStarted) {
     cleanUpCodec();
-  } else {
+  }
+  else {
     ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Video decoding is already stopped.");
   }
 }
@@ -1453,10 +1482,10 @@ void vpRobotBebop2::computeFrame(ARCONTROLLER_Frame_t *frame)
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Updating H264 codec parameters (Buffer Size: %lu) ...",
                 m_codec_params_data.size());
 
-    m_packet.data = &m_codec_params_data[0];
-    m_packet.size = static_cast<int>(m_codec_params_data.size());
+    m_packet->data = &m_codec_params_data[0];
+    m_packet->size = static_cast<int>(m_codec_params_data.size());
 
-    int ret = avcodec_send_packet(m_codecContext, &m_packet);
+    int ret = avcodec_send_packet(m_codecContext, m_packet);
 
     if (ret == 0) {
 
@@ -1464,22 +1493,24 @@ void vpRobotBebop2::computeFrame(ARCONTROLLER_Frame_t *frame)
 
       if (ret == 0 || ret == AVERROR(EAGAIN)) {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "H264 codec parameters updated.");
-      } else {
+      }
+      else {
         ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Unexpected error while updating H264 parameters.");
       }
-    } else {
+    }
+    else {
       ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Unexpected error while sending H264 parameters.");
     }
     m_update_codec_params = false;
-    av_packet_unref(&m_packet);
+    av_packet_unref(m_packet);
     av_frame_unref(m_picture);
   }
 
-  // Decoding frame comming from the drone
-  m_packet.data = frame->data;
-  m_packet.size = static_cast<int>(frame->used);
+  // Decoding frame coming from the drone
+  m_packet->data = frame->data;
+  m_packet->size = static_cast<int>(frame->used);
 
-  int ret = avcodec_send_packet(m_codecContext, &m_packet);
+  int ret = avcodec_send_packet(m_codecContext, m_packet);
   if (ret < 0) {
 
     char *errbuff = new char[AV_ERROR_MAX_STRING_SIZE];
@@ -1488,7 +1519,8 @@ void vpRobotBebop2::computeFrame(ARCONTROLLER_Frame_t *frame)
     delete[] errbuff;
     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error sending a packet for decoding : %d, %s", ret, err.c_str());
 
-  } else {
+  }
+  else {
 
     ret = avcodec_receive_frame(m_codecContext, m_picture);
 
@@ -1496,9 +1528,11 @@ void vpRobotBebop2::computeFrame(ARCONTROLLER_Frame_t *frame)
 
       if (ret == AVERROR(EAGAIN)) {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "AVERROR(EAGAIN)"); // Not an error, need to send data again
-      } else if (ret == AVERROR_EOF) {
+      }
+      else if (ret == AVERROR_EOF) {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "AVERROR_EOF"); // End of file reached, should not happen with drone footage
-      } else {
+      }
+      else {
 
         char *errbuff = new char[AV_ERROR_MAX_STRING_SIZE];
         av_strerror(ret, errbuff, AV_ERROR_MAX_STRING_SIZE);
@@ -1506,7 +1540,8 @@ void vpRobotBebop2::computeFrame(ARCONTROLLER_Frame_t *frame)
         delete[] errbuff;
         ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error receiving a decoded frame : %d, %s", ret, err.c_str());
       }
-    } else {
+    }
+    else {
       m_bgr_picture_mutex.lock();
       av_frame_unref(m_bgr_picture);
       av_image_fill_arrays(m_bgr_picture->data, m_bgr_picture->linesize, m_buffer, AV_PIX_FMT_BGR24,
@@ -1519,7 +1554,7 @@ void vpRobotBebop2::computeFrame(ARCONTROLLER_Frame_t *frame)
     }
   }
 
-  av_packet_unref(&m_packet);
+  av_packet_unref(m_packet);
 
   av_frame_unref(m_picture);
 }
@@ -1531,7 +1566,7 @@ void vpRobotBebop2::computeFrame(ARCONTROLLER_Frame_t *frame)
 */
 void vpRobotBebop2::cleanUp()
 {
-  if (m_deviceController != NULL) {
+  if (m_deviceController != nullptr) {
     // Lands the drone if not landed
     land();
 
@@ -1559,7 +1594,8 @@ void vpRobotBebop2::cleanUp()
     ARSAL_Sem_Destroy(&(m_stateSem));
 
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- Cleanup done.");
-  } else {
+  }
+  else {
 
     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error while cleaning up memory.");
   }
@@ -1585,8 +1621,7 @@ void vpRobotBebop2::stateChangedCallback(eARCONTROLLER_DEVICE_STATE newState, eA
   (void)error;
 
   vpRobotBebop2 *drone = static_cast<vpRobotBebop2 *>(customData);
-  switch (newState)
-  {
+  switch (newState) {
   case ARCONTROLLER_DEVICE_STATE_STOPPED:
     // Stopping the programm
     drone->m_running = false;
@@ -1608,12 +1643,13 @@ void vpRobotBebop2::stateChangedCallback(eARCONTROLLER_DEVICE_STATE newState, eA
 /*!
 
   Callback. Called when streaming is started, allows to get codec parameters for the H264 video streammed by the drone.
-  Currently not used, as the codec parameter are currently manually set up. Function only available when ffmpeg available.
+  Currently not used, as the codec parameter are currently manually set up. Function only available when ffmpeg
+  available.
 
   \param[in] codec : codec used to stream the drone camera video.
   \param[in] customData : pointer to custom data.
 */
-eARCONTROLLER_ERROR vpRobotBebop2::decoderConfigCallback(ARCONTROLLER_Stream_Codec_t codec, void * customData)
+eARCONTROLLER_ERROR vpRobotBebop2::decoderConfigCallback(ARCONTROLLER_Stream_Codec_t codec, void *customData)
 {
   vpRobotBebop2 *drone = static_cast<vpRobotBebop2 *>(customData);
 
@@ -1634,8 +1670,9 @@ eARCONTROLLER_ERROR vpRobotBebop2::decoderConfigCallback(ARCONTROLLER_Stream_Cod
     drone->m_codec_params_data.resize(sps_buffer_size + pps_buffer_size);
     std::copy(sps_buffer_ptr, sps_buffer_ptr + sps_buffer_size, drone->m_codec_params_data.begin());
     std::copy(pps_buffer_ptr, pps_buffer_ptr + pps_buffer_size, drone->m_codec_params_data.begin() + sps_buffer_size);
-  } else {
-    // If data is invalid, we clear the vector
+  }
+  else {
+ // If data is invalid, we clear the vector
     drone->m_codec_params_data.clear();
   }
   return ARCONTROLLER_OK;
@@ -1653,21 +1690,20 @@ eARCONTROLLER_ERROR vpRobotBebop2::didReceiveFrameCallback(ARCONTROLLER_Frame_t 
 {
   vpRobotBebop2 *drone = static_cast<vpRobotBebop2 *>(customData);
 
-  if (frame != NULL) {
+  if (frame != nullptr) {
 
     if (drone->m_videoDecodingStarted) {
       drone->computeFrame(frame);
     }
 
-
-  } else {
-    ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "frame is NULL.");
+  }
+  else {
+    ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "frame is nullptr.");
   }
 
   return ARCONTROLLER_OK;
 }
 #endif // #ifdef VISP_HAVE_FFMPEG
-
 
 /*!
 
@@ -1681,19 +1717,19 @@ eARCONTROLLER_ERROR vpRobotBebop2::didReceiveFrameCallback(ARCONTROLLER_Frame_t 
 void vpRobotBebop2::cmdBatteryStateChangedRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary,
                                               vpRobotBebop2 *drone)
 {
-  ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
-  ARCONTROLLER_DICTIONARY_ELEMENT_t *singleElement = NULL;
+  ARCONTROLLER_DICTIONARY_ARG_t *arg = nullptr;
+  ARCONTROLLER_DICTIONARY_ELEMENT_t *singleElement = nullptr;
 
-  if (elementDictionary == NULL) {
-    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "elements is NULL");
+  if (elementDictionary == nullptr) {
+    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "elements is nullptr");
     return;
   }
 
   // Get the command received in the device controller
   HASH_FIND_STR(elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, singleElement);
 
-  if (singleElement == NULL) {
-    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "singleElement is NULL");
+  if (singleElement == nullptr) {
+    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "singleElement is nullptr");
     return;
   }
 
@@ -1701,8 +1737,8 @@ void vpRobotBebop2::cmdBatteryStateChangedRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t 
   HASH_FIND_STR(singleElement->arguments, ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_BATTERYSTATECHANGED_PERCENT,
                 arg);
 
-  if (arg == NULL) {
-    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "arg is NULL");
+  if (arg == nullptr) {
+    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "arg is nullptr");
     return;
   }
   drone->m_batteryLevel = arg->value.U8;
@@ -1710,7 +1746,8 @@ void vpRobotBebop2::cmdBatteryStateChangedRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t 
 
   if (drone->m_batteryLevel <= 5) {
     ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "    - WARNING, very low battery level, drone will stop soon !");
-  } else if (drone->m_batteryLevel <= 10) {
+  }
+  else if (drone->m_batteryLevel <= 10) {
     ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "    - Warning, low battery level !");
   }
 }
@@ -1728,18 +1765,18 @@ void vpRobotBebop2::cmdBatteryStateChangedRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t 
 void vpRobotBebop2::cmdCameraOrientationChangedRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary,
                                                    vpRobotBebop2 *drone)
 {
-  ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
-  ARCONTROLLER_DICTIONARY_ELEMENT_t *element = NULL;
+  ARCONTROLLER_DICTIONARY_ARG_t *arg = nullptr;
+  ARCONTROLLER_DICTIONARY_ELEMENT_t *element = nullptr;
   HASH_FIND_STR(elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
-  if (element != NULL) {
+  if (element != nullptr) {
     HASH_FIND_STR(element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_CAMERASTATE_ORIENTATIONV2_TILT, arg);
 
-    if (arg != NULL) {
+    if (arg != nullptr) {
       drone->m_currentCameraTilt = static_cast<double>(arg->value.Float);
     }
 
     HASH_FIND_STR(element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_CAMERASTATE_ORIENTATIONV2_PAN, arg);
-    if (arg != NULL) {
+    if (arg != nullptr) {
       drone->m_currentCameraPan = static_cast<double>(arg->value.Float);
     }
   }
@@ -1758,41 +1795,41 @@ void vpRobotBebop2::cmdCameraOrientationChangedRcv(ARCONTROLLER_DICTIONARY_ELEME
 */
 void vpRobotBebop2::cmdCameraSettingsRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary, vpRobotBebop2 *drone)
 {
-  ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
-  ARCONTROLLER_DICTIONARY_ELEMENT_t *element = NULL;
+  ARCONTROLLER_DICTIONARY_ARG_t *arg = nullptr;
+  ARCONTROLLER_DICTIONARY_ELEMENT_t *element = nullptr;
   HASH_FIND_STR(elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
-  if (element != NULL) {
+  if (element != nullptr) {
     HASH_FIND_STR(element->arguments, ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED_FOV,
                   arg);
-    if (arg != NULL) {
+    if (arg != nullptr) {
       drone->m_cameraHorizontalFOV = static_cast<double>(arg->value.Float);
       ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - Camera horizontal FOV : %f degrees.",
                   static_cast<double>(drone->m_cameraHorizontalFOV));
     }
     HASH_FIND_STR(element->arguments,
                   ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED_PANMAX, arg);
-    if (arg != NULL) {
+    if (arg != nullptr) {
       drone->m_maxCameraPan = static_cast<double>(arg->value.Float);
       ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - Max camera pan : %f degrees.",
                   static_cast<double>(drone->m_maxCameraPan));
     }
     HASH_FIND_STR(element->arguments,
                   ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED_PANMIN, arg);
-    if (arg != NULL) {
+    if (arg != nullptr) {
       drone->m_minCameraPan = static_cast<double>(arg->value.Float);
       ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - Min camera pan : %f degrees.",
                   static_cast<double>(drone->m_minCameraPan));
     }
     HASH_FIND_STR(element->arguments,
                   ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED_TILTMAX, arg);
-    if (arg != NULL) {
+    if (arg != nullptr) {
       drone->m_maxCameraTilt = static_cast<double>(arg->value.Float);
       ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - Max camera tilt : %f degrees.",
                   static_cast<double>(drone->m_maxCameraTilt));
     }
     HASH_FIND_STR(element->arguments,
                   ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED_TILTMIN, arg);
-    if (arg != NULL) {
+    if (arg != nullptr) {
       drone->m_minCameraTilt = static_cast<double>(arg->value.Float);
       ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - Min camera tilt : %f degrees.",
                   static_cast<double>(drone->m_minCameraTilt));
@@ -1813,14 +1850,14 @@ void vpRobotBebop2::cmdCameraSettingsRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t *elem
 void vpRobotBebop2::cmdMaxPitchRollChangedRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary,
                                               vpRobotBebop2 *drone)
 {
-  ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
-  ARCONTROLLER_DICTIONARY_ELEMENT_t *element = NULL;
+  ARCONTROLLER_DICTIONARY_ARG_t *arg = nullptr;
+  ARCONTROLLER_DICTIONARY_ELEMENT_t *element = nullptr;
 
   HASH_FIND_STR(elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
-  if (element != NULL) {
+  if (element != nullptr) {
     HASH_FIND_STR(element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXTILTCHANGED_CURRENT,
                   arg);
-    if (arg != NULL) {
+    if (arg != nullptr) {
       drone->m_maxTilt = static_cast<double>(arg->value.Float);
     }
   }
@@ -1838,17 +1875,17 @@ void vpRobotBebop2::cmdMaxPitchRollChangedRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t 
 */
 void vpRobotBebop2::cmdRelativeMoveEndedRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary, vpRobotBebop2 *drone)
 {
-  ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
-  ARCONTROLLER_DICTIONARY_ELEMENT_t *element = NULL;
+  ARCONTROLLER_DICTIONARY_ARG_t *arg = nullptr;
+  ARCONTROLLER_DICTIONARY_ELEMENT_t *element = nullptr;
 
   HASH_FIND_STR(elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
 
-  if (element != NULL) {
+  if (element != nullptr) {
     HASH_FIND_STR(element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGEVENT_MOVEBYEND_ERROR, arg);
 
-    if (arg != NULL) {
+    if (arg != nullptr) {
       eARCOMMANDS_ARDRONE3_PILOTINGEVENT_MOVEBYEND_ERROR error =
-          static_cast<eARCOMMANDS_ARDRONE3_PILOTINGEVENT_MOVEBYEND_ERROR>(arg->value.I32);
+        static_cast<eARCOMMANDS_ARDRONE3_PILOTINGEVENT_MOVEBYEND_ERROR>(arg->value.I32);
       if ((error != ARCOMMANDS_ARDRONE3_PILOTINGEVENT_MOVEBYEND_ERROR_OK) &&
           (error != ARCOMMANDS_ARDRONE3_PILOTINGEVENT_MOVEBYEND_ERROR_INTERRUPTED)) {
         ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Relative move ended with error %d", error);
@@ -1870,17 +1907,17 @@ void vpRobotBebop2::cmdRelativeMoveEndedRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t *e
 */
 void vpRobotBebop2::cmdExposureSetRcv(ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary, vpRobotBebop2 *drone)
 {
-  ARCONTROLLER_DICTIONARY_ARG_t *arg = NULL;
-  ARCONTROLLER_DICTIONARY_ELEMENT_t *element = NULL;
+  ARCONTROLLER_DICTIONARY_ARG_t *arg = nullptr;
+  ARCONTROLLER_DICTIONARY_ELEMENT_t *element = nullptr;
 
   HASH_FIND_STR(elementDictionary, ARCONTROLLER_DICTIONARY_SINGLE_KEY, element);
 
-  if (element != NULL) {
+  if (element != nullptr) {
 
     HASH_FIND_STR(element->arguments, ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_EXPOSITIONCHANGED_VALUE,
                   arg);
 
-    if (arg != NULL) {
+    if (arg != nullptr) {
       drone->m_exposureSet = true;
     }
   }
@@ -1900,7 +1937,7 @@ void vpRobotBebop2::commandReceivedCallback(eARCONTROLLER_DICTIONARY_KEY command
 {
   vpRobotBebop2 *drone = static_cast<vpRobotBebop2 *>(customData);
 
-  if (drone == NULL)
+  if (drone == nullptr)
     return;
 
   switch (commandKey) {
@@ -1968,9 +2005,9 @@ void vpRobotBebop2::commandReceivedCallback(eARCONTROLLER_DICTIONARY_KEY command
 }
 
 #undef TAG
-
+END_VISP_NAMESPACE
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_robot.a(vpRobotBebop2.cpp.o) has
+// Work around to avoid warning: libvisp_robot.a(vpRobotBebop2.cpp.o) has
 // no symbols
-void dummy_vpRobotBebop2(){};
+void dummy_vpRobotBebop2() { }
 #endif // VISP_HAVE_ARSDK

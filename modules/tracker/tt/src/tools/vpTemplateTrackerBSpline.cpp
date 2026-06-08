@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,29 +33,28 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #include <visp3/tt/vpTemplateTrackerBSpline.h>
 
+BEGIN_VISP_NAMESPACE
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 double vpTemplateTrackerBSpline::getSubPixBspline4(const vpImage<double> &I, double r, double t)
 {
   double res = 0;
-  int cr = (int)(r);
-  int ct = (int)(t);
-  double er = (double)r - cr;
-  double et = (double)t - ct;
-  int height = (int)I.getHeight(); // r
-  int width = (int)I.getWidth();   // t
+  int cr = static_cast<int>(r);
+  int ct = static_cast<int>(t);
+  double er = static_cast<double>(r) - cr;
+  double et = static_cast<double>(t) - ct;
+  int height = static_cast<int>(I.getHeight()); // r
+  int width = static_cast<int>(I.getWidth());   // t
   for (int ir = -1; ir <= 2; ir++) {
     int tr = ir + cr;
     if (tr >= 0 && tr < height) {
       for (int it = -1; it <= 2; it++) {
         int tt = it + ct;
         if (tt >= 0 && tt < width)
-          res += Bspline4((double)ir - er) * Bspline4((double)it - et) * I[tr][tt];
+          res += Bspline4(static_cast<double>(ir) - er) * Bspline4(static_cast<double>(it) - et) * I[tr][tt];
       }
     }
   }
@@ -78,3 +76,4 @@ double vpTemplateTrackerBSpline::Bspline4(double diff)
 }
 
 #endif
+END_VISP_NAMESPACE
