@@ -1,6 +1,6 @@
-project(tutorial-robot)
+cmake_minimum_required(VERSION 3.10)
 
-cmake_minimum_required(VERSION 3.0)
+project(tutorial-robot)
 
 if(CMAKE_SYSTEM_NAME MATCHES WindowsPhone OR CMAKE_SYSTEM_NAME MATCHES WindowsStore)
   set(WINRT TRUE)
@@ -8,7 +8,7 @@ endif(CMAKE_SYSTEM_NAME MATCHES WindowsPhone OR CMAKE_SYSTEM_NAME MATCHES Window
 
 if(WINRT)
   add_definitions(-DWINRT)
-  
+
   if(CMAKE_SYSTEM_NAME MATCHES WindowsPhone)
     set(WINRT_PHONE TRUE)
     add_definitions(-DWINRT_PHONE)
@@ -40,11 +40,6 @@ set(tutorial_cpp
 if(NOT DEFINED WINRT_8_1)
   list(APPEND tutorial_cpp tutorial-simu-pioneer-continuous-gain-constant.cpp)
   list(APPEND tutorial_cpp tutorial-simu-pioneer-continuous-gain-adaptive.cpp)
-endif()
-
-if(VISP_HAVE_PIONEER)
-  # Add specific build flag to turn off warnings coming from libaria 3rd party
-  visp_set_source_file_compile_flag(tutorial-pioneer-robot.cpp -Wno-unused-parameter)
 endif()
 
 foreach(cpp ${tutorial_cpp})

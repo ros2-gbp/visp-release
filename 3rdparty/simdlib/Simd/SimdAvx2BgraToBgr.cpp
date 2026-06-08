@@ -87,10 +87,10 @@ namespace Simd
             for (size_t row = 0; row < height; ++row)
             {
                 for (size_t col = 0; col < widthF; col += F)
-                    Store<false>((__m256i*)(rgb + 3 * col), BgraToBgr<align>(bgra + 4 * col));
-                Store24<false>(rgb + 3 * widthF, BgraToBgr<align>(bgra + 4 * widthF));
+                    Store<false>((__m256i*)(rgb + 3 * col), BgraToRgb<align>(bgra + 4 * col));
+                Store24<false>(rgb + 3 * widthF, BgraToRgb<align>(bgra + 4 * widthF));
                 if (widthF + F != width)
-                    Store24<false>(rgb + 3 * (width - F), BgraToBgr<false>(bgra + 4 * (width - F)));
+                    Store24<false>(rgb + 3 * (width - F), BgraToRgb<false>(bgra + 4 * (width - F)));
                 bgra += bgraStride;
                 rgb += rgbStride;
             }
@@ -143,8 +143,5 @@ namespace Simd
                 BgraToRgba<false>(bgra, width, height, bgraStride, rgba, rgbaStride);
         }
     }
-#else
-    // Work arround to avoid warning: libvisp_simdlib.a(SimdAvx2BgraToBgr.cpp.o) has no symbols
-    void dummy_SimdAvx2BgraToBgr(){};
 #endif// SIMD_AVX2_ENABLE
 }

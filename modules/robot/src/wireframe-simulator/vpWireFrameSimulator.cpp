@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Wire frame simulator
- *
- * Authors:
- * Nicolas Melchior
- *
- *****************************************************************************/
+ */
 
 /*!
   \file vpWireFrameSimulator.cpp
@@ -63,12 +58,14 @@
 #include "vpView.h"
 #include "vpVwstack.h"
 
+#include <visp3/core/vpDebug.h>
 #include <visp3/core/vpCameraParameters.h>
 #include <visp3/core/vpException.h>
 #include <visp3/core/vpIoTools.h>
 #include <visp3/core/vpMeterPixelConversion.h>
 #include <visp3/core/vpPoint.h>
 
+BEGIN_VISP_NAMESPACE
 extern Point2i *point2i;
 extern Point2i *listpoint2i;
 
@@ -96,7 +93,7 @@ void vpWireFrameSimulator::display_scene(Matrix mat, Bound_scene &sc, const vpIm
 
       set_Bound_face_display(clip, b); // regarde si is_visible
 
-      point_3D_2D(clip->point.ptr, clip->point.nbr, (int)I.getWidth(), (int)I.getHeight(), point2i);
+      point_3D_2D(clip->point.ptr, clip->point.nbr, static_cast<int>(I.getWidth()), static_cast<int>(I.getHeight()), point2i);
       for (; fp < fend; fp++) {
         if (fp->is_visible) {
           wireframe_Face(fp, point2i);
@@ -142,7 +139,7 @@ void vpWireFrameSimulator::display_scene(Matrix mat, Bound_scene &sc, const vpIm
 
       set_Bound_face_display(clip, b); // regarde si is_visible
 
-      point_3D_2D(clip->point.ptr, clip->point.nbr, (int)I.getWidth(), (int)I.getHeight(), point2i);
+      point_3D_2D(clip->point.ptr, clip->point.nbr, static_cast<int>(I.getWidth()), static_cast<int>(I.getHeight()), point2i);
       for (; fp < fend; fp++) {
         if (fp->is_visible) {
           wireframe_Face(fp, point2i);
@@ -162,8 +159,6 @@ void vpWireFrameSimulator::display_scene(Matrix mat, Bound_scene &sc, const vpIm
   }
 }
 
-/*************************************************************************************************************/
-
 /*!
   Basic constructor.
 
@@ -174,12 +169,12 @@ void vpWireFrameSimulator::display_scene(Matrix mat, Bound_scene &sc, const vpIm
 */
 vpWireFrameSimulator::vpWireFrameSimulator()
   : scene(), desiredScene(), camera(), objectImage(), fMo(), fMc(), camMf(), refMo(), cMo(), cdMo(), object(PLATE),
-    desiredObject(D_STANDARD), camColor(vpColor::green), camTrajColor(vpColor::green), curColor(vpColor::blue),
-    desColor(vpColor::red), sceneInitialized(false), displayCameraTrajectory(true), cameraTrajectory(), poseList(),
-    fMoList(), nbrPtLimit(1000), old_iPr(), old_iPz(), old_iPt(), blockedr(false), blockedz(false), blockedt(false),
-    blocked(false), camMf2(), f2Mf(), px_int(1), py_int(1), px_ext(1), py_ext(1), displayObject(false),
-    displayDesiredObject(false), displayCamera(false), displayImageSimulator(false), cameraFactor(1.),
-    camTrajType(CT_LINE), extCamChanged(false), rotz(), thickness_(1), scene_dir()
+  desiredObject(D_STANDARD), camColor(vpColor::green), camTrajColor(vpColor::green), curColor(vpColor::blue),
+  desColor(vpColor::red), sceneInitialized(false), displayCameraTrajectory(true), cameraTrajectory(), poseList(),
+  fMoList(), nbrPtLimit(1000), old_iPr(), old_iPz(), old_iPt(), blockedr(false), blockedz(false), blockedt(false),
+  blocked(false), camMf2(), f2Mf(), px_int(1), py_int(1), px_ext(1), py_ext(1), displayObject(false),
+  displayDesiredObject(false), displayCamera(false), displayImageSimulator(false), cameraFactor(1.),
+  camTrajType(CT_LINE), extCamChanged(false), rotz(), thickness_(1), scene_dir()
 {
   // set scene_dir from #define VISP_SCENE_DIR if it exists
   // VISP_SCENES_DIR may contain multiple locations separated by ";"
@@ -195,7 +190,8 @@ vpWireFrameSimulator::vpWireFrameSimulator()
     try {
       scene_dir = vpIoTools::getenv("VISP_SCENES_DIR");
       std::cout << "The simulator uses data from VISP_SCENES_DIR=" << scene_dir << std::endl;
-    } catch (...) {
+    }
+    catch (...) {
       std::cout << "Cannot get VISP_SCENES_DIR environment variable" << std::endl;
     }
   }
@@ -275,7 +271,8 @@ void vpWireFrameSimulator::initScene(const vpSceneObject &obj, const vpSceneDesi
   if (desiredObject != D_TOOL) {
     strcat(name_cam, "/camera.bnd");
     set_scene(name_cam, &camera, cameraFactor);
-  } else {
+  }
+  else {
     strcat(name_cam, "/tool.bnd");
     set_scene(name_cam, &(this->camera), 1.0);
   }
@@ -745,11 +742,12 @@ void vpWireFrameSimulator::getInternalImage(vpImage<vpRGBa> &I)
   // we assume px_int and py_int > 0
   if ((std::fabs(px_int - 1.) > vpMath::maximum(px_int, 1.) * std::numeric_limits<double>::epsilon()) &&
       (std::fabs(py_int - 1) > vpMath::maximum(py_int, 1.) * std::numeric_limits<double>::epsilon())) {
-    u = (double)I.getWidth() / (2 * px_int);
-    v = (double)I.getHeight() / (2 * py_int);
-  } else {
-    u = (double)I.getWidth() / (vpMath::minimum(I.getWidth(), I.getHeight()));
-    v = (double)I.getHeight() / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    u = static_cast<double>(I.getWidth()) / (2 * px_int);
+    v = static_cast<double>(I.getHeight()) / (2 * py_int);
+  }
+  else {
+    u = static_cast<double>(I.getWidth()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    v = static_cast<double>(I.getHeight()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
   }
 
   float o44c[4][4], o44cd[4][4], x, y, z;
@@ -759,7 +757,7 @@ void vpWireFrameSimulator::getInternalImage(vpImage<vpRGBa> &I)
   vp2jlc_matrix(cdMo.inverse(), o44cd);
 
   if (displayImageSimulator) {
-    I = 255;
+    I = vpRGBa(255);
 
     for (std::list<vpImageSimulator>::iterator it = objectImage.begin(); it != objectImage.end(); ++it) {
       vpImageSimulator *imSim = &(*it);
@@ -829,11 +827,12 @@ void vpWireFrameSimulator::getExternalImage(vpImage<vpRGBa> &I)
   // we assume px_ext and py_ext > 0
   if ((std::fabs(px_ext - 1.) > vpMath::maximum(px_ext, 1.) * std::numeric_limits<double>::epsilon()) &&
       (std::fabs(py_ext - 1) > vpMath::maximum(py_ext, 1.) * std::numeric_limits<double>::epsilon())) {
-    u = (double)I.getWidth() / (2 * px_ext);
-    v = (double)I.getHeight() / (2 * py_ext);
-  } else {
-    u = (double)I.getWidth() / (vpMath::minimum(I.getWidth(), I.getHeight()));
-    v = (double)I.getHeight() / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    u = static_cast<double>(I.getWidth()) / (2 * px_ext);
+    v = static_cast<double>(I.getHeight()) / (2 * py_ext);
+  }
+  else {
+    u = static_cast<double>(I.getWidth()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    v = static_cast<double>(I.getHeight()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
   }
 
   float w44o[4][4], w44cext[4][4], w44c[4][4], x, y, z;
@@ -855,7 +854,7 @@ void vpWireFrameSimulator::getExternalImage(vpImage<vpRGBa> &I)
   }
 
   if (displayImageSimulator) {
-    I = 255;
+    I = vpRGBa(255);
 
     for (std::list<vpImageSimulator>::iterator it = objectImage.begin(); it != objectImage.end(); ++it) {
       vpImageSimulator *imSim = &(*it);
@@ -892,7 +891,8 @@ void vpWireFrameSimulator::getExternalImage(vpImage<vpRGBa> &I)
         if (camTrajType == CT_LINE) {
           if (iter != 0)
             vpDisplay::displayLine(I, iP_1, iP, camTrajColor, thickness_);
-        } else if (camTrajType == CT_POINT)
+        }
+        else if (camTrajType == CT_POINT)
           vpDisplay::displayPoint(I, iP, camTrajColor);
         ++iter_poseList;
         ++iter_fMoList;
@@ -900,7 +900,8 @@ void vpWireFrameSimulator::getExternalImage(vpImage<vpRGBa> &I)
         iP_1 = iP;
       }
       extCamChanged = false;
-    } else {
+    }
+    else {
       iP = projectCameraTrajectory(I, cMo, fMo);
       cameraTrajectory.push_back(iP);
 
@@ -908,7 +909,8 @@ void vpWireFrameSimulator::getExternalImage(vpImage<vpRGBa> &I)
         if (camTrajType == CT_LINE) {
           if (iter != 0)
             vpDisplay::displayLine(I, iP_1, *it, camTrajColor, thickness_);
-        } else if (camTrajType == CT_POINT)
+        }
+        else if (camTrajType == CT_POINT)
           vpDisplay::displayPoint(I, *it, camTrajColor);
         iter++;
         iP_1 = *it;
@@ -950,11 +952,12 @@ void vpWireFrameSimulator::getExternalImage(vpImage<vpRGBa> &I, const vpHomogene
   // we assume px_ext and py_ext > 0
   if ((std::fabs(px_ext - 1.) > vpMath::maximum(px_ext, 1.) * std::numeric_limits<double>::epsilon()) &&
       (std::fabs(py_ext - 1) > vpMath::maximum(py_ext, 1.) * std::numeric_limits<double>::epsilon())) {
-    u = (double)I.getWidth() / (2 * px_ext);
-    v = (double)I.getHeight() / (2 * py_ext);
-  } else {
-    u = (double)I.getWidth() / (vpMath::minimum(I.getWidth(), I.getHeight()));
-    v = (double)I.getHeight() / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    u = static_cast<double>(I.getWidth()) / (2 * px_ext);
+    v = static_cast<double>(I.getHeight()) / (2 * py_ext);
+  }
+  else {
+    u = static_cast<double>(I.getWidth()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    v = static_cast<double>(I.getHeight()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
   }
 
   vp2jlc_matrix(camMft.inverse(), w44cext);
@@ -971,7 +974,7 @@ void vpWireFrameSimulator::getExternalImage(vpImage<vpRGBa> &I, const vpHomogene
   add_vwstack("start", "window", -u, u, -v, v);
 
   if (displayImageSimulator) {
-    I = 255;
+    I = vpRGBa(255);
 
     for (std::list<vpImageSimulator>::iterator it = objectImage.begin(); it != objectImage.end(); ++it) {
       vpImageSimulator *imSim = &(*it);
@@ -1008,11 +1011,12 @@ void vpWireFrameSimulator::getInternalImage(vpImage<unsigned char> &I)
   // we assume px_int and py_int > 0
   if ((std::fabs(px_int - 1.) > vpMath::maximum(px_int, 1.) * std::numeric_limits<double>::epsilon()) &&
       (std::fabs(py_int - 1) > vpMath::maximum(py_int, 1.) * std::numeric_limits<double>::epsilon())) {
-    u = (double)I.getWidth() / (2 * px_int);
-    v = (double)I.getHeight() / (2 * py_int);
-  } else {
-    u = (double)I.getWidth() / (vpMath::minimum(I.getWidth(), I.getHeight()));
-    v = (double)I.getHeight() / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    u = static_cast<double>(I.getWidth()) / (2 * px_int);
+    v = static_cast<double>(I.getHeight()) / (2 * py_int);
+  }
+  else {
+    u = static_cast<double>(I.getWidth()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    v = static_cast<double>(I.getHeight()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
   }
 
   float o44c[4][4], o44cd[4][4], x, y, z;
@@ -1022,7 +1026,7 @@ void vpWireFrameSimulator::getInternalImage(vpImage<unsigned char> &I)
   vp2jlc_matrix(cdMo.inverse(), o44cd);
 
   if (displayImageSimulator) {
-    I = 255;
+    I = 255u;
 
     for (std::list<vpImageSimulator>::iterator it = objectImage.begin(); it != objectImage.end(); ++it) {
       vpImageSimulator *imSim = &(*it);
@@ -1092,11 +1096,12 @@ void vpWireFrameSimulator::getExternalImage(vpImage<unsigned char> &I)
   // we assume px_ext and py_ext > 0
   if ((std::fabs(px_ext - 1.) > vpMath::maximum(px_ext, 1.) * std::numeric_limits<double>::epsilon()) &&
       (std::fabs(py_ext - 1) > vpMath::maximum(py_ext, 1.) * std::numeric_limits<double>::epsilon())) {
-    u = (double)I.getWidth() / (2 * px_ext);
-    v = (double)I.getHeight() / (2 * py_ext);
-  } else {
-    u = (double)I.getWidth() / (vpMath::minimum(I.getWidth(), I.getHeight()));
-    v = (double)I.getHeight() / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    u = static_cast<double>(I.getWidth()) / (2 * px_ext);
+    v = static_cast<double>(I.getHeight()) / (2 * py_ext);
+  }
+  else {
+    u = static_cast<double>(I.getWidth()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    v = static_cast<double>(I.getHeight()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
   }
 
   float w44o[4][4], w44cext[4][4], w44c[4][4], x, y, z;
@@ -1118,7 +1123,7 @@ void vpWireFrameSimulator::getExternalImage(vpImage<unsigned char> &I)
   }
 
   if (displayImageSimulator) {
-    I = 255;
+    I = 255u;
     for (std::list<vpImageSimulator>::iterator it = objectImage.begin(); it != objectImage.end(); ++it) {
       vpImageSimulator *imSim = &(*it);
       imSim->setCameraPosition(rotz * camMf * fMo);
@@ -1154,7 +1159,8 @@ void vpWireFrameSimulator::getExternalImage(vpImage<unsigned char> &I)
         if (camTrajType == CT_LINE) {
           if (iter != 0)
             vpDisplay::displayLine(I, iP_1, iP, camTrajColor, thickness_);
-        } else if (camTrajType == CT_POINT)
+        }
+        else if (camTrajType == CT_POINT)
           vpDisplay::displayPoint(I, iP, camTrajColor);
         ++iter_poseList;
         ++iter_fMoList;
@@ -1162,7 +1168,8 @@ void vpWireFrameSimulator::getExternalImage(vpImage<unsigned char> &I)
         iP_1 = iP;
       }
       extCamChanged = false;
-    } else {
+    }
+    else {
       iP = projectCameraTrajectory(I, cMo, fMo);
       cameraTrajectory.push_back(iP);
 
@@ -1170,7 +1177,8 @@ void vpWireFrameSimulator::getExternalImage(vpImage<unsigned char> &I)
         if (camTrajType == CT_LINE) {
           if (iter != 0)
             vpDisplay::displayLine(I, iP_1, *it, camTrajColor, thickness_);
-        } else if (camTrajType == CT_POINT)
+        }
+        else if (camTrajType == CT_POINT)
           vpDisplay::displayPoint(I, *it, camTrajColor);
         iter++;
         iP_1 = *it;
@@ -1212,11 +1220,12 @@ void vpWireFrameSimulator::getExternalImage(vpImage<unsigned char> &I, const vpH
   // we assume px_ext and py_ext > 0
   if ((std::fabs(px_ext - 1.) > vpMath::maximum(px_ext, 1.) * std::numeric_limits<double>::epsilon()) &&
       (std::fabs(py_ext - 1) > vpMath::maximum(py_ext, 1.) * std::numeric_limits<double>::epsilon())) {
-    u = (double)I.getWidth() / (2 * px_ext);
-    v = (double)I.getHeight() / (2 * py_ext);
-  } else {
-    u = (double)I.getWidth() / (vpMath::minimum(I.getWidth(), I.getHeight()));
-    v = (double)I.getHeight() / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    u = static_cast<double>(I.getWidth()) / (2 * px_ext);
+    v = static_cast<double>(I.getHeight()) / (2 * py_ext);
+  }
+  else {
+    u = static_cast<double>(I.getWidth()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
+    v = static_cast<double>(I.getHeight()) / (vpMath::minimum(I.getWidth(), I.getHeight()));
   }
 
   vp2jlc_matrix(camMft.inverse(), w44cext);
@@ -1233,7 +1242,7 @@ void vpWireFrameSimulator::getExternalImage(vpImage<unsigned char> &I, const vpH
   add_vwstack("start", "window", -u, u, -v, v);
 
   if (displayImageSimulator) {
-    I = 255;
+    I = 255u;
     for (std::list<vpImageSimulator>::iterator it = objectImage.begin(); it != objectImage.end(); ++it) {
       vpImageSimulator *imSim = &(*it);
       imSim->setCameraPosition(rotz * cam_Mf * fMo);
@@ -1286,7 +1295,8 @@ void vpWireFrameSimulator::displayTrajectory(const vpImage<unsigned char> &I,
     if (camTrajType == CT_LINE) {
       if (iter != 0)
         vpDisplay::displayLine(I, iP_1, iP, camTrajColor, thickness_);
-    } else if (camTrajType == CT_POINT)
+    }
+    else if (camTrajType == CT_POINT)
       vpDisplay::displayPoint(I, iP, camTrajColor);
     ++it_cMo;
     ++it_fMo;
@@ -1331,7 +1341,8 @@ void vpWireFrameSimulator::displayTrajectory(const vpImage<vpRGBa> &I, const std
     if (camTrajType == CT_LINE) {
       if (iter != 0)
         vpDisplay::displayLine(I, iP_1, iP, camTrajColor, thickness_);
-    } else if (camTrajType == CT_POINT)
+    }
+    else if (camTrajType == CT_POINT)
       vpDisplay::displayPoint(I, iP, camTrajColor);
     ++it_cMo;
     ++it_fMo;
@@ -1388,7 +1399,7 @@ vpHomogeneousMatrix vpWireFrameSimulator::navigation(const vpImage<vpRGBa> &I, b
     if (!(blockedr || blockedz || blockedt)) {
       blocked = false;
       while (vpDisplay::getClick(I, trash, b, false)) {
-      };
+      }
     }
   }
 
@@ -1397,7 +1408,6 @@ vpHomogeneousMatrix vpWireFrameSimulator::navigation(const vpImage<vpRGBa> &I, b
   if (old_iPr != vpImagePoint(-1, -1) && blockedr) {
     double diffi = iP.get_i() - old_iPr.get_i();
     double diffj = iP.get_j() - old_iPr.get_j();
-    // cout << "delta :" << diffj << endl;;
     double anglei = diffi * 360 / width;
     double anglej = diffj * 360 / width;
     mov.buildFrom(0, 0, 0, vpMath::rad(-anglei), vpMath::rad(anglej), 0);
@@ -1477,7 +1487,7 @@ vpHomogeneousMatrix vpWireFrameSimulator::navigation(const vpImage<unsigned char
     if (!(blockedr || blockedz || blockedt)) {
       blocked = false;
       while (vpDisplay::getClick(I, trash, b, false)) {
-      };
+      }
     }
   }
 
@@ -1488,7 +1498,6 @@ vpHomogeneousMatrix vpWireFrameSimulator::navigation(const vpImage<unsigned char
   if (old_iPr != vpImagePoint(-1, -1) && blockedr) {
     double diffi = iP.get_i() - old_iPr.get_i();
     double diffj = iP.get_j() - old_iPr.get_j();
-    // cout << "delta :" << diffj << endl;;
     double anglei = diffi * 360 / width;
     double anglej = diffj * 360 / width;
     mov.buildFrom(0, 0, 0, vpMath::rad(-anglei), vpMath::rad(anglej), 0);
@@ -1595,3 +1604,4 @@ vpImagePoint vpWireFrameSimulator::projectCameraTrajectory(const vpImage<unsigne
 
   return iP;
 }
+END_VISP_NAMESPACE

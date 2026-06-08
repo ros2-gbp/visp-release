@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,30 +29,34 @@
  *
  * Description:
  * Template tracker.
- *
- * Authors:
- * Amaury Dame
- * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
+
 /*!
- \file vpTemplateTrackerWarpHomographySL3.h
- \brief warping function of an homography: the homography is defined on the
- sl3 lie algebra  H=exp(Sum(p[i]* A_i)) A_i is the basis of the SL3 Algebra
-*/
+ *\file vpTemplateTrackerWarpHomographySL3.h
+ *\brief warping function of an homography: the homography is defined on the
+ *sl3 lie algebra  H=exp(Sum(p[i]* A_i)) A_i is the basis of the SL3 Algebra
+ */
 
 #ifndef vpTemplateTrackerWarpHomographySL3_hh
 #define vpTemplateTrackerWarpHomographySL3_hh
 
 #include <vector>
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/tt/vpTemplateTrackerWarp.h>
 #include <visp3/vision/vpHomography.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
-  \class vpTemplateTrackerWarpHomographySL3
-  \ingroup group_tt_warp
+ * \class vpTemplateTrackerWarpHomographySL3
+ * \ingroup group_tt_warp
+ *
+ * <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+ *
+ * <b>Tutorials</b><br>
+ * <span style="margin-left:2em"> If you are interested in the Template Tracker  (TT), you may have a look at:</span><br>
+ *
+ * - \ref tutorial-tracking-tt
 */
 class VISP_EXPORT vpTemplateTrackerWarpHomographySL3 : public vpTemplateTrackerWarp
 {
@@ -64,14 +67,12 @@ protected:
 
 public:
   vpTemplateTrackerWarpHomographySL3();
-  virtual ~vpTemplateTrackerWarpHomographySL3();
 
   void computeCoeff(const vpColVector &p);
   void computeDenom(vpColVector &X, const vpColVector &);
 
   void dWarp(const vpColVector &X1, const vpColVector &X2, const vpColVector &, vpMatrix &dW);
-  void dWarpCompo(const vpColVector &, const vpColVector &X, const vpColVector &, const double *dwdp0,
-                  vpMatrix &dW);
+  void dWarpCompo(const vpColVector &, const vpColVector &X, const vpColVector &, const double *dwdp0, vpMatrix &dW);
 
   void findWarp(const double *ut0, const double *vt0, const double *u, const double *v, int nb_pt, vpColVector &p);
 
@@ -97,7 +98,8 @@ public:
   void warpX(const int &v1, const int &u1, double &v2, double &u2, const vpColVector &);
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-  void warpXInv(const vpColVector &, vpColVector &, const vpColVector &) {}
+  void warpXInv(const vpColVector &, vpColVector &, const vpColVector &) { }
 #endif
 };
+END_VISP_NAMESPACE
 #endif

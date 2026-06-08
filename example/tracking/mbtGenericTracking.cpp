@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,12 +29,7 @@
  *
  * Description:
  * Example of Hybrid Tracking of MBT and MBT KTL.
- *
- * Authors:
- * Aurelien Yol
- * Souriya Trinh
- *
- *****************************************************************************/
+ */
 
 /*!
   \example mbtGenericTracking.cpp
@@ -47,36 +41,45 @@
 #include <iostream>
 #include <visp3/core/vpConfig.h>
 
-#if (defined(VISP_HAVE_MODULE_MBT) && defined(VISP_HAVE_DISPLAY)) \
-  && (defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV))
+#if (defined(VISP_HAVE_MODULE_MBT) && defined(VISP_HAVE_DISPLAY)) &&                                                   \
+    (defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV))
 
 #include <visp3/core/vpDebug.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpIoTools.h>
 #include <visp3/core/vpMath.h>
-#include <visp3/gui/vpDisplayD3D.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/io/vpImageIo.h>
 #include <visp3/io/vpParseArgv.h>
 #include <visp3/io/vpVideoReader.h>
 #include <visp3/mbt/vpMbGenericTracker.h>
 
-#define GETOPTARGS "x:m:i:n:de:chtfColwvpT:"
+#define GETOPTARGS "cCde:fhi:lm:n:opstT:x:vw"
 
-#define USE_XML 0
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 void usage(const char *name, const char *badparam)
 {
+#if defined(VISP_HAVE_DATASET)
+#if VISP_HAVE_DATASET_VERSION >= 0x030600
+  std::string ext("png");
+#else
+  std::string ext("pgm");
+#endif
+#else
+    // We suppose that the user will download a recent dataset
+  std::string ext("png");
+#endif
+
   fprintf(stdout, "\n\
 Example of tracking based on the 3D model.\n\
 \n\
 SYNOPSIS\n\
   %s [-i <test image path>] [-x <config file>]\n\
   [-m <model name>] [-n <initialisation file base name>] [-e <last frame index>]\n\
-  [-t] [-c] [-d] [-h] [-f] [-C] [-o] [-w] [-l] [-v] [-p]\n\
+  [-t] [-c] [-d] [-h] [-f] [-C] [-o] [-w] [-l] [-v] [-p] [-s]\n\
   [-T <tracker type>]\n", name);
 
   fprintf(stdout, "\n\
@@ -84,8 +87,8 @@ OPTIONS:                                               \n\
   -i <input image path>                                \n\
      Set image input path.\n\
      From this path read images \n\
-     \"mbt/cube/image%%04d.ppm\". These \n\
-     images come from ViSP-images-x.y.z.tar.gz available \n\
+     \"mbt/cube/image%%04d.%s\". These \n\
+     images come from visp-images-x.y.z.tar.gz available \n\
      on the ViSP website.\n\
      Setting the VISP_INPUT_IMAGE_PATH environment\n\
      variable produces the same behavior than using\n\
@@ -101,6 +104,9 @@ OPTIONS:                                               \n\
 \n\
   -e <last frame index>                                 \n\
      Specify the index of the last frame. Once reached, the tracking is stopped\n\
+\n\
+  -s \n\
+     Enable step-by-step mode when click is allowed.\n\
 \n\
   -f                                  \n\
      Do not use the vrml model, use the .cao one. These two models are \n\
@@ -147,22 +153,25 @@ OPTIONS:                                               \n\
      Set tracker type (<1 (Edge)>, <2 (KLT)>, <3 (EdgeKlt)>).\n\
 \n\
   -h \n\
-     Print the help.\n\n");
+     Print the help.\n\n", ext.c_str());
 
   if (badparam)
     fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
 }
 
 bool getOptions(int argc, const char **argv, std::string &ipath, std::string &configFile, std::string &modelFile,
-                std::string &initFile, long &lastFrame, bool &displayFeatures, bool &click_allowed, bool &display,
-                bool &cao3DModel, bool &trackCylinder, bool &useOgre, bool &showOgreConfigDialog, bool &useScanline,
-                bool &computeCovariance, bool &projectionError, int &trackerType)
+  std::string &initFile, long &lastFrame, bool &displayFeatures, bool &click_allowed, bool &display,
+  bool &cao3DModel, bool &trackCylinder, bool &useOgre, bool &showOgreConfigDialog, bool &useScanline,
+  bool &computeCovariance, bool &projectionError, int &trackerType, bool &step_by_step)
 {
   const char *optarg_;
   int c;
   while ((c = vpParseArgv::parse(argc, argv, GETOPTARGS, &optarg_)) > 1) {
 
     switch (c) {
+    case 's':
+      step_by_step = true;
+      break;
     case 'e':
       lastFrame = atol(optarg_);
       break;
@@ -212,20 +221,18 @@ bool getOptions(int argc, const char **argv, std::string &ipath, std::string &co
       trackerType = atoi(optarg_);
       break;
     case 'h':
-      usage(argv[0], NULL);
+      usage(argv[0], nullptr);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg_);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL);
+    usage(argv[0], nullptr);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -257,6 +264,18 @@ int main(int argc, const char **argv)
     bool computeCovariance = false;
     bool projectionError = false;
     int trackerType = vpMbGenericTracker::EDGE_TRACKER;
+    bool opt_step_by_step = false;
+
+#if defined(VISP_HAVE_DATASET)
+#if VISP_HAVE_DATASET_VERSION >= 0x030600
+    std::string ext("png");
+#else
+    std::string ext("pgm");
+#endif
+#else
+    // We suppose that the user will download a recent dataset
+    std::string ext("png");
+#endif
 
     // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH
     // environment variable value
@@ -269,29 +288,29 @@ int main(int argc, const char **argv)
     // Read the command line options
     if (!getOptions(argc, argv, opt_ipath, opt_configFile, opt_modelFile, opt_initFile, opt_lastFrame, displayFeatures,
                     opt_click_allowed, opt_display, cao3DModel, trackCylinder, useOgre, showOgreConfigDialog,
-                    useScanline, computeCovariance, projectionError, trackerType)) {
+                    useScanline, computeCovariance, projectionError, trackerType, opt_step_by_step)) {
       return EXIT_FAILURE;
     }
 
     // Test if an input path is set
     if (opt_ipath.empty() && env_ipath.empty()) {
-      usage(argv[0], NULL);
+      usage(argv[0], nullptr);
       std::cerr << std::endl << "ERROR:" << std::endl;
       std::cerr << "  Use -i <visp image path> option or set VISP_INPUT_IMAGE_PATH " << std::endl
-                << "  environment variable to specify the location of the " << std::endl
-                << "  image path where test images are located." << std::endl
-                << std::endl;
+        << "  environment variable to specify the location of the " << std::endl
+        << "  image path where test images are located." << std::endl
+        << std::endl;
 
       return EXIT_FAILURE;
     }
 
     // Get the option values
     if (!opt_ipath.empty())
-      ipath = vpIoTools::createFilePath(opt_ipath, "mbt/cube/image%04d.pgm");
+      ipath = vpIoTools::createFilePath(opt_ipath, "mbt/cube/image%04d." + ext);
     else
-      ipath = vpIoTools::createFilePath(env_ipath, "mbt/cube/image%04d.pgm");
+      ipath = vpIoTools::createFilePath(env_ipath, "mbt/cube/image%04d." + ext);
 
-#if USE_XML
+#if defined(VISP_HAVE_PUGIXML)
     std::string configFile;
     if (!opt_configFile.empty())
       configFile = opt_configFile;
@@ -303,13 +322,15 @@ int main(int argc, const char **argv)
 
     if (!opt_modelFile.empty()) {
       modelFile = opt_modelFile;
-    } else {
+    }
+    else {
       std::string modelFileCao;
       std::string modelFileWrl;
       if (trackCylinder) {
         modelFileCao = "mbt/cube_and_cylinder.cao";
         modelFileWrl = "mbt/cube_and_cylinder.wrl";
-      } else {
+      }
+      else {
         modelFileCao = "mbt/cube.cao";
         modelFileWrl = "mbt/cube.wrl";
       }
@@ -317,7 +338,8 @@ int main(int argc, const char **argv)
       if (!opt_ipath.empty()) {
         if (cao3DModel) {
           modelFile = vpIoTools::createFilePath(opt_ipath, modelFileCao);
-        } else {
+        }
+        else {
 #ifdef VISP_HAVE_COIN3D
           modelFile = vpIoTools::createFilePath(opt_ipath, modelFileWrl);
 #else
@@ -325,10 +347,12 @@ int main(int argc, const char **argv)
           modelFile = vpIoTools::createFilePath(opt_ipath, modelFileCao);
 #endif
         }
-      } else {
+      }
+      else {
         if (cao3DModel) {
           modelFile = vpIoTools::createFilePath(env_ipath, modelFileCao);
-        } else {
+        }
+        else {
 #ifdef VISP_HAVE_COIN3D
           modelFile = vpIoTools::createFilePath(env_ipath, modelFileWrl);
 #else
@@ -347,13 +371,15 @@ int main(int argc, const char **argv)
       initFile = vpIoTools::createFilePath(env_ipath, "mbt/cube");
 
     vpImage<unsigned char> I1, I2;
+    vpDisplay *display1 = nullptr, *display2 = nullptr;
     vpVideoReader reader;
 
     reader.setFileName(ipath);
     try {
       reader.open(I1);
       I2 = I1;
-    } catch (...) {
+    }
+    catch (...) {
       std::cerr << "Cannot open sequence: " << ipath << std::endl;
       return EXIT_FAILURE;
     }
@@ -364,27 +390,15 @@ int main(int argc, const char **argv)
     reader.acquire(I1);
     I2 = I1;
 
-// initialise a  display
-#if defined VISP_HAVE_X11
-    vpDisplayX display1, display2;
-#elif defined VISP_HAVE_GDI
-    vpDisplayGDI display1, display2;
-#elif defined VISP_HAVE_OPENCV
-    vpDisplayOpenCV display1, display2;
-#elif defined VISP_HAVE_D3D9
-    vpDisplayD3D display1, display2;
-#elif defined VISP_HAVE_GTK
-    vpDisplayGTK display1, display2;
-#else
-    opt_display = false;
-#endif
     if (opt_display) {
-#if defined(VISP_HAVE_DISPLAY)
-      display1.setDownScalingFactor(vpDisplay::SCALE_AUTO);
-      display2.setDownScalingFactor(vpDisplay::SCALE_AUTO);
-      display1.init(I1, 100, 100, "Test tracking (Left)");
-      display2.init(I2, (int)(I1.getWidth() / vpDisplay::getDownScalingFactor(I1)) + 110, 100, "Test tracking (Right)");
-#endif
+      // We open a window using either X11, GTK, OpenCV or GDI
+      display1 = vpDisplayFactory::allocateDisplay();
+      display2 = vpDisplayFactory::allocateDisplay();
+      display1->setDownScalingFactor(vpDisplay::SCALE_AUTO);
+      display2->setDownScalingFactor(vpDisplay::SCALE_AUTO);
+      display1->init(I1, 100, 100, "Test tracking (Left)");
+      display2->init(I2, static_cast<int>(I1.getWidth() / vpDisplay::getDownScalingFactor(I1)) + 110, 100, "Test tracking (Right)");
+
       vpDisplay::display(I1);
       vpDisplay::display(I2);
       vpDisplay::flush(I1);
@@ -396,8 +410,8 @@ int main(int argc, const char **argv)
     vpHomogeneousMatrix c1Mo, c2Mo;
     vpCameraParameters cam1, cam2;
 
-// Initialise the tracker: camera parameters, moving edge and KLT settings
-#if USE_XML
+    // Initialise the tracker: camera parameters, moving edge and KLT settings
+#if defined(VISP_HAVE_PUGIXML)
     // From the xml file
     dynamic_cast<vpMbGenericTracker *>(tracker)->loadConfigFile(configFile, configFile);
 #else
@@ -409,12 +423,13 @@ int main(int argc, const char **argv)
     me.setMaskSize(5);
     me.setMaskNumber(180);
     me.setRange(7);
-    me.setThreshold(5000);
+    me.setLikelihoodThresholdType(vpMe::NORMALIZED_THRESHOLD);
+    me.setThreshold(10);
     me.setMu1(0.5);
     me.setMu2(0.5);
     me.setSampleStep(4);
 
-#if defined(VISP_HAVE_MODULE_KLT) && (defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100))
+#if defined(VISP_HAVE_MODULE_KLT) && defined(VISP_HAVE_OPENCV) && defined(HAVE_OPENCV_IMGPROC) && defined(HAVE_OPENCV_VIDEO)
     vpKltOpencv klt;
     klt.setMaxFeatures(10000);
     klt.setWindowSize(5);
@@ -438,9 +453,9 @@ int main(int argc, const char **argv)
     tracker->setNearClippingDistance(0.01);
     tracker->setFarClippingDistance(0.90);
     tracker->setClipping(tracker->getClipping() | vpMbtPolygon::FOV_CLIPPING);
-//   tracker->setClipping(tracker->getClipping() | vpMbtPolygon::LEFT_CLIPPING
-//   | vpMbtPolygon::RIGHT_CLIPPING | vpMbtPolygon::UP_CLIPPING |
-//   vpMbtPolygon::DOWN_CLIPPING); // Equivalent to FOV_CLIPPING
+    //   tracker->setClipping(tracker->getClipping() | vpMbtPolygon::LEFT_CLIPPING
+    //   | vpMbtPolygon::RIGHT_CLIPPING | vpMbtPolygon::UP_CLIPPING |
+    //   vpMbtPolygon::DOWN_CLIPPING); // Equivalent to FOV_CLIPPING
 #endif
 
     // Display the moving edges, and the Klt points
@@ -467,7 +482,7 @@ int main(int argc, const char **argv)
     if (opt_display && opt_click_allowed) {
       while (!vpDisplay::getClick(I1, false)) {
         vpDisplay::display(I1);
-        vpDisplay::displayText(I1, 15, 10, "click after positioning the object", vpColor::red);
+        vpDisplay::displayText(I1, 15, 10, "Click after positioning the object", vpColor::red);
         vpDisplay::flush(I1);
       }
     }
@@ -480,13 +495,14 @@ int main(int argc, const char **argv)
     //   - a ./cube/cube.init file that defines the 3d coordinates (in meter,
     //   in the object basis) of the points used for the initialisation
     //   - a ./cube/cube.ppm file to display where the user have to click
-    //   (optionnal, set by the third parameter)
+    //   (Optional, set by the third parameter)
     if (opt_display && opt_click_allowed) {
       dynamic_cast<vpMbGenericTracker *>(tracker)->initClick(I1, I2, initFile, initFile, true);
       dynamic_cast<vpMbGenericTracker *>(tracker)->getPose(c1Mo, c2Mo);
       // display the 3D model at the given pose
       dynamic_cast<vpMbGenericTracker *>(tracker)->display(I1, I2, c1Mo, c2Mo, cam1, cam2, vpColor::red);
-    } else {
+    }
+    else {
       vpHomogeneousMatrix c1Moi(0.02044769891, 0.1101505452, 0.5078963719, 2.063603907, 1.110231561, -0.4392789872);
       vpHomogeneousMatrix c2Moi(0.02044769891, 0.1101505452, 0.5078963719, 2.063603907, 1.110231561, -0.4392789872);
       dynamic_cast<vpMbGenericTracker *>(tracker)->initFromPose(I1, I2, c1Moi, c2Moi);
@@ -501,7 +517,7 @@ int main(int argc, const char **argv)
       vpDisplay::flush(I2);
     }
 
-    bool quit = false, click = false;
+    bool quit = false;
     while (!reader.end() && !quit) {
       // acquire a new image
       reader.acquire(I1);
@@ -513,7 +529,7 @@ int main(int argc, const char **argv)
 
         std::stringstream ss;
         ss << "Num frame: " << reader.getFrameIndex() << "/" << reader.getLastFrameIndex();
-        vpDisplay::displayText(I1, 40, 20, ss.str(), vpColor::red);
+        vpDisplay::displayText(I1, 40, I1.getWidth() - 150, ss.str(), vpColor::red);
       }
 
       // Test to reset the tracker
@@ -525,7 +541,7 @@ int main(int argc, const char **argv)
         }
 
         tracker->resetTracker();
-#if USE_XML
+#if defined(VISP_HAVE_PUGIXML)
         dynamic_cast<vpMbGenericTracker *>(tracker)->loadConfigFile(configFile, configFile);
 #else
         // By setting the parameters:
@@ -535,12 +551,13 @@ int main(int argc, const char **argv)
         me.setMaskSize(5);
         me.setMaskNumber(180);
         me.setRange(7);
-        me.setThreshold(5000);
+        me.setLikelihoodThresholdType(vpMe::NORMALIZED_THRESHOLD);
+        me.setThreshold(10);
         me.setMu1(0.5);
         me.setMu2(0.5);
         me.setSampleStep(4);
 
-#if defined(VISP_HAVE_MODULE_KLT) && (defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100))
+#if defined(VISP_HAVE_MODULE_KLT) && defined(VISP_HAVE_OPENCV) && defined(HAVE_OPENCV_IMGPROC) && defined(HAVE_OPENCV_VIDEO)
         klt.setMaxFeatures(10000);
         klt.setWindowSize(5);
         klt.setQuality(0.01);
@@ -562,9 +579,9 @@ int main(int argc, const char **argv)
         tracker->setNearClippingDistance(0.01);
         tracker->setFarClippingDistance(0.90);
         tracker->setClipping(tracker->getClipping() | vpMbtPolygon::FOV_CLIPPING);
-//   tracker->setClipping(tracker->getClipping() | vpMbtPolygon::LEFT_CLIPPING
-//   | vpMbtPolygon::RIGHT_CLIPPING | vpMbtPolygon::UP_CLIPPING |
-//   vpMbtPolygon::DOWN_CLIPPING); // Equivalent to FOV_CLIPPING
+        //   tracker->setClipping(tracker->getClipping() | vpMbtPolygon::LEFT_CLIPPING
+        //   | vpMbtPolygon::RIGHT_CLIPPING | vpMbtPolygon::UP_CLIPPING |
+        //   vpMbtPolygon::DOWN_CLIPPING); // Equivalent to FOV_CLIPPING
 #endif
         tracker->loadModel(modelFile);
         dynamic_cast<vpMbGenericTracker *>(tracker)->setCameraParameters(cam1, cam2);
@@ -585,7 +602,7 @@ int main(int argc, const char **argv)
 
       // track the object: stop tracking from frame 40 to 50
       if (reader.getFrameIndex() - reader.getFirstFrameIndex() < 40 ||
-          reader.getFrameIndex() - reader.getFirstFrameIndex() >= 50) {
+        reader.getFrameIndex() - reader.getFirstFrameIndex() >= 50) {
         dynamic_cast<vpMbGenericTracker *>(tracker)->track(I1, I2);
         dynamic_cast<vpMbGenericTracker *>(tracker)->getPose(c1Mo, c2Mo);
         if (opt_display) {
@@ -598,20 +615,19 @@ int main(int argc, const char **argv)
       }
 
       if (opt_click_allowed && opt_display) {
-        vpDisplay::displayText(I1, 10, 10, "Click to quit", vpColor::red);
+        vpDisplay::displayText(I1, 20, I1.getWidth() - 150, std::string("Mode: ") + (opt_step_by_step ? std::string("step-by-step") : std::string("continuous")), vpColor::red);
+        vpDisplay::displayText(I1, 20, 10, "Right click to exit", vpColor::red);
+        vpDisplay::displayText(I1, 40, 10, "Middle click to change mode", vpColor::red);
+        if (opt_step_by_step) {
+          vpDisplay::displayText(I1, 60, 10, "Left click to process next image", vpColor::red);
+        }
         vpMouseButton::vpMouseButtonType button;
-        if (vpDisplay::getClick(I1, button, click)) {
-          switch (button) {
-          case vpMouseButton::button1:
-            quit = !click;
-            break;
-
-          case vpMouseButton::button3:
-            click = !click;
-            break;
-
-          default:
-            break;
+        if (vpDisplay::getClick(I1, button, opt_step_by_step)) {
+          if (button == vpMouseButton::button3) {
+            quit = true;
+          }
+          else if (button == vpMouseButton::button2) {
+            opt_step_by_step = !opt_step_by_step;
           }
         }
       }
@@ -639,10 +655,17 @@ int main(int argc, const char **argv)
     reader.close();
 
     delete tracker;
-    tracker = NULL;
+    tracker = nullptr;
 
+    if (display1) {
+      delete display1;
+    }
+    if (display2) {
+      delete display2;
+    }
     return EXIT_SUCCESS;
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return EXIT_FAILURE;
   }
@@ -651,8 +674,7 @@ int main(int argc, const char **argv)
 #elif !(defined(VISP_HAVE_MODULE_MBT) && defined(VISP_HAVE_DISPLAY))
 int main()
 {
-  std::cout << "Cannot run this example: visp_mbt, visp_gui modules are required."
-            << std::endl;
+  std::cout << "Cannot run this example: visp_mbt, visp_gui modules are required." << std::endl;
   return EXIT_SUCCESS;
 }
 #else

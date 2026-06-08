@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Test FLIR PTU interface.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /*!
   \example testRobotFlirPtu.cpp
@@ -52,6 +47,9 @@
 
 int main(int argc, char **argv)
 {
+#ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+#endif
   std::string opt_portname;
   int opt_baudrate = 9600;
   bool opt_network = false;
@@ -77,37 +75,44 @@ int main(int argc, char **argv)
     }
     else if (std::string(argv[i]) == "--help" || std::string(argv[i]) == "-h") {
       std::cout << "SYNOPSIS" << std::endl
-                << "  " << argv[0] << " [--portname <portname>] [--baudrate <rate>] [--network] [--reset] [--help] [-h]" << std::endl << std::endl
-                << "DESCRIPTION" << std::endl
-                << "  --portname, -p <portname>" << std::endl
-                << "    Set serial or tcp port name." << std::endl << std::endl
-                << "  --baudrate, -b <rate>" << std::endl
-                << "    Set serial communication baud rate. Default: " << opt_baudrate << "." << std::endl << std::endl
-                << "  --network, -n" << std::endl
-                << "    Get PTU network information (Hostname, IP, Gateway) and exit. " << std::endl << std::endl
-                << "  --reset, -r" << std::endl
-                << "    Reset PTU axis and exit. " << std::endl << std::endl
-                << "  --help, -h" << std::endl
-                << "    Print this helper message. " << std::endl << std::endl
-                << "EXAMPLE" << std::endl
-                << "  - How to get network IP" << std::endl
+        << "  " << argv[0] << " [--portname <portname>] [--baudrate <rate>] [--network] [--reset] [--help] [-h]"
+        << std::endl
+        << std::endl
+        << "DESCRIPTION" << std::endl
+        << "  --portname, -p <portname>" << std::endl
+        << "    Set serial or tcp port name." << std::endl
+        << std::endl
+        << "  --baudrate, -b <rate>" << std::endl
+        << "    Set serial communication baud rate. Default: " << opt_baudrate << "." << std::endl
+        << std::endl
+        << "  --network, -n" << std::endl
+        << "    Get PTU network information (Hostname, IP, Gateway) and exit. " << std::endl
+        << std::endl
+        << "  --reset, -r" << std::endl
+        << "    Reset PTU axis and exit. " << std::endl
+        << std::endl
+        << "  --help, -h" << std::endl
+        << "    Print this helper message. " << std::endl
+        << std::endl
+        << "EXAMPLE" << std::endl
+        << "  - How to get network IP" << std::endl
 #ifdef _WIN32
-                << "    $ " << argv[0] << " -p /dev/ttyUSB0 --network" << std::endl
+        << "    $ " << argv[0] << " -p /dev/ttyUSB0 --network" << std::endl
 #else
-                << "    $ " << argv[0] << " --portname COM1 --network" << std::endl
+        << "    $ " << argv[0] << " --portname COM1 --network" << std::endl
 #endif
-                << "    Try to connect FLIR PTU to port: /dev/ttyUSB0 with baudrate: 9600" << std::endl
-                << "       PTU HostName: PTU-5" << std::endl
-                << "       PTU IP      : 169.254.110.254" << std::endl
-                << "       PTU Gateway : 0.0.0.0" << std::endl
-                << "  - How to run this binary using serial communication" << std::endl
+        << "    Try to connect FLIR PTU to port: /dev/ttyUSB0 with baudrate: 9600" << std::endl
+        << "       PTU HostName: PTU-5" << std::endl
+        << "       PTU IP      : 169.254.110.254" << std::endl
+        << "       PTU Gateway : 0.0.0.0" << std::endl
+        << "  - How to run this binary using serial communication" << std::endl
 #ifdef _WIN32
-                << "    $ " << argv[0] << " --portname COM1" << std::endl
+        << "    $ " << argv[0] << " --portname COM1" << std::endl
 #else
-                << "    $ " << argv[0] << " --portname /dev/ttyUSB0" << std::endl
+        << "    $ " << argv[0] << " --portname /dev/ttyUSB0" << std::endl
 #endif
-                << "  - How to run this binary using network communication" << std::endl
-                << "    $ " << argv[0] << " --portname tcp:169.254.110.254" << std::endl;
+        << "  - How to run this binary using network communication" << std::endl
+        << "    $ " << argv[0] << " --portname tcp:169.254.110.254" << std::endl;
 
       return EXIT_SUCCESS;
     }
@@ -127,15 +132,15 @@ int main(int argc, char **argv)
     std::cout << "Try to connect FLIR PTU to port: " << opt_portname << " with baudrate: " << opt_baudrate << std::endl;
     robot.connect(opt_portname, opt_baudrate);
 
-    if(opt_network) {
-      std::cout << "PTU HostName: " << robot.getNetworkHostName() <<std::endl;
-      std::cout << "PTU IP      : " << robot.getNetworkIP() <<std::endl;
-      std::cout << "PTU Gateway : " << robot.getNetworkGateway() <<std::endl;
+    if (opt_network) {
+      std::cout << "PTU HostName: " << robot.getNetworkHostName() << std::endl;
+      std::cout << "PTU IP      : " << robot.getNetworkIP() << std::endl;
+      std::cout << "PTU Gateway : " << robot.getNetworkGateway() << std::endl;
       return EXIT_SUCCESS;
     }
 
-    if(opt_reset) {
-      std::cout << "Reset PTU axis" <<std::endl;
+    if (opt_reset) {
+      std::cout << "Reset PTU axis" << std::endl;
       robot.reset();
       return EXIT_SUCCESS;
     }
@@ -143,9 +148,13 @@ int main(int argc, char **argv)
     {
       std::cout << "** Test limits getter" << std::endl;
 
-      std::cout << "Pan  pos min/max [deg]: " << vpMath::deg(robot.getPanPosLimits()[0]) << " " << vpMath::deg(robot.getPanPosLimits()[1]) << std::endl;
-      std::cout << "Tilt pos min/max [deg]: " << vpMath::deg(robot.getTiltPosLimits()[0]) << " " << vpMath::deg(robot.getTiltPosLimits()[1]) << std::endl;
-      std::cout << "Pan/tilt vel max [deg/s]: " << vpMath::deg(robot.getPanTiltVelMax()[0]) << " " << vpMath::deg(robot.getPanTiltVelMax()[1]) << std::endl << std::endl;
+      std::cout << "Pan  pos min/max [deg]: " << vpMath::deg(robot.getPanPosLimits()[0]) << " "
+        << vpMath::deg(robot.getPanPosLimits()[1]) << std::endl;
+      std::cout << "Tilt pos min/max [deg]: " << vpMath::deg(robot.getTiltPosLimits()[0]) << " "
+        << vpMath::deg(robot.getTiltPosLimits()[1]) << std::endl;
+      std::cout << "Pan/tilt vel max [deg/s]: " << vpMath::deg(robot.getPanTiltVelMax()[0]) << " "
+        << vpMath::deg(robot.getPanTiltVelMax()[1]) << std::endl
+        << std::endl;
     }
 
     {
@@ -161,9 +170,13 @@ int main(int argc, char **argv)
       robot.setTiltPosLimits(tilt_pos_limits);
 
       std::cout << "Modified user min/max limits: " << std::endl;
-      std::cout << "Pan  pos min/max [deg]: " << vpMath::deg(robot.getPanPosLimits()[0]) << " " << vpMath::deg(robot.getPanPosLimits()[1]) << std::endl;
-      std::cout << "Tilt pos min/max [deg]: " << vpMath::deg(robot.getTiltPosLimits()[0]) << " " << vpMath::deg(robot.getTiltPosLimits()[1]) << std::endl;
-      std::cout << "Pan/tilt vel max [deg/s]: " << vpMath::deg(robot.getPanTiltVelMax()[0]) << " " << vpMath::deg(robot.getPanTiltVelMax()[1]) << std::endl << std::endl;
+      std::cout << "Pan  pos min/max [deg]: " << vpMath::deg(robot.getPanPosLimits()[0]) << " "
+        << vpMath::deg(robot.getPanPosLimits()[1]) << std::endl;
+      std::cout << "Tilt pos min/max [deg]: " << vpMath::deg(robot.getTiltPosLimits()[0]) << " "
+        << vpMath::deg(robot.getTiltPosLimits()[1]) << std::endl;
+      std::cout << "Pan/tilt vel max [deg/s]: " << vpMath::deg(robot.getPanTiltVelMax()[0]) << " "
+        << vpMath::deg(robot.getPanTiltVelMax()[1]) << std::endl
+        << std::endl;
     }
 
     {
@@ -177,7 +190,8 @@ int main(int argc, char **argv)
     {
       std::cout << "** Test joint positioning" << std::endl;
       robot.setRobotState(vpRobot::STATE_POSITION_CONTROL);
-      robot.setMaxRotationVelocity(std::min(robot.getPanTiltVelMax()[0], robot.getPanTiltVelMax()[1]) / 2.); // 50% of the slowest axis
+      robot.setMaxRotationVelocity(std::min<double>(robot.getPanTiltVelMax()[0], robot.getPanTiltVelMax()[1]) /
+                                   2.); // 50% of the slowest axis
 
       q = 0;
       std::cout << "Set joint position [deg]: " << vpMath::deg(q[0]) << " " << vpMath::deg(q[1]) << std::endl;
@@ -188,7 +202,8 @@ int main(int argc, char **argv)
       robot.setPosition(vpRobot::JOINT_STATE, q);
       robot.getPosition(vpRobot::JOINT_STATE, q_mes);
 
-      std::cout << "Position reached [deg]: " << vpMath::deg(q_mes[0]) << " " << vpMath::deg(q_mes[1]) << std::endl << std::endl;
+      std::cout << "Position reached [deg]: " << vpMath::deg(q_mes[0]) << " " << vpMath::deg(q_mes[1]) << std::endl
+        << std::endl;
     }
 
     {
@@ -203,7 +218,8 @@ int main(int argc, char **argv)
       robot.setPosition(vpRobot::ARTICULAR_FRAME, q);
       robot.getPosition(vpRobot::ARTICULAR_FRAME, q_mes);
 
-      std::cout << "Position reached [deg]: " << vpMath::deg(q_mes[0]) << " " << vpMath::deg(q_mes[1]) << std::endl << std::endl;
+      std::cout << "Position reached [deg]: " << vpMath::deg(q_mes[0]) << " " << vpMath::deg(q_mes[1]) << std::endl
+        << std::endl;
     }
 
     {
@@ -213,7 +229,8 @@ int main(int argc, char **argv)
       qdot[0] = vpMath::rad(-10); // Pan  velocity in rad/s
       qdot[1] = vpMath::rad(0);   // Tilt velocity in rad/s
 
-      std::cout << "Set velocity for 4s: " << vpMath::deg(qdot[0]) << " " << vpMath::deg(qdot[1]) << " [deg/s]" << std::endl;
+      std::cout << "Set velocity for 4s: " << vpMath::deg(qdot[0]) << " " << vpMath::deg(qdot[1]) << " [deg/s]"
+        << std::endl;
       std::cout << "Enter a caracter to apply" << std::endl;
       scanf("%d", &answer);
 
@@ -227,18 +244,21 @@ int main(int argc, char **argv)
 
       robot.setRobotState(vpRobot::STATE_STOP);
       robot.getPosition(vpRobot::ARTICULAR_FRAME, q_mes);
-      std::cout << "Position reached: " << vpMath::deg(q_mes[0]) << " " << vpMath::deg(q_mes[1]) << " [deg]" << std::endl << std::endl;
+      std::cout << "Position reached: " << vpMath::deg(q_mes[0]) << " " << vpMath::deg(q_mes[1]) << " [deg]"
+        << std::endl
+        << std::endl;
     }
 
     {
       std::cout << "** Test cartesian velocity with robot Jacobien eJe" << std::endl;
 
       vpColVector v_e(6, 0);
-      v_e[4] = vpMath::rad(5); //wy_e
-      v_e[5] = vpMath::rad(5); //wz_e
+      v_e[4] = vpMath::rad(5); // wy_e
+      v_e[5] = vpMath::rad(5); // wz_e
 
-      std::cout << "Set cartesian velocity in end-effector frame for 4s: " << v_e[0] << " " << v_e[1] << " " << v_e[2] << " [m/s] "
-                << vpMath::deg(v_e[3]) << " " << vpMath::deg(v_e[4]) << " " << vpMath::deg(v_e[5]) << " [deg/s]" << std::endl;
+      std::cout << "Set cartesian velocity in end-effector frame for 4s: " << v_e[0] << " " << v_e[1] << " " << v_e[2]
+        << " [m/s] " << vpMath::deg(v_e[3]) << " " << vpMath::deg(v_e[4]) << " " << vpMath::deg(v_e[5])
+        << " [deg/s]" << std::endl;
       std::cout << "Enter a caracter to apply" << std::endl;
       scanf("%d", &answer);
 
@@ -253,14 +273,18 @@ int main(int argc, char **argv)
 
       robot.setRobotState(vpRobot::STATE_STOP);
       robot.getPosition(vpRobot::ARTICULAR_FRAME, q_mes);
-      std::cout << "Position reached: " << vpMath::deg(q_mes[0]) << " " << vpMath::deg(q_mes[1]) << " [deg]" << std::endl << std::endl;
+      std::cout << "Position reached: " << vpMath::deg(q_mes[0]) << " " << vpMath::deg(q_mes[1]) << " [deg]"
+        << std::endl
+        << std::endl;
     }
 
     std::cout << "** The end" << std::endl;
-  } catch (const vpRobotException &e) {
+  }
+  catch (const vpRobotException &e) {
     std::cout << "Catch Flir Ptu signal exception: " << e.getMessage() << std::endl;
     robot.setRobotState(vpRobot::STATE_STOP);
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch Flir Ptu exception: " << e.getMessage() << std::endl;
     robot.setRobotState(vpRobot::STATE_STOP);
   }
@@ -274,4 +298,3 @@ int main()
 }
 
 #endif
-
