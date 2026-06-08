@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -36,9 +36,6 @@
 # - visp.pc in <build dir>/install from visp.pc.in
 #   When make install, this file is copied in <install dir>/lib/pkgconfig
 #
-# Authors:
-# Fabien Spindler
-#
 #############################################################################
 
 if(MINGW OR IOS)
@@ -58,6 +55,7 @@ endmacro()
 
 macro(fix_prefix lst isown)
   set(_lst)
+  vp_get_apple_sdk_dir(apple_sdk_dir)
   foreach(item ${${lst}})
     if(DEFINED TARGET_LOCATION_${item})
       set(item "${TARGET_LOCATION_${item}}")
@@ -70,7 +68,7 @@ macro(fix_prefix lst isown)
       list(APPEND _lst "${item}")
     elseif(item MATCHES "^-framework") # MacOS framework (assume single entry "-framework OpenCL")
       list(APPEND _lst "${item}")
-    elseif(item MATCHES "^-") #could be "-pthread" (occured with Ubuntu 18.04)
+    elseif(item MATCHES "^-") #could be "-pthread" (occurred with Ubuntu 18.04)
       list(APPEND _lst "${item}")
     elseif(item MATCHES ".framework/" OR item MATCHES "/([^/]+)\\.framework$")
       vp_get_framework(_fmk_name "${item}" NAME)
@@ -79,12 +77,22 @@ macro(fix_prefix lst isown)
     elseif(item MATCHES "/([^/]+)\\.tbd$")
       vp_get_tbd(_fmk_name "${item}" NAME)
       vp_get_tbd(_fmk_path "${item}" PATH)
-      list(APPEND _lst "-L${_fmk_path} -l${_fmk_name}")
+      # Add only link dirs that differ from apple sdk dir obtained with vp_get_apple_sdk_dir() and "xcrun --show-sdk-path" command
+      vp_string_starts_with(${_fmk_path} ${apple_sdk_dir} apple_sdk_dir_found)
+      if (NOT apple_sdk_dir_found)
+        list(APPEND _lst "-L${_fmk_path}")
+      endif()
+      list(APPEND _lst "-l${_fmk_name}")
     elseif(item MATCHES "[\\/]")
       get_filename_component(_libdir "${item}" PATH)
       get_filename_component(_libname "${item}" NAME)
       vp_get_libname(libname "${_libname}")
-      list(APPEND _lst "-L${_libdir}" "-l${libname}")
+      # Add only link dirs that differ from apple sdk dir obtained with vp_get_apple_sdk_dir() and "xcrun --show-sdk-path" command
+      vp_string_starts_with(${_libdir} ${apple_sdk_dir} apple_sdk_dir_found)
+      if (NOT apple_sdk_dir_found)
+        list(APPEND _lst "-L${_libdir}" "-l${libname}")
+      endif()
+      list(APPEND _lst "-l${libname}")
     else()
       list(APPEND _lst "-l${item}")
     endif()
@@ -183,6 +191,12 @@ if(NOT DEFINED CMAKE_HELPER_SCRIPT)
     VISP_RUNTIME
     VISP_HAVE_OPENMP
 
+    WITH_CATCH2
+    WITH_PUGIXML
+    WITH_SIMDLIB
+    WITH_STBIMAGE
+    WITH_TINYEXR
+
     FILE_VISP_SCRIPT_CONFIG
     FILE_VISP_SCRIPT_CONFIG_INSTALL
     FILE_VISP_SCRIPT_PC_INSTALL
@@ -253,7 +267,7 @@ set(TARGET_LOCATION_${item} \"${item}${VISP_VERSION_MAJOR}${VISP_VERSION_MINOR}$
 # =============================================================================
 else() # DEFINED CMAKE_HELPER_SCRIPT
 
-  cmake_minimum_required(VERSION 3.0)
+  cmake_minimum_required(VERSION 3.10)
   include("${CMAKE_HELPER_SCRIPT}")
   include("${VISP_SOURCE_DIR}/cmake/VISPUtils.cmake")
 
@@ -263,24 +277,6 @@ else() # DEFINED CMAKE_HELPER_SCRIPT
   set(VISP_SCRIPT_CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
   if(UNIX)
-    #----------------------------------------------------------------------
-    # Generate SonarQube config file
-    # Should be done before calling
-    #   fix_include_prefix(_includes_modules)
-    #   fix_include_prefix(_includes_extra)
-    #----------------------------------------------------------------------
-    set(VISP_SONARQUBE_INCLUDE_DIRS
-      "${CMAKE_BINARY_DIR}/${VISP_INC_INSTALL_PATH}"
-      "${_system_include_dirs}"
-      "${_includes_modules}"
-      "${_includes_extra}")
-
-    vp_list_replace_separator(VISP_SONARQUBE_INCLUDE_DIRS ", ")
-
-    configure_file("${VISP_SOURCE_DIR}/cmake/templates/sonar-project.properties.in"
-      "${VISP_BINARY_DIR}/sonar-project.properties"
-      @ONLY )
-
     #######################################################################
     #
     # for Unix platforms: Linux, OSX
@@ -358,8 +354,22 @@ else() # DEFINED CMAKE_HELPER_SCRIPT
     # Updates VISP_SCRIPT_PC_LIBS (for visp.pc used by pkg-config)
     #----------------------------------------------------------------------
     set(exec_prefix "\${prefix}")
-    set(includedir  "\${prefix}/${VISP_INC_INSTALL_PATH}")
-    set(libdir      "\${prefix}/${VISP_LIB_INSTALL_PATH}")
+
+    if(IS_ABSOLUTE ${VISP_INC_INSTALL_PATH})
+      set(includedir  "${VISP_INC_INSTALL_PATH}")
+    else()
+      set(includedir  "\${prefix}/${VISP_INC_INSTALL_PATH}")
+    endif()
+
+    if(IS_ABSOLUTE ${VISP_LIB_INSTALL_PATH})
+      set(libdir      "${VISP_LIB_INSTALL_PATH}")
+    else()
+      set(libdir      "\${exec_prefix}/${VISP_LIB_INSTALL_PATH}")
+    endif()
+    set(VISP_SCRIPT_PC_LIBS
+        "-Wl,-rpath,\${libdir} -L\${libdir}"
+        "${_modules}"
+      )
 
     # prepend with ViSP own include dir
     set(VISP_SCRIPT_PC_CFLAGS
@@ -370,19 +380,22 @@ else() # DEFINED CMAKE_HELPER_SCRIPT
     # Format the string to suppress CMake separators ";"
     vp_list_remove_separator(VISP_SCRIPT_PC_CFLAGS)
 
-    # prepend with ViSP own modules first
-    set(VISP_SCRIPT_PC_LIBS
-      "-L\${exec_prefix}/${VISP_LIB_INSTALL_PATH}"
-      "${_modules}"
-    )
     if(BUILD_SHARED_LIBS)
       set(VISP_SCRIPT_PC_LIBS_PRIVATE "${_extra_opt}")
     else()
-      set(VISP_SCRIPT_PC_LIBS_PRIVATE
-        "-L\${exec_prefix}/${VISP_3P_LIB_INSTALL_PATH}"
-        "${_3rdparty}"
-        "${_extra_opt}"
-      )
+      if(IS_ABSOLUTE ${VISP_3P_LIB_INSTALL_PATH})
+        set(VISP_SCRIPT_PC_LIBS_PRIVATE
+          "-L${VISP_3P_LIB_INSTALL_PATH}"
+          "${_3rdparty}"
+          "${_extra_opt}"
+        )
+      else()
+        set(VISP_SCRIPT_PC_LIBS_PRIVATE
+          "-L\${exec_prefix}/${VISP_3P_LIB_INSTALL_PATH}"
+          "${_3rdparty}"
+          "${_extra_opt}"
+        )
+      endif()
     endif()
 
     vp_list_remove_separator(VISP_SCRIPT_PC_LIBS)

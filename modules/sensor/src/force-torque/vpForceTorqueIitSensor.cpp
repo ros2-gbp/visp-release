@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -32,10 +31,8 @@
  * Wrapper over IIT force-torque sensor.
  *
  * Authors:
- * Fabien Spindler
  * Alexander Oliva
- *
- *****************************************************************************/
+ */
 
 /*!
   \file vpForceTorqueIitSensor.cpp
@@ -44,16 +41,18 @@
 
 #include <visp3/sensor/vpForceTorqueIitSensor.h>
 
-#ifdef VISP_HAVE_FT_IIT_SDK
+#if defined(VISP_HAVE_FT_IIT_SDK) && defined(VISP_HAVE_THREADS)
 
+BEGIN_VISP_NAMESPACE
 /*!
   Default constructor.
 
   Establish communication with sensor(-s) and start data acquisition thread.
 */
 vpForceTorqueIitSensor::vpForceTorqueIitSensor()
-  : m_ftLib(), m_numSensorsInLib(0), m_ft(6, 0), m_ft_filt(6, 0), m_ftSensorsData(), m_acquisitionEnabled(false), m_dataValid(false),
-    m_connected(false), m_acquisitionThread(), m_timeCur(), m_timePrev(), m_mutex(), m_warmupMilliseconds(500)
+  : m_ftLib(), m_numSensorsInLib(0), m_ft(6, 0), m_ft_filt(6, 0), m_ftSensorsData(), m_acquisitionEnabled(false),
+  m_dataValid(false), m_connected(false), m_acquisitionThread(), m_timeCur(), m_timePrev(), m_mutex(),
+  m_warmupMilliseconds(500)
 {
   // Get number of connected in library sensors
   m_numSensorsInLib = m_ftLib._getNumberOfConnectedSensors();
@@ -140,7 +139,8 @@ void vpForceTorqueIitSensor::acquisitionLoop()
       auto warmup_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(m_timeCur - time_init).count();
       if (warmup_milliseconds > m_warmupMilliseconds) {
         m_dataValid = true;
-      } else {
+      }
+      else {
         continue;
       }
 
@@ -186,7 +186,7 @@ bool vpForceTorqueIitSensor::connected(int timeout_ms) const
   \param[in] filtered : When true return filtered force-torque measurements,
   when false return raw data.
   If no filter is configured while getting filtered measurements, the SDK will
-  retun the raw data.
+  return the raw data.
   To configure the filter, you must access the sensor through the web interface.
   The default ip address is `192.168.1.1` if in default mode.
   Once in the web interface select NETWORK SETTINGS and you can configure the
@@ -213,7 +213,6 @@ vpColVector vpForceTorqueIitSensor::getForceTorque(bool filtered)
   }
 }
 
-
 /*!
    Start acquisition thread and wait until data are available.
  */
@@ -237,9 +236,9 @@ void vpForceTorqueIitSensor::stopStreaming()
     m_acquisitionThread.join();
   }
 }
-
+END_VISP_NAMESPACE
 #else
-// Work arround to avoid warning:
+// Work around to avoid warning:
 // libvisp_sensor.a(vpForceTorqueIitSensor.cpp.o) has no symbols
-void dummy_vpForceTorqueIitSensor(){};
+void dummy_vpForceTorqueIitSensor() { }
 #endif

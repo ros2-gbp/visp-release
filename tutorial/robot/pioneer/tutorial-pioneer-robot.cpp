@@ -1,10 +1,14 @@
 /*! \example tutorial-pioneer-robot.cpp */
 #include <iostream>
+#include <visp3/core/vpConfig.h>
 #include <visp3/robot/vpRobotPioneer.h>
 
 int main()
 {
 #ifdef VISP_HAVE_PIONEER
+#if defined(ENABLE_VISP_NAMESPACE)
+  using namespace VISP_NAMESPACE_NAME;
+#endif
   try {
     ArArgumentBuilder args;
     args.add("-rp");
@@ -19,7 +23,7 @@ int main()
     vpRobotPioneer robot;
 
     if (!conn.connectRobot(&robot))
-      return -1;
+      return EXIT_FAILURE;
 
     robot.useSonar(false);
     vpTime::wait(2000);
@@ -36,7 +40,8 @@ int main()
 
     robot.stopRunning();
     robot.waitForRunExit();
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
   }
 #endif

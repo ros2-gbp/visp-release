@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,9 +33,7 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 #include <visp3/tt_mi/vpTemplateTrackerMIForwardAdditional.h>
 
@@ -44,6 +41,7 @@
 #include <omp.h>
 #endif
 
+BEGIN_VISP_NAMESPACE
 vpTemplateTrackerMIForwardAdditional::vpTemplateTrackerMIForwardAdditional(vpTemplateTrackerWarp *_warp)
   : vpTemplateTrackerMI(_warp), minimizationMethod(USE_NEWTON), p_prec(), G_prec(), KQuasiNewton()
 {
@@ -123,7 +121,8 @@ void vpTemplateTrackerMIForwardAdditional::initHessienDesired(const vpImage<unsi
     vpMatrix::computeHLM(Hdesire, lambda, HLMdesire);
     try {
       HLMdesireInverse = HLMdesire.inverseByLU();
-    } catch (const vpException &e) {
+    }
+    catch (const vpException &e) {
       throw(e);
     }
   }
@@ -170,7 +169,7 @@ void vpTemplateTrackerMIForwardAdditional::trackNoPyr(const vpImage<unsigned cha
     omp_set_num_threads(nthreads);
 #pragma omp parallel for default(shared)
 #endif
-    for (int point = 0; point < (int)templateSize; point++) {
+    for (int point = 0; point < static_cast<int>(templateSize); point++) {
       int i = ptTemplate[point].y;
       int j = ptTemplate[point].x;
       X1[0] = j;
@@ -194,10 +193,10 @@ void vpTemplateTrackerMIForwardAdditional::trackNoPyr(const vpImage<unsigned cha
         double dx = dIx.getValue(i2, j2) * (Nc - 1) / 255.;
         double dy = dIy.getValue(i2, j2) * (Nc - 1) / 255.;
 
-        int ct = (int)((IW * (Nc - 1)) / 255.);
-        int cr = (int)((Tij * (Nc - 1)) / 255.);
+        int ct = static_cast<int>((IW * (Nc - 1)) / 255.);
+        int cr = static_cast<int>((Tij * (Nc - 1)) / 255.);
         double et = (IW * (Nc - 1)) / 255. - ct;
-        double er = ((double)Tij * (Nc - 1)) / 255. - cr;
+        double er = (static_cast<double>(Tij) * (Nc - 1)) / 255. - cr;
 
         Warp->dWarp(X1, X2, p, dW);
 
@@ -217,7 +216,8 @@ void vpTemplateTrackerMIForwardAdditional::trackNoPyr(const vpImage<unsigned cha
       diverge = true;
       MI = 0;
       throw(vpTrackingException(vpTrackingException::notEnoughPointError, "No points in the template"));
-    } else {
+    }
+    else {
       computeProba(Nbpoint);
       computeMI(MI);
       computeHessien(H);
@@ -239,7 +239,8 @@ void vpTemplateTrackerMIForwardAdditional::trackNoPyr(const vpImage<unsigned cha
           dp = gain * 0.2 * HLM.inverseByLU() * G;
           break;
         }
-      } catch (const vpException &e) {
+      }
+      catch (const vpException &e) {
         throw(e);
       }
     }
@@ -256,7 +257,8 @@ void vpTemplateTrackerMIForwardAdditional::trackNoPyr(const vpImage<unsigned cha
       if (MI_LMA > MI) {
         p = p_test_LMA;
         lambda = (lambda / 10. < 1e-6) ? lambda / 10. : 1e-6;
-      } else {
+      }
+      else {
         lambda = (lambda * 10. < 1e6) ? 1e6 : lambda * 10.;
       }
     } break;
@@ -279,7 +281,7 @@ void vpTemplateTrackerMIForwardAdditional::trackNoPyr(const vpImage<unsigned cha
         if (std::fabs(s_scal_y) > std::numeric_limits<double>::epsilon()) {
           KQuasiNewton = KQuasiNewton + 0.001 * (s_quasi * s_quasi.t() / s_scal_y -
                                                  KQuasiNewton * y_quasi * y_quasi.t() * KQuasiNewton /
-                                                 (y_quasi.t() * KQuasiNewton * y_quasi));
+                                                     (y_quasi.t() * KQuasiNewton * y_quasi));
         }
       }
       dp = -KQuasiNewton * G;
@@ -314,7 +316,7 @@ void vpTemplateTrackerMIForwardAdditional::trackNoPyr(const vpImage<unsigned cha
     evolRMS_prec = evolRMS;
 
   } while ((std::fabs(MI - MIprec) > std::fabs(MI) * std::numeric_limits<double>::epsilon()) &&
-           (iteration < iterationMax) && (evolRMS_delta > std::fabs(evolRMS_init)*evolRMS_eps));
+           (iteration < iterationMax) && (evolRMS_delta > std::fabs(evolRMS_init) * evolRMS_eps));
 
   if (Nbpoint == 0) {
     throw(vpTrackingException(vpTrackingException::notEnoughPointError, "No points in the template"));
@@ -326,3 +328,4 @@ void vpTemplateTrackerMIForwardAdditional::trackNoPyr(const vpImage<unsigned cha
     MI_postEstimation = -1;
   }
 }
+END_VISP_NAMESPACE

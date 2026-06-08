@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,15 +29,12 @@
  *
  * Description:
  * Cylinder feature.
- *
- * Authors:
- * Eric Marchand
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpCylinder.h>
 #include <visp3/core/vpFeatureDisplay.h>
 
+BEGIN_VISP_NAMESPACE
 void vpCylinder::init()
 {
   oP.resize(7);
@@ -65,11 +61,18 @@ void vpCylinder::init()
 void vpCylinder::setWorldCoordinates(const vpColVector &o_P) { this->oP = o_P; }
 
 /*!
-  Set the cylinder parameters oP = (oA, oB, oC, oX, oY, oZ, R) expressed in the object
-  frame.
+  Set the cylinder parameters oP = (oA, oB, oC, oX, oY, oZ, R) expressed in the object frame.
 
-  \param oA, oB, oC, oX, oY, oZ, R : Cylinder parameters in the object frame.
-
+  \param[in] oA : Coordinates along the X axis of the cylinder axis vector.
+  \param[in] oB : Coordinates along the Y axis of the cylinder axis vector.
+  \param[in] oC : Coordinates along the Z axis of the cylinder axis vector.
+  \param[in] oX : Coordinate along the X axis of the nearest point belonging to the cylinder axis from the projection
+  center.
+  \param[in] oY : Coordinate along the Y axis of the nearest point belonging to the cylinder axis from the projection
+  center.
+  \param[in] oZ : Coordinate along the Z axis of the nearest point belonging to the cylinder axis from the projection
+  center.
+  \param[in] R : Cylinder radius in meter.
 */
 void vpCylinder::setWorldCoordinates(double oA, double oB, double oC, double oX, double oY, double oZ, double R)
 {
@@ -88,8 +91,7 @@ void vpCylinder::setWorldCoordinates(double oA, double oB, double oC, double oX,
 vpCylinder::vpCylinder() { init(); }
 
 /*!
-  Create and initialize a cylinder with parameters oP = (oA, oB, oC, oX, oY, oZ, R) expressed in the object
-  frame.
+  Create and initialize a cylinder with parameters oP = (oA, oB, oC, oX, oY, oZ, R) expressed in the object frame.
 
   \param o_P : 7-dim vector of parameters.
 
@@ -109,24 +111,26 @@ vpCylinder::vpCylinder(const vpColVector &o_P)
 }
 
 /*!
-  Create and initialize a cylinder with parameters oP = (oA, oB, oC, oX, oY, oZ, R) expressed in the object
-  frame.
+  Create and initialize a cylinder with parameters oP = (oA, oB, oC, oX, oY, oZ, R) expressed in the object frame.
 
-  \param oA, oB, oC, oX, oY, oZ, R : Cylinder parameters expressed in the object frame.
+  \param[in] oA : Coordinates along the X axis of the cylinder axis vector.
+  \param[in] oB : Coordinates along the Y axis of the cylinder axis vector.
+  \param[in] oC : Coordinates along the Z axis of the cylinder axis vector.
+  \param[in] oX : Coordinate along the X axis of the nearest point belonging to the cylinder axis from the projection
+  center.
+  \param[in] oY : Coordinate along the Y axis of the nearest point belonging to the cylinder axis from the projection
+  center.
+  \param[in] oZ : Coordinate along the Z axis of the nearest point belonging to the cylinder axis from the projection
+  center.
+  \param[in] R : Cylinder radius in meter.
 
-  \sa setWorldCoordinates(const double,const double,const double,const
-  double,const double,const double,const double)
+  \sa setWorldCoordinates(const double, const double, const double, const double, const double, const double, const double)
 */
 vpCylinder::vpCylinder(double oA, double oB, double oC, double oX, double oY, double oZ, double R)
 {
   init();
   setWorldCoordinates(oA, oB, oC, oX, oY, oZ, R);
 }
-
-/*!
-  Default constructor.
-  */
-vpCylinder::~vpCylinder() {}
 
 /*!
   Perspective projection of the cylinder.
@@ -428,3 +432,4 @@ void vpCylinder::display(const vpImage<vpRGBa> &I, const vpCameraParameters &cam
 {
   vpFeatureDisplay::displayCylinder(p[0], p[1], p[2], p[3], cam, I, color, thickness);
 }
+END_VISP_NAMESPACE

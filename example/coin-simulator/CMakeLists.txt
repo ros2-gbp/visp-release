@@ -1,7 +1,7 @@
 #############################################################################
 #
 # ViSP, open source Visual Servoing Platform software.
-# Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+# Copyright (C) 2005 - 2025 by Inria. All rights reserved.
 #
 # This software is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GPL, please contact Inria about acquiring a ViSP Professional
 # Edition License.
 #
-# See http://visp.inria.fr for more information.
+# See https://visp.inria.fr for more information.
 #
 # This software was developed at:
 # Inria Rennes - Bretagne Atlantique
@@ -31,14 +31,11 @@
 # Description:
 # ViSP configuration file.
 #
-# Authors:
-# Fabien Spindler
-#
 #############################################################################
 
-project(example-coin-simulator)
+cmake_minimum_required(VERSION 3.10)
 
-cmake_minimum_required(VERSION 3.0)
+project(example-coin-simulator)
 
 find_package(VISP REQUIRED visp_core visp_robot visp_vs visp_ar visp_io)
 
@@ -57,5 +54,5 @@ foreach(cpp ${example_cpp})
   # Add test
   get_filename_component(target ${cpp} NAME_WE)
   # Only if dataset found for isolated build
-  visp_add_test(${target} ${target} ${OPTION_TO_DESACTIVE_DISPLAY})
+  visp_add_test(${target} ${target} ${SHORT_OPTION_TO_DISABLE_DISPLAY})
 endforeach()

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,19 +29,15 @@
  *
  * Description:
  * Interface for Flir Ptu Cpi robot.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
-
-#ifndef vpRobotFlirPtu_h
-#define vpRobotFlirPtu_h
+ */
 
 /*!
   \file vpRobotFlirPtu.h
   Interface for Flir Ptu Cpi robot.
 */
+
+#ifndef vpRobotFlirPtu_h
+#define vpRobotFlirPtu_h
 
 #include <visp3/core/vpConfig.h>
 
@@ -52,6 +47,7 @@
 #include <visp3/robot/vpRobot.h>
 #include <visp3/robot/vpRobotException.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpRobotFlirPtu
   \ingroup group_robot_real_arm
@@ -91,7 +87,11 @@
   $ make -j4
   \endcode
 
-  \sa \ref tutorial-flir-ptu-vs
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in using performing visual servoing using a FLIR pan-tilt unit, you may have a look at:</span><br>
+ * - \ref tutorial-flir-ptu-vs
 */
 class VISP_EXPORT vpRobotFlirPtu : public vpRobot
 {
@@ -102,9 +102,9 @@ public:
   void connect(const std::string &portname, int baudrate = 9600);
   void disconnect();
 
-  void get_eJe(vpMatrix &eJe);
+  void get_eJe(vpMatrix &eJe) VP_OVERRIDE;
   vpMatrix get_eJe();
-  void get_fJe(vpMatrix &fJe);
+  void get_fJe(vpMatrix &fJe) VP_OVERRIDE;
   vpMatrix get_fJe();
   vpMatrix get_fMe();
 
@@ -115,13 +115,13 @@ public:
   vpHomogeneousMatrix get_eMc() const { return m_eMc; }
   vpVelocityTwistMatrix get_cVe() const;
 
-  void getDisplacement(const vpRobot::vpControlFrameType frame, vpColVector &q);
+  void getDisplacement(const vpRobot::vpControlFrameType frame, vpColVector &q) VP_OVERRIDE;
 
   std::string getNetworkIP();
   std::string getNetworkGateway();
   std::string getNetworkHostName();
 
-  void getPosition(const vpRobot::vpControlFrameType frame, vpColVector &q);
+  void getPosition(const vpRobot::vpControlFrameType frame, vpColVector &q) VP_OVERRIDE;
   vpColVector getPanPosLimits();
   vpColVector getTiltPosLimits();
   vpColVector getPanTiltVelMax();
@@ -133,13 +133,13 @@ public:
     If your tool is a camera, this transformation is obtained by hand-eye calibration.
    */
   void set_eMc(vpHomogeneousMatrix &eMc) { m_eMc = eMc; }
-  void setPosition(const vpRobot::vpControlFrameType frame, const vpColVector &q);
+  void setPosition(const vpRobot::vpControlFrameType frame, const vpColVector &q) VP_OVERRIDE;
   void setPanPosLimits(const vpColVector &pan_limits);
   void setTiltPosLimits(const vpColVector &tilt_limits);
 
   void setPositioningVelocity(double velocity);
   vpRobot::vpRobotStateType setRobotState(vpRobot::vpRobotStateType newState);
-  void setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &vel);
+  void setVelocity(const vpRobot::vpControlFrameType frame, const vpColVector &vel) VP_OVERRIDE;
   void stopMotion();
 
   static void emergencyStop(int signo);
@@ -169,6 +169,6 @@ protected:
   int m_njoints;
   double m_positioning_velocity;
 };
-
+END_VISP_NAMESPACE
 #endif
 #endif
