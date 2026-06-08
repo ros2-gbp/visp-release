@@ -240,7 +240,7 @@ tracks:
     last_release: v3.5.0
     last_version: 3.5.0
     name: upstream
-    patches: rolling
+    patches: jazzy
     release_inc: '4'
     release_repo_url: null
     release_tag: :{ask}
