@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Conversion between tracker and visual feature ellipse.
- *
- * Authors:
- * Eric Marchand
- *
- *****************************************************************************/
+ */
 
 /*!
   \file vpFeatureBuilderEllipse.cpp
@@ -45,6 +40,7 @@
 #include <visp3/core/vpMath.h>
 #include <visp3/visual_features/vpFeatureBuilder.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   Initialize an ellipse feature thanks to a vpCircle.
   The vpFeatureEllipse is initialized thanks to the parameters of the circle
@@ -192,11 +188,11 @@ void vpFeatureBuilder::create(vpFeatureEllipse &s, const vpCameraParameters &cam
 void vpFeatureBuilder::create(vpFeatureEllipse &s, const vpCameraParameters &cam, const vpMeEllipse &ellipse)
 {
   double xg, yg, n20, n11, n02;
-  vpPixelMeterConversion::convertEllipse(cam, ellipse.getCenter(),
-                                         ellipse.get_nij()[0], ellipse.get_nij()[1], ellipse.get_nij()[2],
-                                         xg, yg, n20, n11, n02);
+  vpPixelMeterConversion::convertEllipse(cam, ellipse.getCenter(), ellipse.get_nij()[0], ellipse.get_nij()[1],
+                                         ellipse.get_nij()[2], xg, yg, n20, n11, n02);
 
   s.buildFrom(xg, yg, n20, n11, n02);
 }
 
 #endif //#ifdef VISP_HAVE_MODULE_ME
+END_VISP_NAMESPACE

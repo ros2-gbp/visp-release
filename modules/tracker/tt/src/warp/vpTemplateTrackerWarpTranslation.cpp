@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,25 +33,21 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #include <visp3/tt/vpTemplateTrackerWarpTranslation.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
  * Construct a model with 2 parameters for translation initialized to zero.
  */
-vpTemplateTrackerWarpTranslation::vpTemplateTrackerWarpTranslation()
-{
-  nbParam = 2;
-}
+  vpTemplateTrackerWarpTranslation::vpTemplateTrackerWarpTranslation() { nbParam = 2; }
 
-/*!
- * Get the parameters of the warping function one level down
- * where image size is divided by two along the lines and the columns.
- * \param p : 2-dim vector that contains the current parameters of the warping function.
- * \param p_down : 2-dim vector that contains the resulting parameters one level down.
- */
+  /*!
+   * Get the parameters of the warping function one level down
+   * where image size is divided by two along the lines and the columns.
+   * \param p : 2-dim vector that contains the current parameters of the warping function.
+   * \param p_down : 2-dim vector that contains the resulting parameters one level down.
+   */
 void vpTemplateTrackerWarpTranslation::getParamPyramidDown(const vpColVector &p, vpColVector &p_down)
 {
   p_down[0] = p[0] / 2.;
@@ -77,7 +72,8 @@ void vpTemplateTrackerWarpTranslation::getParamPyramidUp(const vpColVector &p, v
  * \param du : Derivative on the u-axis (along the columns) of the point (u,v).
  * \param dIdW : Resulting derivative matrix (image according to the warping function).
  */
-void vpTemplateTrackerWarpTranslation::getdW0(const int &, const int &, const double &dv, const double &du, double *dIdW)
+void vpTemplateTrackerWarpTranslation::getdW0(const int &, const int &, const double &dv, const double &du,
+                                              double *dIdW)
 {
   dIdW[0] = du;
   dIdW[1] = dv;
@@ -150,8 +146,8 @@ void vpTemplateTrackerWarpTranslation::dWarp(const vpColVector &, const vpColVec
  * the initial warping function parameters (p=0).
  * \param dM : Resulting warping model compositionnal derivative returned as a 2-by-2 matrix.
  */
-void vpTemplateTrackerWarpTranslation::dWarpCompo(const vpColVector &, const vpColVector &,
-                                                  const vpColVector &, const double *dwdp0, vpMatrix &dM)
+void vpTemplateTrackerWarpTranslation::dWarpCompo(const vpColVector &, const vpColVector &, const vpColVector &,
+                                                  const double *dwdp0, vpMatrix &dM)
 {
   for (unsigned int i = 0; i < nbParam; i++) {
     dM[0][i] = dwdp0[i];
@@ -197,3 +193,4 @@ void vpTemplateTrackerWarpTranslation::pRondp(const vpColVector &p1, const vpCol
   p12[0] = p1[0] + p2[0];
   p12[1] = p1[1] + p2[1];
 }
+END_VISP_NAMESPACE

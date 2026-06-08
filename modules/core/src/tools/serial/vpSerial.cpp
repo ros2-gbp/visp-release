@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,63 +29,68 @@
  *
  * Description:
  * Serial communication.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpConfig.h>
 
 #if !defined(_WIN32)
 
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
-#include <errno.h>
 
-#include <visp3/core/vpSerial.h>
 #include <visp3/core/vpException.h>
+#include <visp3/core/vpSerial.h>
 
 #ifndef TIOCINQ
-#  ifdef FIONREAD
-#    define TIOCINQ FIONREAD
-#  else
-#    define TIOCINQ 0x541B
-#  endif
+#ifdef FIONREAD
+#define TIOCINQ FIONREAD
+#else
+#define TIOCINQ 0x541B
+#endif
 #endif
 
+BEGIN_VISP_NAMESPACE
 /*!
   Creates a serial port object that opens the port if the parameter is not empty.
   \code
-#include <visp3/core/vpSerial.h>
+  #include <visp3/core/vpSerial.h>
 
-int main()
-{
-#ifndef WIN32
-  vpSerial serial("/dev/ttyUSB0");
-#endif
-}
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
+
+  int main()
+  {
+  #ifndef WIN32
+    vpSerial serial("/dev/ttyUSB0");
+  #endif
+  }
   \endcode
 
   Otherwise the port needs to be opened using open().
   \code
-#include <visp3/core/vpSerial.h>
+  #include <visp3/core/vpSerial.h>
 
-int main()
-{
-#ifndef WIN32
-  vpSerial serial;
-  serial.setPort("/dev/ttyUSB0");
-  serial.open();
-#endif
-}
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
+
+  int main()
+  {
+  #ifndef WIN32
+    vpSerial serial;
+    serial.setPort("/dev/ttyUSB0");
+    serial.open();
+  #endif
+  }
   \endcode
 
   \param[in] port : Serial port name. A string similar to `/dev/ttyUSB0`, `/dev/ttySO`, `/dev/ttyAMA0`...
@@ -94,94 +98,75 @@ int main()
   \param[in] bytesize : Size of each byte in the serial transmission of data. Default is 8 bits.
   \param[in] parity : Parity parameter. Default is without parity check.
   \param[in] stopbits : Number of stop bits used. Default is 1 stop bit.
-  \param[in] flowcontrol : Type of flowcontrol used. Default is no flow control.
+  \param[in] flowcontrol : Type of flow control used. Default is no flow control.
 
  */
-vpSerial::vpSerial(const std::string &port, unsigned long baudrate,
-                   bytesize_t bytesize, parity_t parity, stopbits_t stopbits,
-                   flowcontrol_t flowcontrol)
-  : m_port(port), m_fd(-1), m_is_open(false), m_xonxoff(false), m_rtscts(false),
-    m_baudrate(baudrate), m_parity(parity),
-    m_bytesize(bytesize), m_stopbits(stopbits), m_flowcontrol(flowcontrol)
+  vpSerial::vpSerial(const std::string &port, unsigned long baudrate, bytesize_t bytesize, parity_t parity,
+                     stopbits_t stopbits, flowcontrol_t flowcontrol)
+  : m_port(port), m_fd(-1), m_is_open(false), m_xonxoff(false), m_rtscts(false), m_baudrate(baudrate), m_parity(parity),
+  m_bytesize(bytesize), m_stopbits(stopbits), m_flowcontrol(flowcontrol)
 {
-  if (m_port.empty () == false)
+  if (m_port.empty() == false)
     open();
 }
 
 /*!
  * Destructor that closes the serial port.
  */
-vpSerial::~vpSerial()
-{
-  close();
-}
+vpSerial::~vpSerial() { close(); }
 
 /*!
   Set serial baud rate. Typical values are 9600, 19200, 38400, 57600, 115200...
   \sa getBaudrate()
  */
-void vpSerial::setBaudrate(const unsigned long baudrate)
-{
-  m_baudrate = baudrate;
-}
+void vpSerial::setBaudrate(const unsigned long baudrate) { m_baudrate = baudrate; }
 
 /*!
   Set byte size.
   \sa getBytesize()
  */
-void vpSerial::setBytesize(const bytesize_t &bytesize)
-{
-  m_bytesize = bytesize;
-}
+void vpSerial::setBytesize(const bytesize_t &bytesize) { m_bytesize = bytesize; }
 
 /*!
   Set flow control type.
   \sa getFlowcontrol()
  */
-void vpSerial::setFlowcontrol(const flowcontrol_t &flowcontrol)
-{
-  m_flowcontrol = flowcontrol;
-}
+void vpSerial::setFlowcontrol(const flowcontrol_t &flowcontrol) { m_flowcontrol = flowcontrol; }
 
 /*!
   Set parity.
   \sa getParity()
  */
-void vpSerial::setParity(const parity_t &parity)
-{
-  m_parity = parity;
-}
+void vpSerial::setParity(const parity_t &parity) { m_parity = parity; }
 
 /*!
   Set number of stop bits.
   \sa getStopbits()
  */
-void vpSerial::setStopbits(const stopbits_t &stopbits)
-{
-  m_stopbits = stopbits;
-}
+void vpSerial::setStopbits(const stopbits_t &stopbits) { m_stopbits = stopbits; }
 
 /*!
   Set the serial port name. The name is a string similar to `/dev/ttyUSB0`, `/dev/ttySO`, `/dev/ttyAMA0`...
   \code
-#include <visp3/core/vpSerial.h>
+  #include <visp3/core/vpSerial.h>
 
-int main()
-{
-#ifndef WIN32
-  vpSerial serial;
-  serial.setPort("/dev/ttyUSB0");
-  serial.open();
-#endif
-}
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
+
+  int main()
+  {
+  #ifndef WIN32
+    vpSerial serial;
+    serial.setPort("/dev/ttyUSB0");
+    serial.open();
+  #endif
+  }
   \endcode
 
   \sa getPort()
  */
-void vpSerial::setPort(const std::string &port)
-{
-  m_port = port;
-}
+void vpSerial::setPort(const std::string &port) { m_port = port; }
 
 /*!
   Return the number of characters in the buffer.
@@ -192,9 +177,10 @@ int vpSerial::available()
     return 0;
   }
   int count = 0;
-  if (-1 == ioctl (m_fd, TIOCINQ, &count)) {
+  if (-1 == ioctl(m_fd, TIOCINQ, &count)) {
     throw(vpException(vpException::fatalError, "Cannot check is serial port data available"));
-  } else {
+  }
+  else {
     return count;
   }
 }
@@ -208,10 +194,11 @@ void vpSerial::close()
   if (m_is_open == true) {
     if (m_fd != -1) {
       int ret;
-      ret = ::close (m_fd);
+      ret = ::close(m_fd);
       if (ret == 0) {
         m_fd = -1;
-      } else {
+      }
+      else {
         throw(vpException(vpException::fatalError, "Cannot close serial port"));
       }
     }
@@ -226,36 +213,40 @@ void vpSerial::close()
 
    The following example shows how to open the serial port `/dev/ttyUSB0` without using the constructor:
    \code
-#include <visp3/core/vpSerial.h>
+  #include <visp3/core/vpSerial.h>
 
-int main()
-{
-#ifndef WIN32
-  vpSerial serial;
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  serial.setPort("/dev/ttyUSB0");
-  serial.setBaudrate(9600);
-  serial.setBytesize(vpSerial::eightbits);
-  serial.setParity(vpSerial::parity_none);
-  serial.setStopbits(vpSerial::stopbits_one);
-  serial.setFlowcontrol(vpSerial::flowcontrol_none);
+  int main()
+  {
+  #ifndef _WIN32
+    vpSerial serial;
 
-  serial.open();
-#endif
-}
+    serial.setPort("/dev/ttyUSB0");
+    serial.setBaudrate(9600);
+    serial.setBytesize(vpSerial::eightbits);
+    serial.setParity(vpSerial::parity_none);
+    serial.setStopbits(vpSerial::stopbits_one);
+    serial.setFlowcontrol(vpSerial::flowcontrol_none);
+
+    serial.open();
+  #endif
+  }
    \endcode
 
  */
 void vpSerial::open()
 {
-  if (m_port.empty ()) {
+  if (m_port.empty()) {
     throw(vpException(vpException::fatalError, "Serial port empty"));
   }
   if (m_is_open == true) {
     throw(vpException(vpException::fatalError, "Serial port already open"));
   }
 
-  m_fd = ::open (m_port.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+  m_fd = ::open(m_port.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
   if (m_fd == -1) {
     switch (errno) {
@@ -288,18 +279,18 @@ bool vpSerial::read(char *c, long timeout_s)
   }
 
   fd_set readfds;                          /* list of fds for select to listen to */
-  struct timeval timeout = {timeout_s, 0}; // seconde, micro-sec
+  struct timeval timeout = { timeout_s, 0 }; // seconde, micro-sec
 
   FD_ZERO(&readfds);
   FD_SET(static_cast<unsigned int>(m_fd), &readfds);
 
-  int ret = select(FD_SETSIZE, &readfds, (fd_set *)NULL, (fd_set *)NULL, &timeout);
+  int ret = select(FD_SETSIZE, &readfds, (fd_set *)nullptr, (fd_set *)nullptr, &timeout);
 
   if (ret < 0) {
     throw(vpException(vpException::fatalError, "Serial i/o exception"));
   }
   else if (ret == 0) {
-    // Timeout occured
+ // Timeout occurred
     return false;
   }
   else {
@@ -318,15 +309,13 @@ bool vpSerial::read(char *c, long timeout_s)
 std::string vpSerial::readline(const std::string &eol)
 {
   char c;
-  size_t read_so_far = 0;
-  size_t eol_len = eol.length ();
+  size_t eol_len = eol.length();
   std::string line;
 
-  while(true) {
+  while (true) {
     size_t bytes_read = this->read(&c, 1);
-    read_so_far += bytes_read;
     if (bytes_read == 0) {
-      break; // Timeout occured on reading 1 byte
+      break; // Timeout occurred on reading 1 byte
     }
     line.append(&c, 1);
     if (std::string(line, line.size() - eol_len, eol_len) == eol) {
@@ -366,157 +355,235 @@ void vpSerial::configure()
   }
 
   // set up raw mode / no echo / binary
-  options.c_cflag |= (tcflag_t)  (CLOCAL | CREAD);
-  options.c_lflag &= (tcflag_t) ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL |
-                                  ISIG | IEXTEN); //|ECHOPRT
+  options.c_cflag |= (tcflag_t)(CLOCAL | CREAD);
+  options.c_lflag &= (tcflag_t)~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN); //|ECHOPRT
 
-  options.c_oflag &= (tcflag_t) ~(OPOST);
-  options.c_iflag &= (tcflag_t) ~(INLCR | IGNCR | ICRNL | IGNBRK);
+  options.c_oflag &= (tcflag_t)~(OPOST);
+  options.c_iflag &= (tcflag_t)~(INLCR | IGNCR | ICRNL | IGNBRK);
 
 #ifdef IUCLC
-  options.c_iflag &= (tcflag_t) ~IUCLC;
+  options.c_iflag &= (tcflag_t)~IUCLC;
 #endif
 #ifdef PARMRK
-  options.c_iflag &= (tcflag_t) ~PARMRK;
+  options.c_iflag &= (tcflag_t)~PARMRK;
 #endif
 
   speed_t baudrate;
-  switch(m_baudrate) {
+  switch (m_baudrate) {
 #ifdef B0
-  case 0: baudrate = B0; break;
+  case 0:
+    baudrate = B0;
+    break;
 #endif
 #ifdef B50
-  case 50: baudrate = B50; break;
+  case 50:
+    baudrate = B50;
+    break;
 #endif
 #ifdef B75
-  case 75: baudrate = B75; break;
+  case 75:
+    baudrate = B75;
+    break;
 #endif
 #ifdef B110
-  case 110: baudrate = B110; break;
+  case 110:
+    baudrate = B110;
+    break;
 #endif
 #ifdef B134
-  case 134: baudrate = B134; break;
+  case 134:
+    baudrate = B134;
+    break;
 #endif
 #ifdef B150
-  case 150: baudrate = B150; break;
+  case 150:
+    baudrate = B150;
+    break;
 #endif
 #ifdef B200
-  case 200: baudrate = B200; break;
+  case 200:
+    baudrate = B200;
+    break;
 #endif
 #ifdef B300
-  case 300: baudrate = B300; break;
+  case 300:
+    baudrate = B300;
+    break;
 #endif
 #ifdef B600
-  case 600: baudrate = B600; break;
+  case 600:
+    baudrate = B600;
+    break;
 #endif
 #ifdef B1200
-  case 1200: baudrate = B1200; break;
+  case 1200:
+    baudrate = B1200;
+    break;
 #endif
 #ifdef B1800
-  case 1800: baudrate = B1800; break;
+  case 1800:
+    baudrate = B1800;
+    break;
 #endif
 #ifdef B2400
-  case 2400: baudrate = B2400; break;
+  case 2400:
+    baudrate = B2400;
+    break;
 #endif
 #ifdef B4800
-  case 4800: baudrate = B4800; break;
+  case 4800:
+    baudrate = B4800;
+    break;
 #endif
 #ifdef B9600
-  case 9600: baudrate = B9600; break;
+  case 9600:
+    baudrate = B9600;
+    break;
 #endif
 #ifdef B14400
-  case 14400: baudrate = B14400; break;
+  case 14400:
+    baudrate = B14400;
+    break;
 #endif
 #ifdef B19200
-  case 19200: baudrate = B19200; break;
+  case 19200:
+    baudrate = B19200;
+    break;
 #endif
 #ifdef B38400
-  case 38400: baudrate = B38400; break;
+  case 38400:
+    baudrate = B38400;
+    break;
 #endif
 #ifdef B57600
-  case 57600: baudrate = B57600; break;
+  case 57600:
+    baudrate = B57600;
+    break;
 #endif
 #ifdef B115200
-  case 115200: baudrate = B115200; break;
+  case 115200:
+    baudrate = B115200;
+    break;
 #endif
 #ifdef B230400
-  case 230400: baudrate = B230400; break;
+  case 230400:
+    baudrate = B230400;
+    break;
 #endif
 #ifdef B460800
-  case 460800: baudrate = B460800; break;
+  case 460800:
+    baudrate = B460800;
+    break;
 #endif
 #ifdef B500000
-  case 500000: baudrate = B500000; break;
+  case 500000:
+    baudrate = B500000;
+    break;
 #endif
 #ifdef B576000
-  case 576000: baudrate = B576000; break;
+  case 576000:
+    baudrate = B576000;
+    break;
 #endif
 #ifdef B921600
-  case 921600: baudrate = B921600; break;
+  case 921600:
+    baudrate = B921600;
+    break;
 #endif
 #ifdef B1000000
-  case 1000000: baudrate = B1000000; break;
+  case 1000000:
+    baudrate = B1000000;
+    break;
 #endif
 #ifdef B1152000
-  case 1152000: baudrate = B1152000; break;
+  case 1152000:
+    baudrate = B1152000;
+    break;
 #endif
 #ifdef B1500000
-  case 1500000: baudrate = B1500000; break;
+  case 1500000:
+    baudrate = B1500000;
+    break;
 #endif
 #ifdef B2000000
-  case 2000000: baudrate = B2000000; break;
+  case 2000000:
+    baudrate = B2000000;
+    break;
 #endif
 #ifdef B2500000
-  case 2500000: baudrate = B2500000; break;
+  case 2500000:
+    baudrate = B2500000;
+    break;
 #endif
 #ifdef B3000000
-  case 3000000: baudrate = B3000000; break;
+  case 3000000:
+    baudrate = B3000000;
+    break;
 #endif
 #ifdef B3500000
-  case 3500000: baudrate = B3500000; break;
+  case 3500000:
+    baudrate = B3500000;
+    break;
 #endif
 #ifdef B4000000
-  case 4000000: baudrate = B4000000; break;
+  case 4000000:
+    baudrate = B4000000;
+    break;
 #endif
   default:
     throw vpException(vpException::fatalError, "Cannot set serial baudrate to %ld", m_baudrate);
   }
 
 #ifdef _BSD_SOURCE
-    ::cfsetspeed(&options, baudrate);
+  ::cfsetspeed(&options, baudrate);
 #else
-    ::cfsetispeed(&options, baudrate);
-    ::cfsetospeed(&options, baudrate);
+  ::cfsetispeed(&options, baudrate);
+  ::cfsetospeed(&options, baudrate);
 #endif
 
   // setup char len
-  options.c_cflag &= (tcflag_t) ~CSIZE;
-  switch(m_bytesize) {
-  case eightbits: options.c_cflag |= CS8; break;
-  case sevenbits: options.c_cflag |= CS7; break;
-  case sixbits:   options.c_cflag |= CS6; break;
-  case fivebits:  options.c_cflag |= CS5; break;
+  options.c_cflag &= (tcflag_t)~CSIZE;
+  switch (m_bytesize) {
+  case eightbits:
+    options.c_cflag |= CS8;
+    break;
+  case sevenbits:
+    options.c_cflag |= CS7;
+    break;
+  case sixbits:
+    options.c_cflag |= CS6;
+    break;
+  case fivebits:
+    options.c_cflag |= CS5;
+    break;
   }
 
-  switch(m_stopbits) {
-  case stopbits_one: options.c_cflag &= (tcflag_t) ~(CSTOPB); break;
-  case stopbits_two: options.c_cflag |= (CSTOPB); break;
+  switch (m_stopbits) {
+  case stopbits_one:
+    options.c_cflag &= (tcflag_t)~(CSTOPB);
+    break;
+  case stopbits_two:
+    options.c_cflag |= (CSTOPB);
+    break;
   }
 
   // setup parity
-  options.c_iflag &= (tcflag_t) ~(INPCK | ISTRIP);
-  switch(m_parity) {
+  options.c_iflag &= (tcflag_t)~(INPCK | ISTRIP);
+  switch (m_parity) {
   case parity_none:
-    options.c_cflag &= (tcflag_t) ~(PARENB | PARODD); break;
+    options.c_cflag &= (tcflag_t)~(PARENB | PARODD);
+    break;
   case parity_even:
-    options.c_cflag &= (tcflag_t) ~(PARODD);
-    options.c_cflag |=  (PARENB); break;
+    options.c_cflag &= (tcflag_t)~(PARODD);
+    options.c_cflag |= (PARENB);
+    break;
   case parity_odd:
-    options.c_cflag |=  (PARENB | PARODD); break;
+    options.c_cflag |= (PARENB | PARODD);
+    break;
   }
 
   // setup flow control
-  switch(m_flowcontrol) {
+  switch (m_flowcontrol) {
   case flowcontrol_none:
     m_xonxoff = false;
     m_rtscts = false;
@@ -533,25 +600,25 @@ void vpSerial::configure()
 
   // xonxoff
   if (m_xonxoff)
-    options.c_iflag |=  (IXON | IXOFF);
+    options.c_iflag |= (IXON | IXOFF);
   else
 #ifdef IXANY
-    options.c_iflag &= (tcflag_t) ~(IXON | IXOFF | IXANY);
+    options.c_iflag &= (tcflag_t)~(IXON | IXOFF | IXANY);
 #else
-    options.c_iflag &= (tcflag_t) ~(IXON | IXOFF);
+    options.c_iflag &= (tcflag_t)~(IXON | IXOFF);
 #endif
 
-  // rtscts
+    // rtscts
 #ifdef CRTSCTS
   if (m_rtscts)
-    options.c_cflag |=  (CRTSCTS);
+    options.c_cflag |= (CRTSCTS);
   else
-    options.c_cflag &= (unsigned long) ~(CRTSCTS);
+    options.c_cflag &= (unsigned long)~(CRTSCTS);
 #elif defined CNEW_RTSCTS
   if (m_rtscts)
-    options.c_cflag |=  (CNEW_RTSCTS);
+    options.c_cflag |= (CNEW_RTSCTS);
   else
-    options.c_cflag &= (unsigned long) ~(CNEW_RTSCTS);
+    options.c_cflag &= (unsigned long)~(CNEW_RTSCTS);
 #else
 #error "OS doesn't support serial rtscts"
 #endif
@@ -560,10 +627,10 @@ void vpSerial::configure()
   options.c_cc[VTIME] = 0;
 
   // activate settings
-  ::tcsetattr (m_fd, TCSANOW, &options);
+  ::tcsetattr(m_fd, TCSANOW, &options);
 }
-
+END_VISP_NAMESPACE
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_ar.a(vpAROgre.cpp.o) has no symbols
-void dummy_vpSerial(){};
+// Work around to avoid warning: libvisp_ar.a(vpAROgre.cpp.o) has no symbols
+void dummy_vpSerial() { }
 #endif

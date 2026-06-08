@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,24 +29,25 @@
  *
  * Description:
  * Test keypoint matching and pose estimation.
- *
- * Authors:
- * Souriya Trinh
- *
- *****************************************************************************/
+ */
+
+/*!
+  \example testKeyPoint-2.cpp
+
+  \brief Test keypoint matching and pose estimation.
+ */
 
 #include <iostream>
 
 #include <visp3/core/vpConfig.h>
 
-#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020301)
+#if defined(VISP_HAVE_OPENCV) && defined(HAVE_OPENCV_IMGPROC) && defined(HAVE_OPENCV_VIDEO) && \
+  (((VISP_HAVE_OPENCV_VERSION < 0x050000)  && defined(HAVE_OPENCV_CALIB3D) && defined(HAVE_OPENCV_FEATURES2D)) || \
+   ((VISP_HAVE_OPENCV_VERSION >= 0x050000) && defined(HAVE_OPENCV_3D) && defined(HAVE_OPENCV_FEATURES)))
 
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpIoTools.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayGTK.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/io/vpImageIo.h>
 #include <visp3/io/vpParseArgv.h>
 #include <visp3/io/vpVideoReader.h>
@@ -57,8 +57,12 @@
 // List of allowed command line options
 #define GETOPTARGS "cdph"
 
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+
 void usage(const char *name, const char *badparam);
-bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display);
+bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display, bool &use_parallel_ransac);
 
 /*!
 
@@ -74,14 +78,15 @@ void usage(const char *name, const char *badparam)
 Test keypoints matching.\n\
 \n\
 SYNOPSIS\n\
-  %s [-c] [-d] [-p] [-h]\n", name);
+  %s [-c] [-d] [-p] [-h]\n",
+    name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               \n\
 \n\
   -c\n\
-     Disable the mouse click. Useful to automaze the \n\
-     execution of this program without humain intervention.\n\
+     Disable the mouse click. Useful to automate the \n\
+     execution of this program without human intervention.\n\
 \n\
   -d \n\
      Turn off the display.\n\
@@ -107,8 +112,7 @@ OPTIONS:                                               \n\
   \return false if the program has to be stopped, true otherwise.
 
 */
-bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display,
-                bool &use_parallel_ransac)
+bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display, bool &use_parallel_ransac)
 {
   const char *optarg_;
   int c;
@@ -125,20 +129,18 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display,
       use_parallel_ransac = true;
       break;
     case 'h':
-      usage(argv[0], NULL);
+      usage(argv[0], nullptr);
       return false;
-      break;
 
     default:
       usage(argv[0], optarg_);
       return false;
-      break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL);
+    usage(argv[0], nullptr);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -147,31 +149,37 @@ bool getOptions(int argc, const char **argv, bool &click_allowed, bool &display,
   return true;
 }
 
-template<typename Type>
+template <typename Type>
 void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_display, bool use_parallel_ransac,
-              vpImage<Type> &I, vpImage<Type> &IMatching)
+  vpImage<Type> &I, vpImage<Type> &IMatching)
 {
+#if defined(VISP_HAVE_DATASET)
+#if VISP_HAVE_DATASET_VERSION >= 0x030600
+  std::string ext("png");
+#else
+  std::string ext("pgm");
+#endif
+#else
+  // We suppose that the user will download a recent dataset
+  std::string ext("png");
+#endif
   // Set the path location of the image sequence
   std::string dirname = vpIoTools::createFilePath(env_ipath, "mbt/cube");
 
   // Build the name of the image files
-  std::string filenameRef = vpIoTools::createFilePath(dirname, "image0000.pgm");
+  std::string filenameRef = vpIoTools::createFilePath(dirname, "image0000." + ext);
   vpImageIo::read(I, filenameRef);
-  std::string filenameCur = vpIoTools::createFilePath(dirname, "image%04d.pgm");
+  std::string filenameCur = vpIoTools::createFilePath(dirname, "image%04d." + ext);
 
-#if defined VISP_HAVE_X11
-  vpDisplayX display;
-#elif defined VISP_HAVE_GTK
-  vpDisplayGTK display;
-#elif defined VISP_HAVE_GDI
-  vpDisplayGDI display;
-#else
-  vpDisplayOpenCV display;
-#endif
+  vpDisplay *display = nullptr;
 
   if (opt_display) {
-    display.setDownScalingFactor(vpDisplay::SCALE_AUTO);
-    display.init(I, 0, 0, "ORB keypoints matching and pose estimation");
+#ifdef VISP_HAVE_DISPLAY
+    display = vpDisplayFactory::allocateDisplay(I, 0, 0, "ORB keypoints matching and pose estimation");
+    display->setDownScalingFactor(vpDisplay::SCALE_AUTO);
+#else
+    std::cout << "No image viewer is available..." << std::endl;
+#endif
   }
 
   vpCameraParameters cam;
@@ -179,15 +187,17 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
   // Load config for tracker
   std::string tracker_config_file = vpIoTools::createFilePath(env_ipath, "mbt/cube.xml");
 
+#if defined(VISP_HAVE_PUGIXML)
   tracker.loadConfigFile(tracker_config_file);
   tracker.getCameraParameters(cam);
-#if 0
+#else
   // Corresponding parameters manually set to have an example code
   vpMe me;
   me.setMaskSize(5);
   me.setMaskNumber(180);
   me.setRange(8);
-  me.setThreshold(10000);
+  me.setLikelihoodThresholdType(vpMe::NORMALIZED_THRESHOLD);
+  me.setThreshold(20);
   me.setMu1(0.5);
   me.setMu2(0.5);
   me.setSampleStep(4);
@@ -211,7 +221,8 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
   std::string init_file = vpIoTools::createFilePath(env_ipath, "mbt/cube.init");
   if (opt_display && opt_click_allowed) {
     tracker.initClick(I, init_file);
-  } else {
+  }
+  else {
     vpHomogeneousMatrix cMoi(0.02044769891, 0.1101505452, 0.5078963719, 2.063603907, 1.110231561, -0.4392789872);
     tracker.initFromPose(I, cMoi);
   }
@@ -223,7 +234,7 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
   // Init keypoints
   vpKeyPoint keypoints("ORB", "ORB", "BruteForce-Hamming");
   keypoints.setRansacParallel(use_parallel_ransac);
-#if (VISP_HAVE_OPENCV_VERSION >= 0x020400)
+#if defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020400)
   // Bug when using LSH index with FLANN and OpenCV 2.3.1.
   // see http://code.opencv.org/issues/1741 (Bug #1741)
   keypoints.setMatcher("FlannBased");
@@ -246,7 +257,7 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
   std::vector<vpPolygon> polygons;
   std::vector<std::vector<vpPoint> > roisPt;
   std::pair<std::vector<vpPolygon>, std::vector<std::vector<vpPoint> > > pair =
-      tracker.getPolygonFaces(true); // To detect an issue with CI
+    tracker.getPolygonFaces(true); // To detect an issue with CI
   polygons = pair.first;
   roisPt = pair.second;
 
@@ -258,7 +269,7 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
   keypoints.buildReference(I, trainKeyPoints, points3f, false, 1);
 
   // Read image 150
-  filenameRef = vpIoTools::createFilePath(dirname, "image0150.pgm");
+  filenameRef = vpIoTools::createFilePath(dirname, "image0150." + ext);
   vpImageIo::read(I, filenameRef);
 
   // Init pose at image 150
@@ -270,7 +281,7 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
 
   // Keep only keypoints on the cube
   pair = tracker.getPolygonFaces(true, true,
-                                 true); // To detect an issue with CI
+    true); // To detect an issue with CI
   polygons = pair.first;
   roisPt = pair.second;
 
@@ -281,7 +292,7 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
   keypoints.buildReference(I, trainKeyPoints, points3f, true, 2);
 
   // Read image 200
-  filenameRef = vpIoTools::createFilePath(dirname, "image0200.pgm");
+  filenameRef = vpIoTools::createFilePath(dirname, "image0200." + ext);
   vpImageIo::read(I, filenameRef);
 
   // Init pose at image 200
@@ -308,21 +319,15 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
   g.open(I);
   g.acquire(I);
 
-#if defined VISP_HAVE_X11
-  vpDisplayX display2;
-#elif defined VISP_HAVE_GTK
-  vpDisplayGTK display2;
-#elif defined VISP_HAVE_GDI
-  vpDisplayGDI display2;
-#else
-  vpDisplayOpenCV display2;
-#endif
+  vpDisplay *display2 = nullptr;
 
   keypoints.createImageMatching(I, IMatching);
 
   if (opt_display) {
-    display2.setDownScalingFactor(vpDisplay::SCALE_AUTO);
-    display2.init(IMatching, 0, (int)I.getHeight() / vpDisplay::getDownScalingFactor(I) + 80, "IMatching");
+#ifdef VISP_HAVE_DISPLAY
+    display2 = vpDisplayFactory::allocateDisplay(IMatching, 0, static_cast<int>(I.getHeight()) / vpDisplay::getDownScalingFactor(I) + 30, "IMatching");
+    display2->setDownScalingFactor(vpDisplay::SCALE_AUTO);
+#endif
   }
 
   bool opt_click = false;
@@ -363,8 +368,7 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
           vpDisplay::displayCircle(IMatching, imPt, 4, vpColor::green);
         }
 
-        for (std::vector<vpImagePoint>::const_iterator it = ransacOutliers.begin(); it != ransacOutliers.end();
-             ++it) {
+        for (std::vector<vpImagePoint>::const_iterator it = ransacOutliers.begin(); it != ransacOutliers.end(); ++it) {
           vpDisplay::displayCircle(I, *it, 4, vpColor::red);
           vpImagePoint imPt(*it);
           imPt.set_u(imPt.get_u() + I.getWidth());
@@ -377,7 +381,7 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
         // Display model in the correct sub-image in IMatching
         vpCameraParameters cam2;
         cam2.initPersProjWithoutDistortion(cam.get_px(), cam.get_py(), cam.get_u0() + I.getWidth(),
-                                           cam.get_v0() + I.getHeight());
+          cam.get_v0() + I.getHeight());
         tracker.setCameraParameters(cam2);
         tracker.setPose(IMatching, cMo);
         tracker.display(IMatching, cMo, cam2, vpColor::red, 2);
@@ -397,12 +401,14 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
         if (button == vpMouseButton::button3) {
           opt_click = false;
         }
-      } else {
+      }
+      else {
         // Use right click to enable/disable step by step tracking
         if (vpDisplay::getClick(I, button, false)) {
           if (button == vpMouseButton::button3) {
             opt_click = true;
-          } else if (button == vpMouseButton::button1) {
+          }
+          else if (button == vpMouseButton::button1) {
             break;
           }
         }
@@ -410,18 +416,20 @@ void run_test(const std::string &env_ipath, bool opt_click_allowed, bool opt_dis
     }
   }
 
+  if (display) {
+    delete display;
+  }
+  if (display2) {
+    delete display2;
+  }
+
   if (!times_vec.empty()) {
     std::cout << "Computation time, Mean: " << vpMath::getMean(times_vec)
-              << " ms ; Median: " << vpMath::getMedian(times_vec)
-              << " ms ; Std: " << vpMath::getStdev(times_vec) << std::endl;
+      << " ms ; Median: " << vpMath::getMedian(times_vec) << " ms ; Std: " << vpMath::getStdev(times_vec)
+      << std::endl;
   }
 }
 
-/*!
-  \example testKeyPoint-2.cpp
-
-  \brief   Test keypoint matching and pose estimation.
-*/
 int main(int argc, const char **argv)
 {
   try {
@@ -432,7 +440,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, opt_click_allowed, opt_display, use_parallel_ransac) == false) {
-      exit(-1);
+      return EXIT_FAILURE;
     }
 
     // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH
@@ -441,9 +449,9 @@ int main(int argc, const char **argv)
 
     if (env_ipath.empty()) {
       std::cerr << "Please set the VISP_INPUT_IMAGE_PATH environment "
-                   "variable value."
-                << std::endl;
-      return -1;
+        "variable value."
+        << std::endl;
+      return EXIT_FAILURE;
     }
 
     {
@@ -461,20 +469,21 @@ int main(int argc, const char **argv)
       run_test(env_ipath, opt_click_allowed, opt_display, use_parallel_ransac, I, IMatching);
     }
 
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cerr << e.what() << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   std::cout << "testKeyPoint-2 is ok !" << std::endl;
-  return 0;
+  return EXIT_SUCCESS;
 }
 #else
 int main()
 {
   std::cerr << "You need OpenCV library." << std::endl;
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #endif

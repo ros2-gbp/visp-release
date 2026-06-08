@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,28 +29,20 @@
  *
  * Description:
  * Exception handling.
- *
- * Authors:
- * Nicolas Mansard
- *
- *****************************************************************************/
+ */
 
-/* \file vpException.cpp
-   \brief error that can be emited by the vp class and its derivates
+/*!
+ * \file vpException.cpp
+ * \brief error that can be emitted by the vp class and its derivatives
  */
 
 #include "visp3/core/vpException.h"
 #include <stdio.h>
 
-/* -------------------------------------------------------------------------
- */
-/* --- CONSTRUCTORS --------------------------------------------------------
- */
-/* -------------------------------------------------------------------------
- */
-vpException::vpException(int id) : code(id), message() {}
+BEGIN_VISP_NAMESPACE
+vpException::vpException(int id) : code(id), message() { }
 
-vpException::vpException(int id, const std::string &msg) : code(id), message(msg) {}
+vpException::vpException(int id, const std::string &msg) : code(id), message(msg) { }
 
 vpException::vpException(int id, const char *format, ...) : code(id), message()
 {
@@ -61,31 +52,15 @@ vpException::vpException(int id, const char *format, ...) : code(id), message()
   va_end(args);
 }
 
-vpException::vpException(int id, const char *format, va_list args) : code(id), message()
-{
-  setMessage(format, args);
-}
-/* ------------------------------------------------------------------------ */
-/* --- DESTRUCTORS -------------------------------------------------------- */
-/* ------------------------------------------------------------------------ */
-
-/* Destructeur par default suffisant. */
-// vpException::
-// ~vpException (void)
-// {
-// }
+vpException::vpException(int id, const char *format, va_list args) : code(id), message() { setMessage(format, args); }
 
 void vpException::setMessage(const char *format, va_list args)
 {
-  char buffer[1024];
-  vsnprintf(buffer, 1024, format, args);
+  char buffer[FILENAME_MAX];
+  vsnprintf(buffer, FILENAME_MAX, format, args);
   std::string msg(buffer);
   message = msg;
 }
-
-/* ------------------------------------------------------------------------ */
-/* --- ACCESSORS ---------------------------------------------------------- */
-/* ------------------------------------------------------------------------ */
 
 const char *vpException::getMessage() const { return (this->message).c_str(); }
 
@@ -93,27 +68,11 @@ const std::string &vpException::getStringMessage() const { return this->message;
 
 int vpException::getCode() const { return this->code; }
 
-/*!
-  Overloading of the what() method of std::exception to return the vpException
-  message.
-
-  \return pointer on the array of  \e char related to the error string.
-*/
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+const char *vpException::what() const VP_NOEXCEPT { return (this->message).c_str(); }
+#else
 const char *vpException::what() const throw() { return (this->message).c_str(); }
-
-/* -------------------------------------------------------------------------
- */
-/* --- MODIFIORS -----------------------------------------------------------
- */
-/* -------------------------------------------------------------------------
- */
-
-/* -------------------------------------------------------------------------
- */
-/* --- OP << ---------------------------------------------------------------
- */
-/* -------------------------------------------------------------------------
- */
+#endif
 
 VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpException &error)
 {
@@ -121,9 +80,4 @@ VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpException &error)
 
   return os;
 }
-
-/*
- * Local variables:
- * c-basic-offset: 2
- * End:
- */
+END_VISP_NAMESPACE

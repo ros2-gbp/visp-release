@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -27,13 +26,7 @@
  *
  * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- * Description:
- *
- * Authors:
- * Jean-Luc CORRE
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpConfig.h>
 
@@ -50,6 +43,7 @@
 #include <visp3/core/vpException.h>
 #include <visp3/core/vpPoint.h>
 
+BEGIN_VISP_NAMESPACE
 /*
   Get the extension of the file and return it
 */
@@ -138,7 +132,8 @@ void set_scene_wrl(const char *str, Bound_scene *sc, float factor)
     sceneGraphVRML2 = tovrml2.getVRML2SceneGraph();
     sceneGraphVRML2->ref();
     sceneGraph->unref();
-  } else {
+  }
+  else {
     sceneGraphVRML2 = SoDB::readAllVRML(&in);
     if (sceneGraphVRML2 == NULL) {
       /*return -1;*/
@@ -159,7 +154,6 @@ void set_scene_wrl(const char *str, Bound_scene *sc, float factor)
   for (int i = 0; i < nbShapes; i++) {
     child = sceneGraphVRML2->getChild(i);
     if (child->getTypeId() == SoVRMLShape::getClassTypeId()) {
-      int nbFaces = 0;
       std::list<indexFaceSet *> ifs_list;
       SoChildList *child2list = child->getChildren();
       for (int j = 0; j < child2list->getLength(); j++) {
@@ -169,7 +163,6 @@ void set_scene_wrl(const char *str, Bound_scene *sc, float factor)
           face_set = (SoVRMLIndexedFaceSet *)child2list->get(j);
           extractFaces(face_set, ifs);
           ifs_list.push_back(ifs);
-          nbFaces++;
         }
         //         if (((SoNode*)child2list->get(j))->getTypeId() ==
         //         SoVRMLIndexedLineSet::getClassTypeId())
@@ -233,32 +226,31 @@ void ifsToBound(Bound *bptr, std::list<indexFaceSet *> &ifs_list)
     nbPt += (*it)->nbPt;
   }
   bptr->point.nbr = (Index)nbPt;
-  bptr->point.ptr = (Point3f *)malloc((unsigned int)nbPt * sizeof(Point3f));
+  bptr->point.ptr = (Point3f *)malloc(static_cast<unsigned int>(nbPt) * sizeof(Point3f));
 
-  ifs_list.front();
   unsigned int iter = 0;
   for (std::list<indexFaceSet *>::const_iterator it = ifs_list.begin(); it != ifs_list.end(); ++it) {
     indexFaceSet *ifs = *it;
-    for (unsigned int j = 0; j < (unsigned int)ifs->nbPt; j++) {
-      bptr->point.ptr[iter].x = (float)ifs->pt[j].get_oX();
-      bptr->point.ptr[iter].y = (float)ifs->pt[j].get_oY();
-      bptr->point.ptr[iter].z = (float)ifs->pt[j].get_oZ();
+    for (unsigned int j = 0; j < static_cast<unsigned int>(ifs->nbPt); j++) {
+      bptr->point.ptr[iter].x = static_cast<float>(ifs->pt[j].get_oX());
+      bptr->point.ptr[iter].y = static_cast<float>(ifs->pt[j].get_oY());
+      bptr->point.ptr[iter].z = static_cast<float>(ifs->pt[j].get_oZ());
       iter++;
     }
   }
 
   unsigned int nbFace = 0;
-  ifs_list.front();
   std::list<int> indSize;
   int indice = 0;
   for (std::list<indexFaceSet *>::const_iterator it = ifs_list.begin(); it != ifs_list.end(); ++it) {
     indexFaceSet *ifs = *it;
-    for (unsigned int j = 0; j < (unsigned int)ifs->nbIndex; j++) {
+    for (unsigned int j = 0; j < static_cast<unsigned int>(ifs->nbIndex); j++) {
       if (ifs->index[j] == -1) {
         nbFace++;
         indSize.push_back(indice);
         indice = 0;
-      } else
+      }
+      else
         indice++;
     }
   }
@@ -269,7 +261,7 @@ void ifsToBound(Bound *bptr, std::list<indexFaceSet *> &ifs_list)
   std::list<int>::const_iterator iter_indSize = indSize.begin();
   for (unsigned int i = 0; i < indSize.size(); i++) {
     bptr->face.ptr[i].vertex.nbr = (Index)*iter_indSize;
-    bptr->face.ptr[i].vertex.ptr = (Index *)malloc((unsigned int)*iter_indSize * sizeof(Index));
+    bptr->face.ptr[i].vertex.ptr = (Index *)malloc(static_cast<unsigned int>(*iter_indSize) * sizeof(Index));
     ++iter_indSize;
   }
 
@@ -278,11 +270,12 @@ void ifsToBound(Bound *bptr, std::list<indexFaceSet *> &ifs_list)
   for (std::list<indexFaceSet *>::const_iterator it = ifs_list.begin(); it != ifs_list.end(); ++it) {
     indexFaceSet *ifs = *it;
     iter = 0;
-    for (unsigned int j = 0; j < (unsigned int)ifs->nbIndex; j++) {
+    for (unsigned int j = 0; j <static_cast<unsigned int>(ifs->nbIndex); j++) {
       if (ifs->index[j] != -1) {
         bptr->face.ptr[indice].vertex.ptr[iter] = (Index)(ifs->index[j] + offset);
         iter++;
-      } else {
+      }
+      else {
         iter = 0;
         indice++;
       }
@@ -299,7 +292,7 @@ void destroyIfs(std::list<indexFaceSet *> &ifs_list)
   ifs_list.clear();
 }
 #else
-void set_scene_wrl(const char * /*str*/, Bound_scene * /*sc*/, float /*factor*/) {}
+void set_scene_wrl(const char * /*str*/, Bound_scene * /*sc*/, float /*factor*/) { }
 #endif
 
 /*
@@ -309,8 +302,8 @@ void vp2jlc_matrix(const vpHomogeneousMatrix &vpM, Matrix &jlcM)
 {
   for (unsigned int i = 0; i < 4; i++) {
     for (unsigned int j = 0; j < 4; j++)
-      jlcM[j][i] = (float)vpM[i][j];
+      jlcM[j][i] = static_cast<float>(vpM[i][j]);
   }
 }
-
+END_VISP_NAMESPACE
 #endif

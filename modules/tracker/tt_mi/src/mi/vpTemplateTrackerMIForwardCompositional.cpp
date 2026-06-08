@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,15 +33,13 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #include <visp3/tt_mi/vpTemplateTrackerMIForwardCompositional.h>
 
+BEGIN_VISP_NAMESPACE
 vpTemplateTrackerMIForwardCompositional::vpTemplateTrackerMIForwardCompositional(vpTemplateTrackerWarp *_warp)
   : vpTemplateTrackerMI(_warp), CompoInitialised(false)
-{
-}
+{ }
 
 void vpTemplateTrackerMIForwardCompositional::initCompo()
 {
@@ -57,7 +54,7 @@ void vpTemplateTrackerMIForwardCompositional::initCompo()
     Warp->getdWdp0(i, j, ptTemplate[point].dW);
 
     double Tij = ptTemplate[point].val;
-    int ct = (int)((Tij * (Nc - 1)) / 255.);
+    int ct = static_cast<int>((Tij * (Nc - 1)) / 255.);
     double et = (Tij * (Nc - 1)) / 255. - ct;
     ptTemplateSupp[point].et = et;
     ptTemplateSupp[point].ct = ct;
@@ -116,8 +113,8 @@ void vpTemplateTrackerMIForwardCompositional::initHessienDesired(const vpImage<u
 
       cr = ptTemplateSupp[point].ct;
       er = ptTemplateSupp[point].et;
-      ct = (int)((IW * (Nc - 1)) / 255.);
-      et = ((double)IW * (Nc - 1)) / 255. - ct;
+      ct = static_cast<int>((IW * (Nc - 1)) / 255.);
+      et = (static_cast<double>(IW) * (Nc - 1)) / 255. - ct;
 
       Warp->dWarpCompo(X1, X2, p, ptTemplate[point].dW, dW);
 
@@ -206,8 +203,8 @@ void vpTemplateTrackerMIForwardCompositional::trackNoPyr(const vpImage<unsigned 
         dx = dIx.getValue(i2, j2) * (Nc - 1) / 255.;
         dy = dIy.getValue(i2, j2) * (Nc - 1) / 255.;
 
-        ct = (int)((IW * (Nc - 1)) / 255.);
-        et = ((double)IW * (Nc - 1)) / 255. - ct;
+        ct = static_cast<int>((IW * (Nc - 1)) / 255.);
+        et = (static_cast<double>(IW) * (Nc - 1)) / 255. - ct;
         cr = ptTemplateSupp[point].ct;
         er = ptTemplateSupp[point].et;
 
@@ -229,7 +226,8 @@ void vpTemplateTrackerMIForwardCompositional::trackNoPyr(const vpImage<unsigned 
       diverge = true;
       MI = 0;
       throw(vpTrackingException(vpTrackingException::notEnoughPointError, "No points in the template"));
-    } else {
+    }
+    else {
       computeProba(Nbpoint);
       computeMI(MI);
       if (hessianComputation != vpTemplateTrackerMI::USE_HESSIEN_DESIRE)
@@ -253,15 +251,16 @@ void vpTemplateTrackerMIForwardCompositional::trackNoPyr(const vpImage<unsigned 
           dp = gain * 0.2 * HLM.inverseByLU() * G;
           break;
         }
-      } catch (const vpException &e) {
+      }
+      catch (const vpException &e) {
         throw(e);
       }
     }
 
     if (ApproxHessian == HESSIAN_NONSECOND)
       dp = -0.04 * dp;
-//    else
-//      dp = 1. * dp;
+    //    else
+    //      dp = 1. * dp;
 
     if (useBrent) {
       alpha = 2.;
@@ -281,7 +280,7 @@ void vpTemplateTrackerMIForwardCompositional::trackNoPyr(const vpImage<unsigned 
     evolRMS_prec = evolRMS;
 
   } while ((std::fabs(MI - MIprec) > std::fabs(MI) * std::numeric_limits<double>::epsilon()) &&
-           (iteration < iterationMax) && (evolRMS_delta > std::fabs(evolRMS_init)*evolRMS_eps) );
+           (iteration < iterationMax) && (evolRMS_delta > std::fabs(evolRMS_init) * evolRMS_eps));
 
   nbIteration = iteration;
 
@@ -290,3 +289,4 @@ void vpTemplateTrackerMIForwardCompositional::trackNoPyr(const vpImage<unsigned 
     MI_postEstimation = -1;
   }
 }
+END_VISP_NAMESPACE

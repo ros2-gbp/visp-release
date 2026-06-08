@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Base class for bar code detection.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 #include <assert.h>
 
@@ -46,19 +41,20 @@
 
 #include <visp3/detection/vpDetectorDataMatrixCode.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
    Default constructor that does nothing except setting detection timeout to 50ms.
    This value could be changed using setTimeout().
  */
-vpDetectorDataMatrixCode::vpDetectorDataMatrixCode() { setTimeout(50); }
+  vpDetectorDataMatrixCode::vpDetectorDataMatrixCode() { setTimeout(50); }
 
-/*!
-  Detect datamatrix codes in the image. Return true if a code is detected, false otherwise.
-  There is the setTimeout() function that allows to tune the value of the timeout used to detect a datamatrix code.
-  By default, there is a timeout of 50 ms set in the constructor.
+  /*!
+    Detect datamatrix codes in the image. Return true if a code is detected, false otherwise.
+    There is the setTimeout() function that allows to tune the value of the timeout used to detect a datamatrix code.
+    By default, there is a timeout of 50 ms set in the constructor.
 
-  \param I : Input image.
- */
+    \param I : Input image.
+   */
 bool vpDetectorDataMatrixCode::detect(const vpImage<unsigned char> &I)
 {
   bool detected = false;
@@ -70,26 +66,26 @@ bool vpDetectorDataMatrixCode::detect(const vpImage<unsigned char> &I)
   DmtxImage *img;
   DmtxMessage *msg;
 
-  DmtxTime *dmtx_timeout = NULL;
+  DmtxTime *dmtx_timeout = nullptr;
   if (m_timeout_ms) {
     dmtx_timeout = new DmtxTime;
     *dmtx_timeout = dmtxTimeNow();
     dmtx_timeout->usec += m_timeout_ms * 1000;
   }
 
-  img = dmtxImageCreate(I.bitmap, (int)I.getWidth(), (int)I.getHeight(), DmtxPack8bppK);
-  assert(img != NULL);
+  img = dmtxImageCreate(I.bitmap, static_cast<int>(I.getWidth()), static_cast<int>(I.getHeight()), DmtxPack8bppK);
+  assert(img != nullptr);
 
   dec = dmtxDecodeCreate(img, 1);
-  assert(dec != NULL);
+  assert(dec != nullptr);
 
   bool end = false;
   do {
     reg = dmtxRegionFindNext(dec, dmtx_timeout);
 
-    if (reg != NULL) {
+    if (reg != nullptr) {
       msg = dmtxDecodeMatrixRegion(dec, reg, DmtxUndefined);
-      if (msg != NULL) {
+      if (msg != nullptr) {
 
         std::vector<vpImagePoint> polygon;
 
@@ -112,11 +108,13 @@ bool vpDetectorDataMatrixCode::detect(const vpImage<unsigned char> &I)
         m_message.push_back((const char *)msg->output);
 
         m_nb_objects++;
-      } else {
+      }
+      else {
         end = true;
       }
       dmtxMessageDestroy(&msg);
-    } else {
+    }
+    else {
       end = true;
     }
     dmtxRegionDestroy(&reg);
@@ -130,9 +128,9 @@ bool vpDetectorDataMatrixCode::detect(const vpImage<unsigned char> &I)
   }
   return detected;
 }
-
+END_VISP_NAMESPACE
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning:
+// Work around to avoid warning:
 // libvisp_core.a(vpDetectorDataMatrixCode.cpp.o) has no symbols
-void dummy_vpDetectorDataMatrixCode(){};
+void dummy_vpDetectorDataMatrixCode() { }
 #endif

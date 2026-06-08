@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,25 +33,21 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #include <visp3/tt/vpTemplateTrackerWarpSRT.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
  * Construct a model with 4 parameters for scale, rotation and translation initialized to zero.
  */
-vpTemplateTrackerWarpSRT::vpTemplateTrackerWarpSRT()
-{
-  nbParam = 4;
-}
+  vpTemplateTrackerWarpSRT::vpTemplateTrackerWarpSRT() { nbParam = 4; }
 
-/*!
- * Get the parameters of the warping function one level down
- * where image size is divided by two along the lines and the columns.
- * \param p : 4-dim vector that contains the current parameters of the warping function.
- * \param p_down : 4-dim vector that contains the resulting parameters one level down.
- */
+  /*!
+   * Get the parameters of the warping function one level down
+   * where image size is divided by two along the lines and the columns.
+   * \param p : 4-dim vector that contains the current parameters of the warping function.
+   * \param p_down : 4-dim vector that contains the resulting parameters one level down.
+   */
 void vpTemplateTrackerWarpSRT::getParamPyramidDown(const vpColVector &p, vpColVector &p_down)
 {
   p_down[0] = p[0];
@@ -161,8 +156,7 @@ void vpTemplateTrackerWarpSRT::warpX(const vpColVector &X1, vpColVector &X2, con
  * \param p : 4-dim vector that contains the parameters of the warping function.
  * \param dM : Resulting warping model derivative returned as a 2-by-4 matrix.
  */
-void vpTemplateTrackerWarpSRT::dWarp(const vpColVector &X, const vpColVector &, const vpColVector &p,
-                                    vpMatrix &dM)
+void vpTemplateTrackerWarpSRT::dWarp(const vpColVector &X, const vpColVector &, const vpColVector &p, vpMatrix &dM)
 {
   double u = X[0];
   double v = X[1];
@@ -173,7 +167,7 @@ void vpTemplateTrackerWarpSRT::dWarp(const vpColVector &X, const vpColVector &, 
   double s_u_c_v = s * u + c * v;
 
   dM[0][0] = c_u_s_v;
-  dM[0][1] = - scale * s_u_c_v;
+  dM[0][1] = -scale * s_u_c_v;
   dM[0][2] = 1;
   dM[0][3] = 0;
 
@@ -190,8 +184,8 @@ void vpTemplateTrackerWarpSRT::dWarp(const vpColVector &X, const vpColVector &, 
  * the initial warping function parameters (p=0).
  * \param dM : Resulting warping model compositionnal derivative returned as a 2-by-4 matrix.
  */
-void vpTemplateTrackerWarpSRT::dWarpCompo(const vpColVector &, const vpColVector &,
-                                         const vpColVector &p, const double *dwdp0, vpMatrix &dM)
+void vpTemplateTrackerWarpSRT::dWarpCompo(const vpColVector &, const vpColVector &, const vpColVector &p,
+                                          const double *dwdp0, vpMatrix &dM)
 {
   double c = cos(p[1]);
   double s = sin(p[1]);
@@ -266,3 +260,4 @@ void vpTemplateTrackerWarpSRT::pRondp(const vpColVector &p1, const vpColVector &
   p12[2] = scale1 * (c1 * u2 - s1 * v2) + u1;
   p12[3] = scale1 * (s1 * u2 + c1 * v2) + v1;
 }
+END_VISP_NAMESPACE

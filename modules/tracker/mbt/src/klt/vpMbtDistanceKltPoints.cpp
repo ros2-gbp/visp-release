@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,18 +29,13 @@
  *
  * Description:
  * Klt polygon, containing points of interest.
- *
- * Authors:
- * Romain Tallonneau
- * Aurelien Yol
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpPolygon.h>
 #include <visp3/mbt/vpMbtDistanceKltPoints.h>
 #include <visp3/me/vpMeTracker.h>
 
-#if defined(VISP_HAVE_MODULE_KLT) && (defined(VISP_HAVE_OPENCV) && (VISP_HAVE_OPENCV_VERSION >= 0x020100))
+#if defined(VISP_HAVE_MODULE_KLT) && defined(VISP_HAVE_OPENCV) && defined(HAVE_OPENCV_IMGPROC) && defined(HAVE_OPENCV_VIDEO)
 
 #if defined(VISP_HAVE_CLIPPER)
 #include <clipper.hpp> // clipper private library
@@ -51,23 +45,23 @@
 #include <TargetConditionals.h>             // To detect OSX or IOS using TARGET_OS_IPHONE or TARGET_OS_IOS macro
 #endif
 
+BEGIN_VISP_NAMESPACE
 /*!
   Basic constructor.
 
 */
 vpMbtDistanceKltPoints::vpMbtDistanceKltPoints()
   : H(), N(), N_cur(), invd0(1.), cRc0_0n(), initPoints(std::map<int, vpImagePoint>()),
-    curPoints(std::map<int, vpImagePoint>()), curPointsInd(std::map<int, int>()), nbPointsCur(0), nbPointsInit(0),
-    minNbPoint(4), enoughPoints(false), dt(1.), d0(1.), cam(), isTrackedKltPoints(true), polygon(NULL),
-    hiddenface(NULL), useScanLine(false)
-{
-}
+  curPoints(std::map<int, vpImagePoint>()), curPointsInd(std::map<int, int>()), nbPointsCur(0), nbPointsInit(0),
+  minNbPoint(4), enoughPoints(false), dt(1.), d0(1.), cam(), isTrackedKltPoints(true), polygon(nullptr),
+  hiddenface(nullptr), useScanLine(false)
+{ }
 
 /*!
   Basic destructor.
 
 */
-vpMbtDistanceKltPoints::~vpMbtDistanceKltPoints() {}
+vpMbtDistanceKltPoints::~vpMbtDistanceKltPoints() { }
 
 /*!
   Initialise the face to track. All the points in the map, representing all
@@ -75,7 +69,8 @@ vpMbtDistanceKltPoints::~vpMbtDistanceKltPoints() {}
   points that are indeed in the face.
 
   \param _tracker : ViSP OpenCV KLT Tracker.
-  \param mask: Mask image or NULL if not wanted. Mask values that are set to true are considered in the tracking. To disable a pixel, set false.
+  \param mask : Mask image or nullptr if not wanted. Mask values that are set to true are considered in the tracking. To
+  disable a pixel, set false.
 */
 void vpMbtDistanceKltPoints::init(const vpKltOpencv &_tracker, const vpImage<bool> *mask)
 {
@@ -91,17 +86,17 @@ void vpMbtDistanceKltPoints::init(const vpKltOpencv &_tracker, const vpImage<boo
   for (unsigned int i = 0; i < static_cast<unsigned int>(_tracker.getNbFeatures()); i++) {
     long id;
     float x_tmp, y_tmp;
-    _tracker.getFeature((int)i, id, x_tmp, y_tmp);
+    _tracker.getFeature(static_cast<int>(i), id, x_tmp, y_tmp);
 
     bool add = false;
 
     // Add points inside visibility mask only
-    if (vpMeTracker::inMask(mask, (unsigned int) y_tmp, (unsigned int) x_tmp)) {
+    if (vpMeTracker::inRoiMask(mask, static_cast<unsigned int>(y_tmp), static_cast<unsigned int>(x_tmp))) {
       if (useScanLine) {
-        if ((unsigned int)y_tmp < hiddenface->getMbScanLineRenderer().getPrimitiveIDs().getHeight() &&
-          (unsigned int)x_tmp < hiddenface->getMbScanLineRenderer().getPrimitiveIDs().getWidth() &&
-          hiddenface->getMbScanLineRenderer().getPrimitiveIDs()[(unsigned int)y_tmp][(unsigned int)x_tmp] ==
-          polygon->getIndex())
+        if (static_cast<unsigned int>(y_tmp) < hiddenface->getMbScanLineRenderer().getPrimitiveIDs().getHeight() &&
+            static_cast<unsigned int>(x_tmp) < hiddenface->getMbScanLineRenderer().getPrimitiveIDs().getWidth() &&
+            hiddenface->getMbScanLineRenderer().getPrimitiveIDs()[static_cast<unsigned int>(y_tmp)][static_cast<unsigned int>(x_tmp)] ==
+                polygon->getIndex())
           add = true;
       }
       else if (vpPolygon::isInside(roi, y_tmp, x_tmp)) {
@@ -110,20 +105,20 @@ void vpMbtDistanceKltPoints::init(const vpKltOpencv &_tracker, const vpImage<boo
     }
 
     if (add) {
-#if TARGET_OS_IPHONE
-      initPoints[(int)id] = vpImagePoint(y_tmp, x_tmp);
-      curPoints[(int)id] = vpImagePoint(y_tmp, x_tmp);
-      curPointsInd[(int)id] = (int)i;
+#ifdef TARGET_OS_IPHONE
+      initPoints[static_cast<int>(id)] = vpImagePoint(y_tmp, x_tmp);
+      curPoints[static_cast<int>(id)] = vpImagePoint(y_tmp, x_tmp);
+      curPointsInd[static_cast<int>(id)] = static_cast<int>(i);
 #else
       initPoints[id] = vpImagePoint(y_tmp, x_tmp);
       curPoints[id] = vpImagePoint(y_tmp, x_tmp);
-      curPointsInd[id] = (int)i;
+      curPointsInd[id] = static_cast<int>(i);
 #endif
     }
   }
 
-  nbPointsInit = (unsigned int)initPoints.size();
-  nbPointsCur = (unsigned int)curPoints.size();
+  nbPointsInit = static_cast<unsigned int>(initPoints.size());
+  nbPointsCur = static_cast<unsigned int>(curPoints.size());
 
   if (nbPointsCur >= minNbPoint)
     enoughPoints = true;
@@ -146,9 +141,11 @@ void vpMbtDistanceKltPoints::init(const vpKltOpencv &_tracker, const vpImage<boo
   corresponds to the points of the face
 
   \param _tracker : the KLT tracker
+  \param mask : Mask image or nullptr if not wanted. Mask values that are set to true are considered in the tracking. To
+  disable a pixel, set false.
+
   \return the number of points that are tracked in this face and in this
-  instanciation of the tracker
-  \param mask: Mask image or NULL if not wanted. Mask values that are set to true are considered in the tracking. To disable a pixel, set false.
+  instanciation of the tracker.
 */
 unsigned int vpMbtDistanceKltPoints::computeNbDetectedCurrent(const vpKltOpencv &_tracker, const vpImage<bool> *mask)
 {
@@ -159,19 +156,19 @@ unsigned int vpMbtDistanceKltPoints::computeNbDetectedCurrent(const vpKltOpencv 
   curPointsInd = std::map<int, int>();
 
   for (unsigned int i = 0; i < static_cast<unsigned int>(_tracker.getNbFeatures()); i++) {
-    _tracker.getFeature((int)i, id, x, y);
-    if (isTrackedFeature((int)id) && vpMeTracker::inMask(mask, (unsigned int) y, (unsigned int) x)) {
-#if TARGET_OS_IPHONE
-      curPoints[(int)id] = vpImagePoint(static_cast<double>(y), static_cast<double>(x));
-      curPointsInd[(int)id] = (int)i;
+    _tracker.getFeature(static_cast<int>(i), id, x, y);
+    if (isTrackedFeature(static_cast<int>(id)) && vpMeTracker::inRoiMask(mask, static_cast<unsigned int>(y), static_cast<unsigned int>(x))) {
+#ifdef TARGET_OS_IPHONE
+      curPoints[static_cast<int>(id)] = vpImagePoint(static_cast<double>(y), static_cast<double>(x));
+      curPointsInd[static_cast<int>(id)] = static_cast<int>(i);
 #else
       curPoints[id] = vpImagePoint(static_cast<double>(y), static_cast<double>(x));
-      curPointsInd[id] = (int)i;
+      curPointsInd[id] = static_cast<int>(i);
 #endif
     }
   }
 
-  nbPointsCur = (unsigned int)curPoints.size();
+  nbPointsCur = static_cast<unsigned int>(curPoints.size());
 
   if (nbPointsCur >= minNbPoint)
     enoughPoints = true;
@@ -208,7 +205,7 @@ void vpMbtDistanceKltPoints::computeInteractionMatrixAndResidu(vpColVector &_R, 
     vpPixelMeterConversion::convertPoint(cam, iP0, x0, y0);
 
     double x0_transform,
-        y0_transform; // equivalent x and y in the first image (reference)
+      y0_transform; // equivalent x and y in the first image (reference)
     computeP_mu_t(x0, y0, x0_transform, y0_transform, H);
 
     double invZ = compute_1_over_Z(x_cur, y_cur);
@@ -319,7 +316,7 @@ void vpMbtDistanceKltPoints::computeHomography(const vpHomogeneousMatrix &_cTc0,
 }
 
 /*!
-  Test whether the feature with identifier id in paramters is in the list of
+  Test whether the feature with identifier id in parameters is in the list of
   tracked features.
 
   \param _id : the id of the current feature to test
@@ -347,31 +344,22 @@ bool vpMbtDistanceKltPoints::isTrackedFeature(int _id)
   default is 255).
 
   \param mask : the mask to update (0, not in the object, _nb otherwise).
-  \param nb : Optionnal value to set to the pixels included in the face.
-  \param shiftBorder : Optionnal shift for the border in pixel (sort of
+  \param nb : Optional value to set to the pixels included in the face.
+  \param shiftBorder : Optional shift for the border in pixel (sort of
   built-in erosion) to avoid to consider pixels near the limits of the face.
 */
 void vpMbtDistanceKltPoints::updateMask(
-#if (VISP_HAVE_OPENCV_VERSION >= 0x020408)
     cv::Mat &mask,
-#else
-    IplImage *mask,
-#endif
     unsigned char nb, unsigned int shiftBorder)
 {
-#if (VISP_HAVE_OPENCV_VERSION >= 0x020408)
   int width = mask.cols;
   int height = mask.rows;
-#else
-  int width = mask->width;
-  int height = mask->height;
-#endif
 
   int i_min, i_max, j_min, j_max;
   std::vector<vpImagePoint> roi;
   polygon->getRoiClipped(cam, roi);
 
-  double shiftBorder_d = (double)shiftBorder;
+  double shiftBorder_d = static_cast<double>(shiftBorder);
 
 #if defined(VISP_HAVE_CLIPPER)
   std::vector<vpImagePoint> roi_offset;
@@ -398,7 +386,7 @@ void vpMbtDistanceKltPoints::updateMask(
         std::vector<vpImagePoint> corners;
 
         for (size_t j = 0; j < solution[i].size(); j++) {
-          corners.push_back(vpImagePoint((double)(solution[i][j].Y), (double)(solution[i][j].X)));
+          corners.push_back(vpImagePoint(static_cast<double>(solution[i][j].Y), static_cast<double>(solution[i][j].X)));
         }
 
         polygon_area.buildFrom(corners);
@@ -410,9 +398,10 @@ void vpMbtDistanceKltPoints::updateMask(
     }
 
     for (size_t i = 0; i < solution[index_max].size(); i++) {
-      roi_offset.push_back(vpImagePoint((double)(solution[index_max][i].Y), (double)(solution[index_max][i].X)));
+      roi_offset.push_back(vpImagePoint(static_cast<double>(solution[index_max][i].Y), static_cast<double>(solution[index_max][i].X)));
     }
-  } else {
+  }
+  else {
     roi_offset = roi;
   }
 
@@ -440,12 +429,11 @@ void vpMbtDistanceKltPoints::updateMask(
     j_max = width;
   }
 
-#if (VISP_HAVE_OPENCV_VERSION >= 0x020408)
   for (int i = i_min; i < i_max; i++) {
-    double i_d = (double)i;
+    double i_d = static_cast<double>(i);
 
     for (int j = j_min; j < j_max; j++) {
-      double j_d = (double)j;
+      double j_d = static_cast<double>(j);
 
 #if defined(VISP_HAVE_CLIPPER)
       imPt.set_ij(i_d, j_d);
@@ -460,7 +448,8 @@ void vpMbtDistanceKltPoints::updateMask(
             vpPolygon::isInside(roi, i_d - shiftBorder_d, j_d - shiftBorder_d)) {
           mask.at<unsigned char>(i, j) = nb;
         }
-      } else {
+      }
+      else {
         if (vpPolygon::isInside(roi, i, j)) {
           mask.at<unsigned char>(i, j) = nb;
         }
@@ -468,32 +457,6 @@ void vpMbtDistanceKltPoints::updateMask(
 #endif
     }
   }
-#else
-  unsigned char *ptrData = (unsigned char *)mask->imageData + i_min * mask->widthStep + j_min;
-  for (int i = i_min; i < i_max; i++) {
-    double i_d = (double)i;
-    for (int j = j_min; j < j_max; j++) {
-      double j_d = (double)j;
-      if (shiftBorder != 0) {
-        if (vpPolygon::isInside(roi, i_d, j_d) && vpPolygon::isInside(roi, i_d + shiftBorder_d, j_d + shiftBorder_d) &&
-            vpPolygon::isInside(roi, i_d - shiftBorder_d, j_d + shiftBorder_d) &&
-            vpPolygon::isInside(roi, i_d + shiftBorder_d, j_d - shiftBorder_d) &&
-            vpPolygon::isInside(roi, i_d - shiftBorder_d, j_d - shiftBorder_d)) {
-          *(ptrData++) = nb;
-        } else {
-          ptrData++;
-        }
-      } else {
-        if (vpPolygon::isInside(roi, i, j)) {
-          *(ptrData++) = nb;
-        } else {
-          ptrData++;
-        }
-      }
-    }
-    ptrData += mask->widthStep - j_max + j_min;
-  }
-#endif
 }
 
 /*!
@@ -519,7 +482,8 @@ void vpMbtDistanceKltPoints::removeOutliers(const vpColVector &_w, const double 
       tmp[iter->first] = vpImagePoint(iter->second.get_i(), iter->second.get_j());
       tmp2[iter->first] = curPointsInd[iter->first];
       nbPointsCur++;
-    } else {
+    }
+    else {
       nbSupp++;
       initPoints.erase(iter->first);
     }
@@ -540,9 +504,9 @@ void vpMbtDistanceKltPoints::removeOutliers(const vpColVector &_w, const double 
 /*!
   Display the primitives tracked for the face.
 
-  \param _I : The image where to display.
+  \param I_ : The image where to display.
 */
-void vpMbtDistanceKltPoints::displayPrimitive(const vpImage<unsigned char> &_I)
+void vpMbtDistanceKltPoints::displayPrimitive(const vpImage<unsigned char> &I_)
 {
   std::map<int, vpImagePoint>::const_iterator iter = curPoints.begin();
   for (; iter != curPoints.end(); ++iter) {
@@ -551,22 +515,22 @@ void vpMbtDistanceKltPoints::displayPrimitive(const vpImage<unsigned char> &_I)
     iP.set_i(static_cast<double>(iter->second.get_i()));
     iP.set_j(static_cast<double>(iter->second.get_j()));
 
-    vpDisplay::displayCross(_I, iP, 10, vpColor::red);
+    vpDisplay::displayCross(I_, iP, 10, vpColor::red);
 
     iP.set_i(vpMath::round(iP.get_i() + 7));
     iP.set_j(vpMath::round(iP.get_j() + 7));
     std::stringstream ss;
     ss << id;
-    vpDisplay::displayText(_I, iP, ss.str(), vpColor::red);
+    vpDisplay::displayText(I_, iP, ss.str(), vpColor::red);
   }
 }
 
 /*!
   Display the primitives tracked for the face.
 
-  \param _I : The image where to display.
+  \param I_ : The image where to display.
 */
-void vpMbtDistanceKltPoints::displayPrimitive(const vpImage<vpRGBa> &_I)
+void vpMbtDistanceKltPoints::displayPrimitive(const vpImage<vpRGBa> &I_)
 {
   std::map<int, vpImagePoint>::const_iterator iter = curPoints.begin();
   for (; iter != curPoints.end(); ++iter) {
@@ -575,13 +539,13 @@ void vpMbtDistanceKltPoints::displayPrimitive(const vpImage<vpRGBa> &_I)
     iP.set_i(static_cast<double>(iter->second.get_i()));
     iP.set_j(static_cast<double>(iter->second.get_j()));
 
-    vpDisplay::displayCross(_I, iP, 10, vpColor::red);
+    vpDisplay::displayCross(I_, iP, 10, vpColor::red);
 
     iP.set_i(vpMath::round(iP.get_i() + 7));
     iP.set_j(vpMath::round(iP.get_j() + 7));
     std::stringstream ss;
     ss << id;
-    vpDisplay::displayText(_I, iP, ss.str(), vpColor::red);
+    vpDisplay::displayText(I_, iP, ss.str(), vpColor::red);
   }
 }
 
@@ -632,23 +596,8 @@ std::vector<std::vector<double> > vpMbtDistanceKltPoints::getFeaturesForDisplay(
     vpImagePoint iP2;
     iP2.set_i(vpMath::round(iP.get_i() + 7));
     iP2.set_j(vpMath::round(iP.get_j() + 7));
-
-#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
-    std::vector<double> params = {1, //KLT
-                                  iP.get_i(),
-                                  iP.get_j(),
-                                  iP2.get_i(),
-                                  iP2.get_j(),
-                                  static_cast<double>(id)};
-#else
-    std::vector<double> params;
-    params.push_back(1); //KLT
-    params.push_back(iP.get_i());
-    params.push_back(iP.get_j());
-    params.push_back(iP2.get_i());
-    params.push_back(iP2.get_j());
-    params.push_back(static_cast<double>(id));
-#endif
+    std::vector<double> params = { 1, // KLT
+                                  iP.get_i(), iP.get_j(), iP2.get_i(), iP2.get_j(), static_cast<double>(id) };
     features.push_back(params);
   }
 
@@ -693,21 +642,8 @@ std::vector<std::vector<double> > vpMbtDistanceKltPoints::getModelForDisplay(con
           linesLst[i].second.project();
           vpMeterPixelConversion::convertPoint(camera, linesLst[i].first.get_x(), linesLst[i].first.get_y(), ip1);
           vpMeterPixelConversion::convertPoint(camera, linesLst[i].second.get_x(), linesLst[i].second.get_y(), ip2);
-
-#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
-          std::vector<double> params = {0, //0 for line parameters
-                                        ip1.get_i(),
-                                        ip1.get_j(),
-                                        ip2.get_i(),
-                                        ip2.get_j()};
-#else
-          std::vector<double> params;
-          params.push_back(0); //0 for line parameters
-          params.push_back(ip1.get_i());
-          params.push_back(ip1.get_j());
-          params.push_back(ip2.get_i());
-          params.push_back(ip2.get_j());
-#endif
+          std::vector<double> params = { 0, // 0 for line parameters
+                                        ip1.get_i(), ip1.get_j(), ip2.get_i(), ip2.get_j() };
           models.push_back(params);
         }
       }
@@ -716,9 +652,9 @@ std::vector<std::vector<double> > vpMbtDistanceKltPoints::getModelForDisplay(con
 
   return models;
 }
-
+END_VISP_NAMESPACE
 #elif !defined(VISP_BUILD_SHARED_LIBS)
-// Work arround to avoid warning: libvisp_mbt.a(vpMbtDistanceKltPoints.cpp.o)
+// Work around to avoid warning: libvisp_mbt.a(vpMbtDistanceKltPoints.cpp.o)
 // has no symbols
-void dummy_vpMbtDistanceKltPoints(){};
+void dummy_vpMbtDistanceKltPoints() { }
 #endif
