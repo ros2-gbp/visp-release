@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Object input structure used by moments.
- *
- * Authors:
- * Filip Novotny
- *
- *****************************************************************************/
+ */
 
 #include <stdexcept>
 #include <visp3/core/vpCameraParameters.h>
@@ -51,6 +46,7 @@
 #endif
 #include <cassert>
 
+BEGIN_VISP_NAMESPACE
 /*!
   Computes moments from a vector of points describing a polygon (\cite Steger96).
   The points must be stored in a clockwise order. Used internally.
@@ -76,9 +72,9 @@ double vpMomentObject::calc_mom_polygon(unsigned int p, unsigned int q, const st
     double x_k = 1;
     for (k = 0; k <= p; k++) {
       y_l = 1;
-      x_p_k = pow(points[i - 1].get_x(), (int)(p - k));
+      x_p_k = pow(points[i - 1].get_x(), static_cast<int>(p - k));
       for (l = 0; l <= q; l++) {
-        y_q_l = pow(points[i - 1].get_y(), (int)(q - l));
+        y_q_l = pow(points[i - 1].get_y(), static_cast<int>(q - l));
 
         s += static_cast<double>(vpMath::comb(k + l, l) * vpMath::comb(p + q - k - l, q - l) * x_k * x_p_k * y_l *
                                  y_q_l);
@@ -100,13 +96,14 @@ double vpMomentObject::calc_mom_polygon(unsigned int p, unsigned int q, const st
 
   \param cache : Lookup table that contains the order by order values. For
   example, if the order is 3, cache will contain:
-\code
-  1   x     x^2
-  y   x*y   x^2*y
-  y^2 x*y^2 x^2*y^2
-\endcode
+  \code
+    1   x     x^2
+    y   x*y   x^2*y
+    y^2 x*y^2 x^2*y^2
+  \endcode
 
-  \param x, y : Coordinates of a point.
+  \param x : Coordinate of a point along x-axis.
+  \param y : Coordinate of a point along y-axis.
 */
 void vpMomentObject::cacheValues(std::vector<double> &cache, double x, double y)
 {
@@ -164,65 +161,72 @@ void vpMomentObject::cacheValues(std::vector<double> &cache, double x, double y,
   \param points : Vector of points.
 
   The code below shows how to use this function to consider a dense object
-defined by a closed contour.
+  defined by a closed contour.
 
   \code
-#include <visp3/core/vpMomentObject.h>
-#include <visp3/core/vpPoint.h>
+  #include <visp3/core/vpMomentObject.h>
+  #include <visp3/core/vpPoint.h>
 
-int main()
-{
-  // Define the contour of an object by a 5 clockwise vertices on a plane
-  vpPoint p;
-  std::vector<vpPoint> vec_p; // vector that contains the vertices of the contour polygon
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  p.set_x(-0.2); p.set_y(0.1); // coordinates in meters in the image plane (vertex 1)
-  vec_p.push_back(p);
-  p.set_x(+0.3); p.set_y(0.1); // coordinates in meters in the image plane (vertex 2)
-  vec_p.push_back(p);
-  p.set_x(+0.2); p.set_y(-0.1); // coordinates in meters in the image plane (vertex 3)
-  vec_p.push_back(p);
-  p.set_x(-0.2); p.set_y(-0.15); // coordinates in meters in the image plane (vertex 4)
-  vec_p.push_back(p);
-  p.set_x(-0.2); p.set_y(0.1); // close the contour (vertex 5 = vertex 1)
-  vec_p.push_back(p);
+  int main()
+  {
+    // Define the contour of an object by a 5 clockwise vertices on a plane
+    vpPoint p;
+    std::vector<vpPoint> vec_p; // vector that contains the vertices of the contour polygon
 
-  vpMomentObject obj(4); // Create an image moment object with 4 as maximum order
-  obj.setType(vpMomentObject::DENSE_POLYGON); // The object is defined by a countour polygon
-  obj.fromVector(vec_p); // Init the dense object with the polygon
+    p.set_x(-0.2); p.set_y(0.1); // coordinates in meters in the image plane (vertex 1)
+    vec_p.push_back(p);
+    p.set_x(+0.3); p.set_y(0.1); // coordinates in meters in the image plane (vertex 2)
+    vec_p.push_back(p);
+    p.set_x(+0.2); p.set_y(-0.1); // coordinates in meters in the image plane (vertex 3)
+    vec_p.push_back(p);
+    p.set_x(-0.2); p.set_y(-0.15); // coordinates in meters in the image plane (vertex 4)
+    vec_p.push_back(p);
+    p.set_x(-0.2); p.set_y(0.1); // close the contour (vertex 5 = vertex 1)
+    vec_p.push_back(p);
 
-  return 0;
-}
+    vpMomentObject obj(4); // Create an image moment object with 4 as maximum order
+    obj.setType(vpMomentObject::DENSE_POLYGON); // The object is defined by a countour polygon
+    obj.fromVector(vec_p); // Init the dense object with the polygon
+
+    return 0;
+  }
   \endcode
 
   This other example shows how to consider an object as a discrete set of four points.
 
   \code
-#include <visp3/core/vpMomentObject.h>
-#include <visp3/core/vpPoint.h>
+  #include <visp3/core/vpMomentObject.h>
+  #include <visp3/core/vpPoint.h>
 
-int main()
-{
-  // Define 4 discrete points on a plane
-  vpPoint p;
-  std::vector<vpPoint> vec_p; // vector that contains the 4 points
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  p.set_x(-0.2); p.set_y(0.1); // coordinates in meters in the image plane (point 1)
-  vec_p.push_back(p);
-  p.set_x(+0.3); p.set_y(0.1); // coordinates in meters in the image plane (point 2)
-  vec_p.push_back(p);
-  p.set_x(+0.2); p.set_y(-0.1); // coordinates in meters in the image plane (point 3)
-  vec_p.push_back(p);
-  p.set_x(-0.2); p.set_y(-0.15); // coordinates in meters in the image plane (point 4)
-  vec_p.push_back(p);
+  int main()
+  {
+    // Define 4 discrete points on a plane
+    vpPoint p;
+    std::vector<vpPoint> vec_p; // vector that contains the 4 points
 
-  vpMomentObject obj(4); // Create an image moment object with 4 as maximum order
-  obj.setType(vpMomentObject::DISCRETE); // The object is constituted by discrete points
-  obj.fromVector(vec_p); // Init the dense object with the points
+    p.set_x(-0.2); p.set_y(0.1); // coordinates in meters in the image plane (point 1)
+    vec_p.push_back(p);
+    p.set_x(+0.3); p.set_y(0.1); // coordinates in meters in the image plane (point 2)
+    vec_p.push_back(p);
+    p.set_x(+0.2); p.set_y(-0.1); // coordinates in meters in the image plane (point 3)
+    vec_p.push_back(p);
+    p.set_x(-0.2); p.set_y(-0.15); // coordinates in meters in the image plane (point 4)
+    vec_p.push_back(p);
 
-  return 0;
-}
+    vpMomentObject obj(4); // Create an image moment object with 4 as maximum order
+    obj.setType(vpMomentObject::DISCRETE); // The object is constituted by discrete points
+    obj.fromVector(vec_p); // Init the dense object with the points
 
+    return 0;
+  }
   \endcode
 */
 void vpMomentObject::fromVector(std::vector<vpPoint> &points)
@@ -236,7 +240,8 @@ void vpMomentObject::fromVector(std::vector<vpPoint> &points)
     for (unsigned int j = 0; j < order * order; j++) {
       values[j] = calc_mom_polygon(j % order, j / order, points);
     }
-  } else {
+  }
+  else {
     std::vector<double> cache(order * order, 0.);
     values.assign(order * order, 0);
     for (unsigned int i = 0; i < points.size(); i++) {
@@ -262,25 +267,29 @@ void vpMomentObject::fromVector(std::vector<vpPoint> &points)
 
   The code below shows how to use this function.
   \code
-#include <visp3/core/vpImage.h>
-#include <visp3/core/vpMomentObject.h>
+  #include <visp3/core/vpImage.h>
+  #include <visp3/core/vpMomentObject.h>
 
-int main()
-{
-  vpCameraParameters cam;             // Camera parameters used for pixel to
-meter conversion vpImage<unsigned char> I(288, 384); // Image used to define
-the object
-  // ... Initialize the image
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  unsigned char threshold = 128; // Gray level used to define which part of
-the image belong to the dense object
+  int main()
+  {
+    vpCameraParameters cam;             // Camera parameters used for pixel to
+  meter conversion vpImage<unsigned char> I(288, 384); // Image used to define
+  the object
+    // ... Initialize the image
 
-  vpMomentObject obj(3); // Create an image moment object with 3 as maximum
-order obj.fromImage(I, threshold, cam); // Initialize the object from the
-image
+    unsigned char threshold = 128; // Gray level used to define which part of
+  the image belong to the dense object
 
-  return 0;
-}
+    vpMomentObject obj(3); // Create an image moment object with 3 as maximum
+  order obj.fromImage(I, threshold, cam); // Initialize the object from the
+  image
+
+    return 0;
+  }
   \endcode
 */
 
@@ -294,8 +303,8 @@ void vpMomentObject::fromImage(const vpImage<unsigned char> &image, unsigned cha
     curvals.assign(order * order, 0.);
 
 #pragma omp for nowait // automatically organize loop counter between threads
-    for (int i = 0; i < (int)image.getCols(); i++) {
-      for (int j = 0; j < (int)image.getRows(); j++) {
+    for (int i = 0; i < static_cast<int>(image.getCols()); i++) {
+      for (int j = 0; j < static_cast<int>(image.getRows()); j++) {
         unsigned int i_ = static_cast<unsigned int>(i);
         unsigned int j_ = static_cast<unsigned int>(j);
         if (image[j_][i_] > threshold) {
@@ -349,7 +358,7 @@ void vpMomentObject::fromImage(const vpImage<unsigned char> &image, unsigned cha
   }
 #endif
 
-  // Normalisation equivalent to sampling interval/pixel size delX x delY
+  // Normalization equivalent to sampling interval/pixel size delX x delY
   double norm_factor = 1. / (cam.get_px() * cam.get_py());
   for (std::vector<double>::iterator it = values.begin(); it != values.end(); ++it) {
     *it = (*it) * norm_factor;
@@ -397,7 +406,7 @@ void vpMomentObject::fromImage(const vpImage<unsigned char> &image, const vpCame
       for (unsigned int i = 0; i < image.getCols(); i++) {
         x = 0;
         y = 0;
-        intensity = (double)(image[j][i]) * iscale;
+        intensity = static_cast<double>(image[j][i]) * iscale;
         double intensity_white = 1. - intensity;
 
         vpPixelMeterConversion::convertPoint(cam, i, j, x, y);
@@ -415,13 +424,14 @@ void vpMomentObject::fromImage(const vpImage<unsigned char> &image, const vpCame
         }
       }
     }
-  } else {
-    /////////// BLACK BACKGROUND	///////////
+  }
+  else {
+ /////////// BLACK BACKGROUND ///////////
     for (unsigned int j = 0; j < image.getRows(); j++) {
       for (unsigned int i = 0; i < image.getCols(); i++) {
         x = 0;
         y = 0;
-        intensity = (double)(image[j][i]) * iscale;
+        intensity = static_cast<double>(image[j][i]) * iscale;
         vpPixelMeterConversion::convertPoint(cam, i, j, x, y);
 
         // Cache values for fast moment calculation
@@ -441,7 +451,7 @@ void vpMomentObject::fromImage(const vpImage<unsigned char> &image, const vpCame
   }
 
   if (normalize_with_pix_size) {
-    // Normalisation equivalent to sampling interval/pixel size delX x delY
+    // Normalization equivalent to sampling interval/pixel size delX x delY
     double norm_factor = 1. / (cam.get_px() * cam.get_py());
     for (std::vector<double>::iterator it = values.begin(); it != values.end(); ++it) {
       *it = (*it) * norm_factor;
@@ -560,39 +570,6 @@ void vpMomentObject::set(unsigned int i, unsigned int j, const double &value_ij)
 }
 
 /*!
-  Outputs the basic moment's values \f$m_{ij}\f$ to a stream presented as a
-  matrix. The first line corresponds to \f$m_{0[0:order]}\f$, the second one
-  to \f$m_{1[0:order]}\f$ Values in table corresponding to a higher order are
-  marked with an "x" and not computed.
-
-  For example, if the maximal order is 3, the following values are provided:
-
-  \code
-  m00 m10 m20 m30
-  m01 m11 m21 x
-  m02 m12  x  x
-  m03 x    x  x
-  \endcode
-*/
-VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpMomentObject &m)
-{
-  for (unsigned int i = 0; i < m.values.size(); i++) {
-
-    if (i % (m.order) == 0)
-      os << std::endl;
-
-    if ((i % (m.order) + i / (m.order)) < m.order)
-      os << m.values[i];
-    else
-      os << "x";
-
-    os << "\t";
-  }
-
-  return os;
-}
-
-/*!
   Outputs the raw moment values \f$m_{ij}\f$ in indexed form.
   The moment values are same as provided by the operator << which outputs x
   for uncalculated moments.
@@ -662,3 +639,39 @@ vpMomentObject::~vpMomentObject()
 {
   // deliberate empty
 }
+
+/*!
+  Outputs the basic moment's values \f$m_{ij}\f$ to a stream presented as a
+  matrix. The first line corresponds to \f$m_{0[0:order]}\f$, the second one
+  to \f$m_{1[0:order]}\f$ Values in table corresponding to a higher order are
+  marked with an "x" and not computed.
+
+  For example, if the maximal order is 3, the following values are provided:
+
+  \code
+  m00 m10 m20 m30
+  m01 m11 m21 x
+  m02 m12  x  x
+  m03 x    x  x
+  \endcode
+*/
+VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpMomentObject &m)
+{
+  for (unsigned int i = 0; i < m.values.size(); ++i) {
+
+    if (i % (m.order) == 0)
+      os << std::endl;
+
+    if ((i % (m.order) + i / (m.order)) < m.order) {
+      os << m.values[i];
+    }
+    else {
+      os << "x";
+    }
+
+    os << "\t";
+  }
+
+  return os;
+}
+END_VISP_NAMESPACE

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,13 +29,8 @@
  *
  * Description:
  * Generic model based tracker. This class declares the methods to implement
- *in order to have a model based tracker.
- *
- * Authors:
- * Romain Tallonneau
- * Aurelien Yol
- *
- *****************************************************************************/
+ * in order to have a model based tracker.
+ */
 
 /*!
   \file vpMbTracker.h
@@ -49,6 +43,7 @@
 #include <string>
 #include <vector>
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpCameraParameters.h>
 #include <visp3/core/vpColVector.h>
 #include <visp3/core/vpHomogeneousMatrix.h>
@@ -79,6 +74,7 @@
 #include <Inventor/VRMLnodes/SoVRMLIndexedLineSet.h>
 #endif
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpMbTracker
   \ingroup group_mbt_trackers
@@ -92,14 +88,23 @@
   This class intends to define a common basis for object tracking. This is
   realised by implementing the main functions:
   - init() : Initialisation of the tracker (it includes re-initialisation).
-  This method is called at the end of the initClick() method.
-  - initFaceFromCorners() : Initialisation of the lines that has to be
-  tracked.
+    This method is called at the end of the initClick() method.
+  - initFaceFromCorners() : Initialisation of the lines that has to be tracked.
   - track() : Tracking on the current image
-  - testTracking() : Test the tracking. This method throws exception if the
-    tracking failed.
+  - testTracking() : Test the tracking. This method throws exception if the tracking failed.
   - display() : Display the model and eventually other information.
 
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in using a MBT tracker in your applications, you may have a look at:</span><br>
+
+  - \ref tutorial-tracking-mb-generic
+  - \ref tutorial-tracking-mb-generic-stereo
+  - \ref tutorial-tracking-mb-generic-rgbd
+  - \ref tutorial-tracking-mb-generic-apriltag-live
+  - \ref tutorial-mb-generic-json
+  - \ref tutorial-tracking-mb-generic-rgbd-Blender
 */
 class VISP_EXPORT vpMbTracker
 {
@@ -114,7 +119,7 @@ protected:
   //! The Degrees of Freedom to estimate
   vpMatrix oJo;
   //! Boolean to know if oJo is identity (for fast computation)
-  bool isoJoIdentity;
+  bool m_isoJoIdentity;
   //! The name of the file containing the model (it is used to create a file
   //! name.0.pos used to store the compute pose in the initClick method).
   std::string modelFileName;
@@ -151,11 +156,15 @@ protected:
   double distFarClip;
   //! Flags specifying which clipping to used
   unsigned int clippingFlag;
-  //! Use Ogre3d for visibility tests
+  //! Use Ogre3d for global visibility tests
   bool useOgre;
   bool ogreShowConfigDialog;
-  //! Use Scanline for visibility tests
+  //! Use Scanline for global visibility tests
   bool useScanLine;
+  //! Number of points in init file
+  unsigned int m_nbInitPoints;
+  //! Max allowed number of points in init file
+  unsigned int m_maxInitPoints;
   //! Number of points in CAO model
   unsigned int nbPoints;
   //! Number of lines in CAO model
@@ -228,7 +237,9 @@ protected:
 
 public:
   vpMbTracker();
+  vpMbTracker(const vpMbTracker &tracker);
   virtual ~vpMbTracker();
+  vpMbTracker &operator=(const vpMbTracker &tracker);
 
   /** @name Inherited functionalities from vpMbTracker */
   virtual double computeCurrentProjectionError(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &_cMo,
@@ -268,8 +279,8 @@ public:
       //      vpTRACE("Warning : The covariance matrix has not been computed.
       //      See setCovarianceComputation() to do it.");
       std::cerr << "Warning : The covariance matrix has not been computed. "
-                   "See setCovarianceComputation() to do it."
-                << std::endl;
+        "See setCovarianceComputation() to do it."
+        << std::endl;
     }
 
     return covarianceMatrix;
@@ -402,15 +413,15 @@ public:
   }
 
   virtual std::pair<std::vector<vpPolygon>, std::vector<std::vector<vpPoint> > >
-  getPolygonFaces(bool orderPolygons = true, bool useVisibility = true, bool clipPolygon = false);
+    getPolygonFaces(bool orderPolygons = true, bool useVisibility = true, bool clipPolygon = false);
 
-  /*!
-    Get the current pose between the object and the camera.
-    cMo is the matrix which can be used to express
-    coordinates from the object frame to camera frame.
+    /*!
+      Get the current pose between the object and the camera.
+      cMo is the matrix which can be used to express
+      coordinates from the object frame to camera frame.
 
-    \param cMo : the pose
-  */
+      \param cMo : the pose
+    */
   virtual inline void getPose(vpHomogeneousMatrix &cMo) const { cMo = m_cMo; }
 
   /*!
@@ -424,11 +435,11 @@ public:
 
   virtual inline double getStopCriteriaEpsilon() const { return m_stopCriteriaEpsilon; }
 
-// initializer
+  // initializer
 
 #ifdef VISP_HAVE_MODULE_GUI
   virtual void initClick(const vpImage<unsigned char> &I, const std::string &initFile, bool displayHelp = false,
-                         const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
+                         const vpHomogeneousMatrix &T = vpHomogeneousMatrix());
   virtual void initClick(const vpImage<vpRGBa> &I_color, const std::string &initFile, bool displayHelp = false,
                          const vpHomogeneousMatrix &T = vpHomogeneousMatrix());
 
@@ -455,7 +466,8 @@ public:
   virtual void initFromPose(const vpImage<unsigned char> &I, const vpPoseVector &cPo);
   virtual void initFromPose(const vpImage<vpRGBa> &I_color, const vpPoseVector &cPo);
 
-  virtual void loadModel(const std::string &modelFile, bool verbose = false, const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
+  virtual void loadModel(const std::string &modelFile, bool verbose = false,
+                         const vpHomogeneousMatrix &od_M_o = vpHomogeneousMatrix());
 
   /*!
     Set the angle used to test polygons appearance.
@@ -550,10 +562,10 @@ public:
   virtual void setNearClippingDistance(const double &dist);
 
   /*!
-    Set the optimization method used during the tracking.
-
-    \param opt : Optimization method to use.
-  */
+   * Set the optimization method used during the tracking.
+   *
+   * \param opt : Optimization method to use.
+   */
   virtual inline void setOptimizationMethod(const vpMbtOptimizationMethod &opt) { m_optimizationMethod = opt; }
 
   void setProjectionErrorMovingEdge(const vpMe &me);
@@ -584,20 +596,30 @@ public:
   virtual void setProjectionErrorComputation(const bool &flag) { computeProjError = flag; }
 
   /*!
-    Display or not gradient and model orientation when computing the projection error.
-  */
+   * Display or not gradient and model orientation when computing the projection error.
+   */
   virtual void setProjectionErrorDisplay(bool display) { m_projectionErrorDisplay = display; }
 
   /*!
-    Arrow length used to display gradient and model orientation for projection error computation.
-  */
-  virtual void setProjectionErrorDisplayArrowLength(unsigned int length) { m_projectionErrorDisplayLength = length; }
+   * Arrow length used to display gradient and model orientation for projection error computation.
+   */
+  virtual void setProjectionErrorDisplayArrowLength(unsigned int length)
+  {
+    m_projectionErrorDisplayLength = length;
+  }
 
   /*!
-    Arrow thickness used to display gradient and model orientation for projection error computation.
-  */
-  virtual void setProjectionErrorDisplayArrowThickness(unsigned int thickness) { m_projectionErrorDisplayThickness = thickness; }
+   * Arrow thickness used to display gradient and model orientation for projection error computation.
+   */
+  virtual void setProjectionErrorDisplayArrowThickness(unsigned int thickness)
+  {
+    m_projectionErrorDisplayThickness = thickness;
+  }
 
+  /*!
+   * Allows to enable global scanline visibility test for all the faces.
+   * @param v : When true, enables scanline visibility test.
+   */
   virtual void setScanLineVisibilityTest(const bool &v) { useScanLine = v; }
 
   virtual void setOgreVisibilityTest(const bool &v);
@@ -611,7 +633,7 @@ public:
 
     \sa setNbRayCastingAttemptsForVisibility(const unsigned int &)
 
-    \param ratio : Ratio of succesful attempts that has to be considered.
+    \param ratio : Ratio of successful attempts that has to be considered.
     Value has to be between 0.0 (0%) and 1.0 (100%).
   */
   virtual void setGoodNbRayCastingAttemptsRatio(const double &ratio) { faces.setGoodNbRayCastingAttemptsRatio(ratio); }
@@ -688,7 +710,7 @@ public:
   virtual std::vector<std::vector<double> > getModelForDisplay(unsigned int width, unsigned int height,
                                                                const vpHomogeneousMatrix &cMo,
                                                                const vpCameraParameters &cam,
-                                                               bool displayFullModel=false)=0;
+                                                               bool displayFullModel = false) = 0;
 
   /*!
     Initialise the tracking.
@@ -705,7 +727,7 @@ public:
     \param configFile : An xml config file to parse.
     \param verbose : verbose flag.
   */
-  virtual void loadConfigFile(const std::string &configFile, bool verbose=true);
+  virtual void loadConfigFile(const std::string &configFile, bool verbose = true);
 
   /*!
     Reset the tracker.
@@ -760,30 +782,29 @@ public:
 protected:
   /** @name Protected Member Functions Inherited from vpMbTracker */
   void addPolygon(const std::vector<vpPoint> &corners, int idFace = -1, const std::string &polygonName = "",
-                  bool useLod = false, double minPolygonAreaThreshold = 2500.0,
-                  double minLineLengthThreshold = 50.0);
+                  bool useLod = false, double minPolygonAreaThreshold = 2500.0, double minLineLengthThreshold = 50.0);
   void addPolygon(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, double radius, int idFace = -1,
-                  const std::string &polygonName = "", bool useLod = false,
-                  double minPolygonAreaThreshold = 2500.0);
+                  const std::string &polygonName = "", bool useLod = false, double minPolygonAreaThreshold = 2500.0);
   void addPolygon(const vpPoint &p1, const vpPoint &p2, int idFace = -1, const std::string &polygonName = "",
                   bool useLod = false, double minLineLengthThreshold = 50);
   void addPolygon(const std::vector<std::vector<vpPoint> > &listFaces, int idFace = -1,
-                  const std::string &polygonName = "", bool useLod = false,
-                  double minLineLengthThreshold = 50);
+                  const std::string &polygonName = "", bool useLod = false, double minLineLengthThreshold = 50);
 
   void addProjectionErrorCircle(const vpPoint &P1, const vpPoint &P2, const vpPoint &P3, double r, int idFace = -1,
                                 const std::string &name = "");
-  void addProjectionErrorCylinder(const vpPoint &P1, const vpPoint &P2, double r, int idFace = -1, const std::string &name = "");
+  void addProjectionErrorCylinder(const vpPoint &P1, const vpPoint &P2, double r, int idFace = -1,
+                                  const std::string &name = "");
   void addProjectionErrorLine(vpPoint &p1, vpPoint &p2, int polygon = -1, std::string name = "");
 
-  void addProjectionErrorPolygon(const std::vector<vpPoint> &corners, int idFace = -1, const std::string &polygonName = "",
-                                 bool useLod = false, double minPolygonAreaThreshold = 2500.0,
-                                 const double minLineLengthThreshold = 50.0);
-  void addProjectionErrorPolygon(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, double radius, int idFace = -1,
+  void addProjectionErrorPolygon(const std::vector<vpPoint> &corners, int idFace = -1,
                                  const std::string &polygonName = "", bool useLod = false,
+                                 double minPolygonAreaThreshold = 2500.0, const double minLineLengthThreshold = 50.0);
+  void addProjectionErrorPolygon(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, double radius,
+                                 int idFace = -1, const std::string &polygonName = "", bool useLod = false,
                                  double minPolygonAreaThreshold = 2500.0);
-  void addProjectionErrorPolygon(const vpPoint &p1, const vpPoint &p2, int idFace = -1, const std::string &polygonName = "",
-                                 bool useLod = false, double minLineLengthThreshold = 50);
+  void addProjectionErrorPolygon(const vpPoint &p1, const vpPoint &p2, int idFace = -1,
+                                 const std::string &polygonName = "", bool useLod = false,
+                                 double minLineLengthThreshold = 50);
   void addProjectionErrorPolygon(const std::vector<std::vector<vpPoint> > &listFaces, int idFace = -1,
                                  const std::string &polygonName = "", bool useLod = false,
                                  double minLineLengthThreshold = 50);
@@ -791,7 +812,7 @@ protected:
   void createCylinderBBox(const vpPoint &p1, const vpPoint &p2, const double &radius,
                           std::vector<std::vector<vpPoint> > &listFaces);
 
-  virtual void computeCovarianceMatrixVVS(const bool isoJoIdentity_, const vpColVector &w_true,
+  virtual void computeCovarianceMatrixVVS(const bool isoJoIdentity, const vpColVector &w_true,
                                           const vpHomogeneousMatrix &cMoPrev, const vpMatrix &L_true,
                                           const vpMatrix &LVJ_true, const vpColVector &error);
 
@@ -800,16 +821,16 @@ protected:
   double computeProjectionErrorImpl(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &_cMo,
                                     const vpCameraParameters &_cam, unsigned int &nbFeatures);
 
-  virtual void computeVVSCheckLevenbergMarquardt(unsigned int iter, vpColVector &error,
-                                                 const vpColVector &m_error_prev, const vpHomogeneousMatrix &cMoPrev,
-                                                 double &mu, bool &reStartFromLastIncrement,
-                                                 vpColVector *const w = NULL, const vpColVector *const m_w_prev = NULL);
+  virtual void computeVVSCheckLevenbergMarquardt(unsigned int iter, vpColVector &error, const vpColVector &m_error_prev,
+                                                 const vpHomogeneousMatrix &cMoPrev, double &mu,
+                                                 bool &reStartFromLastIncrement, vpColVector *const w = nullptr,
+                                                 const vpColVector *const m_w_prev = nullptr);
   virtual void computeVVSInit() = 0;
   virtual void computeVVSInteractionMatrixAndResidu() = 0;
-  virtual void computeVVSPoseEstimation(const bool isoJoIdentity_, unsigned int iter, vpMatrix &L, vpMatrix &LTL,
+  virtual void computeVVSPoseEstimation(const bool isoJoIdentity, unsigned int iter, vpMatrix &L, vpMatrix &LTL,
                                         vpColVector &R, const vpColVector &error, vpColVector &error_prev,
-                                        vpColVector &LTR, double &mu, vpColVector &v, const vpColVector *const w = NULL,
-                                        vpColVector *const m_w_prev = NULL);
+                                        vpColVector &LTR, double &mu, vpColVector &v, const vpColVector *const w = nullptr,
+                                        vpColVector *const m_w_prev = nullptr);
   virtual void computeVVSWeights(vpRobust &robust, const vpColVector &error, vpColVector &w);
 
 #ifdef VISP_HAVE_COIN3D
@@ -824,36 +845,36 @@ protected:
   vpPoint getGravityCenter(const std::vector<vpPoint> &_pts) const;
 
   /*!
-    Add a circle to track from its center, 3 points (including the center)
-    defining the plane that contain the circle and its radius.
+    Add a circle to track. With the center of the circle we have 3 points defining the plane that  contains the circle.
+    To be visible, the plane defined by the 3 points p1, p2, p3 should have its normal going toward the camera.
 
-    \param p1 : Center of the circle.
-    \param p2 : A point on the plane containing the circle.
-    \param p3 : An other point on the plane containing the circle. With the
-    center of the circle \e p1, \e p2 and \e p3 we have 3 points defining the
-    plane that contains the circle.
+    \param p1 : Center of the circle, considered as the first point on the plane containing the circle.
+    \param p2 : Second point on the plane containing the circle.
+    \param p3 : Third point on the plane containing the circle.
     \param radius : Radius of the circle.
-    \param idFace : Id of the face associated to the circle.
-    \param name : Name of the circle.
+    \param idFace : Index of the face associated to the circle to handle visibility test.
+    \param name : The optional name of the circle.
   */
-  virtual void initCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, double radius,
-                          int idFace = 0, const std::string &name = "") = 0;
+  virtual void initCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, double radius, int idFace = 0,
+                          const std::string &name = "") = 0;
 
 #ifdef VISP_HAVE_MODULE_GUI
-  virtual void initClick(const vpImage<unsigned char> * const I, const vpImage<vpRGBa> * const I_color, const std::string &initFile,
-                         bool displayHelp = false, const vpHomogeneousMatrix &T = vpHomogeneousMatrix());
+  virtual void initClick(const vpImage<unsigned char> *const I, const vpImage<vpRGBa> *const I_color,
+                         const std::string &initFile, bool displayHelp = false,
+                         const vpHomogeneousMatrix &od_M_o = vpHomogeneousMatrix());
 
-  virtual void initClick(const vpImage<unsigned char> * const I, const vpImage<vpRGBa> * const I_color,
+  virtual void initClick(const vpImage<unsigned char> *const I, const vpImage<vpRGBa> *const I_color,
                          const std::vector<vpPoint> &points3D_list, const std::string &displayFile = "");
 #endif
 
-  virtual void initFromPoints(const vpImage<unsigned char> * const I, const vpImage<vpRGBa> * const I_color,
+  virtual void initFromPoints(const vpImage<unsigned char> *const I, const vpImage<vpRGBa> *const I_color,
                               const std::string &initFile);
 
-  virtual void initFromPoints(const vpImage<unsigned char> * const I, const vpImage<vpRGBa> * const I_color,
-                              const std::vector<vpImagePoint> &points2D_list, const std::vector<vpPoint> &points3D_list);
+  virtual void initFromPoints(const vpImage<unsigned char> *const I, const vpImage<vpRGBa> *const I_color,
+                              const std::vector<vpImagePoint> &points2D_list,
+                              const std::vector<vpPoint> &points3D_list);
 
-  virtual void initFromPose(const vpImage<unsigned char> * const I, const vpImage<vpRGBa> * const I_color,
+  virtual void initFromPose(const vpImage<unsigned char> *const I, const vpImage<vpRGBa> *const I_color,
                             const std::string &initFile);
 
   /*!
@@ -884,8 +905,8 @@ protected:
   virtual void initFaceFromCorners(vpMbtPolygon &polygon) = 0;
   virtual void initFaceFromLines(vpMbtPolygon &polygon) = 0;
 
-  void initProjectionErrorCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, double radius,
-                                 int idFace = 0, const std::string &name = "");
+  void initProjectionErrorCircle(const vpPoint &p1, const vpPoint &p2, const vpPoint &p3, double radius, int idFace = 0,
+                                 const std::string &name = "");
   void initProjectionErrorCylinder(const vpPoint &p1, const vpPoint &p2, double radius, int idFace = 0,
                                    const std::string &name = "");
   void initProjectionErrorFaceFromCorners(vpMbtPolygon &polygon);
@@ -894,17 +915,18 @@ protected:
   virtual void loadVRMLModel(const std::string &modelFile);
   virtual void loadCAOModel(const std::string &modelFile, std::vector<std::string> &vectorOfModelFilename,
                             int &startIdFace, bool verbose = false, bool parent = true,
-                            const vpHomogeneousMatrix &T=vpHomogeneousMatrix());
-
+                            const vpHomogeneousMatrix &T = vpHomogeneousMatrix());
+  void loadInitFile(const std::string &initFile, std::vector<std::string> &vectorOfInitFilename,
+                    bool parent, const vpHomogeneousMatrix &T, std::vector<vpPoint> &P);
   void projectionErrorInitMovingEdge(const vpImage<unsigned char> &I, const vpHomogeneousMatrix &_cMo);
   void projectionErrorResetMovingEdges();
   void projectionErrorVisibleFace(unsigned int width, unsigned int height, const vpHomogeneousMatrix &_cMo);
 
-  void removeComment(std::ifstream &fileId);
+  void removeCommentsAndEmptyLines(std::ifstream &fileId);
 
   std::map<std::string, std::string> parseParameters(std::string &endLine);
 
   bool samePoint(const vpPoint &P1, const vpPoint &P2) const;
 };
-
+END_VISP_NAMESPACE
 #endif

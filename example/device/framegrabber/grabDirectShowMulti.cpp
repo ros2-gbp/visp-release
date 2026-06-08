@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -31,13 +30,7 @@
  * Description:
  * Acquire images using DirectShow (under Windows only) and display it
  * using GTK or GDI.
- *
- * Authors:
- * Bruno Renier
- * Fabien Spindler
- * Anthony Saunier
- *
- *****************************************************************************/
+ */
 
 #include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDebug.h>
@@ -49,10 +42,9 @@
 
 */
 
-#include <vector>
-
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 #if defined(VISP_HAVE_DIRECTSHOW)
 #if (defined(VISP_HAVE_GTK) || defined(VISP_HAVE_GDI))
@@ -66,10 +58,13 @@
 #include <visp3/sensor/vpDirectShowGrabber.h>
 
 // List of allowed command line options
-//#define GETOPTARGS	"dhn:o:"
 #define GETOPTARGS "c:df:hmn:io:st:?"
 
 #define GRAB_COLOR
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 /*!
 
@@ -109,7 +104,8 @@ OPTIONS                                                    Default\n\
 \n\
   -f [%%d] \n\
      Framerate to set for the active camera.\n\
-     You can select the active camera using -c option.\n", name);
+     You can select the active camera using -c option.\n",
+          name);
 
   fprintf(stdout, "\n\
   -c [%%u]                                                    %u\n\
@@ -141,7 +137,8 @@ OPTIONS                                                    Default\n\
 \n\
   -h \n\
      Print the help.\n\
-\n", camera, nframes, opath.c_str());
+\n",
+camera, nframes, opath.c_str());
 
   exit(0);
 }
@@ -214,14 +211,14 @@ void read_options(int argc, const char **argv, bool &multi, unsigned int &camera
       mediatypeID = atoi(optarg);
       break;
     default:
-      usage(argv[0], NULL, camera, nframes, opath);
+      usage(argv[0], nullptr, camera, nframes, opath);
       break;
     }
   }
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL, camera, nframes, opath);
+    usage(argv[0], nullptr, camera, nframes, opath);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg << std::endl << std::endl;
   }
@@ -257,9 +254,10 @@ int main(int argc, const char **argv)
     vpImage<unsigned char> *I;
     std::string opath = "C:/temp/I%d-%04d.pgm";
 #endif
-#if defined VISP_HAVE_GDI
+#if defined(VISP_HAVE_GDI)
+
     vpDisplayGDI *d;
-#elif defined VISP_HAVE_GTK
+#elif defined(VISP_HAVE_GTK)
     vpDisplayGTK *d;
 #endif
     read_options(argc, argv, multi, camera, nframes, verbose_info, verbose_settings, mediatype_is_set, mediatypeID,
@@ -279,7 +277,7 @@ int main(int argc, const char **argv)
         std::cout << "cameras on the bus." << std::endl;
         g->close();
         delete g;
-        return (0);
+        return EXIT_FAILURE;
       }
     }
     if (camera >= ncameras) {
@@ -289,7 +287,7 @@ int main(int argc, const char **argv)
       std::cout << "Check your -c <camera> command line option." << std::endl;
       g->close();
       delete g;
-      return (0);
+      return EXIT_FAILURE;
     }
     if (multi) {
       camera = 0; // to over write a bad option usage
@@ -301,7 +299,8 @@ int main(int argc, const char **argv)
         g[i].open();
       }
 
-    } else {
+    }
+    else {
       ncameras = 1; // acquisition from only one camera
       delete[] g;
       g = new vpDirectShowGrabber[1];
@@ -359,19 +358,19 @@ int main(int argc, const char **argv)
           unsigned int width, height;
           g[i].getFormat(width, height, framerate);
           std::cout << "----------------------------------------------------------" << std::endl
-                    << "---- MediaType and framerate currently used by device " << std::endl
-                    << "---- (or camera) " << c << std::endl
-                    << "---- Current MediaType : " << g[i].getMediaType() << std::endl
-                    << "---- Current format : " << width << " x " << height << " at " << framerate << " fps"
-                    << std::endl
-                    << "----------------------------------------------------------" << std::endl;
+            << "---- MediaType and framerate currently used by device " << std::endl
+            << "---- (or camera) " << c << std::endl
+            << "---- Current MediaType : " << g[i].getMediaType() << std::endl
+            << "---- Current format : " << width << " x " << height << " at " << framerate << " fps"
+            << std::endl
+            << "----------------------------------------------------------" << std::endl;
         }
         if (verbose_settings) {
           std::cout << "----------------------------------------------------------" << std::endl
-                    << "---- MediaTypes supported by device (or camera) " << c << std::endl
-                    << "---- One of the MediaType below can be set using " << std::endl
-                    << "---- option -t <mediatype>." << std::endl
-                    << "----------------------------------------------------------" << std::endl;
+            << "---- MediaTypes supported by device (or camera) " << c << std::endl
+            << "---- One of the MediaType below can be set using " << std::endl
+            << "---- option -t <mediatype>." << std::endl
+            << "----------------------------------------------------------" << std::endl;
           g[i].getStreamCapabilities();
         }
       }
@@ -380,7 +379,7 @@ int main(int argc, const char **argv)
       if (display)
         delete[] d;
 
-      return 0;
+      return EXIT_SUCCESS;
     }
 
     // Do a first acquisition to initialise the display
@@ -394,13 +393,14 @@ int main(int argc, const char **argv)
         c = camera;
 
       std::cout << "Image size for camera " << c << " : width: " << I[i].getWidth() << " height: " << I[i].getHeight()
-                << std::endl;
+        << std::endl;
 
       if (display) {
         // Initialise the display
-        char title[100];
-        sprintf(title, "Images captured by camera %u", c);
-        d[i].init(I[i], 100 + i * 50, 100 + i * 50, title);
+        std::stringstream title;
+        title << "Images captured by camera ";
+        title << c;
+        d[i].init(I[i], 100 + i * 50, 100 + i * 50, title.c_str());
       }
     }
 
@@ -422,7 +422,7 @@ int main(int argc, const char **argv)
         }
         if (save) {
           char buf[FILENAME_MAX];
-          sprintf(buf, opath.c_str(), c, i);
+          snprintf(buf, FILENAME_MAX, opath.c_str(), c, i);
           std::string filename(buf);
           std::cout << "Write: " << filename << std::endl;
           vpImageIo::write(I[c], filename);
@@ -447,7 +447,8 @@ int main(int argc, const char **argv)
       delete[] d;
 
     return EXIT_SUCCESS;
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
     return EXIT_FAILURE;
   }
@@ -455,7 +456,8 @@ int main(int argc, const char **argv)
 #else  // (defined (VISP_HAVE_GTK) || defined(VISP_HAVE_GDI))
 int main()
 {
-  std::cout << "You do not have GDI (Graphical Device Interface), or GTK functionalities to display images..." << std::endl;
+  std::cout << "You do not have GDI (Graphical Device Interface), or GTK functionalities to display images..."
+    << std::endl;
   std::cout << "Tip if you are on a windows-like system:" << std::endl;
   std::cout << "- Install GDI, configure again ViSP using cmake and build again this example" << std::endl;
   return EXIT_SUCCESS;

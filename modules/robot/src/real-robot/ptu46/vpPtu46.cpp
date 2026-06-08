@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Interface for the ptu-46 robot.
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
 /* ----------------------------------------------------------------------- */
 /* --- INCLUDE ----------------------------------------------------------- */
@@ -44,17 +39,18 @@
 #include <visp3/robot/vpPtu46.h>
 #include <visp3/robot/vpRobotException.h>
 
-/* Inclusion des fichiers standards.		*/
+/* Inclusion des fichiers standards. */
 #include <math.h>
 #include <visp3/core/vpMath.h>
 
+BEGIN_VISP_NAMESPACE
 /* ------------------------------------------------------------------------ */
 /* --- COMPUTE ------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
-const unsigned int vpPtu46::ndof = 2; /*<! Pan and tilt are considered. */
+const unsigned int vpPtu46::ndof = 2; /*!< Pan and tilt are considered. */
 const float vpPtu46::L = 0.0765f;     /*! Horizontal offset along the last joint,
                                        from last joint to camera frame. */
-const float vpPtu46::h = 0.068f;      /*<! Vertical offset from last joint to
+const float vpPtu46::h = 0.068f;      /*!< Vertical offset from last joint to
                                        camera frame. */
 
 /*!
@@ -151,7 +147,7 @@ void vpPtu46::computeMGD(const vpColVector &q, vpPoseVector &r) const
 
 /*!
 
-  Default construtor. Call init().
+  Default constructor. Call init().
 
 */
 vpPtu46::vpPtu46(void) { init(); }
@@ -172,10 +168,10 @@ void vpPtu46::init() { return; }
 VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpPtu46 & /* constant */)
 {
   os << "Geometric parameters: " << std::endl
-     << "L: "
-     << "\t" << vpPtu46::L << std::endl
-     << "h: "
-     << "\t" << vpPtu46::h << std::endl;
+    << "L: "
+    << "\t" << vpPtu46::L << std::endl
+    << "h: "
+    << "\t" << vpPtu46::h << std::endl;
 
   return os;
 }
@@ -187,7 +183,7 @@ VISP_EXPORT std::ostream &operator<<(std::ostream &os, const vpPtu46 & /* consta
   on the tilt axis.
 
   \param cVe : Twist transformation between camera and end effector frame to
-  expess a velocity skew from end effector frame in camera frame.
+  express a velocity skew from end effector frame in camera frame.
 
 */
 void vpPtu46::get_cVe(vpVelocityTwistMatrix &cVe) const
@@ -294,3 +290,4 @@ void vpPtu46::get_fJe(const vpColVector &q, vpMatrix &fJe) const
   fJe[4][1] = -c1;
   fJe[5][0] = 1;
 }
+END_VISP_NAMESPACE

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2024 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Test for image undistortion.
- *
- * Authors:
- * Anthony Saunier
- *
- *****************************************************************************/
+ */
 
 #include <stdlib.h>
 #include <visp3/core/vpDebug.h>
@@ -45,31 +40,49 @@
 #include <visp3/core/vpTime.h>
 #include <visp3/io/vpImageIo.h>
 #include <visp3/io/vpParseArgv.h>
+
 /*!
   \example testUndistortImage.cpp
 
   \brief Undistort an image.
 
-  Read an image from the disk, undistort it and save the
-  undistorted image on the disk.
-
- */
+  Read an image from the disk, undistort it and save the undistorted image on the disk.
+*/
 
 // List of allowed command line options
 #define GETOPTARGS "cdi:o:t:s:h"
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
+
+void usage(const char *name, const char *badparam, const std::string &ipath, const std::string &opath,
+           const std::string &user);
+bool getOptions(int argc, const char **argv, std::string &ipath, std::string &opath, const std::string &user,
+                unsigned int &nThreads, unsigned int &scale);
 
 /*
   Print the program options.
 
   \param name : Program name.
   \param badparam : Bad parameter name.
-  \param ipath: Input image path.
+  \param ipath : Input image path.
   \param opath : Output image path.
   \param user : Username.
  */
 void usage(const char *name, const char *badparam, const std::string &ipath, const std::string &opath,
            const std::string &user)
 {
+#if defined(VISP_HAVE_DATASET)
+#if VISP_HAVE_DATASET_VERSION >= 0x030600
+  std::string ext("png");
+#else
+  std::string ext("pgm");
+#endif
+#else
+  // We suppose that the user will download a recent dataset
+  std::string ext("png");
+#endif
   fprintf(stdout, "\n\
 Read an image from the disk, undistort it \n\
 and save the undistorted image on the disk.\n\
@@ -78,13 +91,14 @@ and save the undistorted image on the disk.\n\
 SYNOPSIS\n\
   %s [-i <input image path>] [-o <output image path>] [-t <nThreads>] [-s <scale>]\n\
      [-h]\n\
-          ", name);
+          ",
+          name);
 
   fprintf(stdout, "\n\
 OPTIONS:                                               Default\n\
   -i <input image path>                                %s\n\
      Set image input path.\n\
-     From this path read \"calibration/grid36-01.pgm\"\n\
+     From this path read \"calibration/grid36-01.%s\"\n\
      image.\n\
      Setting the VISP_INPUT_IMAGE_PATH environment\n\
      variable produces the same behaviour than using\n\
@@ -103,7 +117,8 @@ OPTIONS:                                               Default\n\
      Resize the image by the specified scale factor.\n\
 \n\
   -h\n\
-     Print the help.\n\n", ipath.c_str(), opath.c_str(), user.c_str());
+     Print the help.\n\n",
+          ext.c_str(), ipath.c_str(), opath.c_str(), user.c_str());
 
   if (badparam)
     fprintf(stdout, "\nERROR: Bad parameter [%s]\n", badparam);
@@ -114,15 +129,15 @@ OPTIONS:                                               Default\n\
 
   \param argc : Command line number of parameters.
   \param argv : Array of command line parameters.
-  \param ipath: Input image path.
+  \param ipath : Input image path.
   \param opath : Output image path.
   \param user : Username.
   \param nThreads : Nb threads for vpImageTools::undistort().
   \param scale : Scale factor to resize the image.
   \return false if the program has to be stopped, true otherwise.
  */
-bool getOptions(int argc, const char **argv, std::string &ipath, std::string &opath,
-                const std::string &user, unsigned int &nThreads, unsigned int &scale)
+bool getOptions(int argc, const char **argv, std::string &ipath, std::string &opath, const std::string &user,
+                unsigned int &nThreads, unsigned int &scale)
 {
   const char *optarg_;
   int c;
@@ -142,7 +157,7 @@ bool getOptions(int argc, const char **argv, std::string &ipath, std::string &op
       scale = atoi(optarg_);
       break;
     case 'h':
-      usage(argv[0], NULL, ipath, opath, user);
+      usage(argv[0], nullptr, ipath, opath, user);
       return false;
 
     case 'c':
@@ -157,7 +172,7 @@ bool getOptions(int argc, const char **argv, std::string &ipath, std::string &op
 
   if ((c == 1) || (c == -1)) {
     // standalone param or error
-    usage(argv[0], NULL, ipath, opath, user);
+    usage(argv[0], nullptr, ipath, opath, user);
     std::cerr << "ERROR: " << std::endl;
     std::cerr << "  Bad argument " << optarg_ << std::endl << std::endl;
     return false;
@@ -179,6 +194,17 @@ int main(int argc, const char **argv)
     unsigned int nThreads = 2;
     unsigned int scale = 1;
 
+#if defined(VISP_HAVE_DATASET)
+#if VISP_HAVE_DATASET_VERSION >= 0x030600
+    std::string ext("png");
+#else
+    std::string ext("pgm");
+#endif
+#else
+    // We suppose that the user will download a recent dataset
+    std::string ext("png");
+#endif
+
     // Get the visp-images-data package path or VISP_INPUT_IMAGE_PATH
     // environment variable value
     env_ipath = vpIoTools::getViSPImagesDataPath();
@@ -187,7 +213,7 @@ int main(int argc, const char **argv)
     if (!env_ipath.empty())
       ipath = env_ipath;
 
-// Set the default output path
+    // Set the default output path
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))) // UNIX
     opt_opath = "/tmp";
 #elif defined(_WIN32)
@@ -199,7 +225,7 @@ int main(int argc, const char **argv)
 
     // Read the command line options
     if (getOptions(argc, argv, opt_ipath, opt_opath, username, nThreads, scale) == false) {
-      exit(-1);
+      return EXIT_FAILURE;
     }
 
     // Get the option values
@@ -216,35 +242,36 @@ int main(int argc, const char **argv)
       try {
         // Create the dirname
         vpIoTools::makeDirectory(opath);
-      } catch (...) {
-        usage(argv[0], NULL, ipath, opt_opath, username);
+      }
+      catch (...) {
+        usage(argv[0], nullptr, ipath, opt_opath, username);
         std::cerr << std::endl << "ERROR:" << std::endl;
         std::cerr << "  Cannot create " << opath << std::endl;
         std::cerr << "  Check your -o " << opt_opath << " option " << std::endl;
-        exit(-1);
+        return EXIT_FAILURE;
       }
     }
 
     // Compare ipath and env_ipath. If they differ, we take into account
-    // the input path comming from the command line option
+    // the input path coming from the command line option
     if (opt_ipath.empty()) {
       if (ipath != env_ipath) {
         std::cout << std::endl << "WARNING: " << std::endl;
         std::cout << "  Since -i <visp image path=" << ipath << "> "
-                  << "  is different from VISP_IMAGE_PATH=" << env_ipath << std::endl
-                  << "  we skip the environment variable." << std::endl;
+          << "  is different from VISP_IMAGE_PATH=" << env_ipath << std::endl
+          << "  we skip the environment variable." << std::endl;
       }
     }
 
     // Test if an input path is set
     if (opt_ipath.empty() && env_ipath.empty()) {
-      usage(argv[0], NULL, ipath, opt_opath, username);
+      usage(argv[0], nullptr, ipath, opt_opath, username);
       std::cerr << std::endl << "ERROR:" << std::endl;
       std::cerr << "  Use -i <visp image path> option or set VISP_INPUT_IMAGE_PATH " << std::endl
-                << "  environment variable to specify the location of the " << std::endl
-                << "  image path where test images are located." << std::endl
-                << std::endl;
-      exit(-1);
+        << "  environment variable to specify the location of the " << std::endl
+        << "  image path where test images are located." << std::endl
+        << std::endl;
+      return EXIT_FAILURE;
     }
 
     //
@@ -252,21 +279,22 @@ int main(int argc, const char **argv)
     //
     vpImage<vpRGBa> I, I_; // Input image
     vpImage<unsigned char> I_gray;
-    vpImage<vpRGBa> U; // undistorted output image
-    vpImage<unsigned char> U_gray; // undistorted output image
-    vpImage<vpRGBa> U_remap; // undistorted output image
+    vpImage<vpRGBa> U;                   // undistorted output image
+    vpImage<unsigned char> U_gray;       // undistorted output image
+    vpImage<vpRGBa> U_remap;             // undistorted output image
     vpImage<unsigned char> U_remap_gray; // undistorted output image
 
     vpCameraParameters cam;
     cam.initPersProjWithDistortion(600, 600, 320, 240, -0.17, 0.17);
     // Read the input grey image from the disk
-    filename = vpIoTools::createFilePath(ipath, "calibration/grid36-01.pgm");
+    filename = vpIoTools::createFilePath(ipath, "calibration/grid36-01." + ext);
     std::cout << "Read image: " << filename << std::endl;
     vpImageIo::read(I_, filename);
     if (scale > 1) {
       std::cout << "Scale the image by a factor of " << scale << std::endl;
-      vpImageTools::resize(I_, I, I_.getWidth()*scale, I_.getHeight()*scale);
-    } else {
+      vpImageTools::resize(I_, I, I_.getWidth() * scale, I_.getHeight() * scale);
+    }
+    else {
       I = I_;
     }
     std::cout << "Input image: " << I.getWidth() << "x" << I.getHeight() << std::endl;
@@ -358,19 +386,19 @@ int main(int argc, const char **argv)
     }
 
     // Write the undistorted images on the disk
-    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted.ppm"));
+    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted_color.png"));
     std::cout << "\nWrite undistorted image: " << filename << std::endl;
     vpImageIo::write(U, filename);
 
-    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted.pgm"));
+    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted_gray.png"));
     std::cout << "Write undistorted image: " << filename << std::endl;
     vpImageIo::write(U_gray, filename);
 
-    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted_remap.ppm"));
+    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted_remap_color.png"));
     std::cout << "\nWrite undistorted image with remap: " << filename << std::endl;
     vpImageIo::write(U_remap, filename);
 
-    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted_remap.pgm"));
+    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted_remap_gray.png"));
     std::cout << "Write undistorted image with remap: " << filename << std::endl;
     vpImageIo::write(U_remap_gray, filename);
 
@@ -386,12 +414,12 @@ int main(int argc, const char **argv)
         mean_diff += U_diff_abs[i][j].A;
       }
     }
-    double remap_mean_error = mean_diff / (4*U_diff_abs.getSize());
+    double remap_mean_error = mean_diff / (4 * U_diff_abs.getSize());
     std::cout << "U_diff_abs mean value: " << remap_mean_error << std::endl;
     const double remap_error_threshold = 0.5;
     if (remap_mean_error > remap_error_threshold) {
       std::cerr << "Issue with vpImageTools::remap() with vpRGBa image" << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
 
     vpImage<unsigned char> U_diff_gray_abs;
@@ -400,25 +428,26 @@ int main(int argc, const char **argv)
     std::cout << "U_diff_gray_abs mean value: " << remap_mean_error_gray << std::endl;
     if (remap_mean_error_gray > remap_error_threshold) {
       std::cerr << "Issue with vpImageTools::remap() with unsigned char image" << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
 
     // Write the undistorted difference images on the disk
     vpImage<vpRGBa> U_diff;
     vpImage<unsigned char> U_diff_gray;
     vpImageTools::imageDifference(U, U_remap, U_diff);
-    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted_diff.ppm"));
+    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted_diff_color.png"));
     std::cout << "\nWrite undistorted image: " << filename << std::endl;
     vpImageIo::write(U_diff, filename);
 
     vpImageTools::imageDifference(U_gray, U_remap_gray, U_diff_gray);
-    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted_diff.pgm"));
+    filename = vpIoTools::path(vpIoTools::createFilePath(opath, "grid36-01_undistorted_diff_gray.png"));
     std::cout << "Write undistorted image: " << filename << std::endl;
     vpImageIo::write(U_diff_gray, filename);
 
-    return 0;
-  } catch (const vpException &e) {
+    return EXIT_SUCCESS;
+  }
+  catch (const vpException &e) {
     std::cout << "Catch an exception: " << e << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,9 +33,7 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 /*!
  \file vpTemplateTrackerWarp.h
  \brief
@@ -45,15 +42,24 @@
 #ifndef vpTemplateTrackerWarp_hh
 #define vpTemplateTrackerWarp_hh
 
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpDisplay.h>
 #include <visp3/core/vpTrackingException.h>
 #include <visp3/tt/vpTemplateTrackerHeader.h>
 #include <visp3/tt/vpTemplateTrackerTriangle.h>
 #include <visp3/tt/vpTemplateTrackerZone.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpTemplateTrackerWarp
   \ingroup group_tt_warp
+
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in the Template Tracker  (TT), you may have a look at:</span><br>
+
+  - \ref tutorial-tracking-tt
 */
 class VISP_EXPORT vpTemplateTrackerWarp
 {
@@ -65,11 +71,11 @@ public:
   /*!
    * Default constructor.
    */
-  vpTemplateTrackerWarp() : denom(1.), nbParam(0) {}
+  vpTemplateTrackerWarp() : denom(1.), nbParam(0) { }
   /*!
    * Destructor.
    */
-  virtual ~vpTemplateTrackerWarp() {}
+  virtual ~vpTemplateTrackerWarp() { }
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
   virtual void computeCoeff(const vpColVector &p) = 0;
@@ -119,8 +125,8 @@ public:
    * \frac{\partial M}{\partial p}(X, p_0)
    * \f]
    *
- * \param v : Coordinate (along the image rows axis) of the point X(u,v) to consider in the image.
- * \param u : Coordinate (along the image columns axis) of the point X(u,v) to consider in the image.
+   * \param v : Coordinate (along the image rows axis) of the point X(u,v) to consider in the image.
+   * \param u : Coordinate (along the image columns axis) of the point X(u,v) to consider in the image.
    * \param dIdW : Resulting 2-by-3 derivative matrix.
    */
   virtual void getdWdp0(const int &v, const int &u, double *dIdW) = 0;
@@ -195,7 +201,6 @@ public:
    */
   virtual void warpXInv(const vpColVector &X1, vpColVector &X2, const vpColVector &p) = 0;
 
-
   /** @name Inherited functionalities from vpTemplateTrackerWarp */
   //@{
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -221,10 +226,7 @@ public:
 
     \param nb : New number of parameters.
   */
-  void setNbParam(unsigned int nb)
-  {
-    nbParam = nb;
-  }
+  void setNbParam(unsigned int nb) { nbParam = nb; }
 
   /*!
     Warp a list of points.
@@ -260,5 +262,5 @@ public:
   void warpZone(const vpTemplateTrackerZone &in, const vpColVector &p, vpTemplateTrackerZone &out);
   //@}
 };
-
+END_VISP_NAMESPACE
 #endif

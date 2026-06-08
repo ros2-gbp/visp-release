@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,18 +29,26 @@
  *
  * Description:
  * Key point used in matching algorithm.
- *
- * Authors:
- * Nicolas Melchior
- *
- *****************************************************************************/
-
-#include <visp3/vision/vpBasicKeyPoint.h>
+ */
 
 /*!
-  Basic constructor.
+ * \file vpBasicKeyPoint.cpp
+ * \brief Class that defines what is a keypoint.
+ */
+
+#include <visp3/core/vpConfig.h>
+#include <visp3/vision/vpBasicKeyPoint.h>
+
+BEGIN_VISP_NAMESPACE
+
+/*
+ * Destructor.
 */
-vpBasicKeyPoint::vpBasicKeyPoint()
-  : referenceImagePointsList(), currentImagePointsList(), matchedReferencePoints(), _reference_computed(false)
+vpBasicKeyPoint::~vpBasicKeyPoint()
 {
+  m_matchedReferencePoints.resize(0);
+  m_currentImagePointsList.resize(0);
+  m_referenceImagePointsList.resize(0);
 }
+
+END_VISP_NAMESPACE
