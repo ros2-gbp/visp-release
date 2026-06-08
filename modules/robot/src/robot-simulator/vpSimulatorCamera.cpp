@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,11 +29,7 @@
  *
  * Description:
  * Defines the simplest robot : a free flying camera.
- *
- * Authors:
- * Eric Marchand
- *
- *****************************************************************************/
+ */
 
 /*!
   \file vpSimulatorCamera.cpp
@@ -47,6 +42,7 @@
 #include <visp3/robot/vpRobotException.h>
 #include <visp3/robot/vpSimulatorCamera.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   Default constructor that sets the transformation between
   world frame and camera frame to identity.
@@ -68,18 +64,12 @@ void vpSimulatorCamera::init()
   eJeAvailable = true;
   fJeAvailable = false;
   areJointLimitsAvailable = false;
-  qmin = NULL;
-  qmax = NULL;
+  qmin = nullptr;
+  qmax = nullptr;
 
   setMaxTranslationVelocity(1.);           // vx, vy and vz max set to 1 m/s
   setMaxRotationVelocity(vpMath::rad(90)); // wx, wy and wz max set to 90 deg/s
 }
-
-/*!
-  Destructor.
-
-*/
-vpSimulatorCamera::~vpSimulatorCamera() {}
 
 /*!
 
@@ -122,14 +112,14 @@ vpHomogeneousMatrix vpSimulatorCamera::getPosition() const { return (this->wMc_)
   Get the current position of the camera.
 
   \param frame : Control frame type in which to get the position, either :
-  - in the camera cartesien frame,
+  - in the camera cartesian frame,
   - joint (articular) coordinates of each axes
-  - in a reference or fixed cartesien frame attached to the robot base
-  - in a mixt cartesien frame (translation in reference frame, and rotation in
+  - in a reference or fixed cartesian frame attached to the robot base
+  - in a mixt cartesian frame (translation in reference frame, and rotation in
   camera frame)
 
   \param position : Measured position of the robot:
-  - in camera cartesien frame, a 6 dimension vector, set to 0.
+  - in camera cartesian frame, a 6 dimension vector, set to 0.
 
   - in articular, a 6 dimension vector corresponding to the articular
   position of each dof, first the 3 translations, then the 3
@@ -218,19 +208,14 @@ void vpSimulatorCamera::setVelocity(const vpRobot::vpControlFrameType frame, con
     break;
   }
   case vpRobot::REFERENCE_FRAME:
-    throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the reference frame:"
+    throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the reference frame: "
                                                               "functionality not implemented");
-    break;
   case vpRobot::MIXT_FRAME:
-    throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the mixt frame:"
+    throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the mixt frame: "
                                                               "functionality not implemented");
-
-    break;
   case vpRobot::END_EFFECTOR_FRAME:
-    throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the end-effector frame:"
+    throw vpRobotException(vpRobotException::wrongStateError, "Cannot set a velocity in the end-effector frame: "
                                                               "functionality not implemented");
-
-    break;
   }
 }
 
@@ -247,3 +232,4 @@ void vpSimulatorCamera::setPosition(const vpHomogeneousMatrix &wMc)
 
   this->wMc_ = wMc;
 }
+END_VISP_NAMESPACE

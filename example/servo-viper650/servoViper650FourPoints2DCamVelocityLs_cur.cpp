@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -32,11 +31,7 @@
  *   tests the control law
  *   eye-in-hand control
  *   velocity computed in the camera frame
- *
- * Authors:
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 /*!
   \example servoViper650FourPoints2DCamVelocityLs_cur.cpp
 
@@ -68,7 +63,7 @@
 #include <visp3/core/vpHomogeneousMatrix.h>
 #include <visp3/core/vpIoTools.h>
 #include <visp3/core/vpPoint.h>
-#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayFactory.h>
 #include <visp3/robot/vpRobotViper650.h>
 #include <visp3/sensor/vp1394TwoGrabber.h>
 #include <visp3/vision/vpPose.h>
@@ -78,6 +73,10 @@
 #include <visp3/vs/vpServoDisplay.h>
 
 #define L 0.05 // to deal with a 10cm by 10cm square
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 /*!
 
@@ -100,8 +99,6 @@
 void compute_pose(std::vector<vpPoint> &point, std::vector<vpDot2> &dot, vpCameraParameters cam,
                   vpHomogeneousMatrix &cMo, bool init)
 {
-  vpHomogeneousMatrix cMo_dementhon; // computed pose with dementhon method
-  vpHomogeneousMatrix cMo_lagrange;  // computed pose with lagrange method
   vpPose pose;
 
   for (size_t i = 0; i < point.size(); i++) {
@@ -116,20 +113,11 @@ void compute_pose(std::vector<vpPoint> &point, std::vector<vpDot2> &dot, vpCamer
   }
 
   if (init == true) {
-    pose.computePose(vpPose::DEMENTHON, cMo_dementhon);
-    // Compute and return the residual expressed in meter for the pose matrix
-    double residual_dementhon = pose.computeResidual(cMo_dementhon);
-    pose.computePose(vpPose::LAGRANGE, cMo_lagrange);
-    double residual_lagrange = pose.computeResidual(cMo_lagrange);
-
-    // Select the best pose to initialize the lowe pose computation
-    if (residual_lagrange < residual_dementhon)
-      cMo = cMo_lagrange;
-    else
-      cMo = cMo_dementhon;
+    pose.computePose(vpPose::DEMENTHON_LAGRANGE_VIRTUAL_VS, cMo);
   }
-
-  pose.computePose(vpPose::LOWE, cMo);
+  else {
+    pose.computePose(vpPose::VIRTUAL_VS, cMo);
+  }
 }
 
 int main()
@@ -137,8 +125,8 @@ int main()
   // Log file creation in /tmp/$USERNAME/log.dat
   // This file contains by line:
   // - the 6 computed camera velocities (m/s, rad/s) to achieve the task
-  // - the 6 mesured joint velocities (m/s, rad/s)
-  // - the 6 mesured joint positions (m, rad)
+  // - the 6 measured joint velocities (m/s, rad/s)
+  // - the 6 measured joint positions (m, rad)
   // - the 8 values of s - s*
   std::string username;
   // Get the user login name
@@ -153,10 +141,11 @@ int main()
     try {
       // Create the dirname
       vpIoTools::makeDirectory(logdirname);
-    } catch (...) {
+    }
+    catch (...) {
       std::cerr << std::endl << "ERROR:" << std::endl;
       std::cerr << "  Cannot create " << logdirname << std::endl;
-      return (-1);
+      return EXIT_FAILURE;
     }
   }
   std::string logfilename;
@@ -165,6 +154,11 @@ int main()
   // Open the log file name
   std::ofstream flog(logfilename.c_str());
 
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  std::shared_ptr<vpDisplay> display;
+#else
+  vpDisplay *display = nullptr;
+#endif
   try {
     vpRobotViper650 robot;
     // Load the end-effector to camera frame transformation obtained
@@ -187,7 +181,11 @@ int main()
 
     g.acquire(I);
 
-    vpDisplayX display(I, 100, 100, "Current image");
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+    display = vpDisplayFactory::createDisplay(I, 100, 100, "Current image");
+#else
+    display = vpDisplayFactory::allocateDisplay(I, 100, 100, "Current image");
+#endif
     vpDisplay::display(I);
     vpDisplay::flush(I);
 
@@ -279,13 +277,14 @@ int main()
           vpImagePoint cog = dot[i].getCog();
           vpDisplay::displayCross(I, cog, 10, vpColor::green);
         }
-      } catch (...) {
+      }
+      catch (...) {
         std::cout << "Error detected while tracking visual features.." << std::endl;
         break;
       }
 
       // During the servo, we compute the pose using a non linear method. For
-      // the initial pose used in the non linear minimisation we use the pose
+      // the initial pose used in the non linear minimization we use the pose
       // computed at the previous iteration.
       compute_pose(point, dot, cam, cMo, false);
 
@@ -354,10 +353,21 @@ int main()
     std::cout << "Display task information: " << std::endl;
     task.print();
     flog.close(); // Close the log file
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+    if (display != nullptr) {
+      delete display;
+    }
+#endif
     return EXIT_SUCCESS;
-  } catch (const vpException &e) {
+  }
+  catch (const vpException &e) {
     flog.close(); // Close the log file
     std::cout << "Catched an exception: " << e.getMessage() << std::endl;
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11)
+    if (display != nullptr) {
+      delete display;
+    }
+#endif
     return EXIT_FAILURE;
   }
 }

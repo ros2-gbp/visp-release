@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -30,16 +29,15 @@
  *
  * Description:
  * Firewire cameras video capture based on CMU 1394 Digital Camera SDK.
- *
- * Authors:
- * Lucas Lopes Lemos FEMTO-ST, AS2M departement, Besancon
- * Guillaume Laurent FEMTO-ST, AS2M departement, Besancon
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 
-#ifndef vp1394CMUGrabber_h
-#define vp1394CMUGrabber_h
+/*!
+  \file vp1394CMUGrabber.h
+  \brief Firewire cameras video capture based on CMU 1394 Digital Camera SDK.
+*/
+
+#ifndef VP_1394_CMU_GRABBER_H
+#define VP_1394_CMU_GRABBER_H
 
 #include <visp3/core/vpConfig.h>
 
@@ -48,19 +46,28 @@
 // Include WinSock2.h before windows.h to ensure that winsock.h is not
 // included by windows.h since winsock.h and winsock2.h are incompatible
 #include <1394Camera.h> // CMU library
+
+// Mute warning with clang-cl
+// warning : non-portable path to file '<WinSock2.h>'; specified path differs in case from file name on disk [-Wnonportable-system-include-path]
+// warning : non-portable path to file '<Windows.h>'; specified path differs in case from file name on disk [-Wnonportable-system-include-path]
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wnonportable-system-include-path"
+#endif
+
 #include <WinSock2.h>
 #include <windows.h>
+
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#endif
 
 #include <visp3/core/vpFrameGrabber.h>
 #include <visp3/core/vpFrameGrabberException.h>
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpRGBa.h>
 
-/*!
-  \file vp1394CMUGrabber.h
-  \brief Firewire cameras video capture based on CMU 1394 Digital Camera SDK.
-*/
-
+BEGIN_VISP_NAMESPACE
 /*!
   \class vp1394CMUGrabber
 
@@ -93,58 +100,62 @@ grab and display images from a firewire camera under Windows.
 how to grab and display images from the first camera found on the bus.
 
   \code
-#include <iostream>
+  #include <iostream>
 
-#include <visp3/core/vpImage.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/sensor/vp1394CMUGrabber.h>
+  #include <visp3/core/vpImage.h>
+  #include <visp3/gui/vpDisplayOpenCV.h>
+  #include <visp3/sensor/vp1394CMUGrabber.h>
 
-int main()
-{
-#if defined(VISP_HAVE_CMU1394)
-  std::cout << "ViSP Image acquisition example" << std::endl;
+  #ifdef ENABLE_VISP_NAMESPACE
+  using namespace VISP_NAMESPACE_NAME;
+  #endif
 
-  vpImage<unsigned char> I;
-  vp1394CMUGrabber g;
-
-  if( g.getNumberOfConnectedCameras() > 1 )
-    std::cout << "There are " << g.getNumberOfConnectedCameras() << " connected cameras." << std::endl;
-    if( g.getNumberOfConnectedCameras() == 1 )
-      std::cout << "There is " << g.getNumberOfConnectedCameras() << " connected camera." << std::endl;
-    else
-      std::cout << "There is no connected camera." << std::endl;
-
-  // Setting camera parameters manually
-  g.selectCamera(0);
-  g.setGain(0);
-  g.setShutter(2000);
-  g.setFramerate(3);    // 15 FPS
-  g.setVideoMode(0, 5); // 640x480 - MONO
-
-  g.acquire(I);
-
-  // Display camera description
-  g.displayCameraDescription(0);
-  g.displayCameraModel();
-  std::cout << "Height: " << g.getHeight() << " Width: " << g.getWidth() << std::endl;
-
-  vpDisplayOpenCV d(I);
-  vpDisplay::display(I);
-
-  for(;;)
+  int main()
   {
-    g.acquire(I);
-    vpDisplay::display(I);
-    vpDisplay::flush(I);
-    if (vpDisplay::getClick(I, false)) // a click to exit
-        break;
-  }
+  #if defined(VISP_HAVE_CMU1394)
+    std::cout << "ViSP Image acquisition example" << std::endl;
 
-  g.close();
-#endif
-  std::cout << "ViSP exiting..." <<std::endl;
-  return 0;
-}
+    vpImage<unsigned char> I;
+    vp1394CMUGrabber g;
+
+    if( g.getNumberOfConnectedCameras() > 1 )
+      std::cout << "There are " << g.getNumberOfConnectedCameras() << " connected cameras." << std::endl;
+      if( g.getNumberOfConnectedCameras() == 1 )
+        std::cout << "There is " << g.getNumberOfConnectedCameras() << " connected camera." << std::endl;
+      else
+        std::cout << "There is no connected camera." << std::endl;
+
+    // Setting camera parameters manually
+    g.selectCamera(0);
+    g.setGain(0);
+    g.setShutter(2000);
+    g.setFramerate(3);    // 15 FPS
+    g.setVideoMode(0, 5); // 640x480 - MONO
+
+    g.acquire(I);
+
+    // Display camera description
+    g.displayCameraDescription(0);
+    g.displayCameraModel();
+    std::cout << "Height: " << g.getHeight() << " Width: " << g.getWidth() << std::endl;
+
+    vpDisplayOpenCV d(I);
+    vpDisplay::display(I);
+
+    for(;;)
+    {
+      g.acquire(I);
+      vpDisplay::display(I);
+      vpDisplay::flush(I);
+      if (vpDisplay::getClick(I, false)) // a click to exit
+          break;
+    }
+
+    g.close();
+  #endif
+    std::cout << "ViSP exiting..." <<std::endl;
+    return 0;
+  }
   \endcode
 */
 
@@ -238,7 +249,8 @@ public:
         color = vp1394CMUGrabber::MONO16;
         break;
       }
-    } else if (_format == 1) {
+    }
+    else if (_format == 1) {
       switch (_mode) {
       case 0:
         color = vp1394CMUGrabber::YUV422;
@@ -265,7 +277,8 @@ public:
         color = vp1394CMUGrabber::MONO16;
         break;
       }
-    } else if (_format == 2) {
+    }
+    else if (_format == 2) {
       switch (_mode) {
       case 0:
         color = vp1394CMUGrabber::YUV422;
@@ -333,6 +346,6 @@ public:
 private:
   void initCamera();
 };
-
+END_VISP_NAMESPACE
 #endif
 #endif

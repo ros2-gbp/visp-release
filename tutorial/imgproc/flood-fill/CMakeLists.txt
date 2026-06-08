@@ -1,6 +1,6 @@
-project(tutorial-flood-fill)
+cmake_minimum_required(VERSION 3.10)
 
-cmake_minimum_required(VERSION 3.0)
+project(tutorial-flood-fill)
 
 find_package(VISP REQUIRED visp_core visp_io visp_gui visp_imgproc)
 
@@ -14,5 +14,3 @@ foreach(cpp ${tutorial_cpp})
     visp_add_dependency(${cpp} "tutorials")
   endif()
 endforeach()
-
-visp_set_source_file_compile_flag(tutorial-flood-fill.cpp -Wno-strict-overflow)

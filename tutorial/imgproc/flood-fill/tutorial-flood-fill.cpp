@@ -2,15 +2,18 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <visp3/core/vpConfig.h>
 #include <visp3/core/vpImage.h>
-#include <visp3/gui/vpDisplayGDI.h>
-#include <visp3/gui/vpDisplayOpenCV.h>
-#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpDisplayFactory.h>
 
-#if defined(VISP_HAVE_MODULE_IMGPROC) && (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI) || defined(VISP_HAVE_OPENCV))
+#if defined(VISP_HAVE_MODULE_IMGPROC) && defined(VISP_HAVE_DISPLAY)
 //! [Include]
 #include <visp3/imgproc/vpImgproc.h>
 //! [Include]
+
+#ifdef ENABLE_VISP_NAMESPACE
+using namespace VISP_NAMESPACE_NAME;
+#endif
 
 namespace
 {
@@ -111,25 +114,32 @@ int getOctant(const vpImagePoint &imPt1, const vpImagePoint &imPt2)
   if (dx >= 0 && dy >= 0) {
     if (dy >= dx) {
       return 1;
-    } else {
+    }
+    else {
       return 0;
     }
-  } else if (dx < 0 && dy >= 0) {
+  }
+  else if (dx < 0 && dy >= 0) {
     if (-dx >= dy) {
       return 3;
-    } else {
+    }
+    else {
       return 2;
     }
-  } else if (dx < 0 && dy < 0) {
+  }
+  else if (dx < 0 && dy < 0) {
     if (dy <= dx) {
       return 5;
-    } else {
+    }
+    else {
       return 4;
     }
-  } else {
+  }
+  else {
     if (dx >= -dy) {
       return 7;
-    } else {
+    }
+    else {
       return 6;
     }
   }
@@ -138,8 +148,8 @@ int getOctant(const vpImagePoint &imPt1, const vpImagePoint &imPt2)
 void drawLine(vpImage<unsigned char> &I, const unsigned char value, const vpImagePoint &imPt1_,
               const vpImagePoint &imPt2_)
 {
-  vpImagePoint imPt1((int)imPt1_.get_v(), (int)imPt1_.get_u());
-  vpImagePoint imPt2((int)imPt2_.get_v(), (int)imPt2_.get_u());
+  vpImagePoint imPt1(static_cast<int>(imPt1_.get_v()), static_cast<int>(imPt1_.get_u()));
+  vpImagePoint imPt2(static_cast<int>(imPt2_.get_v()), static_cast<int>(imPt2_.get_u()));
 
   int octant = getOctant(imPt1, imPt2);
   imPt1 = switchToOctantZeroFrom(octant, imPt1);
@@ -150,12 +160,12 @@ void drawLine(vpImage<unsigned char> &I, const unsigned char value, const vpImag
   double D = 2 * dy - dx;
   double y = imPt1.get_v();
 
-  for (int x = (int)imPt1.get_u(); x <= (int)imPt2.get_u(); x++) {
+  for (int x = static_cast<int>(imPt1.get_u()); x <= static_cast<int>(imPt2.get_u()); x++) {
     vpImagePoint currentPt(y, x);
     currentPt = switchFromOctantZeroTo(octant, currentPt);
 
-    unsigned int i = std::min(I.getHeight() - 1, (unsigned int)std::max(0.0, currentPt.get_i()));
-    unsigned int j = std::min(I.getWidth() - 1, (unsigned int)std::max(0.0, currentPt.get_j()));
+    unsigned int i = std::min<unsigned int>(I.getHeight() - 1, static_cast<unsigned int>(std::max<double>(0.0, currentPt.get_i())));
+    unsigned int j = std::min<unsigned int>(I.getWidth() - 1, static_cast<unsigned int>(std::max<double>(0.0, currentPt.get_j())));
     I[i][j] = value;
 
     if (D >= 0) {
@@ -174,21 +184,19 @@ void drawLine(vpImage<unsigned char> &I, const unsigned char value, const vpImag
 int main()
 {
 //! [Macro defined]
-#if defined(VISP_HAVE_MODULE_IMGPROC) && (defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI) || defined(VISP_HAVE_OPENCV))
+#if defined(VISP_HAVE_MODULE_IMGPROC) && defined(VISP_HAVE_DISPLAY)
   //! [Macro defined]
 
   //! [Create bitmap]
   vpImage<vpRGBa> I(480, 640, vpRGBa());
-//! [Create bitmap]
+  //! [Create bitmap]
 
-#ifdef VISP_HAVE_X11
-  vpDisplayX d;
-#elif defined(VISP_HAVE_GDI)
-  vpDisplayGDI d;
-#elif defined(VISP_HAVE_OPENCV)
-  vpDisplayOpenCV d;
+#if (VISP_CXX_STANDARD >= VISP_CXX_STANDARD_11)
+  std::shared_ptr<vpDisplay> display = vpDisplayFactory::createDisplay();
+#else
+  vpDisplay *display = vpDisplayFactory::allocateDisplay();
 #endif
-  d.init(I, 0, 0, "Paint");
+  display->init(I, 0, 0, "Paint");
 
   //! [Draw polygons]
   std::vector<vpPolygon> polygons;
@@ -196,7 +204,7 @@ int main()
     vpDisplay::display(I);
     std::stringstream ss;
     ss << "Left click to draw polygon " << i + 1 << "/3"
-       << ", right click to close the shape.";
+      << ", right click to close the shape.";
     vpDisplay::displayText(I, 20, 20, ss.str(), vpColor::red);
     vpDisplay::flush(I);
 
@@ -244,7 +252,7 @@ int main()
       switch (button) {
       case vpMouseButton::button1:
         //! [Flood fill]
-        vp::floodFill(mask, ip, 0, 255, vpImageMorphology::CONNEXITY_4);
+        VISP_NAMESPACE_NAME::floodFill(mask, ip, 0, 255, vpImageMorphology::CONNEXITY_4);
         //! [Flood fill]
 
         //! [Bucket fill]
@@ -264,6 +272,12 @@ int main()
       }
     }
   }
+
+#if (VISP_CXX_STANDARD < VISP_CXX_STANDARD_11) && defined(VISP_HAVE_DISPLAY)
+  if (display != nullptr) {
+    delete display;
+  }
+#endif
 #endif
 
   return EXIT_SUCCESS;

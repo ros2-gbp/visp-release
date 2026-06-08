@@ -398,7 +398,7 @@ class CppHeaderParser(object):
         # INFO: Handle unsigned args/return type too. open-cv didn't have any
         # TODO: I'm removing `unsigned` keyword from function declaration
         decl_str = self.batch_replace(decl_str, [("static inline", ""),("inline", ""),
-                                                 ("VISP_EXPORT", ""), ("friend", ""),('explicit','')
+                                                 ("VISP_EXPORT", ""), ("VP_EXPLICIT", ""), ("friend", ""),('explicit','')
                                       ,("unsigned","")]).strip()
 
         if decl_str.strip().startswith('virtual'):
@@ -438,7 +438,7 @@ class CppHeaderParser(object):
             return decl_str,"operator","","","",""
 
         # constructor/destructor case
-        if bool(re.match(r'^(\w+::)*(?P<x>\w+)::~?(?P=x)$', decl_start)):
+        if bool(re.match(r"^(\w+::)*(?P<x>\w+)::~?(?P=x)$", decl_start)):
             decl_start = "void " + decl_start
 
         rettype, funcname, modlist, argno = self.parse_arg(decl_start, -1)
@@ -454,15 +454,15 @@ class CppHeaderParser(object):
             if rettype == classname or rettype == "~" + classname:
                 rettype, funcname = "", rettype
             else:
-                if bool(re.match('\w+\s+\(\*\w+\)\s*\(.*\)', decl_str)):
+                if bool(re.match(r"\w+\s+\(\*\w+\)\s*\(.*\)", decl_str)):
                     return []  # function typedef
-                elif bool(re.match('\w+\s+\(\w+::\*\w+\)\s*\(.*\)', decl_str)):
+                elif bool(re.match(r"\w+\s+\(\w+::\*\w+\)\s*\(.*\)", decl_str)):
                     return []  # class method typedef
-                elif bool(re.match('[A-Z_]+', decl_start)):
+                elif bool(re.match("[A-Z_]+", decl_start)):
                     return []  # it seems to be a macro instantiation
                 elif "__declspec" == decl_start:
                     return []
-                elif bool(re.match(r'\w+\s+\(\*\w+\)\[\d+\]', decl_str)):
+                elif bool(re.match(r"\w+\s+\(\*\w+\)\[\d+\]", decl_str)):
                     return []  # exotic - dynamic 2d array
                 else:
                     # print rettype, funcname, modlist, argno
@@ -533,7 +533,7 @@ class CppHeaderParser(object):
                             eqpos = a.find("CV_WRAP_DEFAULT")
                             if eqpos >= 0:
                                 defval, pos3 = self.get_macro_arg(a, eqpos)
-                    if defval == "NULL":
+                    if defval == "nullptr":
                         defval = "0"
                     if eqpos >= 0:
                         a = a[:eqpos].strip()
@@ -824,8 +824,8 @@ class CppHeaderParser(object):
                     block_head += " " + l[:pos]
                     end_pos = l.find("*/", pos + 2)
 
-                    # INFO: open-cv follows Javadoc style (/**) for docstring, visp follows C Style(/*!)
-                    if len(l) > pos + 2 and l[pos + 2] == "!":
+                    # INFO: open-cv follows Javadoc style (/**) for docstring, visp follows C Style(/*!) or Javadoc style (/**)
+                    if len(l) > pos + 2 and ((l[pos + 2] == "!") or (l[pos + 2] == "*")):
                         # '/**', it's a docstring
                         if end_pos < 0:
                             state = DOCSTRING
@@ -867,6 +867,12 @@ class CppHeaderParser(object):
                     break
 
                 decl = None
+                if "BEGIN_VISP_NAMESPACE" in stmt:
+                  stmt = stmt.replace("BEGIN_VISP_NAMESPACE", "")
+                  stmt = stmt.strip()
+                if "END_VISP_NAMESPACE" in stmt:
+                  stmt = stmt.replace("END_VISP_NAMESPACE", "")
+                  stmt = stmt.strip()
                 if stack_top[self.PROCESS_FLAG]:
                     # even if stack_top[PUBLIC_SECTION] is False, we still try to process the statement,
                     # since it can start with "public:"
@@ -881,6 +887,9 @@ class CppHeaderParser(object):
                         docstring = ""
                     if stmt_type == "namespace":
                         chunks = [block[1] for block in self.block_stack if block[0] == 'namespace'] + [name]
+                        for i in range(len(chunks)):
+                            if chunks[i] == "VISP_NAMESPACE_NAME":
+                                chunks[i] = "visp"
                         self.namespaces.add('.'.join(chunks))
                 else:
                     stmt_type, name, parse_flag = "block", "", False

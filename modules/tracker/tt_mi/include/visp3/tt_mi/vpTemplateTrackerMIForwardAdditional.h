@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,9 +33,7 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #ifndef vpTemplateTrackerMIForwardAdditional_hh
 #define vpTemplateTrackerMIForwardAdditional_hh
 
@@ -49,11 +46,19 @@
 #include <visp3/tt_mi/vpTemplateTrackerMI.h>
 #include <visp3/tt_mi/vpTemplateTrackerMIBSpline.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
   \class vpTemplateTrackerMIForwardAdditional
   \ingroup group_tt_mi_tracker
   The algorithm implemented in this class is described in \cite Dame12a and
   \cite Marchand16a.
+
+  <h2 id="header-details" class="groupheader">Tutorials & Examples</h2>
+
+  <b>Tutorials</b><br>
+  <span style="margin-left:2em"> If you are interested in the Template Tracker based on Mutual Information (TT-MI), you may have a look at:</span><br>
+
+  - \ref tutorial-tracking-tt
 */
 class VISP_EXPORT vpTemplateTrackerMIForwardAdditional : public vpTemplateTrackerMI
 {
@@ -76,10 +81,9 @@ public:
   //! Default constructor.
   vpTemplateTrackerMIForwardAdditional()
     : vpTemplateTrackerMI(), minimizationMethod(USE_NEWTON), p_prec(), G_prec(), KQuasiNewton()
-  {
-  }
-  explicit vpTemplateTrackerMIForwardAdditional(vpTemplateTrackerWarp *_warp);
+  { }
+  VP_EXPLICIT vpTemplateTrackerMIForwardAdditional(vpTemplateTrackerWarp *_warp);
   void setMinimizationMethod(vpMinimizationTypeMIForwardAdditional method) { minimizationMethod = method; }
 };
-
+END_VISP_NAMESPACE
 #endif

@@ -1,7 +1,6 @@
-/****************************************************************************
- *
+/*
  * ViSP, open source Visual Servoing Platform software.
- * Copyright (C) 2005 - 2019 by Inria. All rights reserved.
+ * Copyright (C) 2005 - 2025 by Inria. All rights reserved.
  *
  * This software is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +13,7 @@
  * GPL, please contact Inria about acquiring a ViSP Professional
  * Edition License.
  *
- * See http://visp.inria.fr for more information.
+ * See https://visp.inria.fr for more information.
  *
  * This software was developed at:
  * Inria Rennes - Bretagne Atlantique
@@ -34,26 +33,22 @@
  * Authors:
  * Amaury Dame
  * Aurelien Yol
- * Fabien Spindler
- *
- *****************************************************************************/
+ */
 #include <visp3/core/vpTrackingException.h>
 #include <visp3/tt/vpTemplateTrackerWarpHomography.h>
 
+BEGIN_VISP_NAMESPACE
 /*!
  * Construct an homography model with 8 parameters initialized to zero.
  */
-vpTemplateTrackerWarpHomography::vpTemplateTrackerWarpHomography()
-{
-  nbParam = 8;
-}
+  vpTemplateTrackerWarpHomography::vpTemplateTrackerWarpHomography() { nbParam = 8; }
 
-/*!
- * Get the parameters of the warping function one level down
- * where image size is divided by two along the lines and the columns.
- * \param p : 8-dim vector that contains the current parameters of the warping function.
- * \param p_down : 8-dim vector that contains the resulting parameters one level down.
- */
+  /*!
+   * Get the parameters of the warping function one level down
+   * where image size is divided by two along the lines and the columns.
+   * \param p : 8-dim vector that contains the current parameters of the warping function.
+   * \param p_down : 8-dim vector that contains the resulting parameters one level down.
+   */
 void vpTemplateTrackerWarpHomography::getParamPyramidDown(const vpColVector &p, vpColVector &p_down)
 {
   p_down[0] = p[0];
@@ -92,7 +87,8 @@ void vpTemplateTrackerWarpHomography::getParamPyramidUp(const vpColVector &p, vp
  * \param du : Derivative on the u-axis (along the columns) of the point (u,v).
  * \param dIdW : Resulting derivative matrix (image according to the warping function).
  */
-void vpTemplateTrackerWarpHomography::getdW0(const int &v, const int &u, const double &dv, const double &du, double *dIdW)
+void vpTemplateTrackerWarpHomography::getdW0(const int &v, const int &u, const double &dv, const double &du,
+                                             double *dIdW)
 {
   double u_du_ = u * du;
   double v_dv_ = v * dv;
@@ -125,13 +121,13 @@ void vpTemplateTrackerWarpHomography::getdWdp0(const int &v, const int &u, doubl
   dIdW[2] = -u * u;
   dIdW[3] = v;
   dIdW[4] = 0;
-  dIdW[5] = - uv_;
+  dIdW[5] = -uv_;
   dIdW[6] = 1.;
   dIdW[7] = 0;
 
   dIdW[8] = 0;
   dIdW[9] = u;
-  dIdW[10] = - uv_;
+  dIdW[10] = -uv_;
   dIdW[11] = 0;
   dIdW[12] = v;
   dIdW[13] = -v * v;
@@ -154,7 +150,8 @@ void vpTemplateTrackerWarpHomography::computeDenom(vpColVector &X, const vpColVe
 
   if (std::fabs(value) > std::numeric_limits<double>::epsilon()) {
     denom = (1. / value);
-  } else {
+  }
+  else {
     throw(vpTrackingException(vpTrackingException::fatalError,
                               "Division by zero in vpTemplateTrackerWarpHomography::computeDenom()"));
   }
@@ -232,8 +229,8 @@ void vpTemplateTrackerWarpHomography::dWarp(const vpColVector &X, const vpColVec
  *
  * \sa computeDenom()
  */
-void vpTemplateTrackerWarpHomography::dWarpCompo(const vpColVector &, const vpColVector &X,
-                                                 const vpColVector &p, const double *dwdp0, vpMatrix &dM)
+void vpTemplateTrackerWarpHomography::dWarpCompo(const vpColVector &, const vpColVector &X, const vpColVector &p,
+                                                 const double *dwdp0, vpMatrix &dM)
 {
   double dwdx0, dwdx1;
   double dwdy0, dwdy1;
@@ -262,10 +259,11 @@ void vpTemplateTrackerWarpHomography::warpXInv(const vpColVector &X1, vpColVecto
   if (std::fabs(value) > std::numeric_limits<double>::epsilon()) {
     X2[0] = ((1 + p[0]) * X1[0] + p[3] * X1[1] + p[6]) / value;
     X2[1] = (p[1] * X1[0] + (1 + p[4]) * X1[1] + p[7]) / value;
-  } else {
+  }
+  else {
     throw(vpTrackingException(vpTrackingException::fatalError, "Division by zero in "
-                                                               "vpTemplateTrackerWarpHomography::"
-                                                               "warpXInv()"));
+                              "vpTemplateTrackerWarpHomography::"
+                              "warpXInv()"));
   }
 }
 
@@ -403,3 +401,4 @@ void vpTemplateTrackerWarpHomography::pRondp(const vpColVector &p1, const vpColV
   p12[2] = (h1_20 * h2_00 + h1_21 * h2_10 + h2_20) / h12_22;
   p12[5] = (h1_20 * h2_01 + h1_21 * h2_11 + h2_21) / h12_22;
 }
+END_VISP_NAMESPACE
